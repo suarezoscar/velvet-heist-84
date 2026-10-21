@@ -26,6 +26,11 @@ var is_sprinting: bool = false
 var is_sneaking: bool = false
 var look_target_position: Vector3 = Vector3.ZERO
 
+## Variables de replicación de red continua
+var net_target_position: Vector3 = Vector3.ZERO
+var net_target_velocity: Vector3 = Vector3.ZERO
+var is_net_interpolating: bool = false
+
 ## Vector 2D de entrada actual sin transformar
 var current_input_dir: Vector2 = Vector2.ZERO
 
@@ -118,8 +123,21 @@ func simulate_movement(delta: float) -> void:
 	_apply_gravity(delta)
 	move_and_slide()
 
-## Rota la orientación horizontal hacia look_target_position y maneja efectos de presentación.
-func update_presentation(_delta: float) -> void:
+## Recibe un snapshot de transformación por red para interpolación de presentación
+func set_net_transform(pos: Vector3, vel: Vector3) -> void:
+	net_target_position = pos
+	net_target_velocity = vel
+	is_net_interpolating = true
+
+## Rota la orientación horizontal hacia look_target_position e interpola en red.
+func update_presentation(delta: float) -> void:
+	if is_net_interpolating:
+		if global_position.distance_squared_to(net_target_position) > 25.0:
+			global_position = net_target_position
+		else:
+			global_position = global_position.lerp(net_target_position, clampf(15.0 * delta, 0.0, 1.0))
+		velocity = net_target_velocity
+
 	var dir: Vector3 = look_target_position - global_position
 	dir.y = 0.0
 	if dir.length_squared() > 0.01:

@@ -43,6 +43,10 @@ func _ready() -> void:
 	add_child(interactor)
 
 func _physics_process(delta: float) -> void:
+	if multiplayer.multiplayer_peer != null and not is_multiplayer_authority():
+		update_presentation(delta)
+		return
+
 	if is_ai_controlled:
 		if baton_cooldown > 0.0:
 			baton_cooldown = maxf(0.0, baton_cooldown - delta)
