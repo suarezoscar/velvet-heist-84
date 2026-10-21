@@ -1,0 +1,9 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/systems/cctv_monitor_3d.gd" id="1_yqxxb"]
+[ext_resource type="PackedScene" path="res://assets/models/security_tv.glb" id="2_khogu"]
+
+[node name="CCTVMonitor3D" type="Node3D" unique_id=1151278438]
+script = ExtResource("1_yqxxb")
+
+[node name="TVModel" type="Node3D" parent="." unique_id=2145492565 instance=ExtResource("2_khogu")]

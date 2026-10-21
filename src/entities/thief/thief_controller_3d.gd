@@ -1,0 +1,95 @@
+## @file thief_controller_3d.gd
+## Controlador específico del Ladrón de guante blanco.
+## Gestiona la alta movilidad, el transporte de botín pesado, el ancla de manos
+## y la interacción física mediante el componente Interactor3D.
+class_name ThiefController3D
+extends PlayerBase3D
+
+## Cámara isométrica activa para la proyección del cursor
+@export var camera: Camera3D
+
+## Nodo raíz visual del personaje (oculto para guardias fuera de visión)
+@export var visual_root: Node3D
+
+## Ancla visual en las manos del ladrón para objetos transportados
+var carry_anchor: Node3D = null
+
+## Referencia al botín pesado que actualmente se sostiene
+var carried_loot: Node3D = null
+
+## Bandera de penalización por peso (-20% de velocidad)
+var is_carrying_heavy_loot: bool = false
+
+## Estado de detección por parte de guardias
+var is_detected_by_guard: bool = false
+
+## Componente modular de interacción
+var interactor: Interactor3D = null
+
+func _ready() -> void:
+	super._ready()
+	team_id = &"thief"
+	move_speed = 5.0
+	sprint_speed = 7.5
+	sneak_speed = 2.4
+
+	_setup_carry_anchor()
+	_setup_interactor()
+
+func _setup_carry_anchor() -> void:
+	carry_anchor = Node3D.new()
+	carry_anchor.name = "CarryAnchor3D"
+	carry_anchor.position = Vector3(0.0, 0.85, 0.5)
+	add_child(carry_anchor)
+
+func _setup_interactor() -> void:
+	interactor = Interactor3D.new()
+	interactor.name = "ThiefInteractor"
+	interactor.reach_distance = 1.8
+	add_child(interactor)
+
+func _physics_process(delta: float) -> void:
+	var left: StringName = &"move_left" if InputMap.has_action("move_left") else &"ui_left"
+	var right: StringName = &"move_right" if InputMap.has_action("move_right") else &"ui_right"
+	var up: StringName = &"move_up" if InputMap.has_action("move_up") else &"ui_up"
+	var down: StringName = &"move_down" if InputMap.has_action("move_down") else &"ui_down"
+	var input_dir: Vector2 = Input.get_vector(left, right, up, down)
+
+	is_sprinting = Input.is_action_pressed("sprint") if InputMap.has_action("sprint") else false
+	is_sneaking = Input.is_action_pressed("sneak") if InputMap.has_action("sneak") else false
+
+	process_isometric_movement(delta, input_dir, camera)
+
+	# Penalización por botín pesado según la regla del GSD (-20%)
+	if is_carrying_heavy_loot:
+		velocity.x *= 0.8
+		velocity.z *= 0.8
+
+	_handle_interaction_input()
+
+func _handle_interaction_input() -> void:
+	var interact_pressed: bool = Input.is_action_just_pressed("interact") if InputMap.has_action("interact") else false
+	if interact_pressed and interactor != null:
+		interactor.execute_interaction(self)
+
+## Sujeta físicamente un botín pesado en las manos del ladrón
+func carry_heavy_loot(loot: Node3D) -> void:
+	carried_loot = loot
+	is_carrying_heavy_loot = true
+
+## Suelta o deposita el botín pesado, restaurando la velocidad normal
+func drop_heavy_loot() -> void:
+	carried_loot = null
+	is_carrying_heavy_loot = false
+
+## Actualiza la visibilidad del ladrón frente a los guardias
+func set_stealth_visibility(is_visible_to_guards: bool) -> void:
+	is_detected_by_guard = is_visible_to_guards
+	# El jugador local siempre ve a su propio ladrón en vista isométrica
+	if visual_root != null:
+		visual_root.visible = true
+
+## Propiedad de conveniencia para que el HUD consulte el interactuable enfocado
+var focused_interactive: Node3D:
+	get:
+		return interactor.current_target if interactor != null else null

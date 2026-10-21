@@ -1,0 +1,21 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/entities/loot_item_3d.gd" id="1_wbmwf"]
+[ext_resource type="PackedScene" path="res://assets/models/marble_bust.glb" id="2_blj6i"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_kiwdm"]
+size = Vector3(0.6, 0.8, 0.6)
+
+[node name="LootMasterpiece" type="Area3D" unique_id=1154789671]
+script = ExtResource("1_wbmwf")
+loot_name = "Busto de Mármol Renacentista"
+loot_value = 5000
+is_heavy = true
+is_masterpiece = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1771899756]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+shape = SubResource("BoxShape3D_kiwdm")
+
+[node name="MarbleBustMesh" type="Node3D" parent="." unique_id=1532463305 instance=ExtResource("2_blj6i")]
+transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, -0.64, 0, 0)

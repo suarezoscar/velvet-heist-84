@@ -1,0 +1,13 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/velour_velvet_Diffuse.png" id="1_svo56"]
+[ext_resource type="Texture2D" path="res://assets/textures/velour_velvet_nor_gl.png" id="2_rai18"]
+[ext_resource type="Texture2D" path="res://assets/textures/velour_velvet_Rough.png" id="3_mhrfy"]
+
+[resource]
+albedo_texture = ExtResource("1_svo56")
+roughness_texture = ExtResource("3_mhrfy")
+roughness_texture_channel = 4
+normal_enabled = true
+normal_texture = ExtResource("2_rai18")
+uv1_scale = Vector3(2, 2, 2)

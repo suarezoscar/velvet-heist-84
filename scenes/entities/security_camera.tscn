@@ -1,0 +1,29 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/systems/security_camera_3d.gd" id="1_8iji0"]
+[ext_resource type="PackedScene" path="res://assets/models/cctv_camera_84.glb" id="2_djphq"]
+
+[node name="SecurityCamera3D" type="Node3D" unique_id=628130530]
+script = ExtResource("1_8iji0")
+
+[node name="CameraMount" type="Node3D" parent="." unique_id=1923706138]
+
+[node name="CameraMesh" type="Node3D" parent="CameraMount" unique_id=668297039 instance=ExtResource("2_djphq")]
+
+[node name="SpotLight3D" type="SpotLight3D" parent="CameraMount" unique_id=1815768914]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.16, 0.48)
+light_color = Color(0.85, 0.95, 0.75, 1)
+light_energy = 0.8
+spot_range = 9.5
+spot_angle = 26.0
+
+[node name="RemoteTransform3D" type="RemoteTransform3D" parent="CameraMount" unique_id=928056551]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.16, 0.48)
+
+[node name="SubViewport" type="SubViewport" parent="." unique_id=1851180423]
+size = Vector2i(320, 240)
+render_target_update_mode = 4
+
+[node name="InternalCamera3D" type="Camera3D" parent="SubViewport" unique_id=1138373922]
+current = true
+fov = 52.0
