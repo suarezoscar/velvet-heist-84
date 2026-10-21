@@ -5,6 +5,12 @@
 class_name ThiefController3D
 extends PlayerBase3D
 
+## Factor multiplicador de velocidad al cargar botín pesado (-20% según GSD 4.3)
+const HEAVY_LOOT_SPEED_MULTIPLIER: float = 0.8
+
+## Número de impactos de porra necesarios para ser capturado (GSD regla de neutralización)
+const REQUIRED_HITS_TO_CAPTURE: int = 2
+
 ## Cámara isométrica activa para la proyección del cursor
 @export var camera: Camera3D
 
@@ -19,6 +25,9 @@ var carried_loot: Node3D = null
 
 ## Bandera de penalización por peso (-20% de velocidad)
 var is_carrying_heavy_loot: bool = false
+
+## Impactos de porra recibidos
+var baton_hits_taken: int = 0
 
 ## Estado de detección por parte de guardias
 var is_detected_by_guard: bool = false
@@ -62,8 +71,8 @@ func _physics_process(delta: float) -> void:
 
 	# Penalización por botín pesado según la regla del GSD (-20%)
 	if is_carrying_heavy_loot:
-		velocity.x *= 0.8
-		velocity.z *= 0.8
+		velocity.x *= HEAVY_LOOT_SPEED_MULTIPLIER
+		velocity.z *= HEAVY_LOOT_SPEED_MULTIPLIER
 
 	_handle_interaction_input()
 
@@ -81,6 +90,19 @@ func carry_heavy_loot(loot: Node3D) -> void:
 func drop_heavy_loot() -> void:
 	carried_loot = null
 	is_carrying_heavy_loot = false
+
+## Determina si el ladrón puede utilizar gadgets (bloqueado mientras carga botín pesado según GSD 4.3)
+func can_use_gadgets() -> bool:
+	return not is_carrying_heavy_loot
+
+## Registra un impacto recibido de porra. Devuelve true si el ladrón ha sido neutralizado (2 impactos)
+func register_baton_hit() -> bool:
+	baton_hits_taken += 1
+	return baton_hits_taken >= REQUIRED_HITS_TO_CAPTURE
+
+## Reinicia los impactos de porra acumulados
+func reset_baton_hits() -> void:
+	baton_hits_taken = 0
 
 ## Actualiza la visibilidad del ladrón frente a los guardias
 func set_stealth_visibility(is_visible_to_guards: bool) -> void:

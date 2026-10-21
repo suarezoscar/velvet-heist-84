@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="SurfaceAcousticData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/entities/components/surface_acoustic_data.gd" id="1_surface"]
+
+[resource]
+script = ExtResource("1_surface")
+surface_id = &"wood_parquet"
+noise_multiplier = 1.5

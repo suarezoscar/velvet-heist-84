@@ -39,3 +39,9 @@ Ninguno.
 ## Riesgos y decisiones abiertas
 - ¿GdUnit4 o GUT?: Decidido: GUT aprobado por el usuario. CLI headless: `godot --headless -s addons/gut/gut_cmdln.gd -gexit`.
 - Algunos sistemas pueden depender del árbol de escena y no ser testeables sin cambios; si ocurre, se documenta aquí en lugar de refactorizar.
+
+## Constantes extraídas y adaptaciones mínimas para testeo
+- `SurfaceDetector3D`: Extraídas constantes `CARPET_NOISE_MULTIPLIER = 0.2`, `WOOD_PARQUET_NOISE_MULTIPLIER = 1.5`, `MARBLE_NOISE_MULTIPLIER = 1.2` según GSD 4.1. Creados recursos de balance en `data/balance/surface_*.tres` y clase `SurfaceAcousticData`.
+- `ThiefController3D`: Extraídas constantes `HEAVY_LOOT_SPEED_MULTIPLIER = 0.8` (GSD 4.3) y `REQUIRED_HITS_TO_CAPTURE = 2` (GSD 1.0). Añadidos métodos de consulta `can_use_gadgets() -> bool`, `register_baton_hit() -> bool` y `reset_baton_hits() -> void`.
+- `GuardController3D`: Extraída constante `BATON_COOLDOWN_TIME = 0.75`. En `swing_baton()`, delega el conteo de impactos en `register_baton_hit()` para requerir los 2 impactos de porra especificados en el GSD. Control de colinealidad con `Vector3.UP` en orientación de linterna.
+- `TimeClock3D`: Extraída constante `DEFAULT_ROUND_DURATION = 90.0` (GSD 3.0).

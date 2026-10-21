@@ -10,6 +10,11 @@ const RAY_LENGTH: float = 1.2
 ## Multiplicador de ruido por defecto si el suelo no tiene metadatos definidos
 const DEFAULT_NOISE_MULTIPLIER: float = 1.0
 
+## Multiplicadores acústicos de superficie según GSD 4.1
+const CARPET_NOISE_MULTIPLIER: float = 0.2
+const WOOD_PARQUET_NOISE_MULTIPLIER: float = 1.5
+const MARBLE_NOISE_MULTIPLIER: float = 1.2
+
 ## Capa de colisión del entorno estático (muros y suelos)
 const ENVIRONMENT_COLLISION_MASK: int = 1
 

@@ -13,11 +13,14 @@ signal clock_expired(clock_id: int)
 ## Identificador del reloj en el mapa
 @export var clock_id: int = 1
 
+## Duración por defecto del ciclo de ronda de patrulla (90s según GSD 3.0)
+const DEFAULT_ROUND_DURATION: float = 90.0
+
 ## Duración en segundos de cada ciclo de ronda (90s según GSD)
-@export var round_duration: float = 90.0
+@export var round_duration: float = DEFAULT_ROUND_DURATION
 
 ## Tiempo restante antes de que suene la alarma de infracción
-var time_left: float = 90.0
+var time_left: float = DEFAULT_ROUND_DURATION
 
 ## Indica si el reloj está en estado de alarma por tiempo vencido
 var is_expired: bool = false
