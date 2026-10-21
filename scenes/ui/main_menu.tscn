@@ -76,6 +76,12 @@ layout_mode = 2
 text = "📁  SELECCIÓN DE OPERACIONES"
 alignment = 0
 
+[node name="OnlineButton" type="Button" parent="MainView/ButtonsBox" unique_id=143285709]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+text = "🌐  OPERACIÓN ONLINE (1vN)"
+alignment = 0
+
 [node name="QuitButton" type="Button" parent="MainView/ButtonsBox" unique_id=98996705]
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
@@ -179,3 +185,204 @@ offset_top = 600.0
 offset_right = 80.0
 offset_bottom = 600.0
 text = "◀  VOLVER AL MENÚ PRINCIPAL"
+
+[node name="LobbyView" type="Control" parent="." unique_id=1984777701]
+visible = false
+anchors_preset = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="HeaderBox" type="VBoxContainer" parent="LobbyView" unique_id=1984777702]
+layout_mode = 0
+offset_left = 80.0
+offset_top = 35.0
+offset_right = 1580.0
+offset_bottom = 95.0
+theme_override_constants/separation = 4
+
+[node name="LobbyTitleLabel" type="Label" parent="LobbyView/HeaderBox" unique_id=1984777703]
+modulate = Color(1, 0.85, 0.35, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "SALA DE TRANSMISIÓN ANALÓGICA — FRECUENCIA 7777"
+
+[node name="LobbyStatusLabel" type="Label" parent="LobbyView/HeaderBox" unique_id=1984777704]
+modulate = Color(0.35, 0.9, 0.85, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+text = "ESTADO: DESCONECTADO"
+
+[node name="ColumnsHBox" type="HBoxContainer" parent="LobbyView" unique_id=1984777705]
+custom_minimum_size = Vector2(1500, 530)
+layout_mode = 0
+offset_left = 80.0
+offset_top = 110.0
+offset_right = 1580.0
+offset_bottom = 640.0
+theme_override_constants/separation = 30
+
+[node name="ConnectionPanel" type="PanelContainer" parent="LobbyView/ColumnsHBox" unique_id=1984777706]
+custom_minimum_size = Vector2(380, 530)
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="LobbyView/ColumnsHBox/ConnectionPanel" unique_id=1984777707]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="SectionTitle" type="Label" parent="LobbyView/ColumnsHBox/ConnectionPanel/VBox" unique_id=1984777708]
+modulate = Color(1, 0.85, 0.35, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+text = "PARÁMETROS DE SINTONIZACIÓN"
+
+[node name="IpLabel" type="Label" parent="LobbyView/ColumnsHBox/ConnectionPanel/VBox" unique_id=1984777709]
+modulate = Color(0.75, 0.8, 0.85, 0.9)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "DIRECCIÓN IP / REPETIDOR:"
+
+[node name="IpEdit" type="LineEdit" parent="LobbyView/ColumnsHBox/ConnectionPanel/VBox" unique_id=1984777710]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+text = "127.0.0.1"
+placeholder_text = "127.0.0.1"
+
+[node name="PortLabel" type="Label" parent="LobbyView/ColumnsHBox/ConnectionPanel/VBox" unique_id=1984777711]
+modulate = Color(0.75, 0.8, 0.85, 0.9)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "PUERTO ANALÓGICO:"
+
+[node name="PortEdit" type="LineEdit" parent="LobbyView/ColumnsHBox/ConnectionPanel/VBox" unique_id=1984777712]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+text = "7777"
+placeholder_text = "7777"
+
+[node name="HSeparator" type="HSeparator" parent="LobbyView/ColumnsHBox/ConnectionPanel/VBox" unique_id=1984777713]
+layout_mode = 2
+
+[node name="HostButton" type="Button" parent="LobbyView/ColumnsHBox/ConnectionPanel/VBox" unique_id=1984777714]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+text = "CREAR OPERACIÓN (HOST)"
+
+[node name="JoinButton" type="Button" parent="LobbyView/ColumnsHBox/ConnectionPanel/VBox" unique_id=1984777715]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+text = "UNIRSE A FRECUENCIA"
+
+[node name="DisconnectButton" type="Button" parent="LobbyView/ColumnsHBox/ConnectionPanel/VBox" unique_id=1984777716]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+disabled = true
+text = "DESCONECTAR"
+
+[node name="ConnectionLogLabel" type="Label" parent="LobbyView/ColumnsHBox/ConnectionPanel/VBox" unique_id=1984777717]
+modulate = Color(0.35, 0.9, 0.85, 0.85)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "RECEPTOR DE ONDA CORTA LISTO."
+autowrap_mode = 3
+
+[node name="RolesPanel" type="PanelContainer" parent="LobbyView/ColumnsHBox" unique_id=1984777718]
+custom_minimum_size = Vector2(500, 530)
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="LobbyView/ColumnsHBox/RolesPanel" unique_id=1984777719]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="RolesTitle" type="Label" parent="LobbyView/ColumnsHBox/RolesPanel/VBox" unique_id=1984777720]
+modulate = Color(1, 0.85, 0.35, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+text = "ASIGNACIÓN TÁCTICA DE ROLES"
+
+[node name="RolesSubtitle" type="Label" parent="LobbyView/ColumnsHBox/RolesPanel/VBox" unique_id=1984777721]
+modulate = Color(0.75, 0.8, 0.85, 0.8)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "FRECUENCIA ASIMÉTRICA: 1 LADRÓN VS HASTA 3 GUARDIAS"
+
+[node name="RoleThiefButton" type="Button" parent="LobbyView/ColumnsHBox/RolesPanel/VBox" unique_id=1984777722]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+text = "INFILTRADO (LADRÓN)"
+alignment = 0
+
+[node name="RoleGuard1Button" type="Button" parent="LobbyView/ColumnsHBox/RolesPanel/VBox" unique_id=1984777723]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+text = "GUARDIA 1"
+alignment = 0
+
+[node name="RoleGuard2Button" type="Button" parent="LobbyView/ColumnsHBox/RolesPanel/VBox" unique_id=1984777724]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+text = "GUARDIA 2"
+alignment = 0
+
+[node name="RoleGuard3Button" type="Button" parent="LobbyView/ColumnsHBox/RolesPanel/VBox" unique_id=1984777725]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+text = "GUARDIA 3"
+alignment = 0
+
+[node name="HSeparator" type="HSeparator" parent="LobbyView/ColumnsHBox/RolesPanel/VBox" unique_id=1984777726]
+layout_mode = 2
+
+[node name="CurrentRoleInfoLabel" type="Label" parent="LobbyView/ColumnsHBox/RolesPanel/VBox" unique_id=1984777727]
+modulate = Color(0.35, 0.9, 0.85, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "TU FRECUENCIA ASIGNADA: NINGUNA"
+
+[node name="PlayersPanel" type="PanelContainer" parent="LobbyView/ColumnsHBox" unique_id=1984777728]
+custom_minimum_size = Vector2(560, 530)
+layout_mode = 2
+
+[node name="VBox" type="VBoxContainer" parent="LobbyView/ColumnsHBox/PlayersPanel" unique_id=1984777729]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="PlayersTitle" type="Label" parent="LobbyView/ColumnsHBox/PlayersPanel/VBox" unique_id=1984777730]
+modulate = Color(1, 0.85, 0.35, 1)
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+text = "AGENTES SINTONIZADOS EN FRECUENCIA"
+
+[node name="Scroll" type="ScrollContainer" parent="LobbyView/ColumnsHBox/PlayersPanel/VBox" unique_id=1984777731]
+custom_minimum_size = Vector2(0, 450)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PlayersListContainer" type="VBoxContainer" parent="LobbyView/ColumnsHBox/PlayersPanel/VBox/Scroll" unique_id=1984777732]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="BottomActionsHBox" type="HBoxContainer" parent="LobbyView" unique_id=1984777733]
+custom_minimum_size = Vector2(1500, 54)
+layout_mode = 0
+offset_left = 80.0
+offset_top = 665.0
+offset_right = 1580.0
+offset_bottom = 719.0
+theme_override_constants/separation = 30
+
+[node name="LobbyBackButton" type="Button" parent="LobbyView/BottomActionsHBox" unique_id=1984777734]
+custom_minimum_size = Vector2(260, 50)
+layout_mode = 2
+text = "◀  VOLVER AL MENÚ"
+
+[node name="Spacer" type="Control" parent="LobbyView/BottomActionsHBox" unique_id=1984777735]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="StartMatchButton" type="Button" parent="LobbyView/BottomActionsHBox" unique_id=1984777736]
+modulate = Color(1, 0.85, 0.35, 1)
+custom_minimum_size = Vector2(340, 50)
+layout_mode = 2
+disabled = true
+text = "▶  COMENZAR OPERACIÓN"
