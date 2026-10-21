@@ -1,8 +1,9 @@
 # FEAT-000 — Línea base de verificación
 
-- **Estado**: borrador
+- **Estado**: aprobada
 - **Responsable**: gameplay-engineer  **Revisor**: lead-architect
 - **Fase del GSD**: transversal (antes de la Fase 3)
+- **Decisión del framework**: GUT (aprobado por el usuario el 2026-10-21)
 
 ## Objetivo
 Crear la red de seguridad que permite a los agentes cambiar el proyecto sin romper lo que ya funciona: comandos de verificación, tests de caracterización y CI.
@@ -36,5 +37,5 @@ Ninguno.
 3. lead-architect: revisión y actualización de `AGENTS.md` con los comandos reales.
 
 ## Riesgos y decisiones abiertas
-- ¿GdUnit4 o GUT? El agente propone una opción con motivos y el usuario decide.
+- ¿GdUnit4 o GUT?: Decidido: GUT aprobado por el usuario. CLI headless: `godot --headless -s addons/gut/gut_cmdln.gd -gexit`.
 - Algunos sistemas pueden depender del árbol de escena y no ser testeables sin cambios; si ocurre, se documenta aquí en lugar de refactorizar.
