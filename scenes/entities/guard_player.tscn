@@ -1,0 +1,31 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/entities/guard/guard_controller_3d.gd" id="1_6l3cm"]
+[ext_resource type="PackedScene" path="res://assets/models/characters/guard_stylized.glb" id="2_yjoph"]
+[ext_resource type="Script" path="res://src/entities/components/character_animator_3d.gd" id="3_eycjd"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_7icro"]
+radius = 0.4
+height = 1.7
+
+[node name="GuardPlayer" type="CharacterBody3D" unique_id=302722497 node_paths=PackedStringArray("maglite_light")]
+collision_layer = 2
+script = ExtResource("1_6l3cm")
+maglite_light = NodePath("MagliteSpotLight")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1851170254]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
+shape = SubResource("CapsuleShape3D_7icro")
+
+[node name="KnightMesh" type="Node3D" parent="." unique_id=676163397 instance=ExtResource("2_yjoph")]
+
+[node name="MagliteSpotLight" type="SpotLight3D" parent="." unique_id=2105594722]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0.4)
+light_color = Color(1, 0.95, 0.75, 1)
+light_energy = 3.5
+shadow_enabled = true
+spot_range = 9.0
+spot_angle = 32.0
+
+[node name="CharacterAnimator3D" type="Node" parent="." unique_id=427829685]
+script = ExtResource("3_eycjd")

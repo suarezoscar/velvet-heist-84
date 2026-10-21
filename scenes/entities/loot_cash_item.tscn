@@ -1,0 +1,20 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/entities/loot_item_3d.gd" id="1_mlwdf"]
+[ext_resource type="PackedScene" path="res://assets/models/loot_cash.glb" id="2_7s3ic"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_webu7"]
+size = Vector3(0.5, 0.3, 0.5)
+
+[node name="LootCash" type="Area3D" unique_id=1212076551]
+script = ExtResource("1_mlwdf")
+loot_name = "Fajo de Billetes"
+loot_value = 2500
+is_heavy = false
+is_masterpiece = false
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1120467469]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+shape = SubResource("BoxShape3D_webu7")
+
+[node name="LootCashMesh" type="Node3D" parent="." unique_id=551538055 instance=ExtResource("2_7s3ic")]
