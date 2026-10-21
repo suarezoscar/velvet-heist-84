@@ -58,6 +58,10 @@ func _setup_interactor() -> void:
 	add_child(interactor)
 
 func _physics_process(delta: float) -> void:
+	if multiplayer.multiplayer_peer != null and not is_multiplayer_authority():
+		update_presentation(delta)
+		return
+
 	var input_data: Dictionary = gather_input(camera)
 	apply_input(input_data)
 	simulate_movement(delta)
