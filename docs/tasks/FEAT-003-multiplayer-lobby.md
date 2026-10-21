@@ -1,6 +1,6 @@
 # FEAT-003 — Lobby Online, Servidor Dedicado y Sincronización Multijugador
 
-- **Estado**: aprobada
+- **Estado**: hecha (revisada y aprobada por lead-architect)
 - **Responsable**: gameplay-engineer y vfx-ui-engineer  **Revisor**: lead-architect
 - **Fase del GSD**: 2 (Lobby con ENetMultiplayerPeer y sincronización de red)
 
