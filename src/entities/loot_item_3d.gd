@@ -27,9 +27,18 @@ func _ready() -> void:
 	collision_mask = 2  # Ladrón
 	monitoring = true
 
-## Solo puede interactuarse si no ha sido asegurado todavía
-func can_interact(_actor: Node3D) -> bool:
-	return not is_collected
+## Solo puede interactuarse si no ha sido asegurado todavía y el actor es un ladrón válido
+func can_interact(actor: Node3D = null) -> bool:
+	if is_collected:
+		return false
+	if actor != null:
+		if not (actor is ThiefController3D):
+			return false
+		if is_heavy:
+			var thief: ThiefController3D = actor as ThiefController3D
+			if thief.carried_loot != null:
+				return false
+	return true
 
 ## Devuelve el texto descriptivo para el tooltip del HUD
 func get_interaction_text(_actor: Node3D = null) -> String:

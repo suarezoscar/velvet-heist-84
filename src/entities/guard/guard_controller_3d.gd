@@ -43,31 +43,38 @@ func _ready() -> void:
 	add_child(interactor)
 
 func _physics_process(delta: float) -> void:
-	if baton_cooldown > 0.0:
-		baton_cooldown -= delta
-
 	if is_ai_controlled:
+		if baton_cooldown > 0.0:
+			baton_cooldown = maxf(0.0, baton_cooldown - delta)
 		_update_maglite_orientation()
 		return
 
-	var input_dir: Vector2 = Input.get_vector(
-		&"move_left" if InputMap.has_action("move_left") else &"ui_left",
-		&"move_right" if InputMap.has_action("move_right") else &"ui_right",
-		&"move_up" if InputMap.has_action("move_up") else &"ui_up",
-		&"move_down" if InputMap.has_action("move_down") else &"ui_down"
-	)
-	_process_stamina_and_sprint(delta, input_dir)
-	process_isometric_movement(delta, input_dir, camera)
-	_update_maglite_orientation()
+	var input_data: Dictionary = gather_input(camera)
+	apply_input(input_data)
+	simulate_movement(delta)
+	update_presentation(delta)
 	_handle_interaction_input()
 
+## Simulación física del guardia: gestiona estamina para sprint, cooldown de porra y movimiento
+func simulate_movement(delta: float) -> void:
+	if baton_cooldown > 0.0:
+		baton_cooldown = maxf(0.0, baton_cooldown - delta)
+
+	_process_stamina_and_sprint(delta, current_input_dir)
+	super.simulate_movement(delta)
+
+## Actualiza la presentación visual del guardia y la orientación del foco Maglite
+func update_presentation(delta: float) -> void:
+	super.update_presentation(delta)
+	_update_maglite_orientation()
+
 func _process_stamina_and_sprint(delta: float, input_dir: Vector2) -> void:
-	var sprint_requested: bool = Input.is_action_pressed("sprint") if InputMap.has_action("sprint") else false
-	if sprint_requested and stamina > 5.0 and input_dir.length_squared() > 0.01:
-		is_sprinting = true
+	if is_sprinting and (stamina <= 5.0 or input_dir.length_squared() <= 0.01):
+		is_sprinting = false
+
+	if is_sprinting:
 		stamina = maxf(0.0, stamina - stamina_drain_rate * delta)
 	else:
-		is_sprinting = false
 		stamina = minf(max_stamina, stamina + stamina_recovery_rate * delta)
 
 func _handle_interaction_input() -> void:
@@ -124,17 +131,34 @@ func _has_line_of_sight(space_state: PhysicsDirectSpaceState3D, from: Vector3, t
 	var result: Dictionary = space_state.intersect_ray(query)
 	return result.is_empty()
 
-## Ejecuta un golpe con la porra de madera
+## Valida de forma autoritativa en el servidor si un golpe cuerpo a cuerpo es legítimo
+func validate_melee_hit(target_thief: ThiefController3D) -> bool:
+	if target_thief == null:
+		return false
+	if global_position.distance_to(target_thief.global_position) > melee_range:
+		return false
+	if is_inside_tree() and get_world_3d() != null:
+		var space_state: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
+		if space_state != null:
+			var guard_torso: Vector3 = global_position + Vector3(0.0, 1.0, 0.0)
+			var thief_torso: Vector3 = target_thief.global_position + Vector3(0.0, 1.0, 0.0)
+			if not _has_line_of_sight(space_state, guard_torso, thief_torso):
+				return false
+	return true
+
+## Ejecuta un golpe con la porra de madera validado autoritativamente
 func swing_baton(target_thief: ThiefController3D = null) -> bool:
 	if baton_cooldown > 0.0:
 		return false
+
+	var valid_hit: bool = target_thief != null and validate_melee_hit(target_thief)
 
 	baton_cooldown = BATON_COOLDOWN_TIME
 	var bus: Node = get_node_or_null("/root/SignalBus")
 	if bus != null:
 		bus.emit_signal("noise_emitted_3d", global_position, 4.5, &"guard")
 
-	if target_thief != null and global_position.distance_to(target_thief.global_position) <= melee_range:
+	if valid_hit:
 		var is_captured: bool = true
 		if target_thief.has_method("register_baton_hit"):
 			is_captured = target_thief.register_baton_hit()
