@@ -1,6 +1,6 @@
 # FEAT-001 — Validador de assets y paleta compartida
 
-- **Estado**: aprobada
+- **Estado**: hecha (revisada y aprobada por lead-architect)
 - **Responsable**: technical-artist  **Revisor**: lead-architect
 - **Fase del GSD**: transversal
 
