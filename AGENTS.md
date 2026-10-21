@@ -34,12 +34,13 @@ El código previo usa `VisualRoot`; migrarlo a `Visuals` solo mediante una FEAT 
 `scenes/maps/` lo ensambla el usuario; un agente solo toca mapas si una FEAT lo pide. Para cambiar algo fuera de tu carpeta, pídeselo a su dueño a través del agente principal.
 
 ## Definición de hecho
-1. Código tipado y parseable.
-2. Tests nuevos o actualizados en verde.
-3. Assets con validación JSON en `pass`.
-4. Cada criterio de la FEAT con su evidencia.
-5. Revisión de otro agente sin bloqueantes.
-Los comandos concretos viven en `tools/ci/` (ver FEAT-000).
+1. Importación limpia: `./tools/ci/import.sh` (0 errores).
+2. Código tipado y parseable: `./tools/ci/check_scripts.sh` (o `godot --headless --check-only --script res://...`).
+3. Tests nuevos o actualizados en verde: `./tools/ci/run_tests.sh` (GUT headless).
+4. Lint y formato: `./tools/ci/lint.sh` (`gdlint`, `gdformat --check`).
+5. Assets con validación JSON en `pass` (FEAT-001).
+6. Cada criterio de la FEAT con su evidencia empírica.
+7. Revisión de otro agente sin bloqueantes (`/review`).
 
 ## Prohibido
 - `get_parent().get_parent()` y rutas absolutas hardcodeadas.
