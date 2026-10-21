@@ -1,6 +1,6 @@
 # FEAT-002 — Preparación para red (antes del lobby LAN/Online)
 
-- **Estado**: aprobada
+- **Estado**: hecha (revisada y aprobada por lead-architect)
 - **Responsable**: gameplay-engineer  **Revisor**: lead-architect
 - **Fase del GSD**: 2 (pendiente: lobby con ENetMultiplayerPeer)
 
