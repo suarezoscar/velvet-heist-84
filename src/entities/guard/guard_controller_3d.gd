@@ -11,6 +11,9 @@ extends PlayerBase3D
 ## Linterna Maglite asignada al personaje
 @export var maglite_light: SpotLight3D
 
+## Cooldown entre impactos de porra en segundos
+const BATON_COOLDOWN_TIME: float = 0.75
+
 ## Alcance del golpe cuerpo a cuerpo con la porra en metros
 @export var melee_range: float = 1.6
 
@@ -79,7 +82,10 @@ func _update_maglite_orientation() -> void:
 
 	var dir_to_target: Vector3 = (look_target_position - maglite_light.global_position).normalized()
 	if dir_to_target.length_squared() > 0.01:
-		maglite_light.look_at(look_target_position, Vector3.UP)
+		var up_vector: Vector3 = Vector3.UP
+		if absf(dir_to_target.dot(Vector3.UP)) > 0.98:
+			up_vector = Vector3.FORWARD
+		maglite_light.look_at(look_target_position, up_vector)
 
 ## Evalúa si el ladrón es detectable según:
 ## 1. Proximidad inmediata (1.8m sin obstáculos)
@@ -123,13 +129,17 @@ func swing_baton(target_thief: ThiefController3D = null) -> bool:
 	if baton_cooldown > 0.0:
 		return false
 
-	baton_cooldown = 0.75
+	baton_cooldown = BATON_COOLDOWN_TIME
 	var bus: Node = get_node_or_null("/root/SignalBus")
 	if bus != null:
 		bus.emit_signal("noise_emitted_3d", global_position, 4.5, &"guard")
 
 	if target_thief != null and global_position.distance_to(target_thief.global_position) <= melee_range:
-		_capture_thief()
+		var is_captured: bool = true
+		if target_thief.has_method("register_baton_hit"):
+			is_captured = target_thief.register_baton_hit()
+		if is_captured:
+			_capture_thief()
 		return true
 
 	return false
