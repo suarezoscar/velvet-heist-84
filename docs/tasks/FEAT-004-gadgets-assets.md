@@ -1,6 +1,6 @@
 # FEAT-004 — Modelado y Pipeline de Gadgets Analógicos de 1984
 
-- **Estado**: borrador
+- **Estado**: aprobada
 - **Responsable**: technical-artist  **Revisor**: lead-architect
 - **Fase del GSD**: 3 (El Maletín y el Cinturón)
 
