@@ -9,7 +9,7 @@ Lee primero `.agents/rules/02-blender-assets.md`. La ficha de cada asset está e
 1. **Ficha**: confirma con la FEAT o la ficha las medidas (m), el pivote, el presupuesto de triángulos, los materiales de la paleta y si lleva colisión `-col`.
 2. **Script**: crea o ajusta el script `bpy` en `tools/blender_scripts/`. Debe ser idempotente y usar la paleta compartida.
 3. **Exportar**: `blender -b -P tools/blender_scripts/<script>.py` (CLI headless, nunca por MCP). Comprueba que el `.glb` existe en `assets/models/` y pesa más de 0 bytes.
-4. **Validar**: ejecuta el validador de FEAT-001 y exige el JSON en `pass`. Mientras no exista, rellena la lista de `references/asset-card.md` a mano y dilo en el informe.
+4. **Validar**: ejecuta `blender -b -P tools/blender_scripts/validate_asset.py -- assets/models/<nombre>.glb tools/blender_scripts/specs/<nombre>.json` y exige el JSON en `pass: true` (código de salida 0). No se aceptan excepciones.
 5. **Previsualizar**: render o captura del asset y de su silueta en cámara ortográfica isométrica (rotación -35.264°, 45°).
 6. **Importar en Godot**: `godot --headless --import` y test de AABB y origen del `.glb`.
 7. **Informe**: rutas, JSON de validación y captura. Los assets principales (personajes, props clave) requieren la aprobación visual del usuario.
