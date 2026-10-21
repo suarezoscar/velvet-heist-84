@@ -1,0 +1,10 @@
+{
+  "name": "guard_pawn",
+  "feat": "FEAT-001",
+  "description": "Peón cápsula del guardia con uniforme azul marino, gorra y linterna Maglite.",
+  "dimensions": [0.815, 0.82, 1.80],
+  "pivot": "bottom_center",
+  "max_triangles": 5000,
+  "materials": ["GuardNavy", "BakeliteBlack", "BrassGold"],
+  "collision": false
+}

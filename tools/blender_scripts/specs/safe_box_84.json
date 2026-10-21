@@ -1,0 +1,10 @@
+{
+  "name": "safe_box_84",
+  "feat": "FEAT-001",
+  "description": "Caja fuerte analógica de acero de 1984 con dial y manilla de latón.",
+  "dimensions": [0.90, 0.96, 1.10],
+  "pivot": "bottom_center",
+  "max_triangles": 1000,
+  "materials": ["Steel80s", "BrassGold"],
+  "collision": true
+}

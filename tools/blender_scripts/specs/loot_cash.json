@@ -1,0 +1,10 @@
+{
+  "name": "loot_cash",
+  "feat": "FEAT-001",
+  "description": "Fajo de billetes de 1984 fajado con cinta de papel.",
+  "dimensions": [0.22, 0.125, 0.063],
+  "pivot": "bottom_center",
+  "max_triangles": 500,
+  "materials": ["CashGreen", "PaperWhite"],
+  "collision": false
+}

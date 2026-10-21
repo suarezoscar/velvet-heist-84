@@ -1,0 +1,10 @@
+{
+  "name": "floor_carpet",
+  "feat": "FEAT-001",
+  "description": "Baldosa modular de moqueta color vino tinto de 2.0m x 2.0m x 0.1m con colisión.",
+  "dimensions": [2.00, 2.00, 0.10],
+  "pivot": "bottom_center",
+  "max_triangles": 500,
+  "materials": ["CarpetWine"],
+  "collision": true
+}
