@@ -58,23 +58,18 @@ func _setup_interactor() -> void:
 	add_child(interactor)
 
 func _physics_process(delta: float) -> void:
-	var left: StringName = &"move_left" if InputMap.has_action("move_left") else &"ui_left"
-	var right: StringName = &"move_right" if InputMap.has_action("move_right") else &"ui_right"
-	var up: StringName = &"move_up" if InputMap.has_action("move_up") else &"ui_up"
-	var down: StringName = &"move_down" if InputMap.has_action("move_down") else &"ui_down"
-	var input_dir: Vector2 = Input.get_vector(left, right, up, down)
+	var input_data: Dictionary = gather_input(camera)
+	apply_input(input_data)
+	simulate_movement(delta)
+	update_presentation(delta)
+	_handle_interaction_input()
 
-	is_sprinting = Input.is_action_pressed("sprint") if InputMap.has_action("sprint") else false
-	is_sneaking = Input.is_action_pressed("sneak") if InputMap.has_action("sneak") else false
-
-	process_isometric_movement(delta, input_dir, camera)
-
-	# Penalización por botín pesado según la regla del GSD (-20%)
+## Simulación física del ladrón con penalización autoritativa por botín pesado
+func simulate_movement(delta: float) -> void:
+	super.simulate_movement(delta)
 	if is_carrying_heavy_loot:
 		velocity.x *= HEAVY_LOOT_SPEED_MULTIPLIER
 		velocity.z *= HEAVY_LOOT_SPEED_MULTIPLIER
-
-	_handle_interaction_input()
 
 func _handle_interaction_input() -> void:
 	var interact_pressed: bool = Input.is_action_just_pressed("interact") if InputMap.has_action("interact") else false
@@ -95,7 +90,8 @@ func drop_heavy_loot() -> void:
 func can_use_gadgets() -> bool:
 	return not is_carrying_heavy_loot
 
-## Registra un impacto recibido de porra. Devuelve true si el ladrón ha sido neutralizado (2 impactos)
+## Registra de forma autoritativa un impacto recibido de porra.
+## Devuelve true si el ladrón ha sido neutralizado (2 impactos)
 func register_baton_hit() -> bool:
 	baton_hits_taken += 1
 	return baton_hits_taken >= REQUIRED_HITS_TO_CAPTURE
@@ -104,12 +100,18 @@ func register_baton_hit() -> bool:
 func reset_baton_hits() -> void:
 	baton_hits_taken = 0
 
-## Actualiza la visibilidad del ladrón frente a los guardias
+## Actualiza la visibilidad autoritativa del ladrón frente a los guardias
 func set_stealth_visibility(is_visible_to_guards: bool) -> void:
 	is_detected_by_guard = is_visible_to_guards
 	# El jugador local siempre ve a su propio ladrón en vista isométrica
 	if visual_root != null:
 		visual_root.visible = true
+
+## Consulta autoritativa: si un equipo concreto puede ver al ladrón
+func is_visible_to_team(team: StringName) -> bool:
+	if team == &"thief":
+		return true
+	return is_detected_by_guard
 
 ## Propiedad de conveniencia para que el HUD consulte el interactuable enfocado
 var focused_interactive: Node3D:
