@@ -1,0 +1,10 @@
+{
+  "name": "escape_car_84",
+  "feat": "FEAT-001",
+  "description": "Coche de huida coupé ochentero burdeos metalizado con parachoques cromados y colisión.",
+  "dimensions": [2.15, 4.46, 1.20],
+  "pivot": "bottom_center",
+  "max_triangles": 3000,
+  "materials": ["BurgundyCar", "ChromeTrim", "BakeliteBlack", "GlassAmber"],
+  "collision": true
+}

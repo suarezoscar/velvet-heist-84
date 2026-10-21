@@ -1,0 +1,10 @@
+{
+  "name": "loot_masterpiece",
+  "feat": "FEAT-001",
+  "description": "Lienzo al óleo de obra maestra con marco dorado de latón ornamentado.",
+  "dimensions": [0.80, 0.085, 1.00],
+  "pivot": "bottom_center",
+  "max_triangles": 1000,
+  "materials": ["BrassGold", "CanvasOil"],
+  "collision": false
+}

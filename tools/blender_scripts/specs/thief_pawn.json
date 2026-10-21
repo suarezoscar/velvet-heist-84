@@ -1,0 +1,10 @@
+{
+  "name": "thief_pawn",
+  "feat": "FEAT-001",
+  "description": "Peón cápsula del ladrón con traje de terciopelo negro y antifaz de latón.",
+  "dimensions": [0.80, 0.80, 1.80],
+  "pivot": "bottom_center",
+  "max_triangles": 5000,
+  "materials": ["VelvetBlack", "BrassGold"],
+  "collision": false
+}

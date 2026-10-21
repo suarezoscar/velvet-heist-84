@@ -1,0 +1,10 @@
+{
+  "name": "time_clock_84",
+  "feat": "FEAT-001",
+  "description": "Reloj de pared analógico de fichaje mecánico con esfera de papel y palanca de latón.",
+  "dimensions": [0.44, 0.25, 0.60],
+  "pivot": "bottom_center",
+  "max_triangles": 1000,
+  "materials": ["Steel80s", "BrassGold", "PaperWhite"],
+  "collision": true
+}

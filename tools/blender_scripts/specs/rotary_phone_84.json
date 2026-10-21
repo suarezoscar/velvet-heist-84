@@ -1,0 +1,10 @@
+{
+  "name": "rotary_phone_84",
+  "feat": "FEAT-001",
+  "description": "Teléfono analógico fijo de disco en baquelita negra con dial dorado.",
+  "dimensions": [0.38, 0.32, 0.26],
+  "pivot": "bottom_center",
+  "max_triangles": 1000,
+  "materials": ["BakeliteBlack", "BrassGold"],
+  "collision": true
+}
