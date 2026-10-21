@@ -1,0 +1,10 @@
+{
+  "name": "alarm_clock",
+  "feat": "FEAT-004",
+  "description": "Despertador mecánico vintage de 1984 con 2 campanas superiores, martillo oscilante, patas de apoyo esféricas, caja cilíndrica y dial frontal.",
+  "dimensions": [0.18, 0.12, 0.22],
+  "pivot": "bottom_center",
+  "max_triangles": 800,
+  "materials": ["BrassGold", "BakeliteBlack", "Steel80s"],
+  "collision": true
+}

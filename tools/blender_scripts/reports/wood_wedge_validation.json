@@ -1,0 +1,46 @@
+{
+  "asset": "wood_wedge",
+  "checks": [
+    {
+      "name": "snake_case_names",
+      "pass": true,
+      "detail": "Todos los nombres de objetos y materiales son válidos (sin espacios ni puntos)."
+    },
+    {
+      "name": "applied_transforms",
+      "pass": true,
+      "detail": "Escala (1, 1, 1) y rotación (0, 0, 0) aplicadas en todas las mallas."
+    },
+    {
+      "name": "pivot_bottom_center",
+      "pass": true,
+      "detail": "Pivote en la base inferior central correcto: Z_min=0.000m, Centro XY=(0.000, 0.000)m."
+    },
+    {
+      "name": "target_dimensions",
+      "pass": true,
+      "detail": "Dimensiones dentro de ±1%: (0.250, 0.080, 0.080)m vs esperadas (0.250, 0.080, 0.080)m."
+    },
+    {
+      "name": "triangle_budget",
+      "pass": true,
+      "detail": "Triángulos: 172 <= presupuesto (300)."
+    },
+    {
+      "name": "palette_materials",
+      "pass": true,
+      "detail": "Materiales válidos (MahoganyWood)."
+    },
+    {
+      "name": "no_procedural_nodes",
+      "pass": true,
+      "detail": "Todos los materiales usan Principled BSDF limpio sin nodos procedurales."
+    },
+    {
+      "name": "collision_mesh",
+      "pass": true,
+      "detail": "Malla de colisión presente: wood_wedge-col."
+    }
+  ],
+  "pass": true
+}

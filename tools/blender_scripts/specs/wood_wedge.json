@@ -1,0 +1,10 @@
+{
+  "name": "wood_wedge",
+  "feat": "FEAT-004",
+  "description": "Cuña de madera biselada para atrancar puertas bajo el marco.",
+  "dimensions": [0.25, 0.08, 0.08],
+  "pivot": "bottom_center",
+  "max_triangles": 300,
+  "materials": ["MahoganyWood"],
+  "collision": true
+}
