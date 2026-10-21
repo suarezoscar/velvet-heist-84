@@ -95,7 +95,7 @@ def render_asset(glb_path: str, out_png: str):
 
 
 def main():
-    assets = [
+    default_assets = [
         "safe_box_84.glb",
         "time_clock_84.glb",
         "rotary_phone_84.glb",
@@ -104,9 +104,22 @@ def main():
         "wall_mahogany.glb",
         "floor_carpet.glb",
         "escape_car_84.glb",
+        "alarm_clock.glb",
+        "wood_wedge.glb",
+        "stethoscope.glb",
+        "inspection_mirror.glb",
+        "tripwire_bell.glb",
     ]
+    argv = sys.argv
+    user_args = []
+    if "--" in argv:
+        user_args = argv[argv.index("--") + 1 :]
+
+    assets = user_args if user_args else default_assets
     models_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "assets", "models"))
     for a in assets:
+        if not a.endswith(".glb"):
+            a = f"{a}.glb"
         glb = os.path.join(models_dir, a)
         if os.path.exists(glb):
             png = os.path.join(OUTPUT_DIR, a.replace(".glb", "_iso.png"))
