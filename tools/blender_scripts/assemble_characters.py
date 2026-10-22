@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
 tools/blender_scripts/assemble_characters.py
-Importa modelos Mixamo (Crypto y SWAT), aplica escala métrica (1.80m),
-alinea el pivote a Z=0 e integra la suite completa de animaciones de sigilo
-(caminar, de puntillas, agacharse, reptar, pegarse a la pared) en formato .glb para Godot 4.
+Importa modelos Mixamo (Crypto y SWAT), aplica escala métrica humana exacta (1.80m / 1.82m)
+con transforms aplicados (desacoplando jerarquías con CLEAR_KEEP_TRANSFORM para evitar
+el bug de escala centimétrica de 180m), normaliza huesos y vertex groups a 'mixamorig:',
+ajusta el pivote inferior a Z=0 e integra las 11 animaciones de sigilo en formato .glb para Godot 4.
 """
 
 import os
@@ -57,46 +58,90 @@ def process_character(base_fbx: str, output_glb: str, target_height: float = 1.8
     main_armature = armatures[0]
     main_armature.name = "CharacterArmature"
 
-    # 2. Calcular límites globales para escalar exactamente a target_height
-    # Evaluamos los vértices de las mallas hijas
     meshes = [o for o in bpy.context.scene.objects if o.type == "MESH"]
     if not meshes:
         print("ERROR: No se encontraron mallas.")
         return False
 
-    min_z = 999999.0
-    max_z = -999999.0
+    print(f"Detectada armadura '{main_armature.name}' y {len(meshes)} malla(s): {[m.name for m in meshes]}")
+
+    # 2. Normalizar prefijo de huesos y grupos de vértices de 'mixamorig1:' a 'mixamorig:'
+    for b in main_armature.data.bones:
+        if b.name.startswith("mixamorig1:"):
+            b.name = b.name.replace("mixamorig1:", "mixamorig:")
     for m in meshes:
-        for v in m.data.vertices:
-            global_v = m.matrix_world @ v.co
-            if global_v.z < min_z:
-                min_z = global_v.z
-            if global_v.z > max_z:
-                max_z = global_v.z
+        for vg in m.vertex_groups:
+            if vg.name.startswith("mixamorig1:"):
+                vg.name = vg.name.replace("mixamorig1:", "mixamorig:")
 
+    # 3. Desvincular mallas manteniendo transformación para aplicar la escala base (0.01 centimétrico de FBX)
+    for m in meshes:
+        bpy.ops.object.select_all(action="DESELECT")
+        m.select_set(True)
+        bpy.context.view_layer.objects.active = m
+        bpy.ops.object.parent_clear(type="CLEAR_KEEP_TRANSFORM")
+
+    for o in meshes + [main_armature]:
+        bpy.ops.object.select_all(action="DESELECT")
+        o.select_set(True)
+        bpy.context.view_layer.objects.active = o
+        bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+
+    # Reparentar mallas a la armadura
+    for m in meshes:
+        bpy.ops.object.select_all(action="DESELECT")
+        m.select_set(True)
+        main_armature.select_set(True)
+        bpy.context.view_layer.objects.active = main_armature
+        bpy.ops.object.parent_set(type="ARMATURE")
+
+    # 4. Medir altura métrica real y reescalar al tamaño objetivo exacto
+    min_z = min((m.matrix_world @ v.co).z for m in meshes for v in m.data.vertices)
+    max_z = max((m.matrix_world @ v.co).z for m in meshes for v in m.data.vertices)
     current_height = max_z - min_z
-    print(f"Altura detectada: {current_height:.3f}m (Z: {min_z:.3f} a {max_z:.3f})")
-
     scale_factor = target_height / current_height if current_height > 0.01 else 1.0
-    print(f"Factor de escala aplicado: {scale_factor:.4f}")
+    print(f"Altura métrica previa: {current_height:.4f}m. Factor de ajuste a {target_height}m: {scale_factor:.4f}")
 
-    # Aplicar escala al armature y reposicionar pivote en el suelo (Z=0)
-    main_armature.scale = (scale_factor, scale_factor, scale_factor)
-    bpy.context.view_layer.objects.active = main_armature
-    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+    # Desvincular, aplicar scale_factor y reaplicar transforms
+    for m in meshes:
+        bpy.ops.object.select_all(action="DESELECT")
+        m.select_set(True)
+        bpy.context.view_layer.objects.active = m
+        bpy.ops.object.parent_clear(type="CLEAR_KEEP_TRANSFORM")
 
-    # Re-evaluar tras escala y ajustar offset Z para que los pies toquen Z=0
-    min_z_scaled = min_z * scale_factor
-    offset_z = -min_z_scaled
-    print(f"Ajustando pies al suelo (offset Z: {offset_z:.3f}m)...")
-    main_armature.location.z += offset_z
-    bpy.ops.object.transform_apply(location=True, rotation=False, scale=False)
+    for o in meshes + [main_armature]:
+        o.scale *= scale_factor
+        bpy.ops.object.select_all(action="DESELECT")
+        o.select_set(True)
+        bpy.context.view_layer.objects.active = o
+        bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
 
-    # 3. Inicializar animation_data si no existe
+    for m in meshes:
+        bpy.ops.object.select_all(action="DESELECT")
+        m.select_set(True)
+        main_armature.select_set(True)
+        bpy.context.view_layer.objects.active = main_armature
+        bpy.ops.object.parent_set(type="ARMATURE")
+
+    # 5. Ajustar offset Z para que los pies toquen exactamente el suelo Z=0
+    min_z_scaled = min((m.matrix_world @ v.co).z for m in meshes for v in m.data.vertices)
+    print(f"Ajustando pies al suelo Z=0.0 (offset Z: {-min_z_scaled:.4f}m)...")
+    for o in meshes + [main_armature]:
+        o.location.z -= min_z_scaled
+        bpy.ops.object.select_all(action="DESELECT")
+        o.select_set(True)
+        bpy.context.view_layer.objects.active = o
+        bpy.ops.object.transform_apply(location=True, rotation=False, scale=False)
+
+    final_min_z = min((m.matrix_world @ v.co).z for m in meshes for v in m.data.vertices)
+    final_max_z = max((m.matrix_world @ v.co).z for m in meshes for v in m.data.vertices)
+    print(f"Dimensiones finales: Z={final_min_z:.4f}m a {final_max_z:.4f}m (Altura: {final_max_z - final_min_z:.4f}m)")
+
+    # 6. Inicializar animation_data si no existe
     if not main_armature.animation_data:
         main_armature.animation_data_create()
 
-    # 4. Importar cada animación y asignarla como track NLA
+    # 7. Importar cada animación, reescalar curvas de desplazamiento (Hips) y asignar a NLA
     for anim_name, anim_path in ANIMATIONS.items():
         if not os.path.exists(anim_path):
             print(f"Aviso: Archivo de animación no encontrado: {anim_path}")
@@ -111,25 +156,39 @@ def process_character(base_fbx: str, output_glb: str, target_height: float = 1.8
         new_actions = set(bpy.data.actions) - existing_actions
         new_objects = set(bpy.context.scene.objects) - existing_objects
 
-        # Encontrar la acción importada y transferirla a main_armature
         for act in new_actions:
             act.name = anim_name
+            # Reescalar curvas de desplazamiento de huesos (centímetros Mixamo a metros aplicados)
+            factor = 0.01 * scale_factor
+            if hasattr(act, "layers"):
+                for l in act.layers:
+                    for s in l.strips:
+                        for b in s.channelbags:
+                            for c in b.fcurves:
+                                if "location" in c.data_path:
+                                    for k in c.keyframe_points:
+                                        k.co[1] *= factor
+            if hasattr(act, "fcurves"):
+                for c in act.fcurves:
+                    if "location" in c.data_path:
+                        for k in c.keyframe_points:
+                            k.co[1] *= factor
+
             track = main_armature.animation_data.nla_tracks.new()
             track.name = anim_name
             track.strips.new(anim_name, 1, act)
             print(f"  + Animación integrada en NLA: '{anim_name}'")
 
-        # Limpiar los objetos auxiliares (armatures secundarias) importadas por el fbx de animación
+        # Limpiar armaduras secundarias auxiliares importadas por el fbx de animación
         for obj in new_objects:
             bpy.data.objects.remove(obj, do_unlink=True)
 
-    # 5. Exportar a GLTF / GLB con animaciones empaquetadas
-    print(f"Exportando GLB a: {output_glb}...")
+    # 8. Exportar a GLTF / GLB métrico limpio
+    print(f"Exportando GLB métrico a: {output_glb}...")
     bpy.ops.export_scene.gltf(
         filepath=output_glb,
         export_format="GLB",
         export_yup=True,
-        export_apply=True,
         export_animations=True,
         export_nla_strips=True,
         export_def_bones=True,
