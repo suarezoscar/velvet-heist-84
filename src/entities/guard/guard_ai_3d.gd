@@ -1,10 +1,23 @@
 ## @file guard_ai_3d.gd
 ## Componente de Inteligencia Artificial para guardias de seguridad en solitario / coop.
 ## Gestiona la máquina de estados: PATROL (ronda), INVESTIGATE (ruidos/CCTV) y CHASE (persecución).
+## Solo decide la intención (dirección, sprint, mirada); el movimiento lo simula
+## GuardController3D igual que para un humano. Requiere un GuardController3D como padre.
 class_name GuardAI3D
 extends Node
 
 enum AIState { IDLE, PATROL, INVESTIGATE, CHASE }
+
+## Distancia horizontal (m) a la que un waypoint de ronda se da por alcanzado
+const WAYPOINT_REACHED_DISTANCE: float = 0.8
+## Distancia horizontal (m) a la que el punto investigado se da por alcanzado
+const INVESTIGATE_REACHED_DISTANCE: float = 0.9
+## Segundos que el guardia inspecciona un ruido antes de volver a la ronda
+const NOISE_INVESTIGATE_TIME: float = 5.0
+## Segundos que inspecciona la última posición avistada del ladrón
+const SPOTTED_INVESTIGATE_TIME: float = 6.0
+## Factor sobre el radio del ruido dentro del cual el guardia lo oye
+const HEARING_RADIUS_FACTOR: float = 1.5
 
 ## Rutas de patrulla configurables
 @export var patrol_waypoints: Array[Vector3] = []
@@ -18,126 +31,118 @@ var _guard: GuardController3D = null
 var _thief: ThiefController3D = null
 var _nav_agent: NavigationAgent3D = null
 
+
 func _ready() -> void:
+	# Decidir antes de que el guardia simule en este mismo tick
+	process_physics_priority = -1
 	_guard = get_parent() as GuardController3D
 	_nav_agent = get_node_or_null("NavigationAgent3D") as NavigationAgent3D
 	if _nav_agent != null:
 		_nav_agent.path_desired_distance = 0.6
 		_nav_agent.target_desired_distance = 0.8
 		_nav_agent.radius = 0.4
-	_subscribe_signals()
-	call_deferred("_find_thief")
+	SignalBus.noise_emitted_3d.connect(_on_noise_emitted)
+	SignalBus.thief_spotted.connect(_on_thief_spotted)
+	_find_thief.call_deferred()
 
-func _subscribe_signals() -> void:
-	var bus: Node = get_node_or_null("/root/SignalBus")
-	if bus != null:
-		if bus.has_signal("noise_emitted_3d"):
-			bus.connect("noise_emitted_3d", _on_noise_emitted)
-		if bus.has_signal("thief_spotted"):
-			bus.connect("thief_spotted", _on_thief_spotted)
 
 func _find_thief() -> void:
-	var t = get_tree().get_first_node_in_group("thief")
-	if t is ThiefController3D:
-		_thief = t
+	_thief = get_tree().get_first_node_in_group("thief") as ThiefController3D
+	if _thief == null and _guard != null and _guard.get_parent() != null:
+		for sibling: Node in _guard.get_parent().get_children():
+			if sibling is ThiefController3D:
+				_thief = sibling
+				break
 
-func _physics_process(delta: float) -> void:
-	if not is_ai_active or _guard == null:
+
+## La IA solo decide si el guardia es de IA y esta máquina simula el mundo
+## (sin red, o en el servidor).
+func is_driving() -> bool:
+	if not is_ai_active or _guard == null or not _guard.is_ai_controlled:
+		return false
+	if _guard.is_locally_controlled:
+		return false
+	return not NetManager.is_online() or multiplayer.is_server()
+
+
+func _physics_process(_delta: float) -> void:
+	if not is_driving():
 		return
 
-	# Chequeo prioritario de percepción visual directa
 	if _thief != null and _guard.check_detection_on_thief(_thief):
 		current_state = AIState.CHASE
 
 	match current_state:
 		AIState.IDLE:
-			_guard.velocity = Vector3.ZERO
+			_guard.apply_world_move(Vector3.ZERO)
 		AIState.PATROL:
-			_process_patrol(delta)
+			_process_patrol()
 		AIState.INVESTIGATE:
-			_process_investigate(delta)
+			_process_investigate(_delta)
 		AIState.CHASE:
-			_process_chase(delta)
+			_process_chase()
 
-	_guard.move_and_slide()
 
-func _process_patrol(delta: float) -> void:
+func _process_patrol() -> void:
 	if patrol_waypoints.is_empty():
+		_guard.apply_world_move(Vector3.ZERO)
 		return
-	
 	var target: Vector3 = patrol_waypoints[_current_waypoint_idx]
-	var steer_target: Vector3 = target
-
-	if _nav_agent != null:
-		_nav_agent.target_position = target
-		if not _nav_agent.is_target_reached():
-			steer_target = _nav_agent.get_next_path_position()
-
-	var to_target: Vector3 = steer_target - _guard.global_position
-	to_target.y = 0.0
-	
-	if target.distance_to(_guard.global_position) < 0.8:
+	if _flat_distance(target, _guard.global_position) < WAYPOINT_REACHED_DISTANCE:
 		_current_waypoint_idx = (_current_waypoint_idx + 1) % patrol_waypoints.size()
 		return
-	
-	var move_dir: Vector3 = to_target.normalized()
-	_guard.velocity.x = move_dir.x * _guard.move_speed
-	_guard.velocity.z = move_dir.z * _guard.move_speed
-	_guard.look_target_position = target
-	_guard.rotation.y = lerp_angle(_guard.rotation.y, atan2(-move_dir.x, -move_dir.z), 6.0 * delta)
+	_steer_towards(target, false)
+
 
 func _process_investigate(delta: float) -> void:
-	var steer_point: Vector3 = investigation_point
-	if _nav_agent != null:
-		_nav_agent.target_position = investigation_point
-		if not _nav_agent.is_target_reached():
-			steer_point = _nav_agent.get_next_path_position()
+	if _flat_distance(investigation_point, _guard.global_position) > INVESTIGATE_REACHED_DISTANCE:
+		_steer_towards(investigation_point, false)
+		return
+	_guard.apply_world_move(Vector3.ZERO)
+	_investigate_timer -= delta
+	if _investigate_timer <= 0.0:
+		current_state = AIState.PATROL
 
-	var to_point: Vector3 = steer_point - _guard.global_position
-	to_point.y = 0.0
-	
-	if investigation_point.distance_to(_guard.global_position) > 0.9:
-		var dir: Vector3 = to_point.normalized()
-		_guard.velocity.x = dir.x * _guard.move_speed
-		_guard.velocity.z = dir.z * _guard.move_speed
-		_guard.look_target_position = investigation_point
-		_guard.rotation.y = lerp_angle(_guard.rotation.y, atan2(-dir.x, -dir.z), 7.0 * delta)
-	else:
-		_guard.velocity = Vector3.ZERO
-		_investigate_timer -= delta
-		if _investigate_timer <= 0.0:
-			current_state = AIState.PATROL
 
-func _process_chase(delta: float) -> void:
+func _process_chase() -> void:
 	if _thief == null:
 		current_state = AIState.PATROL
 		return
-	
-	var to_thief: Vector3 = _thief.global_position - _guard.global_position
-	to_thief.y = 0.0
-	var dist: float = to_thief.length()
-	
-	if dist <= _guard.melee_range:
+	if _flat_distance(_thief.global_position, _guard.global_position) <= _guard.melee_range:
+		_guard.apply_world_move(Vector3.ZERO)
+		_guard.look_target_position = _thief.global_position
 		_guard.swing_baton(_thief)
-		_guard.velocity = Vector3.ZERO
 		return
-	
-	# Sprint hacia el ladrón
-	var chase_dir: Vector3 = to_thief.normalized()
-	_guard.velocity.x = chase_dir.x * _guard.sprint_speed
-	_guard.velocity.z = chase_dir.z * _guard.sprint_speed
-	_guard.look_target_position = _thief.global_position
-	_guard.rotation.y = lerp_angle(_guard.rotation.y, atan2(-chase_dir.x, -chase_dir.z), 10.0 * delta)
+	_steer_towards(_thief.global_position, true)
+
+
+## Calcula el siguiente punto (navmesh si existe) y fija dirección y mirada del guardia.
+func _steer_towards(target: Vector3, sprint: bool) -> void:
+	var steer_point: Vector3 = target
+	if _nav_agent != null:
+		_nav_agent.target_position = target
+		if not _nav_agent.is_target_reached():
+			steer_point = _nav_agent.get_next_path_position()
+	var to_point: Vector3 = (steer_point - _guard.global_position).slide(Vector3.UP)
+	_guard.apply_world_move(to_point.normalized(), sprint)
+	_guard.look_target_position = target
+
+
+func _flat_distance(a: Vector3, b: Vector3) -> float:
+	return Vector2(a.x - b.x, a.z - b.z).length()
+
 
 func _on_noise_emitted(pos: Vector3, radius: float, source_team: StringName) -> void:
-	if source_team == &"thief" and _guard != null:
-		if _guard.global_position.distance_to(pos) <= radius * 1.5:
-			investigation_point = pos
-			_investigate_timer = 5.0
-			current_state = AIState.INVESTIGATE
+	if source_team != &"thief" or _guard == null or radius <= 0.0:
+		return
+	if _guard.global_position.distance_to(pos) <= radius * HEARING_RADIUS_FACTOR:
+		investigation_point = pos
+		_investigate_timer = NOISE_INVESTIGATE_TIME
+		current_state = AIState.INVESTIGATE
+
 
 func _on_thief_spotted(pos: Vector3) -> void:
 	if _guard != null and current_state != AIState.CHASE:
 		investigation_point = pos
-		_investigate_timer = 6.0
+		_investigate_timer = SPOTTED_INVESTIGATE_TIME
 		current_state = AIState.INVESTIGATE

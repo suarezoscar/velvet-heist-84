@@ -17,6 +17,9 @@ enum Stance {
 ## Notificación de cambio de postura
 signal stance_changed(old_stance: Stance, new_stance: Stance)
 
+## Velocidad horizontal mínima (m/s) para orientar el cuerpo hacia el desplazamiento
+const FACE_MOVEMENT_MIN_SPEED: float = 0.5
+
 ## Velocidad de caminata estándar (m/s)
 @export var move_speed: float = 4.5
 
@@ -32,6 +35,18 @@ signal stance_changed(old_stance: Stance, new_stance: Stance)
 
 ## Equipo al que pertenece la entidad
 @export var team_id: StringName = &"neutral"
+
+## Cámara isométrica usada para proyectar el cursor (solo la usa el jugador local)
+@export var camera: Camera3D
+
+## Indica si este personaje lo controla el teclado y ratón de esta máquina.
+## Lo asigna el mapa: como mucho un personaje por cliente. Sin él, el personaje
+## no lee Input (lo mueve la IA, la red o queda quieto).
+var is_locally_controlled: bool = false:
+	set(value):
+		is_locally_controlled = value
+		if not value:
+			_clear_input()
 
 ## Postura táctica actual
 var current_stance: Stance = Stance.STAND
@@ -64,12 +79,14 @@ var _step_interval: float = 0.42
 ## Componente de detección de acústica de suelos
 var surface_detector: SurfaceDetector3D = null
 
+
 func _ready() -> void:
 	floor_snap_length = 0.25
 	floor_max_angle = deg_to_rad(48.0)
 	floor_stop_on_slope = true
 	_setup_collision_shape()
 	_setup_surface_detector()
+
 
 func _setup_collision_shape() -> void:
 	collision_shape = get_node_or_null("CollisionShape3D") as CollisionShape3D
@@ -78,13 +95,68 @@ func _setup_collision_shape() -> void:
 	if collision_shape != null:
 		_update_collision_for_stance(current_stance)
 
+
 func _setup_surface_detector() -> void:
 	surface_detector = SurfaceDetector3D.new()
 	surface_detector.name = "SurfaceDetector"
 	add_child(surface_detector)
 
-## Captura el input del dispositivo local (vector 2D, sprint, sneak, posturas y punto objetivo en plano XZ).
-func gather_input(camera: Camera3D = null) -> Dictionary:
+
+## Ciclo por tick que invocan los controladores concretos desde su _physics_process (la base
+## no se simula sola, para poder usarla en tests). Un personaje remoto en red solo se
+## presenta; el local lee Input; el resto (IA o sin dueño) simula con la entrada aplicada.
+func run_tick(delta: float) -> void:
+	if is_remote_puppet():
+		update_presentation(delta)
+		return
+	if is_locally_controlled:
+		apply_input(gather_input(camera))
+		_process_local_actions()
+	simulate_movement(delta)
+	update_presentation(delta)
+
+
+## Verdadero si hay una sesión de red real y esta máquina no tiene autoridad sobre el personaje.
+func is_remote_puppet() -> bool:
+	return NetManager.is_online() and not is_multiplayer_authority()
+
+
+## Acciones de input propias de cada rol (interactuar, gadgets). Solo para el jugador local.
+func _process_local_actions() -> void:
+	pass
+
+
+## Mueve al personaje en una dirección del mundo (para la IA), reutilizando la misma
+## simulación que el input del jugador: deshace la rotación isométrica de 45°.
+func apply_world_move(world_dir: Vector3, sprint: bool = false) -> void:
+	var flat: Vector3 = world_dir.slide(Vector3.UP)
+	var local_dir: Vector3 = flat.rotated(Vector3.UP, deg_to_rad(-45.0))
+	current_input_dir = Vector2(local_dir.x, local_dir.z).limit_length(1.0)
+	is_sprinting = sprint
+	is_sneaking = false
+
+
+func _clear_input() -> void:
+	current_input_dir = Vector2.ZERO
+	is_sprinting = false
+	is_sneaking = false
+
+
+## Punto del plano horizontal del personaje bajo el cursor, o look_target_position si no hay.
+func project_cursor_on_ground(cam: Camera3D) -> Vector3:
+	if cam == null or not is_inside_tree():
+		return look_target_position
+	var mouse_screen_pos: Vector2 = get_viewport().get_mouse_position()
+	var ground_plane: Plane = Plane(Vector3.UP, global_position.y)
+	var hit: Variant = ground_plane.intersects_ray(
+		cam.project_ray_origin(mouse_screen_pos), cam.project_ray_normal(mouse_screen_pos)
+	)
+	return hit as Vector3 if hit != null else look_target_position
+
+
+## Captura el input del dispositivo local: vector 2D, sprint, sneak, posturas y
+## punto objetivo en el plano XZ.
+func gather_input(cam: Camera3D = null) -> Dictionary:
 	var left: StringName = &"move_left" if InputMap.has_action("move_left") else &"ui_left"
 	var right: StringName = &"move_right" if InputMap.has_action("move_right") else &"ui_right"
 	var up: StringName = &"move_up" if InputMap.has_action("move_up") else &"ui_up"
@@ -94,25 +166,19 @@ func gather_input(camera: Camera3D = null) -> Dictionary:
 	var sprint: bool = Input.is_action_pressed("sprint") if InputMap.has_action("sprint") else false
 	var sneak: bool = Input.is_action_pressed("sneak") if InputMap.has_action("sneak") else false
 
-	var crouch_pressed: bool = Input.is_action_just_pressed("crouch") if InputMap.has_action("crouch") else false
-	var prone_pressed: bool = Input.is_action_just_pressed("prone") if InputMap.has_action("prone") else false
+	var crouch_pressed: bool = (
+		Input.is_action_just_pressed("crouch") if InputMap.has_action("crouch") else false
+	)
+	var prone_pressed: bool = (
+		Input.is_action_just_pressed("prone") if InputMap.has_action("prone") else false
+	)
 	var wall_cover_pressed: bool = false
 	if InputMap.has_action("wall_cover"):
 		wall_cover_pressed = Input.is_action_just_pressed("wall_cover")
 	elif InputMap.has_action("cover"):
 		wall_cover_pressed = Input.is_action_just_pressed("cover")
 
-	var target_pos: Vector3 = look_target_position
-	if camera != null and is_inside_tree():
-		var vp: Viewport = get_viewport()
-		if vp != null:
-			var mouse_screen_pos: Vector2 = vp.get_mouse_position()
-			var ground_plane: Plane = Plane(Vector3.UP, global_position.y)
-			var ray_origin: Vector3 = camera.project_ray_origin(mouse_screen_pos)
-			var ray_dir: Vector3 = camera.project_ray_normal(mouse_screen_pos)
-			var hit: Variant = ground_plane.intersects_ray(ray_origin, ray_dir)
-			if hit != null:
-				target_pos = hit as Vector3
+	var target_pos: Vector3 = project_cursor_on_ground(cam)
 
 	return {
 		"movement_vector": move_vec,
@@ -123,6 +189,7 @@ func gather_input(camera: Camera3D = null) -> Dictionary:
 		"prone": prone_pressed,
 		"wall_cover": wall_cover_pressed,
 	}
+
 
 ## Almacena los datos de entrada validados en la entidad para ser usados en la simulación
 func apply_input(input_data: Dictionary) -> void:
@@ -162,9 +229,11 @@ func apply_input(input_data: Dictionary) -> void:
 	elif input_data.get("tiptoe", false):
 		set_stance(Stance.STAND if current_stance == Stance.TIPTOE else Stance.TIPTOE)
 
+
 ## Consulta la postura actual
 func get_stance() -> Stance:
 	return current_stance
+
 
 ## Establece una nueva postura si las condiciones espaciales y físicas lo permiten
 func set_stance(new_stance: Stance) -> bool:
@@ -186,7 +255,9 @@ func set_stance(new_stance: Stance) -> bool:
 	stance_changed.emit(old_stance, new_stance)
 	return true
 
-## Valida si es físicamente posible adoptar una postura (espacio superior libre hacia posturas más altas)
+
+## Valida si es físicamente posible adoptar una postura (espacio superior libre
+## hacia posturas más altas).
 func can_enter_stance(target_stance: Stance) -> bool:
 	var target_height: float = 1.6
 	match target_stance:
@@ -212,13 +283,16 @@ func can_enter_stance(target_stance: Stance) -> bool:
 			if space_state != null:
 				var from_pos: Vector3 = global_position + Vector3(0.0, 0.1, 0.0)
 				var to_pos: Vector3 = global_position + Vector3(0.0, target_height, 0.0)
-				var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(from_pos, to_pos)
-				query.collision_mask = 1 # World_Solid
+				var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(
+					from_pos, to_pos
+				)
+				query.collision_mask = 1  # World_Solid
 				query.exclude = [get_rid()]
 				var hit: Dictionary = space_state.intersect_ray(query)
 				if not hit.is_empty():
 					return false
 	return true
+
 
 ## Devuelve el multiplicador de velocidad según la postura
 func get_stance_speed_multiplier() -> float:
@@ -236,6 +310,7 @@ func get_stance_speed_multiplier() -> float:
 		_:
 			return 1.0
 
+
 ## Devuelve el factor multiplicador de ruido acústico según la postura
 func get_stance_noise_multiplier() -> float:
 	match current_stance:
@@ -251,6 +326,7 @@ func get_stance_noise_multiplier() -> float:
 			return 0.15
 		_:
 			return 1.0
+
 
 ## Ajusta dinámicamente las dimensiones de la cápsula de colisión
 func _update_collision_for_stance(stance: Stance) -> void:
@@ -291,6 +367,7 @@ func _update_collision_for_stance(stance: Stance) -> void:
 			capsule.radius = 0.25
 			collision_shape.transform.origin = Vector3(0.0, 0.8, 0.0)
 
+
 ## Detecta la presencia de un muro cercano (< max_distance) para cobertura
 func detect_wall_ahead(max_distance: float = 0.7) -> Dictionary:
 	if not is_inside_tree() or get_world_3d() == null:
@@ -305,8 +382,7 @@ func detect_wall_ahead(max_distance: float = 0.7) -> Dictionary:
 		forward = Vector3.FORWARD
 
 	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(
-		start_pos,
-		start_pos + forward * max_distance
+		start_pos, start_pos + forward * max_distance
 	)
 	query.collision_mask = 1
 	query.exclude = [get_rid()]
@@ -317,8 +393,7 @@ func detect_wall_ahead(max_distance: float = 0.7) -> Dictionary:
 	var look_dir: Vector3 = (look_target_position - global_position).slide(Vector3.UP).normalized()
 	if look_dir.length_squared() > 0.01 and look_dir.dot(forward) < 0.95:
 		var look_query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(
-			start_pos,
-			start_pos + look_dir * max_distance
+			start_pos, start_pos + look_dir * max_distance
 		)
 		look_query.collision_mask = 1
 		look_query.exclude = [get_rid()]
@@ -331,8 +406,7 @@ func detect_wall_ahead(max_distance: float = 0.7) -> Dictionary:
 		if dir.dot(forward) > 0.9:
 			continue
 		var dir_query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(
-			start_pos,
-			start_pos + dir * max_distance
+			start_pos, start_pos + dir * max_distance
 		)
 		dir_query.collision_mask = 1
 		dir_query.exclude = [get_rid()]
@@ -342,6 +416,7 @@ func detect_wall_ahead(max_distance: float = 0.7) -> Dictionary:
 
 	return {}
 
+
 func _align_to_wall() -> void:
 	var hit: Dictionary = detect_wall_ahead(0.7)
 	if not hit.is_empty():
@@ -349,11 +424,14 @@ func _align_to_wall() -> void:
 		current_wall_tangent = current_wall_normal.cross(Vector3.UP).normalized()
 		rotation.y = atan2(-current_wall_normal.x, -current_wall_normal.z)
 
+
 func get_cover_wall_normal() -> Vector3:
 	return current_wall_normal
 
+
 func get_cover_wall_tangent() -> Vector3:
 	return current_wall_tangent
+
 
 ## Ejecuta la simulación física (rotación 45°, aceleración, fricción, gravedad,
 ## move_and_slide() y cadencia de pasos). NO depende de Viewport, Camera3D ni UI.
@@ -386,11 +464,13 @@ func simulate_movement(delta: float) -> void:
 	_apply_gravity(delta)
 	move_and_slide()
 
+
 ## Recibe un snapshot de transformación por red para interpolación de presentación
 func set_net_transform(pos: Vector3, vel: Vector3) -> void:
 	net_target_position = pos
 	net_target_velocity = vel
 	is_net_interpolating = true
+
 
 ## Recibe un snapshot de estado completo por red (posición, velocidad y postura)
 func set_net_state(pos: Vector3, vel: Vector3, stance_val: int) -> void:
@@ -398,47 +478,47 @@ func set_net_state(pos: Vector3, vel: Vector3, stance_val: int) -> void:
 	if current_stance != stance_val:
 		set_stance(stance_val as Stance)
 
+
 ## Rota la orientación horizontal hacia look_target_position e interpola en red.
 func update_presentation(delta: float) -> void:
 	if is_net_interpolating:
 		if global_position.distance_squared_to(net_target_position) > 25.0:
 			global_position = net_target_position
 		else:
-			global_position = global_position.lerp(net_target_position, clampf(15.0 * delta, 0.0, 1.0))
+			global_position = global_position.lerp(
+				net_target_position, clampf(15.0 * delta, 0.0, 1.0)
+			)
 		velocity = net_target_velocity
 
+	# Mirar hacia donde se camina evita el "moonwalk" (solo hay animaciones hacia delante);
+	# parado, el cuerpo se gira hacia el cursor. En cobertura, la espalda queda contra el muro.
+	var face_dir: Vector3 = Vector3.ZERO
+	var horizontal_vel: Vector3 = velocity.slide(Vector3.UP)
 	if current_stance == Stance.WALL_COVER and current_wall_normal.length_squared() > 0.01:
-		var target_rot_y: float = atan2(-current_wall_normal.x, -current_wall_normal.z)
-		rotation.y = lerp_angle(rotation.y, target_rot_y, 0.25)
+		face_dir = current_wall_normal
+	elif horizontal_vel.length() >= FACE_MOVEMENT_MIN_SPEED:
+		face_dir = horizontal_vel
 	else:
-		var dir: Vector3 = look_target_position - global_position
-		dir.y = 0.0
-		if dir.length_squared() > 0.01:
-			var target_rot_y: float = atan2(-dir.x, -dir.z)
-			rotation.y = lerp_angle(rotation.y, target_rot_y, 0.25)
+		face_dir = (look_target_position - global_position).slide(Vector3.UP)
+	if face_dir.length_squared() > 0.01:
+		rotation.y = lerp_angle(rotation.y, atan2(-face_dir.x, -face_dir.z), 0.25)
+
 
 ## Compatibilidad hacia atrás: combina captura de objetivo, input, simulación y presentación.
-func process_isometric_movement(delta: float, input_dir: Vector2, camera: Camera3D = null) -> void:
-	var target_pos: Vector3 = look_target_position
-	if camera != null and is_inside_tree():
-		var vp: Viewport = get_viewport()
-		if vp != null:
-			var mouse_screen_pos: Vector2 = vp.get_mouse_position()
-			var ground_plane: Plane = Plane(Vector3.UP, global_position.y)
-			var ray_origin: Vector3 = camera.project_ray_origin(mouse_screen_pos)
-			var ray_dir: Vector3 = camera.project_ray_normal(mouse_screen_pos)
-			var hit: Variant = ground_plane.intersects_ray(ray_origin, ray_dir)
-			if hit != null:
-				target_pos = hit as Vector3
+func process_isometric_movement(delta: float, input_dir: Vector2, cam: Camera3D = null) -> void:
+	var target_pos: Vector3 = project_cursor_on_ground(cam)
 
-	apply_input({
-		"movement_vector": input_dir,
-		"is_sprinting": is_sprinting,
-		"is_sneaking": is_sneaking,
-		"look_target": target_pos,
-	})
+	apply_input(
+		{
+			"movement_vector": input_dir,
+			"is_sprinting": is_sprinting,
+			"is_sneaking": is_sneaking,
+			"look_target": target_pos,
+		}
+	)
 	simulate_movement(delta)
 	update_presentation(delta)
+
 
 func _apply_movement_speed(move_dir: Vector3, delta: float) -> void:
 	var stance_mult: float = get_stance_speed_multiplier()
@@ -466,9 +546,11 @@ func _apply_movement_speed(move_dir: Vector3, delta: float) -> void:
 	velocity.x = move_toward(velocity.x, target_vel.x, acceleration * delta)
 	velocity.z = move_toward(velocity.z, target_vel.z, acceleration * delta)
 
+
 func _apply_friction(delta: float) -> void:
 	velocity.x = move_toward(velocity.x, 0.0, friction * delta)
 	velocity.z = move_toward(velocity.z, 0.0, friction * delta)
+
 
 func _apply_gravity(delta: float) -> void:
 	if not is_on_floor():
@@ -476,21 +558,6 @@ func _apply_gravity(delta: float) -> void:
 	else:
 		velocity.y = 0.0
 
-## Deprecated: mantenida por compatibilidad hacia atrás
-func _update_rotation_towards_mouse(camera: Camera3D) -> void:
-	if camera == null or not is_inside_tree():
-		return
-	var vp: Viewport = get_viewport()
-	if vp == null:
-		return
-	var ground_plane: Plane = Plane(Vector3.UP, global_position.y)
-	var mouse_screen_pos: Vector2 = vp.get_mouse_position()
-	var ray_origin: Vector3 = camera.project_ray_origin(mouse_screen_pos)
-	var ray_dir: Vector3 = camera.project_ray_normal(mouse_screen_pos)
-	var hit: Variant = ground_plane.intersects_ray(ray_origin, ray_dir)
-	if hit != null:
-		look_target_position = hit as Vector3
-		update_presentation(0.0)
 
 func _process_footstep_cadence(delta: float) -> void:
 	_step_timer += delta
@@ -498,17 +565,22 @@ func _process_footstep_cadence(delta: float) -> void:
 		_step_timer = 0.0
 		_emit_step_sound()
 
+
 func _emit_step_sound() -> void:
 	var final_noise_radius: float = 3.5
 	if surface_detector != null:
-		final_noise_radius = surface_detector.calculate_step_noise_radius(3.5, is_sprinting, is_sneaking)
+		final_noise_radius = surface_detector.calculate_step_noise_radius(
+			3.5, is_sprinting, is_sneaking
+		)
 
 	final_noise_radius *= get_stance_noise_multiplier()
 
-	if current_stance == Stance.TIPTOE or current_stance == Stance.PRONE or final_noise_radius <= 0.001:
+	if (
+		current_stance == Stance.TIPTOE
+		or current_stance == Stance.PRONE
+		or final_noise_radius <= 0.001
+	):
 		final_noise_radius = 0.0
 
-	var bus: Node = get_node_or_null("/root/SignalBus")
-	if bus != null:
-		bus.emit_signal("noise_emitted_3d", global_position, final_noise_radius, team_id)
-		bus.emit_signal("footprint_stepped_3d", global_position, rotation.y)
+	SignalBus.noise_emitted_3d.emit(global_position, final_noise_radius, team_id)
+	SignalBus.footprint_stepped_3d.emit(global_position, rotation.y)

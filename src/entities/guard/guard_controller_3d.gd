@@ -5,14 +5,14 @@
 class_name GuardController3D
 extends PlayerBase3D
 
-## Cámara isométrica activa
-@export var camera: Camera3D
-
 ## Linterna Maglite asignada al personaje
 @export var maglite_light: SpotLight3D
 
 ## Cooldown entre impactos de porra en segundos
 const BATON_COOLDOWN_TIME: float = 0.75
+## Radio (m) del ruido de un golpe de porra y de una captura
+const BATON_SWING_NOISE_RADIUS: float = 4.5
+const CAPTURE_NOISE_RADIUS: float = 8.0
 
 ## Alcance del golpe cuerpo a cuerpo con la porra en metros
 @export var melee_range: float = 1.6
@@ -31,9 +31,11 @@ var baton_cooldown: float = 0.0
 ## Componente modular de interacción (para relojes de fichar y puertas)
 var interactor: Interactor3D = null
 
+
 func _ready() -> void:
 	super._ready()
 	team_id = &"guard"
+	add_to_group(&"guards")
 	move_speed = 4.2
 	sprint_speed = 6.2
 	sneak_speed = 2.0
@@ -42,22 +44,16 @@ func _ready() -> void:
 	interactor.reach_distance = 1.8
 	add_child(interactor)
 
+
+## La IA (GuardAI3D) escribe su intención con apply_world_move(); la simulación es la misma
+## que para un jugador humano, así que la gravedad, la estamina y los pasos se aplican igual.
 func _physics_process(delta: float) -> void:
-	if multiplayer.multiplayer_peer != null and not is_multiplayer_authority():
-		update_presentation(delta)
-		return
+	run_tick(delta)
 
-	if is_ai_controlled:
-		if baton_cooldown > 0.0:
-			baton_cooldown = maxf(0.0, baton_cooldown - delta)
-		_update_maglite_orientation()
-		return
 
-	var input_data: Dictionary = gather_input(camera)
-	apply_input(input_data)
-	simulate_movement(delta)
-	update_presentation(delta)
+func _process_local_actions() -> void:
 	_handle_interaction_input()
+
 
 ## Simulación física del guardia: gestiona estamina para sprint, cooldown de porra y movimiento
 func simulate_movement(delta: float) -> void:
@@ -67,10 +63,12 @@ func simulate_movement(delta: float) -> void:
 	_process_stamina_and_sprint(delta, current_input_dir)
 	super.simulate_movement(delta)
 
+
 ## Actualiza la presentación visual del guardia y la orientación del foco Maglite
 func update_presentation(delta: float) -> void:
 	super.update_presentation(delta)
 	_update_maglite_orientation()
+
 
 func _process_stamina_and_sprint(delta: float, input_dir: Vector2) -> void:
 	if is_sprinting and (stamina <= 5.0 or input_dir.length_squared() <= 0.01):
@@ -81,10 +79,14 @@ func _process_stamina_and_sprint(delta: float, input_dir: Vector2) -> void:
 	else:
 		stamina = minf(max_stamina, stamina + stamina_recovery_rate * delta)
 
+
 func _handle_interaction_input() -> void:
-	var interact_pressed: bool = Input.is_action_just_pressed("interact") if InputMap.has_action("interact") else false
+	var interact_pressed: bool = (
+		Input.is_action_just_pressed("interact") if InputMap.has_action("interact") else false
+	)
 	if interact_pressed and interactor != null:
 		interactor.execute_interaction(self)
+
 
 ## Orienta el haz de la linterna Maglite hacia el punto apuntado por el cursor
 func _update_maglite_orientation() -> void:
@@ -97,6 +99,7 @@ func _update_maglite_orientation() -> void:
 		if absf(dir_to_target.dot(Vector3.UP)) > 0.98:
 			up_vector = Vector3.FORWARD
 		maglite_light.look_at(look_target_position, up_vector)
+
 
 ## Evalúa si el ladrón es detectable según:
 ## 1. Proximidad inmediata (1.8m sin obstáculos)
@@ -129,11 +132,13 @@ func check_detection_on_thief(thief: ThiefController3D) -> bool:
 
 	return false
 
+
 func _has_line_of_sight(space_state: PhysicsDirectSpaceState3D, from: Vector3, to: Vector3) -> bool:
 	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(from, to)
-	query.collision_mask = 1 # Solo colisiona con el entorno
+	query.collision_mask = 1  # Solo colisiona con el entorno
 	var result: Dictionary = space_state.intersect_ray(query)
 	return result.is_empty()
+
 
 ## Valida de forma autoritativa en el servidor si un golpe cuerpo a cuerpo es legítimo
 func validate_melee_hit(target_thief: ThiefController3D) -> bool:
@@ -150,6 +155,7 @@ func validate_melee_hit(target_thief: ThiefController3D) -> bool:
 				return false
 	return true
 
+
 ## Ejecuta un golpe con la porra de madera validado autoritativamente
 func swing_baton(target_thief: ThiefController3D = null) -> bool:
 	if baton_cooldown > 0.0:
@@ -158,9 +164,7 @@ func swing_baton(target_thief: ThiefController3D = null) -> bool:
 	var valid_hit: bool = target_thief != null and validate_melee_hit(target_thief)
 
 	baton_cooldown = BATON_COOLDOWN_TIME
-	var bus: Node = get_node_or_null("/root/SignalBus")
-	if bus != null:
-		bus.emit_signal("noise_emitted_3d", global_position, 4.5, &"guard")
+	SignalBus.noise_emitted_3d.emit(global_position, BATON_SWING_NOISE_RADIUS, &"guard")
 
 	if valid_hit:
 		var is_captured: bool = true
@@ -172,14 +176,12 @@ func swing_baton(target_thief: ThiefController3D = null) -> bool:
 
 	return false
 
+
 func _capture_thief() -> void:
-	var bus: Node = get_node_or_null("/root/SignalBus")
-	if bus != null:
-		var p_id: int = 1
-		if multiplayer != null and multiplayer.has_multiplayer_peer():
-			p_id = multiplayer.get_unique_id()
-		bus.emit_signal("thief_captured", p_id)
-		bus.emit_signal("noise_emitted_3d", global_position, 8.0, &"guard")
+	var p_id: int = get_multiplayer_authority()
+	SignalBus.thief_captured.emit(p_id)
+	SignalBus.noise_emitted_3d.emit(global_position, CAPTURE_NOISE_RADIUS, &"guard")
+
 
 ## Propiedad de conveniencia para que el HUD consulte el interactuable enfocado
 var focused_interactive: Node3D:
