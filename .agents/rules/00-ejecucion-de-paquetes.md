@@ -16,6 +16,16 @@ Trabajas sobre un paquete `PKG-N` de `docs/tasks/FEAT-XXX-slug.md`, en tu propio
 4. Ejecuta los comandos de cierre del paquete en orden y copia su salida real. Un comando que no pudiste ejecutar se informa como "no ejecutado: <motivo>", nunca como superado.
 5. Haz commit en tu rama con mensaje `feat(XXX): PKG-N <resumen>`. El merge no es tuyo.
 
+## Herramientas y comandos
+Trabajas en modo headless: no hay nadie para aprobar permisos. **Un comando denegado termina tu sesión sin informe** y se pierde el trabajo de verificación.
+- Escribe y edita archivos con tu herramienta de edición, nunca con comandos de shell (`echo >`, `cat <<EOF`, `sed -i`, `touch`, `rm`, `mv`, `cp`).
+- Ejecuta solo:
+  - los comandos de cierre del paquete, exactamente como están escritos y de uno en uno;
+  - `git status`, `git diff`, `git show HEAD:<ruta>`, `git add`, `git rm`, `git update-index --chmod=+x` y `git commit`.
+- No encadenes comandos (`;`, `&&`, `||`, `|`), no uses variables de shell ni `$(...)` y no escribas scripts de prueba ad hoc. Para comprobar algo, usa el comando de cierre que lo cubre.
+- No compruebes el entorno (versiones, rutas, bibliotecas): el planificador ya lo hizo. Si un comando de cierre falla por el entorno y no por tu código, entrega con estado `bloqueado` y copia el error.
+- Nunca cambies de rama, ni restaures archivos desde otra rama, ni hagas `push`.
+
 ## Informe de entrega
 Tu último mensaje es exactamente este informe; el planificador lo lee de forma automática.
 
