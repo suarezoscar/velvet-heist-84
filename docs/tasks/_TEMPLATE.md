@@ -58,6 +58,6 @@ Uno por agente y rama. Los redacta Claude para que el ejecutor no tome decisione
   tests/unit/test_ejemplo.gd
   ```
 - **Tests obligatorios**: `tests/...::test_nombre` → criterio que cubre. Uno por criterio como mínimo, derivados de los contratos.
-- **Comandos de cierre**: los de PKG-1.
+- **Comandos de cierre**: los de PKG-1, empezando siempre por `./tools/ci/import.sh` (cada paquete trabaja en un worktree nuevo sin `.godot/`).
 
 ## Riesgos y decisiones abiertas
