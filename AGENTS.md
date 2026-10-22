@@ -9,7 +9,7 @@ Sigilo táctico asimétrico multijugador (1 ladrón contra 2-4 guardias). 3D iso
 2. **Spec**: Claude Code escribe `docs/tasks/FEAT-XXX-slug.md` con contratos y un paquete de ejecución por agente (`/spec`). El usuario la aprueba.
 3. **Ejecución**: Claude lanza cada paquete en Antigravity (`agy`) en su propio worktree y rama `feat/XXX-pkgN`. El ejecutor sigue `.agents/rules/00-ejecucion-de-paquetes.md`.
 4. **Revisión**: `reviewer` (Claude, contexto limpio) repite las comprobaciones y audita spec, código y tests. Como mucho dos vueltas de corrección; después decide el usuario.
-5. **Merge**: lo hace siempre el usuario, de la rama del paquete a la rama de integración de la FEAT (por defecto `master`).
+5. **PR y merge**: Claude publica la rama aprobada, abre el PR contra la rama de integración de la FEAT (por defecto `master`) y lo integra cuando `reviewer` ha aprobado y el CI está en verde. Con el CI en rojo o pendiente no se integra. El usuario puede revisar o integrar él mismo cualquier PR.
 
 Quien escribe el código no lo revisa ni escribe sus tests de aceptación: esos tests los escribe `qa-engineer` en su propio paquete, a partir de los criterios de la spec.
 Un ajuste de números que no cambia reglas es una `TUNE-XXX` (solo `.tres`, plantilla `docs/tasks/_TUNE_TEMPLATE.md`).
