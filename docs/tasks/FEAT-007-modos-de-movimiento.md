@@ -233,7 +233,7 @@ Ninguno. Las animaciones `tiptoe_walk`, `prone_*` y `cover_*` siguen dentro de l
 | PKG | Agente | Rama | Depende de | Estado | Vueltas | Notas |
 |---|---|---|---|---|---|---|
 | PKG-1 | gameplay-engineer | `feat/007-pkg1` | — | en curso | 0 | |
-| PKG-2 | integrator | `feat/007-pkg2` | — | en curso | 0 | En paralelo con PKG-1; no comparten archivos |
+| PKG-2 | integrator | `feat/007-pkg2` | — | revisado | 0 | En paralelo con PKG-1; no comparten archivos |
 | PKG-QA | qa-engineer | `feat/007-pkgqa` | PKG-1 | pendiente | 0 | |
 
 ## Paquetes de ejecución
