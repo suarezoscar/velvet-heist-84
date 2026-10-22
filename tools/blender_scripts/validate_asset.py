@@ -25,6 +25,8 @@ for p in [str(SCRIPT_DIR), str(LIB_DIR)]:
     if p not in sys.path:
         sys.path.insert(0, p)
 
+BLENDER_VERSION_ENV: Path = SCRIPT_DIR.parent.parent / "tools" / "ci" / "blender_version.env"
+
 try:
     import bpy
     import mathutils
@@ -37,6 +39,33 @@ except ImportError as e:
     # Si se corre fuera de blender o falla import
     print(f"Error importando dependencias: {e}", file=sys.stderr)
     sys.exit(1)
+
+
+def check_blender_version(env_path: Path) -> Tuple[bool, str]:
+    """Comprueba que la versión de Blender coincida con la fijada en env_path."""
+    path = Path(env_path)
+    if not path.is_file():
+        return False, f"Archivo no encontrado: {path}"
+
+    pinned_version = None
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith("BLENDER_VERSION="):
+                    pinned_version = line.split("=", 1)[1].strip().strip('"').strip("'")
+                    break
+    except OSError as e:
+        return False, f"Error al leer archivo {path}: {e}"
+
+    if not pinned_version:
+        return False, f"Variable BLENDER_VERSION no encontrada en {path}"
+
+    actual_version = ".".join(str(n) for n in bpy.app.version)
+    if actual_version != pinned_version:
+        return False, f"Blender {actual_version}, se esperaba {pinned_version} (tools/ci/blender_version.env)"
+
+    return True, ""
 
 
 def parse_arguments() -> Tuple[str, Dict[str, Any], Optional[str]]:
@@ -402,6 +431,11 @@ def validate_asset(asset_path: str, spec: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def main():
+    ok, msg = check_blender_version(BLENDER_VERSION_ENV)
+    if not ok:
+        print(f"Error: {msg}", file=sys.stderr)
+        sys.exit(2)
+
     try:
         asset_path, spec_data, output_json_path = parse_arguments()
     except Exception as e:
