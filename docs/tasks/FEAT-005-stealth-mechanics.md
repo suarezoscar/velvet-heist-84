@@ -1,6 +1,6 @@
 # FEAT-005 — Mecánicas de Sigilo Avanzadas, Posturas y Rigging de Personajes '84
 
-- **Estado**: aprobada
+- **Estado**: hecha (auditada por qa-engineer y aprobada por lead-architect)
 - **Responsable**: gameplay-engineer, technical-artist y vfx-ui-engineer  **Revisor**: lead-architect
 - **Fase del GSD**: 3 (Mecánicas de sigilo, animaciones Mixamo y gadgets analógicos)
 
