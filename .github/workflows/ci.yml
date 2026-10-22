@@ -8,6 +8,10 @@ on:
 
 env:
   GODOT_VERSION: "4.7.2"
+  # Base para "archivos cambiados" (lint, patrones). En PR, la rama destino; en push, master.
+  BASE_REF: origin/${{ github.base_ref || 'master' }}
+  # Rama analizada por check_scope.py (en PR, la rama origen).
+  SCOPE_BRANCH: ${{ github.head_ref || github.ref_name }}
 
 jobs:
   verify:
@@ -18,6 +22,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           lfs: true
+          fetch-depth: 0
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -29,9 +34,21 @@ jobs:
           python -m pip install --upgrade pip
           pip install gdtoolkit==4.5.0
 
-      - name: Lint & Formatting Check (Non-blocking)
+      - name: Package Scope and Ownership
+        run: |
+          python3 tools/ci/check_scope.py
+
+      - name: Forbidden Patterns (changed files)
+        run: |
+          ./tools/ci/check_patterns.sh
+
+      - name: Lint & Formatting (changed files, blocking)
         run: |
           ./tools/ci/lint.sh
+
+      - name: Lint Report (whole project, non-blocking)
+        run: |
+          ./tools/ci/lint.sh --all
 
       - name: Cache Godot Binary
         id: cache-godot

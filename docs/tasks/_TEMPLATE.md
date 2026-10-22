@@ -1,8 +1,9 @@
 # FEAT-XXX — Título
 
-- **Estado**: borrador | aprobada | en curso | hecha
-- **Responsable**: <subagente>  **Revisor**: lead-architect
-- **Fase del GSD**: <1-4>
+- **Estado**: borrador | aprobada | en curso | hecha | hecha parcialmente
+- **Diseño**: `docs/gdd/systems/<sistema>.md` (aprobado) · o `n/a — técnica` si no cambia mecánicas, niveles ni balance
+- **Revisor**: `reviewer` (Claude)
+- **Rama de integración**: `master` (por defecto: los paquetes salen de ella y el usuario los integra ahí; una rama `feat/XXX-slug` solo si la FEAT debe llegar entera a `master` de una vez)
 
 ## Objetivo
 Qué problema resuelve y por qué ahora.
@@ -20,24 +21,43 @@ Qué problema resuelve y por qué ahora.
 Señales, métodos públicos, recursos `.tres`, nodos y rutas, con nombres y tipos exactos.
 
 ## Assets necesarios
-Nombre, dimensiones (m), pivote, triángulos máximos, materiales de la paleta, colisión `-col`.
+Nombre, dimensiones (m), pivote, triángulos máximos, materiales, colisión `-col` y origen (`procedural`, `polyhaven`, `mixamo`).
 
 ## Impacto en red
-Qué se replica, quién tiene autoridad, frecuencia.
+Qué se replica, quién tiene autoridad, frecuencia. Si toca red, la spec se escribe con la skill `netcode`.
 
-## Reparto y orden
-Qué hace cada subagente y qué puede ir en paralelo.
+## Estado de los paquetes
+Lo actualiza Claude (`/dispatch`) en la copia principal; se commitea con el cierre de la FEAT.
+
+| PKG | Agente | Rama | Depende de | Estado | Vueltas | Notas |
+|---|---|---|---|---|---|---|
+| PKG-1 | | `feat/XXX-pkg1` | — | pendiente | 0 | |
+| PKG-QA | qa-engineer | `feat/XXX-pkgqa` | — | pendiente | 0 | |
+
+Estados: `pendiente` → `en curso` → `entregado` → `revisado` (listo para merge) → `integrado` · `bloqueado` (espera al usuario).
 
 ## Paquetes de ejecución
-Uno por subagente y rama. Los redacta el planificador (Claude Code) para que el ejecutor (Antigravity) no tome decisiones de diseño. Si el ejecutor encuentra una ambigüedad, para y la reporta; no la resuelve por su cuenta.
+Uno por agente y rama. Los redacta Claude para que el ejecutor no tome decisiones de diseño. Si el ejecutor encuentra una ambigüedad, para y la reporta (regla 00).
 
 ### PKG-1 — <título>
-- **Subagente / rama**: `<subagente>` / `feat/XXX-pkg1`
-- **Archivos permitidos**: rutas exactas que puede crear o modificar (cualquier otro cambio es un bloqueante en `/review`).
+- **Agente / rama**: `<agente>` / `feat/XXX-pkg1`
+- **Archivos permitidos**: CI rechaza cualquier archivo fuera de este bloque (`tools/ci/check_scope.py`). Un glob por línea; un archivo de otro dueño lleva `# excepción: <motivo>`.
+  ```allowed
+  src/entities/components/ejemplo_3d.gd
+  ```
 - **Contratos**: firmas exactas que debe exponer o consumir.
-- **Valores**: constantes y parámetros con su origen (`.tres`, tabla de la spec); el ejecutor no inventa números.
-- **Tests obligatorios**: `tests/...::test_nombre` → criterio que cubre.
-- **Comandos de cierre**: `./tools/ci/check_scripts.sh <archivos>` · `./tools/ci/run_tests.sh` · `./tools/ci/lint.sh`.
+- **Valores**: cada número con su origen (`.tres` y campo, o tabla de esta spec); el ejecutor no inventa números.
+- **Tests**: tests unitarios de los internos que escribe este agente. Los de aceptación van en PKG-QA.
+- **Comandos de cierre**: `./tools/ci/import.sh` · `./tools/ci/check_scripts.sh <archivos>` · `./tools/ci/lint.sh` · `./tools/ci/check_patterns.sh` · `python3 tools/ci/check_scope.py` · `./tools/ci/run_tests.sh`.
 - **Fuera de alcance**: lo que no debe tocar aunque parezca relacionado.
+
+### PKG-QA — Tests de aceptación
+- **Agente / rama**: `qa-engineer` / `feat/XXX-pkgqa`
+- **Archivos permitidos**:
+  ```allowed
+  tests/unit/test_ejemplo.gd
+  ```
+- **Tests obligatorios**: `tests/...::test_nombre` → criterio que cubre. Uno por criterio como mínimo, derivados de los contratos.
+- **Comandos de cierre**: los de PKG-1.
 
 ## Riesgos y decisiones abiertas
