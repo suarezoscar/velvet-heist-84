@@ -7,7 +7,6 @@ on:
     branches: [ master, main ]
 
 env:
-  GODOT_VERSION: "4.7.2"
   # Base para "archivos cambiados" (lint, patrones). En PR, la rama destino; en push, master.
   BASE_REF: origin/${{ github.base_ref || 'master' }}
   # Rama analizada por check_scope.py (en PR, la rama origen).
@@ -23,6 +22,10 @@ jobs:
         with:
           lfs: true
           fetch-depth: 0
+
+      - name: Load Pinned Versions
+        run: |
+          grep -hE '^[A-Z_]+=' tools/ci/godot_version.env tools/ci/blender_version.env >> "$GITHUB_ENV"
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -81,10 +84,15 @@ jobs:
 
       - name: Check Godot Executable
         run: |
-          if command -v godot >/dev/null 2>&1; then
-            godot --version
-          else
-            echo "Godot binary not in PATH; skipping engine steps if unavailable in runner environment"
+          if ! command -v godot >/dev/null 2>&1; then
+            echo "::error::Godot no está instalado"
+            exit 1
+          fi
+          GODOT_FOUND="$(godot --version)"
+          echo "${GODOT_FOUND}"
+          if [[ "${GODOT_FOUND}" != "${GODOT_VERSION}"* ]]; then
+            echo "::error::Se esperaba Godot ${GODOT_VERSION}"
+            exit 1
           fi
 
       - name: Step 1 - Headless Project Import
@@ -98,3 +106,35 @@ jobs:
       - name: Step 3 - Run GUT Characterization Tests
         run: |
           ./tools/ci/run_tests.sh
+
+      - name: Install Blender System Libraries
+        run: |
+          sudo apt-get update && sudo apt-get install -y libxi6 libxxf86vm1 libxfixes3 libxrender1 libgl1 libegl1 libxkbcommon0 libsm6
+
+      - name: Cache Blender
+        id: cache-blender
+        uses: actions/cache@v4
+        with:
+          path: /opt/blender
+          key: blender-${{ env.BLENDER_VERSION }}
+
+      - name: Install Blender ${{ env.BLENDER_VERSION }}
+        if: steps.cache-blender.outputs.cache-hit != 'true'
+        run: |
+          curl -sLf "https://download.blender.org/release/Blender${BLENDER_SERIES}/blender-${BLENDER_VERSION}-linux-x64.tar.xz" -o /tmp/blender.tar.xz
+          sudo mkdir -p /opt/blender
+          sudo tar -xJf /tmp/blender.tar.xz -C /opt/blender --strip-components=1
+
+      - name: Check Blender Executable
+        run: |
+          sudo ln -sf /opt/blender/blender /usr/local/bin/blender
+          BLENDER_FOUND="$(blender --version 2>/dev/null | sed -n 1p)"
+          echo "${BLENDER_FOUND}"
+          if [[ "${BLENDER_FOUND}" != "Blender ${BLENDER_VERSION}"* ]]; then
+            echo "::error::Se esperaba Blender ${BLENDER_VERSION}"
+            exit 1
+          fi
+
+      - name: Step 4 - Asset Validator Tests
+        run: |
+          ./tools/ci/run_blender_tests.sh
