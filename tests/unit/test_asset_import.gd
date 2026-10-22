@@ -103,8 +103,12 @@ func _compute_visual_aabb(root: Node3D) -> AABB:
 			continue
 
 		var local_aabb: AABB = mi.get_aabb()
-		var rel_xform: Transform3D = root.global_transform.affine_inverse() * mi.global_transform
-		var trans_aabb: AABB = rel_xform * local_aabb
+		var trans_aabb: AABB
+		if mi.skin != null:
+			trans_aabb = local_aabb
+		else:
+			var rel_xform: Transform3D = root.global_transform.affine_inverse() * mi.global_transform
+			trans_aabb = rel_xform * local_aabb
 
 		if is_first:
 			combined_aabb = trans_aabb
@@ -113,6 +117,7 @@ func _compute_visual_aabb(root: Node3D) -> AABB:
 			combined_aabb = combined_aabb.merge(trans_aabb)
 
 	return combined_aabb
+
 
 
 func _verify_asset(glb_filename: String) -> void:
@@ -189,3 +194,51 @@ func test_gadgets_assets_import_and_bounds() -> void:
 	]
 	for glb_filename: String in gadgets:
 		await _verify_asset(glb_filename)
+
+
+func test_character_models_proportions_and_bounds() -> void:
+	var characters: Dictionary = {
+		"characters/thief_crypto.glb": {
+			"expected_height": 1.80,
+			"expected_max_wingspan": 1.85,
+		},
+		"characters/guard_swat.glb": {
+			"expected_height": 1.82,
+			"expected_max_wingspan": 2.05,
+		},
+	}
+
+	for char_path: String in characters:
+		var full_path: String = ASSETS_DIR + char_path
+		assert_true(FileAccess.file_exists(full_path), "[%s] Archivo existe" % char_path)
+		var scene: PackedScene = load(full_path) as PackedScene
+		assert_not_null(scene, "[%s] Escena cargada con éxito" % char_path)
+		var inst: Node3D = autofree(scene.instantiate() as Node3D)
+		add_child_autofree(inst)
+		await wait_physics_frames(1)
+
+		var aabb: AABB = _compute_visual_aabb(inst)
+		var exp_data: Dictionary = characters[char_path] as Dictionary
+		var exp_h: float = exp_data["expected_height"] as float
+		var exp_span: float = exp_data["expected_max_wingspan"] as float
+
+		# 1. Altura humana métrica normal (1.80m / 1.82m con tolerancia ±5cm)
+		var msg_h: String = "[%s] Altura humana (~%f m vs %f m)" % [char_path, exp_h, aabb.size.y]
+		assert_almost_eq(aabb.size.y, exp_h, 0.05, msg_h)
+
+		# 2. Envergadura acotada (< 2.1m, descartando el bug de 180m de ancho)
+		var msg_w: String = "[%s] Anchura acotada (< %f m, actual: %f m)" % [char_path, exp_span, aabb.size.x]
+		assert_lt(aabb.size.x, exp_span, msg_w)
+
+		# 3. Base inferior sobre el suelo (Y=0.0 con tolerancia 2cm)
+		var msg_base: String = "[%s] Base inferior en Y=0.0 (%f m)" % [char_path, aabb.position.y]
+		assert_almost_eq(aabb.position.y, 0.0, 0.02, msg_base)
+
+		# 4. Centrado horizontal en X
+		var center_x: float = aabb.position.x + aabb.size.x / 2.0
+		var msg_cx: String = "[%s] Centrado horizontal en X (%f m)" % [char_path, center_x]
+		assert_almost_eq(center_x, 0.0, 0.05, msg_cx)
+
+
+
+
