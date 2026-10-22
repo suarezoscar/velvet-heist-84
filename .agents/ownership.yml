@@ -1,0 +1,94 @@
+# Propiedad de carpetas de Velvet Heist '84. Fuente única: AGENTS.md y los agentes remiten aquí,
+# y tools/ci/check_scope.py lo usa para comprobar cada rama de paquete (feat/XXX-pkgN).
+#
+# Formato: un dueño por bloque, con `tool` (claude | antigravity | humano) y `paths` (globs
+# relativos a la raíz; `**` cruza carpetas). Un mismo path puede tener varios dueños.
+# Si un paquete necesita tocar algo ajeno, su bloque `allowed` lo marca con "# excepción: motivo".
+
+version: 1
+owners:
+  claude:
+    tool: claude
+    paths:
+      - AGENTS.md
+      - CLAUDE.md
+      - .agents/**
+      - .claude/**
+      - docs/tasks/**
+      - docs/decisions/**
+
+  game-designer:
+    tool: claude
+    paths:
+      - docs/gdd/**
+      - docs/playtests/**
+      - data/balance/**
+      - data/loot_tables/**
+      - data/levels/**
+
+  integrator:
+    tool: antigravity
+    paths:
+      - project.godot
+      - core/signal_bus.gd
+      - core/game_manager.gd
+      - addons/**
+      - tools/ci/**
+      - tools/agy/**
+      - .github/**
+      - .githooks/**
+      - .gitignore
+      - .gutconfig.json
+      - .mcp.json
+      - gdlintrc
+      - gdformatrc
+
+  gameplay-engineer:
+    tool: antigravity
+    paths:
+      - src/entities/**
+      - src/systems/**
+      - src/gadgets/**
+      - src/network/**
+      - src/maps/**
+      - src/generation/**
+      - src/telemetry/**
+      - scenes/entities/**
+      - core/net_manager.gd
+      - tests/unit/**
+
+  technical-artist:
+    tool: antigravity
+    paths:
+      - tools/blender_scripts/**
+      - assets/models/**
+      - assets/textures/**
+      - assets/materials/**
+      - assets/previews/**
+      - data/asset_specs/**
+
+  vfx-ui-engineer:
+    tool: antigravity
+    paths:
+      - assets/shaders/**
+      - assets/audio/**
+      - assets/ui/**
+      - src/vfx/**
+      - src/ui/**
+      - scenes/ui/**
+
+  qa-engineer:
+    tool: antigravity
+    paths:
+      - tests/unit/**
+      - tests/integration/**
+      - tests/regression/**
+      - tests/stress/**
+      - tests/fixtures/**
+      - tests/README.md
+      - tools/ci/qa_*.sh
+
+  usuario:
+    tool: humano
+    paths:
+      - scenes/maps/**
