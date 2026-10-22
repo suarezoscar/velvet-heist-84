@@ -1,9 +1,11 @@
-## @file thief_controller_3d.gd
 ## Controlador específico del Ladrón de guante blanco.
 ## Gestiona la alta movilidad, el transporte de botín pesado, el ancla de manos
 ## y la interacción física mediante el componente Interactor3D.
 class_name ThiefController3D
 extends PlayerBase3D
+
+## Ruta del perfil de movimiento del ladrón
+const MOVEMENT_PROFILE_PATH: String = "res://data/balance/movement_thief.tres"
 
 ## Factor multiplicador de velocidad al cargar botín pesado (-20% según GSD 4.3)
 const HEAVY_LOOT_SPEED_MULTIPLIER: float = 0.8
@@ -35,37 +37,23 @@ var is_detected_by_guard: bool = false
 ## Componente modular de interacción
 var interactor: Interactor3D = null
 
+## Propiedad de conveniencia para que el HUD consulte el interactuable enfocado
+var focused_interactive: Node3D:
+	get:
+		return interactor.current_target if interactor != null else null
+
 
 func _ready() -> void:
+	if movement_profile == null:
+		movement_profile = load(MOVEMENT_PROFILE_PATH)
 	super._ready()
 	if visual_root == null:
 		visual_root = get_node_or_null("VisualRoot") as Node3D
 	team_id = &"thief"
 	add_to_group(&"thief")
-	move_speed = 5.0
-	sprint_speed = 7.5
-	sneak_speed = 2.4
 
 	_setup_carry_anchor()
 	_setup_interactor()
-
-
-func _setup_carry_anchor() -> void:
-	carry_anchor = get_node_or_null("CarryAnchor3D") as Node3D
-	if carry_anchor == null:
-		carry_anchor = Node3D.new()
-		carry_anchor.name = "CarryAnchor3D"
-		carry_anchor.position = CARRY_ANCHOR_POSITION
-		add_child(carry_anchor)
-	else:
-		carry_anchor.position = CARRY_ANCHOR_POSITION
-
-
-func _setup_interactor() -> void:
-	interactor = Interactor3D.new()
-	interactor.name = "ThiefInteractor"
-	interactor.reach_distance = 1.8
-	add_child(interactor)
 
 
 func _physics_process(delta: float) -> void:
@@ -82,14 +70,6 @@ func simulate_movement(delta: float) -> void:
 	if is_carrying_heavy_loot:
 		velocity.x *= HEAVY_LOOT_SPEED_MULTIPLIER
 		velocity.z *= HEAVY_LOOT_SPEED_MULTIPLIER
-
-
-func _handle_interaction_input() -> void:
-	var interact_pressed: bool = (
-		Input.is_action_just_pressed("interact") if InputMap.has_action("interact") else false
-	)
-	if interact_pressed and interactor != null:
-		interactor.execute_interaction(self)
 
 
 ## Sujeta físicamente un botín pesado en las manos del ladrón
@@ -137,7 +117,27 @@ func is_visible_to_team(team: StringName) -> bool:
 	return is_detected_by_guard
 
 
-## Propiedad de conveniencia para que el HUD consulte el interactuable enfocado
-var focused_interactive: Node3D:
-	get:
-		return interactor.current_target if interactor != null else null
+func _setup_carry_anchor() -> void:
+	carry_anchor = get_node_or_null("CarryAnchor3D") as Node3D
+	if carry_anchor == null:
+		carry_anchor = Node3D.new()
+		carry_anchor.name = "CarryAnchor3D"
+		carry_anchor.position = CARRY_ANCHOR_POSITION
+		add_child(carry_anchor)
+	else:
+		carry_anchor.position = CARRY_ANCHOR_POSITION
+
+
+func _setup_interactor() -> void:
+	interactor = Interactor3D.new()
+	interactor.name = "ThiefInteractor"
+	interactor.reach_distance = 1.8
+	add_child(interactor)
+
+
+func _handle_interaction_input() -> void:
+	var interact_pressed: bool = (
+		Input.is_action_just_pressed("interact") if InputMap.has_action("interact") else false
+	)
+	if interact_pressed and interactor != null:
+		interactor.execute_interaction(self)
