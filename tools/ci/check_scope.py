@@ -222,13 +222,15 @@ def main() -> int:
     out_of_scope: list[str] = []
     not_owned: list[str] = []
     for path in files:
-        matching = [(pattern, exc) for regex, pattern, exc in entries if regex.match(path)]
+        # Godot genera un .uid junto a cada script o recurso: va con el archivo que acompaña
+        subject = path[: -len(".uid")] if path.endswith(".uid") else path
+        matching = [(pattern, exc) for regex, pattern, exc in entries if regex.match(subject)]
         if not matching:
             out_of_scope.append(path)
             continue
         if any(exc for _, exc in matching):
             continue
-        if not any(regex.match(path) for regex in owners[agent]):
+        if not any(regex.match(subject) for regex in owners[agent]):
             not_owned.append(path)
 
     print(f"==> check_scope: {len(files)} archivos en {label}")
