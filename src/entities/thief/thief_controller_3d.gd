@@ -46,10 +46,14 @@ func _ready() -> void:
 	_setup_interactor()
 
 func _setup_carry_anchor() -> void:
-	carry_anchor = Node3D.new()
-	carry_anchor.name = "CarryAnchor3D"
-	carry_anchor.position = Vector3(0.0, 0.85, 0.5)
-	add_child(carry_anchor)
+	carry_anchor = get_node_or_null("CarryAnchor3D") as Node3D
+	if carry_anchor == null:
+		carry_anchor = Node3D.new()
+		carry_anchor.name = "CarryAnchor3D"
+		carry_anchor.position = Vector3(0.0, 0.85, 0.45)
+		add_child(carry_anchor)
+	else:
+		carry_anchor.position = Vector3(0.0, 0.85, 0.45)
 
 func _setup_interactor() -> void:
 	interactor = Interactor3D.new()

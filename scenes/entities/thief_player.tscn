@@ -1,7 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://src/entities/thief/thief_controller_3d.gd" id="1_lqvb3"]
-[ext_resource type="PackedScene" path="res://assets/models/characters/thief_stylized.glb" id="2_quqrx"]
+[ext_resource type="PackedScene" path="res://assets/models/characters/thief_crypto.glb" id="2_quqrx"]
 [ext_resource type="Script" path="res://src/entities/components/character_animator_3d.gd" id="3_yf5sw"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_idiu5"]
@@ -11,13 +11,16 @@ height = 1.6
 [node name="ThiefPlayer" type="CharacterBody3D" unique_id=1112658820 node_paths=PackedStringArray("visual_root")]
 collision_layer = 2
 script = ExtResource("1_lqvb3")
-visual_root = NodePath("RogueMesh")
+visual_root = NodePath("VisualRoot")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1444373407]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
 shape = SubResource("CapsuleShape3D_idiu5")
 
-[node name="RogueMesh" type="Node3D" parent="." unique_id=958222276 instance=ExtResource("2_quqrx")]
+[node name="VisualRoot" type="Node3D" parent="." unique_id=958222276 instance=ExtResource("2_quqrx")]
+
+[node name="CarryAnchor3D" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0.45)
 
 [node name="CharacterAnimator3D" type="Node" parent="." unique_id=2138785891]
 script = ExtResource("3_yf5sw")
