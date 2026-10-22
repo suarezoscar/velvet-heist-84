@@ -37,6 +37,8 @@ var interactor: Interactor3D = null
 
 func _ready() -> void:
 	super._ready()
+	if visual_root == null:
+		visual_root = get_node_or_null("VisualRoot") as Node3D
 	team_id = &"thief"
 	move_speed = 5.0
 	sprint_speed = 7.5
