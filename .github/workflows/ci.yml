@@ -90,7 +90,7 @@ jobs:
           fi
           GODOT_FOUND="$(godot --version)"
           echo "${GODOT_FOUND}"
-          if [[ "${GODOT_FOUND}" != "${GODOT_VERSION}"* ]]; then
+          if [[ "${GODOT_FOUND}" != "${GODOT_VERSION}."* ]]; then
             echo "::error::Se esperaba Godot ${GODOT_VERSION}"
             exit 1
           fi
@@ -128,9 +128,13 @@ jobs:
       - name: Check Blender Executable
         run: |
           sudo ln -sf /opt/blender/blender /usr/local/bin/blender
+          if ! command -v blender >/dev/null 2>&1 || [ ! -x /opt/blender/blender ]; then
+            echo "::error::Blender no está instalado"
+            exit 1
+          fi
           BLENDER_FOUND="$(blender --version 2>/dev/null | sed -n 1p)"
           echo "${BLENDER_FOUND}"
-          if [[ "${BLENDER_FOUND}" != "Blender ${BLENDER_VERSION}"* ]]; then
+          if [[ "${BLENDER_FOUND}" != "Blender ${BLENDER_VERSION} "* && "${BLENDER_FOUND}" != "Blender ${BLENDER_VERSION}" ]]; then
             echo "::error::Se esperaba Blender ${BLENDER_VERSION}"
             exit 1
           fi
