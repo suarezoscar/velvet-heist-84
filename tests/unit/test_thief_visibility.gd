@@ -58,7 +58,7 @@ func test_null_thief_returns_false() -> void:
 func test_proximity_detection_within_1_8m_no_wall() -> void:
 	var guard: GuardController3D = _create_guard(Vector3(0.0, 0.0, 0.0))
 	# Ojos del guardia en (0, 1.5, 0). Torso del ladrón en (0, 1.5, 1.2) -> Distancia = 1.2m <= 1.8m
-	var thief: ThiefController3D = _create_thief(Vector3(0.0, 0.6, 1.2))
+	var thief: ThiefController3D = _create_thief(Vector3(0.0, 0.6, -1.2))
 
 	await wait_physics_frames(2)
 
@@ -70,7 +70,7 @@ func test_proximity_detection_within_1_8m_no_wall() -> void:
 func test_proximity_detection_beyond_1_8m_without_light() -> void:
 	var guard: GuardController3D = _create_guard(Vector3(0.0, 0.0, 0.0))
 	# Torso del ladrón en (0, 1.5, 2.5) -> Distancia = 2.5m > 1.8m
-	var thief: ThiefController3D = _create_thief(Vector3(0.0, 0.6, 2.5))
+	var thief: ThiefController3D = _create_thief(Vector3(0.0, 0.6, -2.5))
 
 	await wait_physics_frames(2)
 
@@ -81,9 +81,9 @@ func test_proximity_detection_beyond_1_8m_without_light() -> void:
 ## Criterio 4: Proximidad bloqueada por un muro intermedio
 func test_proximity_detection_blocked_by_wall() -> void:
 	var guard: GuardController3D = _create_guard(Vector3(0.0, 0.0, 0.0))
-	var thief: ThiefController3D = _create_thief(Vector3(0.0, 0.6, 1.4))
+	var thief: ThiefController3D = _create_thief(Vector3(0.0, 0.6, -1.4))
 	# Muro intermedio a Z = 0.7m entre el guardia (Z=0) y el ladrón (Z=1.4)
-	_create_obstacle_wall(Vector3(0.0, 1.5, 0.7))
+	_create_obstacle_wall(Vector3(0.0, 1.5, -0.7))
 
 	await wait_physics_frames(2)
 
