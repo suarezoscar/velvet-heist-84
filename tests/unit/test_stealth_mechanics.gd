@@ -21,6 +21,7 @@ const EXPECTED_ACTION_ANIMATIONS: Array[StringName] = [
 	&"cover_sneak_right",
 ]
 
+
 func _create_player(pos: Vector3 = Vector3.ZERO) -> PlayerBase3D:
 	var player: PlayerBase3D = autofree(PlayerBase3D.new())
 	player.position = pos
@@ -35,6 +36,7 @@ func _create_player(pos: Vector3 = Vector3.ZERO) -> PlayerBase3D:
 	add_child_autofree(player)
 	return player
 
+
 func _create_solid_box(pos: Vector3, size: Vector3) -> StaticBody3D:
 	var body: StaticBody3D = autofree(StaticBody3D.new())
 	body.collision_layer = 1
@@ -48,9 +50,11 @@ func _create_solid_box(pos: Vector3, size: Vector3) -> StaticBody3D:
 	add_child_autofree(body)
 	return body
 
+
 # ------------------------------------------------------------------------------
 # Criterio 1: Modelos definitivos thief_crypto.glb y guard_swat.glb en escenas
 # ------------------------------------------------------------------------------
+
 
 func test_criterio_1_thief_scene_model_and_anchors() -> void:
 	var thief_scene: PackedScene = load(THIEF_SCENE_PATH) as PackedScene
@@ -70,11 +74,12 @@ func test_criterio_1_thief_scene_model_and_anchors() -> void:
 	)
 	assert_not_null(anim_player, "El modelo thief_crypto.glb contiene AnimationPlayer")
 
-	# Comprobar ancla CarryAnchor3D en manos (aprox Vector3(0.0, 0.85, 0.45))
+	# Comprobar ancla CarryAnchor3D en manos, delante del pecho (-Z es el frente en Godot)
 	var carry_anchor: Node3D = thief.find_child("CarryAnchor3D", true, false) as Node3D
 	assert_not_null(carry_anchor, "CarryAnchor3D presente en thief_player")
 	assert_almost_eq(carry_anchor.position.y, 0.85, 0.05, "Altura Y de CarryAnchor3D aprox 0.85m")
-	assert_almost_eq(carry_anchor.position.z, 0.45, 0.06, "Profundidad Z de CarryAnchor3D aprox 0.45m")
+	assert_almost_eq(carry_anchor.position.z, -0.45, 0.06, "CarryAnchor3D delante (-Z) aprox 0.45m")
+
 
 func test_criterio_1_guard_scene_model_and_anchors() -> void:
 	var guard_scene: PackedScene = load(GUARD_SCENE_PATH) as PackedScene
@@ -92,15 +97,17 @@ func test_criterio_1_guard_scene_model_and_anchors() -> void:
 	)
 	assert_not_null(anim_player, "El modelo guard_swat.glb contiene AnimationPlayer")
 
-	# Comprobar MagliteSpotLight a la altura del pecho/hombro (Vector3(0.0, 0.9, 0.4))
+	# Comprobar MagliteSpotLight a la altura del pecho, delante del cuerpo (-Z)
 	var maglite: SpotLight3D = guard.maglite_light
 	assert_not_null(maglite, "MagliteSpotLight asignada en guard_player")
 	assert_almost_eq(maglite.position.y, 0.90, 0.05, "Altura Y de Maglite aprox 0.90m")
-	assert_almost_eq(maglite.position.z, 0.40, 0.05, "Profundidad Z de Maglite aprox 0.40m")
+	assert_almost_eq(maglite.position.z, -0.40, 0.05, "Maglite delante (-Z) aprox 0.40m")
+
 
 # ------------------------------------------------------------------------------
 # Criterio 2: Enum Stance y dimensiones dinámicas de cápsula
 # ------------------------------------------------------------------------------
+
 
 func test_criterio_2_stance_enum_and_capsule_dimensions() -> void:
 	var player: PlayerBase3D = _create_player()
@@ -111,7 +118,9 @@ func test_criterio_2_stance_enum_and_capsule_dimensions() -> void:
 	var capsule: CapsuleShape3D = player.collision_shape.shape as CapsuleShape3D
 	assert_almost_eq(capsule.height, 1.60, 0.01, "STAND altura es 1.60m")
 	assert_almost_eq(capsule.radius, 0.35, 0.01, "STAND radio es 0.35m")
-	assert_almost_eq(player.collision_shape.transform.origin.y, 0.80, 0.01, "STAND origen Y es 0.80m")
+	assert_almost_eq(
+		player.collision_shape.transform.origin.y, 0.80, 0.01, "STAND origen Y es 0.80m"
+	)
 
 	# 2. Transición a CROUCH
 	watch_signals(player)
@@ -121,7 +130,9 @@ func test_criterio_2_stance_enum_and_capsule_dimensions() -> void:
 	capsule = player.collision_shape.shape as CapsuleShape3D
 	assert_almost_eq(capsule.height, 1.00, 0.01, "CROUCH altura es 1.00m")
 	assert_almost_eq(capsule.radius, 0.35, 0.01, "CROUCH radio es 0.35m")
-	assert_almost_eq(player.collision_shape.transform.origin.y, 0.50, 0.01, "CROUCH origen Y es 0.50m")
+	assert_almost_eq(
+		player.collision_shape.transform.origin.y, 0.50, 0.01, "CROUCH origen Y es 0.50m"
+	)
 
 	# 3. Transición a PRONE
 	var prone_ok: bool = player.set_stance(PlayerBase3D.Stance.PRONE)
@@ -129,7 +140,9 @@ func test_criterio_2_stance_enum_and_capsule_dimensions() -> void:
 	capsule = player.collision_shape.shape as CapsuleShape3D
 	assert_almost_eq(capsule.height, 0.40, 0.01, "PRONE altura es 0.40m")
 	assert_almost_eq(capsule.radius, 0.20, 0.01, "PRONE radio es 0.20m")
-	assert_almost_eq(player.collision_shape.transform.origin.y, 0.20, 0.01, "PRONE origen Y es 0.20m")
+	assert_almost_eq(
+		player.collision_shape.transform.origin.y, 0.20, 0.01, "PRONE origen Y es 0.20m"
+	)
 
 	# 4. Transición a TIPTOE
 	var tiptoe_ok: bool = player.set_stance(PlayerBase3D.Stance.TIPTOE)
@@ -137,11 +150,15 @@ func test_criterio_2_stance_enum_and_capsule_dimensions() -> void:
 	capsule = player.collision_shape.shape as CapsuleShape3D
 	assert_almost_eq(capsule.height, 1.60, 0.01, "TIPTOE altura es 1.60m")
 	assert_almost_eq(capsule.radius, 0.35, 0.01, "TIPTOE radio es 0.35m")
-	assert_almost_eq(player.collision_shape.transform.origin.y, 0.80, 0.01, "TIPTOE origen Y es 0.80m")
+	assert_almost_eq(
+		player.collision_shape.transform.origin.y, 0.80, 0.01, "TIPTOE origen Y es 0.80m"
+	)
+
 
 # ------------------------------------------------------------------------------
 # Criterio 3: Emisión de ruido nulo (0.0) en modo TIPTOE y PRONE
 # ------------------------------------------------------------------------------
+
 
 func test_criterio_3_tiptoe_and_prone_noise_emission() -> void:
 	var player: PlayerBase3D = _create_player()
@@ -150,13 +167,12 @@ func test_criterio_3_tiptoe_and_prone_noise_emission() -> void:
 	# Multiplicadores numéricos especificados
 	assert_eq(player.get_stance_noise_multiplier(), 1.0, "STAND multiplicador de ruido es 1.0")
 	player.set_stance(PlayerBase3D.Stance.CROUCH)
-	assert_almost_eq(player.get_stance_noise_multiplier(), 0.35, 0.01, "CROUCH multiplicador es 0.35")
+	assert_almost_eq(
+		player.get_stance_noise_multiplier(), 0.35, 0.01, "CROUCH multiplicador es 0.35"
+	)
 	player.set_stance(PlayerBase3D.Stance.WALL_COVER)
 	assert_almost_eq(
-		player.get_stance_noise_multiplier(),
-		0.15,
-		0.01,
-		"WALL_COVER multiplicador es 0.15"
+		player.get_stance_noise_multiplier(), 0.15, 0.01, "WALL_COVER multiplicador es 0.15"
 	)
 
 	# TIPTOE debe ser estrictamente 0.0
@@ -179,13 +195,15 @@ func test_criterio_3_tiptoe_and_prone_noise_emission() -> void:
 			var emitted_radius: float = float(signal_params[1])
 			assert_almost_eq(emitted_radius, 0.0, 0.001, "Radio de ruido emitido en TIPTOE es 0.0m")
 
+
 # ------------------------------------------------------------------------------
 # Criterio 4: Modo PRONE pasa bajo rayo láser a 0.60m sin colisión
 # ------------------------------------------------------------------------------
 
+
 func test_criterio_4_prone_passes_under_laser_at_60cm() -> void:
 	var player: PlayerBase3D = _create_player(Vector3.ZERO)
-	player.collision_layer = 2 # Characters
+	player.collision_layer = 2  # Characters
 	await wait_physics_frames(1)
 
 	var space_state: PhysicsDirectSpaceState3D = player.get_world_3d().direct_space_state
@@ -193,8 +211,10 @@ func test_criterio_4_prone_passes_under_laser_at_60cm() -> void:
 	# Rayo láser situado horizontalmente a Y = 0.60m, cruzando la posición del jugador
 	var laser_from: Vector3 = Vector3(-2.0, 0.60, 0.0)
 	var laser_to: Vector3 = Vector3(2.0, 0.60, 0.0)
-	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(laser_from, laser_to)
-	query.collision_mask = 2 # Characters
+	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(
+		laser_from, laser_to
+	)
+	query.collision_mask = 2  # Characters
 
 	# 1. En STAND (altura 1.6m, top 1.6m), colisiona con el láser
 	player.set_stance(PlayerBase3D.Stance.STAND)
@@ -212,16 +232,20 @@ func test_criterio_4_prone_passes_under_laser_at_60cm() -> void:
 	player.set_stance(PlayerBase3D.Stance.PRONE)
 	await wait_physics_frames(1)
 	var hit_prone: Dictionary = space_state.intersect_ray(query)
-	assert_true(hit_prone.is_empty(), "PRONE no colisiona con rayo laser a 0.60m (cruza libremente)")
+	assert_true(
+		hit_prone.is_empty(), "PRONE no colisiona con rayo laser a 0.60m (cruza libremente)"
+	)
 
 	# Comprobar que la extensión vertical de la cápsula es inferior a 0.50m
 	var capsule: CapsuleShape3D = player.collision_shape.shape as CapsuleShape3D
 	var top_y: float = player.collision_shape.transform.origin.y + (capsule.height * 0.5)
 	assert_lt(top_y, 0.50, "Extensión vertical en PRONE es menor a 0.50m (exacto: 0.40m)")
 
+
 # ------------------------------------------------------------------------------
 # Restricción de espacio superior: can_enter_stance(STAND) bloqueado con techo a 1.1m
 # ------------------------------------------------------------------------------
+
 
 func test_headroom_check_blocks_stand_under_low_ceiling() -> void:
 	var player: PlayerBase3D = _create_player(Vector3.ZERO)
@@ -249,9 +273,11 @@ func test_headroom_check_blocks_stand_under_low_ceiling() -> void:
 	assert_true(crouch_ok, "set_stance(CROUCH) completado con exito")
 	assert_eq(player.get_stance(), PlayerBase3D.Stance.CROUCH)
 
+
 # ------------------------------------------------------------------------------
 # Criterio 5: WALL_COVER detección de muro, alineación y cinemática lateral
 # ------------------------------------------------------------------------------
+
 
 func test_criterio_5_wall_cover_detection_and_lateral_kinematics() -> void:
 	# Muro situado a 0.50m hacia -Z, orientado en el plano XZ (normal apunta hacia +Z)
@@ -259,7 +285,7 @@ func test_criterio_5_wall_cover_detection_and_lateral_kinematics() -> void:
 	assert_not_null(wall)
 	var player: PlayerBase3D = _create_player(Vector3.ZERO)
 	player.look_target_position = Vector3(0.0, 0.0, -5.0)
-	player.rotation.y = 0.0 # Mirando hacia -Z (Godot forward)
+	player.rotation.y = 0.0  # Mirando hacia -Z (Godot forward)
 	await wait_physics_frames(2)
 
 	# 1. Detección de muro con RayCast a < 0.7m
@@ -283,9 +309,7 @@ func test_criterio_5_wall_cover_detection_and_lateral_kinematics() -> void:
 
 	# 3. Cinemática: movimiento proyectado sobre la tangente (puramente lateral)
 	# Inyectar movimiento lateral respecto a la pared
-	player.apply_input({
-		"movement_vector": Vector2(1.0, 0.0)
-	})
+	player.apply_input({"movement_vector": Vector2(1.0, 0.0)})
 	player.simulate_movement(0.05)
 
 	# La velocidad perpendicular (en Z) debe ser nula o absorbida por el muro
@@ -293,9 +317,11 @@ func test_criterio_5_wall_cover_detection_and_lateral_kinematics() -> void:
 	# La velocidad tangencial (en X) absorbe el desplazamiento lateral
 	assert_ne(player.velocity.x, 0.0, "Velocidad lateral sobre la tangente en X es activa")
 
+
 # ------------------------------------------------------------------------------
 # Criterio 6: CharacterAnimator3D mapea las 11 pistas de animación
 # ------------------------------------------------------------------------------
+
 
 func test_criterio_6_character_animator_state_mapping() -> void:
 	var animator: CharacterAnimator3D = autofree(CharacterAnimator3D.new())
@@ -305,18 +331,15 @@ func test_criterio_6_character_animator_state_mapping() -> void:
 	var stand_idle: StringName = animator.resolve_animation_name(PlayerBase3D.Stance.STAND, 0.0)
 	assert_eq(
 		stand_idle,
-		&"Armature|mixamo.com|Layer0",
-		"STAND en reposo mapea a Armature|mixamo.com|Layer0"
+		CharacterAnimator3D.IDLE_STAND_POSE,
+		"STAND en reposo mapea a la pose neutra, no a la capa base de Mixamo"
 	)
 
 	var stand_walk: StringName = animator.resolve_animation_name(PlayerBase3D.Stance.STAND, 3.0)
 	assert_eq(stand_walk, &"walk", "STAND en movimiento mapea a walk")
 
 	var stand_sneak: StringName = animator.resolve_animation_name(
-		PlayerBase3D.Stance.STAND,
-		2.0,
-		false,
-		true
+		PlayerBase3D.Stance.STAND, 2.0, false, true
 	)
 	assert_eq(stand_sneak, &"sneak_walk", "STAND con sneak mapea a sneak_walk")
 
@@ -326,7 +349,9 @@ func test_criterio_6_character_animator_state_mapping() -> void:
 
 	# CROUCH
 	var crouch_idle: StringName = animator.resolve_animation_name(PlayerBase3D.Stance.CROUCH, 0.0)
-	assert_eq(crouch_idle, &"crouch_to_prone", "CROUCH en reposo mapea a crouch_to_prone")
+	assert_eq(
+		crouch_idle, CharacterAnimator3D.IDLE_CROUCH_POSE, "CROUCH en reposo mapea a pose agachada"
+	)
 
 	var crouch_walk: StringName = animator.resolve_animation_name(PlayerBase3D.Stance.CROUCH, 2.4)
 	assert_eq(crouch_walk, &"crouch_walk", "CROUCH en movimiento mapea a crouch_walk")
@@ -339,30 +364,25 @@ func test_criterio_6_character_animator_state_mapping() -> void:
 	assert_eq(prone_fwd, &"prone_forward", "PRONE en movimiento mapea a prone_forward")
 
 	# WALL_COVER
-	var cover_idle: StringName = animator.resolve_animation_name(PlayerBase3D.Stance.WALL_COVER, 0.0)
+	var cover_idle: StringName = animator.resolve_animation_name(
+		PlayerBase3D.Stance.WALL_COVER, 0.0
+	)
 	assert_eq(cover_idle, &"cover_idle", "WALL_COVER en reposo mapea a cover_idle")
 
 	var cover_left: StringName = animator.resolve_animation_name(
-		PlayerBase3D.Stance.WALL_COVER,
-		1.5,
-		false,
-		false,
-		-0.8
-	)
-	assert_eq(cover_left, &"cover_sneak_left", "WALL_COVER lateral izquierdo mapea a cover_sneak_left")
-
-	var cover_right: StringName = animator.resolve_animation_name(
-		PlayerBase3D.Stance.WALL_COVER,
-		1.5,
-		false,
-		false,
-		0.8
+		PlayerBase3D.Stance.WALL_COVER, 1.5, false, false, -0.8
 	)
 	assert_eq(
-		cover_right,
-		&"cover_sneak_right",
-		"WALL_COVER lateral derecho mapea a cover_sneak_right"
+		cover_left, &"cover_sneak_left", "WALL_COVER lateral izquierdo mapea a cover_sneak_left"
 	)
+
+	var cover_right: StringName = animator.resolve_animation_name(
+		PlayerBase3D.Stance.WALL_COVER, 1.5, false, false, 0.8
+	)
+	assert_eq(
+		cover_right, &"cover_sneak_right", "WALL_COVER lateral derecho mapea a cover_sneak_right"
+	)
+
 
 func test_criterio_6_all_11_animation_tracks_exist_in_glb_assets() -> void:
 	var thief_scene: PackedScene = load(THIEF_SCENE_PATH) as PackedScene
@@ -374,12 +394,13 @@ func test_criterio_6_all_11_animation_tracks_exist_in_glb_assets() -> void:
 	assert_not_null(thief_anim, "AnimationPlayer encontrado en thief_crypto.glb")
 	for anim_name: StringName in EXPECTED_ACTION_ANIMATIONS:
 		assert_true(
-			thief_anim.has_animation(anim_name),
-			"thief_crypto tiene la pista: %s" % anim_name
+			thief_anim.has_animation(anim_name), "thief_crypto tiene la pista: %s" % anim_name
 		)
 	assert_true(
-		thief_anim.has_animation(&"Armature|mixamo_com|Layer0")
-		or thief_anim.has_animation(&"Armature|mixamo.com|Layer0"),
+		(
+			thief_anim.has_animation(&"Armature|mixamo_com|Layer0")
+			or thief_anim.has_animation(&"Armature|mixamo.com|Layer0")
+		),
 		"thief_crypto tiene la pose base"
 	)
 
@@ -393,18 +414,21 @@ func test_criterio_6_all_11_animation_tracks_exist_in_glb_assets() -> void:
 
 	for anim_name: StringName in EXPECTED_ACTION_ANIMATIONS:
 		assert_true(
-			guard_anim.has_animation(anim_name),
-			"guard_swat tiene la pista: %s" % anim_name
+			guard_anim.has_animation(anim_name), "guard_swat tiene la pista: %s" % anim_name
 		)
 	assert_true(
-		guard_anim.has_animation(&"Armature|mixamo_com|Layer0")
-		or guard_anim.has_animation(&"Armature|mixamo.com|Layer0"),
+		(
+			guard_anim.has_animation(&"Armature|mixamo_com|Layer0")
+			or guard_anim.has_animation(&"Armature|mixamo.com|Layer0")
+		),
 		"guard_swat tiene la pose base"
 	)
+
 
 # ------------------------------------------------------------------------------
 # Multiplicadores de velocidad por postura
 # ------------------------------------------------------------------------------
+
 
 func test_stance_speed_multipliers_and_kinematic_convergence() -> void:
 	var player: PlayerBase3D = _create_player()

@@ -22,21 +22,28 @@ Raíz (`CharacterBody3D`, `StaticBody3D` o `Area3D` según el caso) con `Collisi
 - `Sensors` (Node3D): `Area3D` (hitboxes), `RayCast3D` y `SpotLight3D` de gameplay.
 - `Components` (Node): solo lógica pura (`HealthComponent`, máquinas de estados). Un Node3D bajo un Node plano no hereda transformaciones, así que nada espacial va aquí.
 El código previo usa `VisualRoot`; migrarlo a `Visuals` solo mediante una FEAT dedicada, nunca de pasada.
+Los modelos de Mixamo miran a +Z: `VisualRoot` los gira 180° para que el frente del personaje sea -Z.
+
+## Control de personajes y mapas
+- Cada mapa jugable extiende `HeistMap3D` (`src/maps/heist_map_3d.gd`), que localiza ladrón y guardias, decide el jugador local, la cámara, el HUD, la percepción y el golpe. La lógica propia del mapa va en sus ganchos (`_on_map_ready`, `_setup_online_control`…), sin duplicar la común.
+- Solo el personaje con `is_locally_controlled = true` lee `Input`, y como mucho hay uno por cliente. Sin red se controla al ladrón; en builds de depuración, F1–F5 cambian de personaje.
+- Para saber si hay red usa `NetManager.is_online()`. Sin red, Godot usa un `OfflineMultiplayerPeer` con autoridad sobre todo, así que `multiplayer_peer != null` e `is_multiplayer_authority()` no sirven para decidirlo.
+- La IA escribe su intención con `apply_world_move()`; la simulación (gravedad, estamina, pasos) es la misma que para un humano.
 
 ## Propiedad de carpetas
 | Subagente | Es dueño de |
 |---|---|
 | lead-architect | `project.godot`, `core/` (salvo `net_manager.gd`), `AGENTS.md`, `.agents/`, `docs/` |
-| gameplay-engineer | `src/entities/`, `src/systems/`, `src/gadgets/`, `src/network/`, `core/net_manager.gd`, `data/`, `tests/` |
+| gameplay-engineer | `src/entities/`, `src/systems/`, `src/gadgets/`, `src/network/`, `src/maps/`, `src/generation/`, `scenes/entities/`, `core/net_manager.gd`, `data/`, `tests/unit/` |
 | technical-artist | `tools/blender_scripts/`, `assets/models/` |
-| vfx-ui-engineer | `assets/shaders/`, `assets/audio/`, `src/vfx/`, `scenes/ui/` |
-| qa-engineer | `tests/integration/`, `tests/regression/`, `tests/stress/`, `tools/ci/qa_*.sh` (lectura de todo el repo para auditoría) |
+| vfx-ui-engineer | `assets/shaders/`, `assets/audio/`, `src/vfx/`, `src/ui/`, `scenes/ui/` |
+| qa-engineer | `tests/integration/`, `tests/regression/`, `tests/stress/`, `tools/ci/qa_*.sh` y tests de edge cases en `tests/unit/` (lectura de todo el repo para auditoría) |
 
 `scenes/maps/` lo ensambla el usuario; un agente solo toca mapas si una FEAT lo pide. Para cambiar algo fuera de tu carpeta, pídeselo a su dueño a través del agente principal.
 
 ## Definición de hecho
 1. Importación limpia: `./tools/ci/import.sh` (0 errores).
-2. Código tipado y parseable: `./tools/ci/check_scripts.sh` (o `godot --headless --check-only --script res://...`).
+2. Código tipado que compila con los autoloads: `./tools/ci/check_scripts.sh`.
 3. Tests nuevos o actualizados en verde: `./tools/ci/run_tests.sh` (GUT headless).
 4. Lint y formato: `./tools/ci/lint.sh` (`gdlint`, `gdformat --check`).
 5. Assets con validación JSON en `pass` (FEAT-001).

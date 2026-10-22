@@ -6,7 +6,7 @@ description: Crea o revisa una especificación de feature (FEAT-XXX) en docs/tas
 
 1. Lee `AGENTS.md` y la sección relevante de `docs/gdd/MASTER_GSD.md`.
 2. Busca la siguiente numeración libre en `docs/tasks/`.
-3. Copia `docs/tasks/_TEMPLATE.md` a `docs/tasks/FEAT-XXX-slug.md` y complétala: objetivo, alcance y fuera de alcance, criterios de aceptación, contratos (señales, métodos, recursos), assets necesarios con medidas, impacto en red, reparto por subagente y orden.
+3. Copia `docs/tasks/_TEMPLATE.md` a `docs/tasks/FEAT-XXX-slug.md` y complétala: objetivo, alcance y fuera de alcance, criterios de aceptación, contratos (señales, métodos, recursos), assets necesarios con medidas, impacto en red, reparto por subagente y orden, y un paquete de ejecución por subagente (archivos permitidos, valores, tests obligatorios y comandos de cierre).
 4. Marca el estado como `borrador`. No implementes nada.
 5. Resume la spec al usuario, señala las decisiones abiertas y pide aprobación. Solo tras su aprobación pasa a `aprobada`.
 

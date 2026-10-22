@@ -14,7 +14,7 @@ description: "Aplicar al crear, modificar, validar o exportar modelos 3D con Ble
 
 ## Materiales y geometría
 - Solo Principled BSDF con valores planos o texturas simples: los nodos procedurales (Color Ramp, ruido, etc.) se pierden al exportar a glTF.
-- Solo la paleta "Velvet '84", definida en un único módulo compartido (`tools/blender_scripts/lib/palette.py`, se crea en FEAT-001); no redefinir colores en cada script:
+- Solo la paleta "Velvet '84", definida en un único módulo compartido (`tools/blender_scripts/lib/palette.py`); no redefinir colores en cada script:
 
 | Material | Hex | Roughness | Metallic |
 |---|---|---|---|

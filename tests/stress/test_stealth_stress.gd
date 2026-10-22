@@ -9,6 +9,7 @@
 ## 6. Tolerancia a fallos en CharacterAnimator3D sin AnimationPlayer (modo servidor dedicado).
 extends GutTest
 
+
 func _create_test_player(pos: Vector3 = Vector3.ZERO) -> PlayerBase3D:
 	var player: PlayerBase3D = autofree(PlayerBase3D.new())
 	player.position = pos
@@ -23,6 +24,7 @@ func _create_test_player(pos: Vector3 = Vector3.ZERO) -> PlayerBase3D:
 	add_child_autofree(player)
 	return player
 
+
 func _create_ceiling(pos: Vector3, size: Vector3) -> StaticBody3D:
 	var ceiling: StaticBody3D = autofree(StaticBody3D.new())
 	ceiling.collision_layer = 1
@@ -36,9 +38,11 @@ func _create_ceiling(pos: Vector3, size: Vector3) -> StaticBody3D:
 	add_child_autofree(ceiling)
 	return ceiling
 
+
 # ------------------------------------------------------------------------------
 # 1. Spam destructivo de posturas en bucle continuo
 # ------------------------------------------------------------------------------
+
 
 func test_stress_rapid_stance_spam_loop() -> void:
 	var player: PlayerBase3D = _create_test_player()
@@ -102,9 +106,11 @@ func test_stress_rapid_stance_spam_loop() -> void:
 		assert_false(res, "set_stance con la misma postura devuelve false")
 	assert_signal_emit_count(player, "stance_changed", 0, "No se emiten señales redundantes")
 
+
 # ------------------------------------------------------------------------------
 # 2. Restricción de espacio superior bajo techos y obstáculos dinámicos
 # ------------------------------------------------------------------------------
+
 
 func test_stress_headroom_boundary_and_dynamic_clearance() -> void:
 	# Techo bajo a 0.55m de altura (fondo en Y = 0.45m):
@@ -120,16 +126,14 @@ func test_stress_headroom_boundary_and_dynamic_clearance() -> void:
 
 	# 1. Intentar CROUCH bajo techo a 0.45m debe fallar
 	assert_false(
-		player.can_enter_stance(PlayerBase3D.Stance.CROUCH),
-		"CROUCH bloqueado bajo techo de 0.45m"
+		player.can_enter_stance(PlayerBase3D.Stance.CROUCH), "CROUCH bloqueado bajo techo de 0.45m"
 	)
 	assert_false(player.set_stance(PlayerBase3D.Stance.CROUCH), "Transición a CROUCH rechazada")
 	assert_eq(player.get_stance(), PlayerBase3D.Stance.PRONE, "Permanece en PRONE")
 
 	# 2. Intentar STAND bajo techo a 0.45m debe fallar
 	assert_false(
-		player.can_enter_stance(PlayerBase3D.Stance.STAND),
-		"STAND bloqueado bajo techo de 0.45m"
+		player.can_enter_stance(PlayerBase3D.Stance.STAND), "STAND bloqueado bajo techo de 0.45m"
 	)
 	assert_false(player.set_stance(PlayerBase3D.Stance.STAND), "Transición a STAND rechazada")
 	assert_eq(player.get_stance(), PlayerBase3D.Stance.PRONE, "Permanece en PRONE")
@@ -139,9 +143,7 @@ func test_stress_headroom_boundary_and_dynamic_clearance() -> void:
 		var ok: bool = player.set_stance(PlayerBase3D.Stance.STAND)
 		assert_false(ok)
 	assert_eq(
-		player.get_stance(),
-		PlayerBase3D.Stance.PRONE,
-		"Permanece inmune en PRONE tras 50 intentos"
+		player.get_stance(), PlayerBase3D.Stance.PRONE, "Permanece inmune en PRONE tras 50 intentos"
 	)
 
 	# 4. Despeje dinámico: el jugador se desplaza fuera del área cubierta por el techo
@@ -157,9 +159,11 @@ func test_stress_headroom_boundary_and_dynamic_clearance() -> void:
 	assert_true(stand_ok, "Transición a STAND autorizada fuera del obstáculo")
 	assert_eq(player.get_stance(), PlayerBase3D.Stance.STAND)
 
+
 # ------------------------------------------------------------------------------
 # 3. Cinemática y move_and_slide() con deltas y velocidades aberrantes
 # ------------------------------------------------------------------------------
+
 
 func test_stress_extreme_velocities_and_deltas_in_all_stances() -> void:
 	var player: PlayerBase3D = _create_test_player()
@@ -214,16 +218,15 @@ func test_stress_extreme_velocities_and_deltas_in_all_stances() -> void:
 			player.simulate_movement(0.1)
 		var remaining_speed: float = Vector2(player.velocity.x, player.velocity.z).length()
 		assert_almost_eq(
-			remaining_speed,
-			0.0,
-			0.01,
-			"La friccion frena completamente la entidad hasta el reposo"
+			remaining_speed, 0.0, 0.01, "La friccion frena completamente la entidad hasta el reposo"
 		)
 		player.velocity = Vector3.ZERO
+
 
 # ------------------------------------------------------------------------------
 # 4. Compatibilidad de red y desacoplamiento de nodos visuales
 # ------------------------------------------------------------------------------
+
 
 func test_stress_netcode_replication_headless_no_visuals() -> void:
 	# Simulamos entidad servidora autoritativa pura (sin VisualRoot, sin Animator)
@@ -259,29 +262,24 @@ func test_stress_netcode_replication_headless_no_visuals() -> void:
 		var s_capsule: CapsuleShape3D = server_player.collision_shape.shape as CapsuleShape3D
 		var c_capsule: CapsuleShape3D = client_player.collision_shape.shape as CapsuleShape3D
 		assert_almost_eq(
-			c_capsule.height,
-			s_capsule.height,
-			0.001,
-			"Altura colision identica servidor-cliente"
+			c_capsule.height, s_capsule.height, 0.001, "Altura colision identica servidor-cliente"
 		)
 		assert_almost_eq(
-			c_capsule.radius,
-			s_capsule.radius,
-			0.001,
-			"Radio colision identico servidor-cliente"
+			c_capsule.radius, s_capsule.radius, 0.001, "Radio colision identico servidor-cliente"
 		)
 
 	# Replicación con valor de postura anómalo / fuera de rango (-1 o 99)
 	# No debe colapsar la simulación ni generar crashes
 	client_player.set_net_state(Vector3.ZERO, Vector3.ZERO, 99)
 	assert_not_null(
-		client_player.collision_shape.shape,
-		"Entidad sobrevive a postura invalida sin corromperse"
+		client_player.collision_shape.shape, "Entidad sobrevive a postura invalida sin corromperse"
 	)
+
 
 # ------------------------------------------------------------------------------
 # 5. Inmunidad a interferencia entre sprint/sneak y posturas tácticas
 # ------------------------------------------------------------------------------
+
 
 func test_stress_concurrent_crouch_sprint_sneak_interference() -> void:
 	var player: PlayerBase3D = _create_test_player()
@@ -289,10 +287,15 @@ func test_stress_concurrent_crouch_sprint_sneak_interference() -> void:
 
 	# 1. En CROUCH, el flag is_sprinting no debe acelerar al jugador a velocidad de sprint (7.0 m/s)
 	player.set_stance(PlayerBase3D.Stance.CROUCH)
-	player.apply_input({
-		"movement_vector": Vector2(0.0, 1.0),
-		"is_sprinting": true,
-	})
+	(
+		player
+		. apply_input(
+			{
+				"movement_vector": Vector2(0.0, 1.0),
+				"is_sprinting": true,
+			}
+		)
+	)
 	for i in range(25):
 		player.simulate_movement(0.05)
 
@@ -307,10 +310,15 @@ func test_stress_concurrent_crouch_sprint_sneak_interference() -> void:
 
 	# 2. En PRONE, sprint o sneak no deben anular la velocidad reducida al 25% (1.2 m/s)
 	player.set_stance(PlayerBase3D.Stance.PRONE)
-	player.apply_input({
-		"movement_vector": Vector2(0.0, 1.0),
-		"is_sprinting": true,
-	})
+	(
+		player
+		. apply_input(
+			{
+				"movement_vector": Vector2(0.0, 1.0),
+				"is_sprinting": true,
+			}
+		)
+	)
 	for i in range(25):
 		player.simulate_movement(0.05)
 
@@ -323,9 +331,11 @@ func test_stress_concurrent_crouch_sprint_sneak_interference() -> void:
 		"En PRONE con sprint activo, la velocidad sigue limitada al 25%"
 	)
 
+
 # ------------------------------------------------------------------------------
 # 6. Tolerancia a fallos en CharacterAnimator3D sin AnimationPlayer (Headless Server)
 # ------------------------------------------------------------------------------
+
 
 func test_stress_character_animator_no_animation_player_crash_proof() -> void:
 	var animator: CharacterAnimator3D = autofree(CharacterAnimator3D.new())
@@ -352,5 +362,6 @@ func test_stress_character_animator_no_animation_player_crash_proof() -> void:
 
 	# Métodos de acción deben operar de forma segura sin lanzar error
 	animator.play_action(&"walk")
-	animator._play_if_not_active(&"walk")
+	animator._apply_state(&"walk", 3.0)
+	animator._apply_state(CharacterAnimator3D.IDLE_STAND_POSE, 0.0)
 	pass_test("CharacterAnimator3D opera de forma 100% segura en modo headless sin AnimationPlayer")

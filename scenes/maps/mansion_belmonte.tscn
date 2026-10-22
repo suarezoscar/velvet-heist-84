@@ -1878,7 +1878,7 @@ loot_value = 5000
 is_heavy = true
 is_masterpiece = true
 
-[node name="MarbleBustMesh" type="Node3D" parent="Props/LootMasterpiece" unique_id=1532463305 instance=ExtResource("35_mqvsw")]
+[node name="MarbleBustMesh" parent="Props/LootMasterpiece" unique_id=1532463305]
 transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, 0, 0, 0)
 
 [node name="MetalOfficeDesk" type="Node3D" parent="Props" unique_id=1536996614 instance=ExtResource("39_1j5bc")]
@@ -1905,13 +1905,9 @@ omni_range = 6.0
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.4, 0.82, -2.5)
 script = ExtResource("34_gv1en")
 
-[node name="LootCashMesh" type="Node3D" parent="Props/LootCashDesk" unique_id=551538055 instance=ExtResource("47_op2ii")]
-
 [node name="LootCashVault" type="Area3D" parent="Props" unique_id=1517936865 instance=ExtResource("25_t644m")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0.1, -1.5)
 script = ExtResource("34_gv1en")
-
-[node name="LootCashMesh" type="Node3D" parent="Props/LootCashVault" unique_id=1383012566 instance=ExtResource("47_op2ii")]
 
 [node name="chandelier" type="Node3D" parent="Props" unique_id=66855553 instance=ExtResource("48_rc6t8")]
 transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, -2.5, 3.6, 0)
@@ -1951,11 +1947,11 @@ transform = Transform3D(0.9, 0, 0, 0, 0.9, 0, 0, 0, 0.9, 4, 0, 1.5)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 3.5)
 collision_layer = 2
 script = ExtResource("61_gja6g")
-visual_root = NodePath("RogueMesh")
+visual_root = NodePath("VisualRoot")
 
 [node name="GuardPlayer" type="CharacterBody3D" parent="." unique_id=302722497 node_paths=PackedStringArray("maglite_light") instance=ExtResource("62_abvmr")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.5, 0.2, -1)
-collision_layer = 8
+collision_layer = 2
 script = ExtResource("63_xydc0")
 maglite_light = NodePath("MagliteSpotLight")
 

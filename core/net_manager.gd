@@ -6,14 +6,14 @@ class_name NetManagerNode
 extends Node
 
 ## Señales de ciclo de vida de red
-signal server_started()
-signal connection_succeeded()
-signal connection_failed()
-signal server_disconnected()
+signal server_started
+signal connection_succeeded
+signal connection_failed
+signal server_disconnected
 signal player_connected(peer_id: int, player_info: Dictionary)
 signal player_disconnected(peer_id: int)
-signal player_list_updated()
-signal match_started()
+signal player_list_updated
+signal match_started
 
 ## Puerto por defecto para conexiones ENet
 const DEFAULT_PORT: int = 7777
@@ -26,12 +26,7 @@ const ROLE_THIEF: StringName = &"thief"
 const ROLE_GUARD_1: StringName = &"guard_1"
 const ROLE_GUARD_2: StringName = &"guard_2"
 const ROLE_GUARD_3: StringName = &"guard_3"
-const AVAILABLE_ROLES: Array[StringName] = [
-	ROLE_THIEF,
-	ROLE_GUARD_1,
-	ROLE_GUARD_2,
-	ROLE_GUARD_3
-]
+const AVAILABLE_ROLES: Array[StringName] = [ROLE_THIEF, ROLE_GUARD_1, ROLE_GUARD_2, ROLE_GUARD_3]
 
 ## Información de jugadores conectados { peer_id: int -> player_info: Dictionary }
 var connected_players: Dictionary = {}
@@ -42,8 +37,10 @@ var local_role: StringName = &""
 ## Indica si esta instancia actúa como servidor dedicado headless
 var is_dedicated_server: bool = false
 
+
 func _ready() -> void:
 	_check_cli_arguments()
+
 
 ## Evalúa si se pasaron argumentos de CLI para iniciar servidor dedicado headless
 func _check_cli_arguments() -> void:
@@ -65,6 +62,7 @@ func _check_cli_arguments() -> void:
 		is_dedicated_server = true
 		call_deferred(&"start_dedicated_server", port)
 
+
 ## Inicia el servidor dedicado headless
 func start_dedicated_server(port: int = DEFAULT_PORT) -> Error:
 	var peer: ENetMultiplayerPeer = ENetMultiplayerPeer.new()
@@ -83,6 +81,7 @@ func start_dedicated_server(port: int = DEFAULT_PORT) -> Error:
 	server_started.emit()
 	return OK
 
+
 ## Inicia una partida como Host local
 func start_host(port: int = DEFAULT_PORT, max_players: int = MAX_PLAYERS) -> Error:
 	var peer: ENetMultiplayerPeer = ENetMultiplayerPeer.new()
@@ -99,15 +98,13 @@ func start_host(port: int = DEFAULT_PORT, max_players: int = MAX_PLAYERS) -> Err
 
 	# El host (peer 1) se registra a si mismo con el rol de ladrón por defecto
 	connected_players[1] = {
-		"peer_id": 1,
-		"role": ROLE_THIEF,
-		"ready": true,
-		"name": "Host (Operador)"
+		"peer_id": 1, "role": ROLE_THIEF, "ready": true, "name": "Host (Operador)"
 	}
 	local_role = ROLE_THIEF
 	server_started.emit()
 	player_list_updated.emit()
 	return OK
+
 
 ## Se conecta a un servidor remoto
 func join_server(ip: String = "127.0.0.1", port: int = DEFAULT_PORT) -> Error:
@@ -125,6 +122,7 @@ func join_server(ip: String = "127.0.0.1", port: int = DEFAULT_PORT) -> Error:
 	local_role = &""
 	return OK
 
+
 ## Desconecta la sesion de red activa
 func disconnect_network() -> void:
 	if multiplayer.multiplayer_peer != null:
@@ -134,6 +132,7 @@ func disconnect_network() -> void:
 	local_role = &""
 	is_dedicated_server = false
 	print("[NetManager] Red desconectada.")
+
 
 func _setup_network_signals() -> void:
 	if not multiplayer.peer_connected.is_connected(_on_peer_connected):
@@ -147,20 +146,19 @@ func _setup_network_signals() -> void:
 	if not multiplayer.server_disconnected.is_connected(_on_server_disconnected):
 		multiplayer.server_disconnected.connect(_on_server_disconnected)
 
+
 func _on_peer_connected(id: int) -> void:
 	print("[NetManager] Peer conectado: ", id)
 	if multiplayer.is_server():
 		var assigned_role: StringName = _get_next_available_role()
 		connected_players[id] = {
-			"peer_id": id,
-			"role": assigned_role,
-			"ready": false,
-			"name": "Agente_%d" % id
+			"peer_id": id, "role": assigned_role, "ready": false, "name": "Agente_%d" % id
 		}
 		if multiplayer.get_peers().size() > 0:
 			_sync_player_list.rpc(connected_players)
 		player_connected.emit(id, connected_players[id])
 		player_list_updated.emit()
+
 
 func _on_peer_disconnected(id: int) -> void:
 	print("[NetManager] Peer desconectado: ", id)
@@ -171,19 +169,23 @@ func _on_peer_disconnected(id: int) -> void:
 		if multiplayer.is_server() and multiplayer.get_peers().size() > 0:
 			_sync_player_list.rpc(connected_players)
 
+
 func _on_connected_to_server() -> void:
 	print("[NetManager] Conectado exitosamente al servidor.")
 	connection_succeeded.emit()
+
 
 func _on_connection_failed() -> void:
 	print("[NetManager] Fallo al conectar con el servidor.")
 	disconnect_network()
 	connection_failed.emit()
 
+
 func _on_server_disconnected() -> void:
 	print("[NetManager] Desconectado del servidor.")
 	disconnect_network()
 	server_disconnected.emit()
+
 
 ## Registra un jugador en la lista de conectados (utilizado al conectar o en tests unitarios)
 func register_player(peer_id: int, player_name: String = "", role: StringName = &"") -> bool:
@@ -199,10 +201,7 @@ func register_player(peer_id: int, player_name: String = "", role: StringName = 
 		p_name = "Agente_%d" % peer_id
 
 	connected_players[peer_id] = {
-		"peer_id": peer_id,
-		"role": assigned_role,
-		"ready": false,
-		"name": p_name
+		"peer_id": peer_id, "role": assigned_role, "ready": false, "name": p_name
 	}
 
 	if multiplayer.has_multiplayer_peer() and peer_id == multiplayer.get_unique_id():
@@ -216,9 +215,11 @@ func register_player(peer_id: int, player_name: String = "", role: StringName = 
 	player_list_updated.emit()
 	return true
 
+
 ## Asigna un rol a un peer conectado respetando la exclusión mutua
 func assign_role(peer_id: int, desired_role: StringName) -> bool:
 	return _assign_role_internal(peer_id, desired_role)
+
 
 func _assign_role_internal(peer_id: int, desired_role: StringName) -> bool:
 	if not AVAILABLE_ROLES.has(desired_role):
@@ -241,6 +242,7 @@ func _assign_role_internal(peer_id: int, desired_role: StringName) -> bool:
 		return true
 	return false
 
+
 ## Devuelve el siguiente rol disponible en la lista de roles
 func _get_next_available_role() -> StringName:
 	var roles_taken: Array[StringName] = []
@@ -252,6 +254,7 @@ func _get_next_available_role() -> StringName:
 			return role
 	return &""
 
+
 ## Comprueba si un rol esta libre para ser elegido
 func is_role_available(role: StringName) -> bool:
 	if not AVAILABLE_ROLES.has(role):
@@ -261,6 +264,7 @@ func is_role_available(role: StringName) -> bool:
 			return false
 	return true
 
+
 ## Devuelve el peer_id asociado a un rol especifico (0 si nadie lo ocupa)
 func get_peer_id_for_role(role: StringName) -> int:
 	for id: int in connected_players:
@@ -268,15 +272,18 @@ func get_peer_id_for_role(role: StringName) -> int:
 			return id
 	return 0
 
+
 ## Devuelve el rol asignado a un peer_id especifico (&"" si no existe)
 func get_role_for_peer(peer_id: int) -> StringName:
 	if connected_players.has(peer_id):
 		return connected_players[peer_id].get("role", &"")
 	return &""
 
+
 ## Alias de conveniencia
 func get_role_for_peer_id(peer_id: int) -> StringName:
 	return get_role_for_peer(peer_id)
+
 
 @rpc("authority", "call_remote", "reliable")
 func _sync_player_list(players: Dictionary) -> void:
@@ -285,6 +292,7 @@ func _sync_player_list(players: Dictionary) -> void:
 	if connected_players.has(my_id):
 		local_role = connected_players[my_id].get("role", &"")
 	player_list_updated.emit()
+
 
 ## Solicita un cambio de rol al servidor
 func request_role(new_role: StringName) -> bool:
@@ -296,6 +304,7 @@ func request_role(new_role: StringName) -> bool:
 	_request_role_server.rpc_id(1, new_role)
 	return true
 
+
 @rpc("any_peer", "call_remote", "reliable")
 func _request_role_server(desired_role: StringName) -> void:
 	if not multiplayer.is_server():
@@ -303,22 +312,34 @@ func _request_role_server(desired_role: StringName) -> void:
 	var sender_id: int = multiplayer.get_remote_sender_id()
 	_assign_role_internal(sender_id, desired_role)
 
+
 ## Inicia la operacion (solo invocable por el servidor)
 func launch_match() -> void:
 	if not multiplayer.is_server():
 		return
 	_start_match_rpc.rpc()
 
+
 @rpc("authority", "call_local", "reliable")
 func _start_match_rpc() -> void:
 	match_started.emit()
 	get_tree().change_scene_to_file("res://scenes/maps/museum_velvet_84.tscn")
 
+
+## Verdadero solo con una sesión ENet real. Sin red, Godot usa un OfflineMultiplayerPeer
+## (id 1, autoridad sobre todo), así que comprobar `multiplayer_peer != null` no basta.
+func is_online() -> bool:
+	var peer: MultiplayerPeer = multiplayer.multiplayer_peer
+	return peer != null and not (peer is OfflineMultiplayerPeer)
+
+
 func is_server_authoritative() -> bool:
 	return multiplayer.multiplayer_peer != null and multiplayer.is_server()
 
+
 func get_local_role() -> StringName:
 	return local_role
+
 
 func get_connected_players() -> Dictionary:
 	return connected_players

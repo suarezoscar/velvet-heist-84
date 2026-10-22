@@ -6,6 +6,10 @@
       "env": {
         "GODOT_MCP_CONFIG_VERSION": "1"
       }
+    },
+    "blender": {
+      "command": "uvx",
+      "args": ["mcp-for-blender"]
     }
   }
 }
