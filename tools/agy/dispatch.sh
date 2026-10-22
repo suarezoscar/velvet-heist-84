@@ -41,7 +41,7 @@ FEAT_FILE="${FEAT_FILES[0]}"
 command -v agy >/dev/null 2>&1 || { echo "[dispatch] no encuentro 'agy' en el PATH" >&2; exit 2; }
 
 # Rama de integración declarada en la cabecera de la FEAT: "- **Rama de integración**: `feat/XXX-slug`"
-INTEGRATION="$(grep -m1 -E '^\- \*\*Rama de integración\*\*' "${FEAT_FILE}" | grep -oE '`[^`]+`' | head -n1 | tr -d '`' || true)"
+INTEGRATION="$(grep -m1 -E '^- \*\*Rama de integración\*\*' "${FEAT_FILE}" | grep -oE '`[^`]+`' | head -n1 | tr -d '`' || true)"
 INTEGRATION="${INTEGRATION:-master}"
 git rev-parse --verify --quiet "refs/heads/${INTEGRATION}" >/dev/null \
     || { echo "[dispatch] la rama de integración '${INTEGRATION}' no existe: créala con la FEAT commiteada" >&2; exit 2; }
