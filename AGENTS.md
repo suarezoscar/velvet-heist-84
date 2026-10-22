@@ -6,7 +6,7 @@ Diseño completo: @docs/gdd/MASTER_GSD.md (consultar bajo demanda; no duplicar a
 ## Método de trabajo
 1. Ninguna feature, mecánica, gadget o asset se implementa sin `docs/tasks/FEAT-XXX-slug.md` aprobada por el usuario (skill `/spec`).
 2. Cada tarea cierra con evidencia (skill `/verify`): salida de comandos, JSON de validación o capturas. Un "listo" sin evidencia no cuenta.
-3. Quien escribe no revisa: la revisión (`/review`) la hace otro agente con contexto limpio.
+3. Quien escribe no revisa: la verificación (`/verify`) la hace `qa-engineer` y la revisión arquitectónica (`/review`) la hace otro agente con contexto limpio.
 4. Orquestación: el agente principal delega con `invoke_subagent` a los subagentes de `.agents/agents/` (no con `define_subagent`), con un worktree aislado por tarea (`branch`). Un subagente empieza sin historial: pásale la ruta de la FEAT y los contratos.
 5. Ante una duda de diseño o un conflicto con el GSD: parar y preguntar al usuario.
 
@@ -30,6 +30,7 @@ El código previo usa `VisualRoot`; migrarlo a `Visuals` solo mediante una FEAT 
 | gameplay-engineer | `src/entities/`, `src/systems/`, `src/gadgets/`, `src/network/`, `core/net_manager.gd`, `data/`, `tests/` |
 | technical-artist | `tools/blender_scripts/`, `assets/models/` |
 | vfx-ui-engineer | `assets/shaders/`, `assets/audio/`, `src/vfx/`, `scenes/ui/` |
+| qa-engineer | `tests/integration/`, `tests/regression/`, `tests/stress/`, `tools/ci/qa_*.sh` (lectura de todo el repo para auditoría) |
 
 `scenes/maps/` lo ensambla el usuario; un agente solo toca mapas si una FEAT lo pide. Para cambiar algo fuera de tu carpeta, pídeselo a su dueño a través del agente principal.
 
@@ -50,3 +51,4 @@ El código previo usa `VisualRoot`; migrarlo a `Visuals` solo mediante una FEAT 
 
 ## Reglas por dominio (se cargan según su descripción)
 `.agents/rules/`: 01 arquitectura GDScript · 02 assets Blender · 03 red · 04 VFX, shaders y UI · 05 verificación.
+`.agents/agents/`: lead-architect · gameplay-engineer · technical-artist · vfx-ui-engineer · qa-engineer.

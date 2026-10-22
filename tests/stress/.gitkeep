@@ -1,0 +1,2 @@
+# Tests de Stress
+Tests de condiciones extremas: spam de inputs, valores límite, concurrencia de red y edge cases destructivos.
