@@ -23,8 +23,12 @@ Al terminar, el script imprime el estado de `agy` y el informe de entrega (regla
 
 ## 4. Revisar
 Lanza el subagente `reviewer` en modo rama con: ruta del worktree, ruta de la FEAT y número de paquete. Si existe `PKG-QA` entregado, pídele que ejecute esos tests contra esta rama.
-- `aprobado` → estado `revisado`. Avisa al usuario: rama lista para merge en la rama de integración.
+- `aprobado` → estado `revisado`. Publica la rama (`git push -u origin <rama>`) y abre el PR con el MCP `github` contra la rama de integración, con el resumen del paquete, la evidencia y el veredicto del revisor.
 - `cambios requeridos` → guarda los bloqueantes en `.agy-runs/XXX-pkgN-revision-<vuelta>.md` y suma una vuelta. Con 2 vueltas o menos, relanza con `tools/agy/dispatch.sh FEAT-XXX <N> <agente> --feedback <ese archivo>`. A la tercera, estado `bloqueado` y entregas al usuario el informe del revisor.
 
+## 4b. CI y merge
+- Sigue el CI del PR. En verde: intégralo (método `merge`, con `expectedHeadSha`), sincroniza `master` local, borra la rama (local y remota) y su worktree, y avisa al usuario.
+- En rojo: lee el log del job fallido (`get_job_logs`). Si el fallo es del paquete, guárdalo como bloqueante en `.agy-runs/XXX-pkgN-revision-<vuelta>.md` y cuenta una vuelta. Si es del entorno de CI, arréglalo en su propio PR o explícaselo al usuario. Nunca integres con el CI en rojo o pendiente.
+
 ## 5. Cerrar la FEAT
-Cuando el usuario integra un paquete, su estado pasa a `integrado`. Con todos integrados: `/verify` sobre la rama de integración, estado de la FEAT `hecha` y commit de la FEAT con su tabla de estado final. Si la rama de integración no es `master`, avisa al usuario para su merge a `master`. Después, con su permiso, borra los worktrees (`git worktree remove`) y las ramas de paquete.
+Cuando un paquete se integra, su estado pasa a `integrado`. Con todos integrados: `/verify` sobre la rama de integración, estado de la FEAT `hecha` y la FEAT con su tabla de estado final en un PR propio, que se integra con la misma regla de CI. Si la rama de integración no es `master`, abre también su PR a `master`.
