@@ -204,7 +204,7 @@ Ninguno.
   - `test_ai_hears_exactly_the_ring` (9)
   - `test_ring_visibility_rule` (10)
   - `test_map_filters_rings_for_local_guard` (11)
-- **Comandos de cierre**: `./tools/ci/run_tests.sh` · `./tools/ci/lint.sh` · `./tools/ci/check_patterns.sh` · `python3 tools/ci/check_scope.py`
+- **Comandos de cierre**: `./tools/ci/import.sh` (obligatorio primero: el worktree es nuevo y sin `.godot/`) · `./tools/ci/run_tests.sh` · `./tools/ci/lint.sh` · `./tools/ci/check_patterns.sh` · `python3 tools/ci/check_scope.py`
 
 ## Riesgos y decisiones abiertas
 - **El frente del guardia es su orientación (`rotation.y`)**, que `update_presentation` gira hacia donde camina o, parado, hacia el cursor. Un guardia humano que mira con el ratón hacia un lado deja la espalda donde no mira. Es lo que pide el diseño. Se valida jugando antes del cierre.
