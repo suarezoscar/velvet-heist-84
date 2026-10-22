@@ -1,6 +1,6 @@
 # FEAT-000 — Línea base de verificación
 
-- **Estado**: hecha (revisada y aprobada por lead-architect con GUT)
+- **Estado**: hecha parcialmente (auditoría de la Fase 1, 2026-10-22: `docs/decisions/2026-10-22-fase-1-auditoria.md`)
 - **Responsable**: gameplay-engineer  **Revisor**: lead-architect
 - **Fase del GSD**: transversal (antes de la Fase 3)
 - **Decisión del framework**: GUT (aprobado por el usuario el 2026-10-21)

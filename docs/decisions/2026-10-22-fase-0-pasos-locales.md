@@ -45,6 +45,7 @@ Para Claude Code en la máquina del usuario (o para el usuario). Una sesión de 
    }
    ```
    El sandbox solo ve `/usr`, `/etc`, el workspace y lo concedido con `read_file`/`write_file`: las herramientas instaladas en `$HOME` (gdtoolkit, Godot) y los datos de Godot hay que concederlos con rutas absolutas (`readlink -f $(command -v godot gdlint)`). Sin ellas, `lint.sh` falla con "faltan gdlint/gdformat".
+   En modo headless `agy` no puede pedir permisos: la herramienta de edición necesita además `write_file(<carpeta de worktrees>)` y `write_file(<repo>/.git)` (un `git commit` desde un worktree escribe en el `.git` principal). Sin ellos, `dispatch.sh` termina con `denied_actions: write_file` y ningún cambio.
    Nunca `--dangerously-skip-permissions` ni `toolPermission: always-proceed`.
 
 ## 4. Pruebas de humo de agy
