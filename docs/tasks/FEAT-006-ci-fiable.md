@@ -1,6 +1,6 @@
 # FEAT-006 — CI fiable
 
-- **Estado**: aprobada
+- **Estado**: hecha (2026-10-23)
 - **Diseño**: `n/a — técnica`
 - **Revisor**: `reviewer` (Claude)
 - **Rama de integración**: `master`
@@ -142,9 +142,9 @@ Ninguno.
 ## Estado de los paquetes
 | PKG | Agente | Rama | Depende de | Estado | Vueltas | Notas |
 |---|---|---|---|---|---|---|
-| PKG-1 | integrator | `feat/006-pkg1` | — | en curso | 0 | |
-| PKG-2 | technical-artist | `feat/006-pkg2` | PKG-1 | pendiente | 0 | Lee `tools/ci/blender_version.env` de PKG-1 |
-| PKG-QA | qa-engineer | `feat/006-pkgqa` | PKG-1 | pendiente | 0 | Prueba `scan_godot_log.sh` de PKG-1 |
+| PKG-1 | integrator | `feat/006-pkg1` | — | integrado | 0 | Ejecutado por Claude tras 7 intentos de agy fallidos por permisos; PR #6 |
+| PKG-2 | technical-artist | `feat/006-pkg2` | PKG-1 | integrado | 0 | PR #9 |
+| PKG-QA | qa-engineer | `feat/006-pkgqa` | PKG-1 | integrado | 1 | Fixtures desde la salida real de import.sh; PR #11 |
 
 Estados: `pendiente` → `en curso` → `entregado` → `revisado` (listo para merge) → `integrado` · `bloqueado` (espera al usuario).
 
@@ -232,6 +232,12 @@ Estados: `pendiente` → `en curso` → `entregado` → `revisado` (listo para m
   | `prints_line` | `godot_log_error.log` | la salida contiene `broken.glb` | 1 |
 
 - **Comandos de cierre**: `./tools/ci/qa_scan_godot_log.sh` (todo PASS, sale con 0) · `python3 tools/ci/check_scope.py` · `./tools/ci/check_patterns.sh` · `./tools/ci/lint.sh`
+
+## Cierre (2026-10-23)
+- Criterio 9: CI en `master` tras integrar PKG-1 y PKG-2, en verde con los pasos de Blender (12/12): https://github.com/suarezoscar/velvet-heist-84/actions/runs/39865140278
+- `/verify` en `master` (`1db3398`): import 0, check_scripts 0, run_tests 69/69, run_blender_tests 12/12, qa_scan_godot_log 9 PASS.
+- `run_blender_tests.sh` y `qa_*.sh` añadidos a la regla 05 (la usa `/verify`).
+- Hueco aceptado: la fixture ANSI no detecta un analizador que deje de quitar los colores, porque `ERROR:` aparece entero dentro del código de color.
 
 ## Riesgos y decisiones abiertas
 - **Bibliotecas de Blender en el runner**: la lista de `apt` es la habitual para `blender -b` en Ubuntu. Si CI falla por una biblioteca que falta, es una vuelta de corrección de PKG-1: se añade el paquete que nombre el error.
