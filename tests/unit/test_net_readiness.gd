@@ -59,15 +59,14 @@ func _create_loot(name: String, value: int, is_heavy: bool) -> LootItem3D:
 # 1. Simulación física en servidor headless sin Camera3D ni Viewport
 # ------------------------------------------------------------------------------
 
+
 func test_simulate_movement_headless_no_camera_or_viewport() -> void:
 	var player: PlayerBase3D = autofree(PlayerBase3D.new())
 	add_child_autofree(player)
 	await wait_physics_frames(1)
 
 	# Inyectar input hacia adelante en 2D (Y = 1 -> diagonal en XZ)
-	player.apply_input({
-		"movement_vector": Vector2(0.0, 1.0)
-	})
+	player.apply_input({"movement_vector": Vector2(0.0, 1.0)})
 
 	# Simular 5 frames físicos sin cámara ni viewport asignados
 	for i in range(5):
@@ -78,9 +77,7 @@ func test_simulate_movement_headless_no_camera_or_viewport() -> void:
 	assert_almost_eq(player.velocity.x, player.velocity.z, 0.05, "Componentes simétricas a 45°")
 
 	# Simular parada (input cero) y verificar desaceleración por fricción
-	player.apply_input({
-		"movement_vector": Vector2.ZERO
-	})
+	player.apply_input({"movement_vector": Vector2.ZERO})
 	var vel_before_friction: float = player.velocity.length()
 	player.simulate_movement(0.05)
 	assert_lt(player.velocity.length(), vel_before_friction, "Fricción desacelera la entidad")
@@ -89,6 +86,7 @@ func test_simulate_movement_headless_no_camera_or_viewport() -> void:
 # ------------------------------------------------------------------------------
 # 2. Desacoplamiento de Input y Presentación
 # ------------------------------------------------------------------------------
+
 
 func test_gather_input_and_apply_input_contracts() -> void:
 	var player: PlayerBase3D = autofree(PlayerBase3D.new())
@@ -104,12 +102,13 @@ func test_gather_input_and_apply_input_contracts() -> void:
 
 	# Inyectar paquete de input explícito
 	var look_target: Vector3 = Vector3(15.0, 0.0, 20.0)
-	player.apply_input({
+	var input_data: Dictionary = {
 		"movement_vector": Vector2(1.0, 0.0),
 		"is_sprinting": true,
 		"is_sneaking": false,
 		"look_target": look_target,
-	})
+	}
+	player.apply_input(input_data)
 
 	assert_eq(player.current_input_dir, Vector2(1.0, 0.0), "current_input_dir almacenado")
 	assert_true(player.is_sprinting, "is_sprinting almacenado")
@@ -121,16 +120,14 @@ func test_input_injection_produces_expected_sprint_velocity() -> void:
 	var thief: ThiefController3D = _create_thief(Vector3.ZERO)
 	await wait_physics_frames(1)
 
-	thief.apply_input({
-		"movement_vector": Vector2(1.0, 0.0),
-		"is_sprinting": true
-	})
+	thief.apply_input({"movement_vector": Vector2(1.0, 0.0), "is_sprinting": true})
 
-	# Simular tiempo suficiente para alcanzar sprint_speed (7.5 m/s)
+	# Simular tiempo suficiente para alcanzar velocidad de carrera del perfil (7.5 m/s)
 	for i in range(20):
 		thief.simulate_movement(0.05)
 
-	assert_eq(thief.current_speed, thief.sprint_speed, "current_speed es sprint_speed (7.5)")
+	var expected_sprint: float = thief.movement_profile.speed_for(MovementProfile.Mode.SPRINT)
+	assert_eq(thief.current_speed, expected_sprint, "current_speed es sprint_speed (7.5)")
 	var horizontal_speed: float = Vector2(thief.velocity.x, thief.velocity.z).length()
 	assert_almost_eq(horizontal_speed, 7.5, 0.1, "Velocidad horizontal converge a 7.5 m/s")
 
@@ -152,12 +149,15 @@ func test_presentation_decoupling_does_not_mutate_physics() -> void:
 
 	assert_eq(player.velocity, prev_vel, "update_presentation no muta la velocidad física")
 	assert_eq(player.position, prev_pos, "update_presentation no muta la posición")
-	assert_ne(player.rotation.y, 0.0, "update_presentation interpola la orientación hacia el objetivo")
+	assert_ne(
+		player.rotation.y, 0.0, "update_presentation interpola la orientación hacia el objetivo"
+	)
 
 
 # ------------------------------------------------------------------------------
 # 3. Visibilidad autoritativa del ladrón
 # ------------------------------------------------------------------------------
+
 
 func test_authoritative_thief_visibility_within_proximity() -> void:
 	var guard: GuardController3D = _create_guard(Vector3.ZERO)
@@ -195,6 +195,7 @@ func test_authoritative_thief_hidden_behind_wall() -> void:
 # ------------------------------------------------------------------------------
 # 4. Validación autoritativa de botín pesado y captura por porra
 # ------------------------------------------------------------------------------
+
 
 func test_authoritative_loot_rejection_for_non_thief() -> void:
 	var guard: GuardController3D = _create_guard(Vector3.ZERO)
@@ -274,15 +275,14 @@ func test_authoritative_baton_wall_occlusion() -> void:
 func test_authoritative_baton_capture_progression() -> void:
 	var guard: GuardController3D = _create_guard(Vector3.ZERO)
 	var thief: ThiefController3D = _create_thief(Vector3(0.0, 0.0, 1.2))
-	var bus: Node = get_node_or_null("/root/SignalBus")
-	watch_signals(bus)
+	watch_signals(SignalBus)
 	await wait_physics_frames(1)
 
 	# Impacto 1
 	var hit1: bool = guard.swing_baton(thief)
 	assert_true(hit1, "Impacto 1 exitoso")
 	assert_eq(thief.baton_hits_taken, 1, "1 impacto registrado")
-	assert_signal_not_emitted(bus, "thief_captured", "No capturado aún")
+	assert_signal_not_emitted(SignalBus, "thief_captured", "No capturado aún")
 
 	# Spam de porra durante cooldown debe fallar
 	var hit_spam: bool = guard.swing_baton(thief)
@@ -295,5 +295,5 @@ func test_authoritative_baton_capture_progression() -> void:
 	assert_true(hit2, "Impacto 2 exitoso")
 	assert_eq(thief.baton_hits_taken, 2, "2 impactos alcanzados")
 	assert_signal_emitted(
-		bus, "thief_captured", "Señal thief_captured emitida por autoridad del servidor"
+		SignalBus, "thief_captured", "Señal thief_captured emitida por autoridad del servidor"
 	)

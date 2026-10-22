@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="StepNoiseProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/entities/components/step_noise_profile.gd" id="1_step_noise"]
+
+[resource]
+script = ExtResource("1_step_noise")
+base_radius = 3.5
+sneak_mult = 0.3
+sprint_mult = 2.0
+crouch_mult = 0.3
+min_radius = 0.5
