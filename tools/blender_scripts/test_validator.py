@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 tools/blender_scripts/test_validator.py
-Suite de tests unitarios para validate_asset.py (FEAT-001 Criterios 3 y 4).
+Suite de tests unitarios para validate_asset.py (FEAT-001 Criterios 3 y 4, FEAT-006 Criterios 6, 7 y 8).
 Demuestra empíricamente que el validador rechaza cada tipo de infracción individual:
 1. snake_case_names (espacios o puntos)
 2. applied_transforms (escala o rotación no aplicadas)
@@ -11,15 +11,19 @@ Demuestra empíricamente que el validador rechaza cada tipo de infracción indiv
 6. palette_materials (material no perteneciente a la paleta Velvet '84)
 7. no_procedural_nodes (uso de nodos procedurales como Noise Texture o Color Ramp)
 8. collision_mesh (falta de malla -col requerida)
-9. exit code != 0 cuando alguna comprobación falla
+9. exit code de la CLI (test_cli_exit_code_fail y test_cli_exit_code_pass)
+10. test_blender_version_mismatch (rechazo si la versión de Blender no coincide)
 """
 
 import json
 import os
+import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
+PROJECT_ROOT = SCRIPT_DIR.parent.parent
 LIB_DIR = SCRIPT_DIR / "lib"
 for p in [str(SCRIPT_DIR), str(LIB_DIR)]:
     if p not in sys.path:
@@ -28,7 +32,7 @@ for p in [str(SCRIPT_DIR), str(LIB_DIR)]:
 try:
     import bpy
     from lib.palette import create_pbr_material
-    from validate_asset import validate_asset
+    from validate_asset import BLENDER_VERSION_ENV, check_blender_version, validate_asset
 except ImportError as e:
     print(f"Error importando dependencias para test: {e}", file=sys.stderr)
     sys.exit(1)
@@ -39,6 +43,11 @@ def clear_scene():
 
 
 def run_test_suite():
+    ok, msg = check_blender_version(BLENDER_VERSION_ENV)
+    if not ok:
+        print(f"Error: {msg}", file=sys.stderr)
+        sys.exit(2)
+
     print("=== [TEST SUITE] Iniciando pruebas unitarias de validate_asset.py ===")
     tests_passed = 0
     tests_total = 0
@@ -238,6 +247,99 @@ def run_test_suite():
         "collision": True,  # Ficha exige colisión -col
     }
     assert_check_fails("collision_mesh", "Rechazar ausencia de malla de colisión '-col' requerida", setup_missing_collision, spec_col)
+
+    # 10. Test Comprobación de versión de Blender
+    def test_blender_version_mismatch():
+        nonlocal tests_passed, tests_total
+        tests_total += 1
+        print(f"\n--- Test {tests_total}: Comprobación de versión de Blender ---")
+        current_version = ".".join(str(n) for n in bpy.app.version)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_env = Path(tmpdir) / "blender_version.env"
+            tmp_env.write_text("BLENDER_VERSION=0.0.0\n", encoding="utf-8")
+
+            ok_bad, msg_bad = check_blender_version(tmp_env)
+            if ok_bad or "0.0.0" not in msg_bad:
+                print(f"  ==> ERROR: Esperado False y '0.0.0' en mensaje, obtenido ok={ok_bad}, msg='{msg_bad}'")
+                return
+
+            tmp_env.write_text(f"BLENDER_VERSION={current_version}\n", encoding="utf-8")
+            ok_good, msg_good = check_blender_version(tmp_env)
+            if not ok_good:
+                print(f"  ==> ERROR: Esperado True con versión actual ({current_version}), obtenido ok={ok_good}, msg='{msg_good}'")
+                return
+
+            print(f"  ==> OK: check_blender_version rechaza 0.0.0 y acepta {current_version}.")
+            tests_passed += 1
+
+    test_blender_version_mismatch()
+
+    # 11. Test Código de salida CLI ante fallo
+    def test_cli_exit_code_fail():
+        nonlocal tests_passed, tests_total
+        tests_total += 1
+        print(f"\n--- Test {tests_total}: Código de salida CLI ante asset inválido (esperado 1) ---")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            clear_scene()
+            setup_broken_names()
+            bad_blend = Path(tmpdir) / "bad.blend"
+            bpy.ops.wm.save_as_mainfile(filepath=str(bad_blend))
+
+            spec_file = Path(tmpdir) / "spec.json"
+            spec_file.write_text(json.dumps(spec_names), encoding="utf-8")
+
+            cmd = [
+                bpy.app.binary_path,
+                "-b",
+                str(bad_blend),
+                "--factory-startup",
+                "-P",
+                str(SCRIPT_DIR / "validate_asset.py"),
+                "--",
+                str(spec_file),
+            ]
+            res = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+            if res.returncode == 1:
+                print("  ==> OK: La CLI devolvió returncode=1 ante asset inválido.")
+                tests_passed += 1
+            else:
+                print(f"  ==> ERROR: Se esperaba returncode=1, se obtuvo {res.returncode}")
+                if res.stdout:
+                    print(f"  stdout: {res.stdout[-300:]}")
+                if res.stderr:
+                    print(f"  stderr: {res.stderr[-300:]}")
+
+    test_cli_exit_code_fail()
+
+    # 12. Test Código de salida CLI ante asset válido
+    def test_cli_exit_code_pass():
+        nonlocal tests_passed, tests_total
+        tests_total += 1
+        print(f"\n--- Test {tests_total}: Código de salida CLI ante asset válido (esperado 0) ---")
+        wood_wedge_glb = PROJECT_ROOT / "assets" / "models" / "wood_wedge.glb"
+        wood_wedge_spec = SCRIPT_DIR / "specs" / "wood_wedge.json"
+        cmd = [
+            bpy.app.binary_path,
+            "-b",
+            "--factory-startup",
+            "-P",
+            str(SCRIPT_DIR / "validate_asset.py"),
+            "--",
+            str(wood_wedge_glb),
+            str(wood_wedge_spec),
+        ]
+        res = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        if res.returncode == 0:
+            print("  ==> OK: La CLI devolvió returncode=0 ante asset válido (wood_wedge.glb).")
+            tests_passed += 1
+        else:
+            print(f"  ==> ERROR: Se esperaba returncode=0, se obtuvo {res.returncode}")
+            if res.stdout:
+                print(f"  stdout: {res.stdout[-300:]}")
+            if res.stderr:
+                print(f"  stderr: {res.stderr[-300:]}")
+
+    test_cli_exit_code_pass()
 
     print(f"\n==========================================")
     print(f"Resumen de tests de validación: {tests_passed}/{tests_total} pasados.")
