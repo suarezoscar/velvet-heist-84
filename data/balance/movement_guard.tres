@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="MovementProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/entities/components/movement_profile.gd" id="1_profile"]
+
+[resource]
+script = ExtResource("1_profile")
+walk_speed = 4.2
+sneak_ratio = 0.48
+sprint_ratio = 1.5
+crouch_ratio = 0.4
+can_crouch = false
+team_noise_mult = 1.2
+step_interval_walk = 0.42
+step_interval_sneak = 0.6
+step_interval_sprint = 0.28
+step_interval_crouch = 0.55
+acceleration = 18.0
+friction = 22.0
