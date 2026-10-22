@@ -1,18 +1,21 @@
-## @file guard_controller_3d.gd
 ## Controlador para los miembros del equipo de seguridad privada (Guardias).
 ## Controla la linterna Maglite SpotLight3D con sombras dinámicas, gestión de estamina,
 ## cálculo geométrico de percepción/cono de visión y neutralización con porra.
 class_name GuardController3D
 extends PlayerBase3D
 
-## Linterna Maglite asignada al personaje
-@export var maglite_light: SpotLight3D
+## Ruta del perfil de movimiento del guardia
+const MOVEMENT_PROFILE_PATH: String = "res://data/balance/movement_guard.tres"
 
 ## Cooldown entre impactos de porra en segundos
 const BATON_COOLDOWN_TIME: float = 0.75
+
 ## Radio (m) del ruido de un golpe de porra y de una captura
 const BATON_SWING_NOISE_RADIUS: float = 4.5
 const CAPTURE_NOISE_RADIUS: float = 8.0
+
+## Linterna Maglite asignada al personaje
+@export var maglite_light: SpotLight3D
 
 ## Alcance del golpe cuerpo a cuerpo con la porra en metros
 @export var melee_range: float = 1.6
@@ -31,14 +34,18 @@ var baton_cooldown: float = 0.0
 ## Componente modular de interacción (para relojes de fichar y puertas)
 var interactor: Interactor3D = null
 
+## Propiedad de conveniencia para que el HUD consulte el interactuable enfocado
+var focused_interactive: Node3D:
+	get:
+		return interactor.current_target if interactor != null else null
+
 
 func _ready() -> void:
+	if movement_profile == null:
+		movement_profile = load(MOVEMENT_PROFILE_PATH)
 	super._ready()
 	team_id = &"guard"
 	add_to_group(&"guards")
-	move_speed = 4.2
-	sprint_speed = 6.2
-	sneak_speed = 2.0
 	interactor = Interactor3D.new()
 	interactor.name = "GuardInteractor"
 	interactor.reach_distance = 1.8
@@ -68,24 +75,6 @@ func simulate_movement(delta: float) -> void:
 func update_presentation(delta: float) -> void:
 	super.update_presentation(delta)
 	_update_maglite_orientation()
-
-
-func _process_stamina_and_sprint(delta: float, input_dir: Vector2) -> void:
-	if is_sprinting and (stamina <= 5.0 or input_dir.length_squared() <= 0.01):
-		is_sprinting = false
-
-	if is_sprinting:
-		stamina = maxf(0.0, stamina - stamina_drain_rate * delta)
-	else:
-		stamina = minf(max_stamina, stamina + stamina_recovery_rate * delta)
-
-
-func _handle_interaction_input() -> void:
-	var interact_pressed: bool = (
-		Input.is_action_just_pressed("interact") if InputMap.has_action("interact") else false
-	)
-	if interact_pressed and interactor != null:
-		interactor.execute_interaction(self)
 
 
 ## Orienta el haz de la linterna Maglite hacia el punto apuntado por el cursor
@@ -133,13 +122,6 @@ func check_detection_on_thief(thief: ThiefController3D) -> bool:
 	return false
 
 
-func _has_line_of_sight(space_state: PhysicsDirectSpaceState3D, from: Vector3, to: Vector3) -> bool:
-	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(from, to)
-	query.collision_mask = 1  # Solo colisiona con el entorno
-	var result: Dictionary = space_state.intersect_ray(query)
-	return result.is_empty()
-
-
 ## Valida de forma autoritativa en el servidor si un golpe cuerpo a cuerpo es legítimo
 func validate_melee_hit(target_thief: ThiefController3D) -> bool:
 	if target_thief == null:
@@ -183,7 +165,26 @@ func _capture_thief() -> void:
 	SignalBus.noise_emitted_3d.emit(global_position, CAPTURE_NOISE_RADIUS, &"guard")
 
 
-## Propiedad de conveniencia para que el HUD consulte el interactuable enfocado
-var focused_interactive: Node3D:
-	get:
-		return interactor.current_target if interactor != null else null
+func _process_stamina_and_sprint(delta: float, input_dir: Vector2) -> void:
+	if is_sprinting and (stamina <= 5.0 or input_dir.length_squared() <= 0.01):
+		is_sprinting = false
+
+	if is_sprinting:
+		stamina = maxf(0.0, stamina - stamina_drain_rate * delta)
+	else:
+		stamina = minf(max_stamina, stamina + stamina_recovery_rate * delta)
+
+
+func _handle_interaction_input() -> void:
+	var interact_pressed: bool = (
+		Input.is_action_just_pressed("interact") if InputMap.has_action("interact") else false
+	)
+	if interact_pressed and interactor != null:
+		interactor.execute_interaction(self)
+
+
+func _has_line_of_sight(space_state: PhysicsDirectSpaceState3D, from: Vector3, to: Vector3) -> bool:
+	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(from, to)
+	query.collision_mask = 1  # Solo colisiona con el entorno
+	var result: Dictionary = space_state.intersect_ray(query)
+	return result.is_empty()
