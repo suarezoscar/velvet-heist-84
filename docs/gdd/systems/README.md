@@ -13,7 +13,8 @@ Pendiente de la división de `docs/gdd/MASTER_GSD.md`. Reparto propuesto:
 | Documento | Contenido | Estado |
 |---|---|---|
 | `roles.md` | Fantasía y asimetría de ladrón y guardias, condiciones de victoria | por crear |
-| `stealth.md` | Percepción, visibilidad, ruido por superficie, posturas | por crear |
+| `stealth.md` | Percepción, visibilidad, ruido por superficie, modos de movimiento | aprobado (parte 1; cono de linterna pendiente) |
+| `characters.md` | Vestuario, silueta y presupuesto de los personajes | aprobado |
 | `gadgets.md` | Maletín del ladrón y cinturón de los guardias | por crear |
 | `interaction.md` | Cajas fuertes, puertas, teléfonos, relojes de fichar, cámaras | por crear |
 | `loot.md` | Botín ligero y pesado, cuota, Pieza Maestra | por crear |
@@ -22,5 +23,5 @@ Pendiente de la división de `docs/gdd/MASTER_GSD.md`. Reparto propuesto:
 
 ## Pendiente de diseño
 - **Disfraz de guardia**: mecánica pedida por el usuario. Va antes de la spec de red autoritativa porque cambia el filtro de visibilidad del ladrón.
-- **Posturas de FEAT-005**: TIPTOE con ruido ×0.0 choca con el pilar 2. Revisar junto con `stealth.md`.
+- **Posturas de FEAT-005**: resuelto en `stealth.md` (aprobado).
 - **Nivel nuevo**: rediseño del museo con `/level` (base: `museum_velvet_84`).
