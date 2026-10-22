@@ -1,3 +1,5 @@
 .godot/
 *.zip
 .system_generated/
+.agy-runs/
+__pycache__/
