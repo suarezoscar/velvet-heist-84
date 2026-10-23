@@ -6,6 +6,7 @@ Sale con 0 solo si opencode terminó con 0, sin errores de proveedor y con infor
 """
 
 import json
+import os
 import sys
 
 
@@ -39,7 +40,7 @@ def main() -> int:
     # El informe es el último mensaje: se juntan todos sus bloques de texto
     last_id = texts[-1][0] if texts else ""
     report = "\n".join(t for mid, t in texts if mid == last_id).strip() if texts else ""
-    if exit_code == 124:
+    if exit_code in (124, 137):
         status = "TIMEOUT"
     elif exit_code != 0 or errors:
         status = "ERROR"
@@ -55,7 +56,7 @@ def main() -> int:
         print("AVISO: comandos o herramientas denegados al ejecutor (la sesión continúa):")
         for item in denied[:20]:
             print(f"  {item}")
-    if not ok and err_path:
+    if not ok and err_path and os.path.exists(err_path):
         with open(err_path, encoding="utf-8", errors="replace") as fh:
             tail = [l.rstrip() for l in fh if "level=INFO" not in l][-20:]
         if tail:
