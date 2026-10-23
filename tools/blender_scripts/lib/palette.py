@@ -208,12 +208,6 @@ def get_palette_def(key: str) -> Optional[Dict[str, Any]]:
     return None
 
 
-def is_color_close(c1: Union[Tuple, List], c2: Union[Tuple, List], tol: float = 0.05) -> bool:
-    """Comprueba si dos colores RGB están dentro de una tolerancia euclidiana."""
-    dist = math.sqrt((c1[0] - c2[0]) ** 2 + (c1[1] - c2[1]) ** 2 + (c1[2] - c2[2]) ** 2)
-    return dist <= tol
-
-
 def create_pbr_material(
     name: str,
     palette_key_or_props: Union[str, Dict[str, Any], None] = None,
@@ -352,31 +346,69 @@ def check_material_procedural_nodes(mat: "bpy.types.Material") -> Tuple[bool, st
     return True, "Sin nodos procedurales."
 
 
-def is_material_in_palette(mat: "bpy.types.Material", allowed_list: Optional[List[str]] = None) -> Tuple[bool, str]:
+def check_material_against_palette(
+    mat: "bpy.types.Material", key: str, tol: float
+) -> Tuple[bool, str]:
+    """Compara el Principled BSDF de mat con PALETTE[key]: Base Color lineal por canal,
+    Roughness, Metallic y Alpha (si la entrada define alpha). Key debe ser clave exacta.
+    Un material sin Principled BSDF falla.
     """
-    Verifica si un material pertenece a la paleta 'Velvet 84' o a la lista de permitidos.
-    Comprueba coincidencia de nombre o aproximación de parámetros PBR.
-    """
-    # 1. Chequeo de nombre
-    mat_name = mat.name.split(".")[0]  # Ignorar sufijos .001, etc.
-    p_def = get_palette_def(mat_name)
+    if key not in PALETTE:
+        return False, f"La clave '{key}' no existe en PALETTE."
 
-    if allowed_list:
-        allowed_clean = [a.lower() for a in allowed_list]
-        if mat_name.lower() in allowed_clean:
-            return True, f"Material '{mat_name}' está en la lista permitida de la ficha."
+    if not getattr(mat, "use_nodes", False) or not mat.node_tree:
+        return False, f"Material '{mat.name}' no tiene Principled BSDF (no usa nodos)."
 
-    if p_def:
-        return True, f"Material '{mat_name}' pertenece a la paleta Velvet '84."
+    bsdf = next((n for n in mat.node_tree.nodes if n.type == "BSDF_PRINCIPLED"), None)
+    if bsdf is None:
+        return False, f"Material '{mat.name}' no tiene nodo Principled BSDF."
 
-    # 2. Si el nombre no coincide, comprobar valores PBR del nodo Principled BSDF
-    if mat.use_nodes and mat.node_tree:
-        bsdf = next((n for n in mat.node_tree.nodes if n.type == "BSDF_PRINCIPLED"), None)
-        if bsdf:
-            color = bsdf.inputs["Base Color"].default_value[:3]
-            for pname, pdata in PALETTE.items():
-                ref_color = hex_to_linear_rgb(pdata["hex"])[:3]
-                if is_color_close(color, ref_color, tol=0.04):
-                    return True, f"Color del material '{mat.name}' coincide con la paleta ({pname}: {pdata['hex']})."
+    palette_entry = PALETTE[key]
+    expected_color = hex_to_linear_rgb(palette_entry["hex"])
 
-    return False, f"El material '{mat.name}' no pertenece a la paleta oficial 'Velvet 84'."
+    if "Base Color" not in bsdf.inputs:
+        return False, f"El nodo BSDF del material '{mat.name}' no tiene socket 'Base Color'."
+    actual_color = bsdf.inputs["Base Color"].default_value
+    for i, ch_name in enumerate(["R", "G", "B"]):
+        diff = abs(actual_color[i] - expected_color[i])
+        if diff > tol:
+            return (
+                False,
+                f"Base Color canal {ch_name} difiere en {diff:.4f} (actual={actual_color[i]:.4f}, esperado={expected_color[i]:.4f}, tol={tol})",
+            )
+
+    if "Roughness" not in bsdf.inputs:
+        return False, f"El nodo BSDF del material '{mat.name}' no tiene socket 'Roughness'."
+    actual_roughness = float(bsdf.inputs["Roughness"].default_value)
+    expected_roughness = float(palette_entry["roughness"])
+    diff_roughness = abs(actual_roughness - expected_roughness)
+    if diff_roughness > tol:
+        return (
+            False,
+            f"Roughness difiere en {diff_roughness:.4f} (actual={actual_roughness:.4f}, esperado={expected_roughness:.4f}, tol={tol})",
+        )
+
+    if "Metallic" not in bsdf.inputs:
+        return False, f"El nodo BSDF del material '{mat.name}' no tiene socket 'Metallic'."
+    actual_metallic = float(bsdf.inputs["Metallic"].default_value)
+    expected_metallic = float(palette_entry["metallic"])
+    diff_metallic = abs(actual_metallic - expected_metallic)
+    if diff_metallic > tol:
+        return (
+            False,
+            f"Metallic difiere en {diff_metallic:.4f} (actual={actual_metallic:.4f}, esperado={expected_metallic:.4f}, tol={tol})",
+        )
+
+    if "alpha" in palette_entry:
+        if "Alpha" not in bsdf.inputs:
+            return False, f"El nodo BSDF del material '{mat.name}' no tiene socket 'Alpha'."
+        actual_alpha = float(bsdf.inputs["Alpha"].default_value)
+        expected_alpha = float(palette_entry["alpha"])
+        diff_alpha = abs(actual_alpha - expected_alpha)
+        if diff_alpha > tol:
+            return (
+                False,
+                f"Alpha difiere en {diff_alpha:.4f} (actual={actual_alpha:.4f}, esperado={expected_alpha:.4f}, tol={tol})",
+            )
+
+    return True, "OK"

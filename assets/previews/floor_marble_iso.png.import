@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b7p43vwi3x3ea"
-path="res://.godot/imported/thief_pawn_iso.png-3f8d618ce2c1d18ea0018958779bce2e.ctex"
+uid="uid://dq0ikumjahont"
+path="res://.godot/imported/floor_marble_iso.png-4b789d8f45e5fbcb5c07588b66962f60.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/previews/thief_pawn_iso.png"
-dest_files=["res://.godot/imported/thief_pawn_iso.png-3f8d618ce2c1d18ea0018958779bce2e.ctex"]
+source_file="res://assets/previews/floor_marble_iso.png"
+dest_files=["res://.godot/imported/floor_marble_iso.png-4b789d8f45e5fbcb5c07588b66962f60.ctex"]
 
 [params]
 
