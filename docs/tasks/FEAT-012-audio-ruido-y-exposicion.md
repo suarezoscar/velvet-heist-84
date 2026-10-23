@@ -1,6 +1,6 @@
 # FEAT-012 — Audio de ruido, vúmetro e indicador de exposición
 
-- **Estado**: aprobada (reescrita y aprobada el 2026-10-23)
+- **Estado**: hecha (2026-10-23)
 - **Diseño**: `docs/gdd/systems/stealth.md` parte 2 (aprobada; P2.4 reescrita el 2026-10-23): P2.4 (cómo se percibe un ruido), O1 (exposición), O2 (última posición vista), D8–D11. Invariantes 11, 21, 22 y 24. Pilar 3 de `docs/gdd/pillars.md` ("ve linternas y oye más lejos").
 - **Revisor**: `reviewer` (Claude)
 - **Rama de integración**: `master`
@@ -274,11 +274,11 @@ Ninguno: es presentación local. `noise_event_3d` es local; la red autoritativa 
 | PKG | Agente | Rama | Depende de | Estado | Vueltas | Notas |
 |---|---|---|---|---|---|---|
 | PKG-1 | integrator | `feat/012-pkg1` | — | integrado | 0 | |
-| PKG-3 | vfx-ui-engineer | `feat/012-pkg3` | — | descartado | 2 | Anillos rechazados por el usuario; PR #40 cerrado. La rama se conserva para el rescate de PKG-5 |
+| PKG-3 | vfx-ui-engineer | `feat/012-pkg3` | — | descartado | 2 | Anillos rechazados por el usuario; PR #40 cerrado. Rama borrada en el cierre |
 | PKG-4 | vfx-ui-engineer (lo ejecuta Claude) | `feat/012-pkg4` | — | integrado | 0 | `agy` no tiene permiso para copiar binarios |
 | PKG-5 | vfx-ui-engineer | `feat/012-pkg5` | PKG-4 | integrado | 0 | |
-| PKG-2 | gameplay-engineer | `feat/012-pkg2` | PKG-5 | en curso | 0 | |
-| PKG-QA | qa-engineer | `feat/012-pkgqa` | PKG-2 | pendiente | 0 | |
+| PKG-2 | gameplay-engineer | `feat/012-pkg2` | PKG-5 | integrado | 1 | |
+| PKG-QA | qa-engineer | `feat/012-pkgqa` | PKG-2 | integrado | 1 | |
 
 ## Paquetes de ejecución
 
@@ -415,6 +415,37 @@ Ninguno: es presentación local. `noise_event_3d` es local; la red autoritativa 
   - el criterio 8 comprueba también que `ExposurePanel` es visible con el ladrón local aunque no haya estado de exposición, y oculto con un guardia local.
 - **Montaje**: las lecciones de `_TEMPLATE.md`, con `./tools/ci/import.sh` primero. En headless el audio usa el driver Dummy: se comprueban los nodos y sus propiedades, no el sonido.
 - **Comandos de cierre**: los de PKG-2.
+
+## Cierre (2026-10-23)
+- **`/verify` en `master` (`8d27174`)**: import en 0, run_tests 135/135.
+- **Criterios**:
+  - 1 a 13: `test_noise_categories.gd`, `test_noise_audio.gd`, `test_noise_meter.gd` y `test_local_view.gd`;
+  - 14: el usuario lo aprobó jugando: "me convence más así, para la PoC es suficiente, menos ruido visual".
+- **PR**:
+  - #37: PKG-1;
+  - #42: PKG-4;
+  - #43: PKG-5;
+  - #46: PKG-2, con una vuelta;
+  - #50: PKG-QA, con una vuelta;
+  - #41 y #44: spec reescrita y cobertura extra de QA.
+  - El PR #40 (PKG-3, anillos) se cerró sin integrar.
+- **Mutation testing del revisor**:
+  - las tres mutaciones (`<=` → `<` en el alcance, quitar `thief_hearing_mult` y quitar el filtro de pasos del chevron) mueren;
+  - cambiar `thief_hearing_mult` en el `.tres` no rompe los tests.
+- **Excepción aceptada**: `LastSeenMarker3D` lleva su shader embebido en el script, en lugar de un `.gdshader` aparte.
+- **Limpieza en el cierre**:
+  - se borra el `.uid` huérfano `assets/shaders/sound_wave_3d.gdshader.uid`;
+  - se borra la rama descartada `feat/012-pkg3`.
+- **Lecciones**:
+  - lo que es "sensación" (aspecto, sonido) se prototipa y se enseña antes de la spec; los anillos recorrieron el circuito completo para acabar descartados;
+  - un paquete con `queue_free` en un nodo de red necesita un contrato para su desaparición (ya en FEAT-014);
+  - PKG-4 lo ejecutó Claude porque agy no puede copiar binarios.
+- **Pendiente (backlog post-PoC)**:
+  - tests del criterio 6 con un suelo real;
+  - assert de rol muerto en el criterio 9;
+  - `assert_eq(size, 5)` en el criterio 13;
+  - muestras propias para caja fuerte, coche, reloj y walkie;
+  - subtítulos de accesibilidad.
 
 ## Riesgos y decisiones abiertas
 1. **Muestras de relleno**: caja fuerte, coche, reloj y walkie suenan como un interruptor hasta que haya muestras propias (FEAT de audio posterior).
