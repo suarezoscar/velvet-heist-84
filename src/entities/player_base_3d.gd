@@ -224,8 +224,7 @@ func apply_net_actor_state(state: Dictionary) -> void:
 
 
 func _process_local_actions() -> void:
-	if InputMap.has_action(&"crouch") and Input.is_action_just_pressed(&"crouch"):
-		perform_action(&"crouch_toggle")
+	pass
 
 
 func _clear_input() -> void:

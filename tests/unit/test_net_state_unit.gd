@@ -156,6 +156,33 @@ func test_roundtrip_loot_item() -> void:
 	assert_false(item2.visible, "Item depositado se oculta")
 
 
+func test_roundtrip_loot_item_holder() -> void:
+	# current_scene tiene que colgar directamente de la raíz del árbol
+	var scene_root: Node3D = autofree(Node3D.new())
+	get_tree().root.add_child(scene_root)
+	var thief: ThiefController3D = ThiefController3D.new()
+	thief.name = "Thief"
+	scene_root.add_child(thief)
+	var item: LootItem3D = LootItem3D.new()
+	scene_root.add_child(item)
+
+	var tree: SceneTree = get_tree()
+	var previous_scene: Node = tree.current_scene
+	tree.current_scene = scene_root
+	watch_signals(SignalBus)
+
+	var holder_path: String = String(scene_root.get_path_to(thief))
+	item.apply_net_state({"collected": true, "holder": holder_path, "deposited": false})
+
+	tree.current_scene = previous_scene
+	assert_eq(item.get_parent(), thief.carry_anchor, "El botín cuelga del ancla del ladrón")
+	assert_eq(thief.carried_loot, item, "El ladrón registra el botín cargado")
+	assert_false(item.monitoring, "Sin detección mientras se carga")
+	assert_false(item.monitorable, "Sin detección mientras se carga")
+	assert_signal_not_emitted(SignalBus, "noise_event_3d", "Aplicar el estado no emite ruido")
+	assert_signal_not_emitted(SignalBus, "loot_stolen", "Aplicar el estado no suma botín")
+
+
 func test_roundtrip_lamp() -> void:
 	var lamp1: Lamp3D = autofree(Lamp3D.new())
 	var lamp2: Lamp3D = autofree(Lamp3D.new())
@@ -215,16 +242,21 @@ func test_roundtrip_time_clock() -> void:
 
 
 func test_roundtrip_security_camera() -> void:
-	var cam1: SecurityCamera3D = autofree(SecurityCamera3D.new())
-	var cam2: SecurityCamera3D = autofree(SecurityCamera3D.new())
+	var scene: PackedScene = load("res://scenes/entities/security_camera.tscn") as PackedScene
+	var cam1: SecurityCamera3D = scene.instantiate() as SecurityCamera3D
+	var cam2: SecurityCamera3D = scene.instantiate() as SecurityCamera3D
 	add_child_autofree(cam1)
 	add_child_autofree(cam2)
+	var root_rot: float = deg_to_rad(135.0)
+	cam2.rotation.y = root_rot
 
-	cam1.rotation.y = 1.25
+	cam1.mount.rotation.y = 0.3
 	cam1.is_alert_active = true
 	var s: Dictionary = cam1.get_net_state()
 	cam2.apply_net_state(s)
 	assert_eq(cam2.get_net_state(), s, "Roundtrip SecurityCamera3D idéntico")
+	assert_almost_eq(cam2.rotation.y, root_rot, 0.001, "La raíz conserva su orientación de escena")
+	assert_almost_eq(cam2.mount.rotation.y, 0.3, 0.001, "El barrido local llega al CameraMount")
 
 
 func test_roundtrip_actor_states() -> void:

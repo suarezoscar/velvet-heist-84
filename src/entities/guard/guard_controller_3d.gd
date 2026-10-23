@@ -260,8 +260,11 @@ func swing_baton(target_thief: ThiefController3D = null) -> bool:
 
 func _capture_thief() -> void:
 	SignalBus.thief_captured.emit(get_multiplayer_authority())
-	var radius: float = perception.capture_noise_radius if perception != null else 12.0
-	NoiseEmit.emit(global_position, radius, &"guard", NoiseEmit.IMPACT, self)
+	if perception == null:
+		perception = load(PERCEPTION_PROFILE_PATH) as PerceptionProfile
+	NoiseEmit.emit(
+		global_position, perception.capture_noise_radius, &"guard", NoiseEmit.IMPACT, self
+	)
 
 
 func _process_stamina_and_sprint(delta: float, input_dir: Vector2) -> void:
