@@ -1,9 +1,9 @@
 # Sigilo: modos de movimiento, ruido de pasos y percepción cercana
 
-- **Estado**: aprobado por el usuario: parte 1 el 2026-10-22 y parte 2 (linterna, luz, información entre guardias y anillos) el 2026-10-23.
+- **Estado**: aprobado por el usuario: parte 1 el 2026-10-22 y parte 2 (linterna, luz, información entre guardias y ruido) el 2026-10-23. P2.4 reescrita y aprobada el 2026-10-23: **sustituye los anillos de ruido** por audio posicional, vúmetro del ladrón y chevron en el borde (decisiones D8-D11).
 - **Origen**: MASTER_GSD §2 (asimetría), §4.1 (acústica de superficies), §5.3 (visibilidad); FEAT-005 (posturas); auditoría de la Fase 1 (`docs/decisions/2026-10-22-fase-1-auditoria.md`, "Decisiones de diseño pendientes"). 2026-10-22.
 - **Relacionado**: `characters.md` (altura de los modelos, que fija los puntos de visibilidad); `roles.md` (velocidades por rol), `gadgets.md` (molde de cera, hilo con campanillas, láseres) e `interaction.md` (cobertura baja de los niveles), que todavía no existen.
-- **Alcance**: modos de movimiento, ruido de pasos, superficies, quién ve qué anillo (solo la regla), proximidad, puntos de visibilidad y alcance de la porra. **Segunda parte** (abajo): el cono de la linterna, las lámparas y el detalle de la visibilidad de los anillos (colores, duración, ruido de objetos).
+- **Alcance**: modos de movimiento, ruido de pasos, superficies, quién oye qué (solo la regla), proximidad, puntos de visibilidad y alcance de la porra. **Segunda parte** (abajo): el cono de la linterna, las lámparas y cómo se percibe el ruido (audio, vúmetro, chevron) y el ruido de objetos.
 
 ## Fantasía
 - **Ladrón**: "Si me lo pienso, nadie me oye; si tengo prisa, todo el edificio se entera". Cada metro tiene un precio en tiempo o en ruido, y esconderse tras una vitrina es una decisión, no un truco gratis.
@@ -49,11 +49,11 @@ r_paso = max(r_min, R_base × g_modo × s_superficie × t_bando)
 - Parado no se emite ruido: no moverse no es una acción.
 - La cadencia (un paso cada `step_interval` s) vive en el `.tres` de movimiento de cada bando, por modo.
 
-### Quién ve qué anillo
-- El **ladrón** ve todos los anillos de sonido del mapa, a través de muros (pilar 3).
-- Un **guardia** ve un anillo solo si le alcanza: su distancia horizontal al origen es ≤ el radio del anillo.
-- La **IA** de los guardias oye con la misma regla, sin factor extra: oye exactamente lo que dibuja el anillo.
-- El detalle (si un guardia ve los anillos de sus compañeros fuera de su alcance, aspecto, duración) queda para la segunda parte.
+### Quién oye qué
+No hay representación del ruido en el mundo (P2.4, 2026-10-23); el radio emitido es la verdad y se percibe como sonido.
+- Un **guardia** (humano o IA) oye un ruido solo si le alcanza: su distancia horizontal al origen es ≤ el radio emitido. La IA usa la misma regla, sin factor extra.
+- El **ladrón** oye los ruidos de los guardias hasta `thief_hearing_mult` × radio (1,5; pilar 3: oye más lejos) y los suyos y los de su bando con el radio normal.
+- Cómo suena, el vúmetro y el chevron del borde: P2.4.
 
 ### Superficies
 - Cada tipo de suelo es un `.tres` en `data/balance/surface_<id>.tres`. Un nivel asigna a cada sala un **tipo de superficie**, nunca un número suelto.
@@ -110,7 +110,7 @@ Los `.tres` marcados como nuevos los crea el paquete B (balance a `.tres`) con l
 | Puntos de visibilidad de pie | `perception_guard.tres` → `stand_points` (nuevo) | sensación | cabeza 1,5-1,7 m; pecho 1,0-1,3 m | 1,6 y 1,2. Hoy un único punto a 0,9 m. |
 | Puntos de visibilidad agachado | `perception_guard.tres` → `crouch_points` (nuevo) | sensación | 0,8-1,0 m; 0,5-0,7 m | 0,9 y 0,6. Por debajo de una cobertura baja de nivel de 1,0 m. |
 | Alcance de la porra | `perception_guard.tres` → `melee_range` (nuevo) | sensación | 1,3-1,7 m horizontales, < `proximity_radius` | 1,5 (GSD; hoy 1,6). Deja ~0,8 m entre las superficies de las cápsulas. |
-| Oído de la IA | `perception_guard.tres` → `ai_hearing_factor` (nuevo) | sensación | 1,0 fijo | 1,0. El anillo es la verdad; hoy 1,5. |
+| Oído de la IA | `perception_guard.tres` → `ai_hearing_factor` (nuevo) | sensación | 1,0 fijo | 1,0. El radio es la verdad; hoy 1,5. |
 
 ### Invariantes que deben comprobar los tests
 Comprueban relaciones leyendo los `.tres`, no valores literales.
@@ -124,18 +124,18 @@ Comprueban relaciones leyendo los `.tres`, no valores literales.
 8. **Molde de cera posible**: `rear_blind_arc_deg` > 0, y la distancia del molde < `proximity_radius` solo se acepta con ese arco.
 9. **Agacharse oculta tras cobertura baja**: los dos puntos de `crouch_points` < 1,0 m y la cabeza de `stand_points` > 1,0 m (altura de referencia de la cobertura baja de nivel).
 10. **Superficies ordenadas**: alfombra < 1 ≤ mármol ≤ parqué.
-11. **El anillo es la verdad**: la IA oye un ruido si y solo si su distancia horizontal al origen es ≤ el radio emitido; un guardia humano ve el anillo con la misma condición.
+11. **El radio es la verdad**: la IA oye un ruido si y solo si su distancia horizontal al origen es ≤ el radio emitido; a un guardia humano le suena con la misma condición (invariante 24).
 12. **Proximidad horizontal**: con los dos personajes en el suelo, el ladrón a `proximity_radius` − 0,01 m de frente se detecta y a `proximity_radius` + 0,01 m no; dentro del arco ciego no se detecta por proximidad a ninguna distancia.
 
 ## Contrajuego
 | Acción | Quién | Qué percibe el otro bando | Cómo puede responder |
 |---|---|---|---|
-| Sigilo | ladrón | Anillos pequeños; en parqué, de ~1,6 m | Patrullar parqué, quedarse quieto y escuchar, talco en entradas. |
-| Carrera | ladrón | Anillos grandes y frecuentes | Converger por radio (pagando la estática del walkie), cortar salidas. |
-| Agachado tras cobertura baja | ladrón | Nada si no se mueve; anillo mínimo al moverse | Linterna desde arriba o desde el lateral de la cobertura; rodearla; más guardias. |
+| Sigilo | ladrón | Pasos flojos que solo oye quien está cerca; en parqué, a ~1,6 m | Patrullar parqué, quedarse quieto y escuchar, talco en entradas. |
+| Carrera | ladrón | Pasos fuertes y frecuentes, audibles desde lejos | Converger por radio (pagando la estática del walkie), cortar salidas. |
+| Agachado tras cobertura baja | ladrón | Nada si no se mueve; pasos al radio mínimo al moverse | Linterna desde arriba o desde el lateral de la cobertura; rodearla; más guardias. |
 | Acercarse por la espalda (molde de cera) | ladrón | Solo sus pasos: en parqué o mármol se oyen a 1,2 m; en alfombra, no | Girarse a menudo, no detenerse en alfombra, ir en pareja. |
-| Sigilo | guardia | Anillos medianos (botas), mayores que los del ladrón en el mismo suelo | El ladrón los ve siempre; el guardia lento pierde tiempo de ronda. |
-| Carrera | guardia | Anillos muy grandes; se gasta estamina | Esconderse y dejar que pase; aprovechar el hueco en su ruta. |
+| Sigilo | guardia | Pasos medianos (botas), con más radio que los del ladrón en el mismo suelo | El ladrón los oye a 1,5 × el radio; el guardia lento pierde tiempo de ronda. |
+| Carrera | guardia | Pasos con radio muy grande; se gasta estamina | Esconderse y dejar que pase; aprovechar el hueco en su ruta. |
 
 ## Qué medir
 | Evento de telemetría | Pregunta que responde | Señal de alarma |
@@ -149,7 +149,7 @@ Comprueban relaciones leyendo los `.tres`, no valores literales.
 
 ## Estado
 - **Modos de movimiento y ruido de pasos**: implementados en FEAT-007 (hecha, 2026-10-23). Están en `MovementProfile`, `StepNoiseProfile` y `data/balance/movement_*.tres` y `step_noise.tres`, con tests de los invariantes 1-6 y 10.
-- **Percepción cercana, porra, oído de la IA y anillos por alcance**: implementados en FEAT-008 (hecha, 2026-10-23). Están en `PerceptionProfile`, `PerceptionRules` y `perception_guard.tres`, con tests de los invariantes 7, 8, 9, 11 y 12. Pendiente: un épsilon en el borde exacto del arco ciego.
+- **Percepción cercana, porra, oído de la IA y anillos por alcance** (los anillos se retiran por P2.4 de 2026-10-23): implementados en FEAT-008 (hecha, 2026-10-23). Están en `PerceptionProfile`, `PerceptionRules` y `perception_guard.tres`, con tests de los invariantes 7, 8, 9, 11 y 12. Pendiente: un épsilon en el borde exacto del arco ciego.
 - **Superficies por tipo en el museo**: pendiente; el museo sigue con 9 multiplicadores sueltos (`src/generation/floorplan_blueprint.gd`). Va con `/level`.
 - **Indicador de modo en el HUD**: pendiente; `PlayerBase3D` ya emite `crouch_changed` y `stand_up_blocked`.
 - **Red**: el modo y la detección no se replican; va con la red autoritativa.
@@ -159,7 +159,7 @@ Tomadas por el usuario el 2026-10-22, todas con la opción recomendada:
 - Modos: ladrón con sigilo, paso, carrera y agachado; guardias con paso, sigilo y carrera. Se elimina TIPTOE.
 - `r_min` 0,5 m y peso de botas de los guardias ×1,2.
 - Arco ciego trasero de 120°.
-- El guardia ve solo los anillos que le alcanzan; el ladrón ve todos; la IA oye con factor 1.
+- El guardia ve solo los anillos que le alcanzan; el ladrón ve todos; la IA oye con factor 1. *(Anillos sustituidos el 2026-10-23 por D8-D11: el guardia oye lo que le alcanza; el ladrón oye los ruidos de guardia a 1,5 ×.)*
 - Proximidad horizontal de 1,8 m con puntos de visibilidad por altura; porra a 1,5 m.
 - Carrera: ruido ×2,0 y velocidad ×1,5 en los dos bandos. Superficies del GSD con rangos.
 
@@ -178,19 +178,19 @@ Tomadas por el usuario el 2026-10-22, todas con la opción recomendada:
 - **Niveles (`/level`)**: las salas se asignan por tipo de superficie y el nivel incluye piezas de cobertura baja de ~1,0 m.
 
 ## Preguntas abiertas
-- Resueltas en la parte 2: anillos entre guardias (D4) y cono de linterna y lámparas (P2).
+- Resueltas en la parte 2: ruido entre guardias (D4) y cono de linterna y lámparas (P2).
 
 ---
 
-# Parte 2: linterna, luz y sombra, información entre guardias y anillos
+# Parte 2: linterna, luz y sombra, información entre guardias y percepción del ruido
 
 - **Estado**: aprobado por el usuario el 2026-10-23 (todas las opciones recomendadas). No modifica ninguna regla ni número de la parte 1.
 - **Origen**: MASTER_GSD §2 (visión de cada bando, "desenroscar bombillas", "encender interruptores"), §3.1 (cuerda de piano que apaga lámparas), §3.2 (Maglite, walkie-talkie de 6 m, silbato), §5.3 (visibilidad por luz o línea de visión), §5.4 (ondas de sonido); preguntas abiertas de la parte 1; escena actual `scenes/entities/guard_player.tscn` (`MagliteSpotLight`: alcance 9 m, semiángulo 32°, a 0,9 m de altura).
 - **Relacionado**: `gadgets.md` (walkie-talkie, silbato, cuerda de piano: por crear), `interaction.md` (interruptores, bombillas, panel de pilotos: por crear), `characters.md` (la Maglite en la mano), niveles (`/level`: reparto de luz y sombra).
-- **Alcance**: cono de la linterna, zonas iluminadas por lámparas, apagar y encender luces, qué se comparte entre guardias y reglas de legibilidad de los anillos. Fuera: shaders, colores concretos (paleta de UI de `vfx-ui-engineer`), varios pisos.
+- **Alcance**: cono de la linterna, zonas iluminadas por lámparas, apagar y encender luces, qué se comparte entre guardias y cómo se percibe el ruido (P2.4). Fuera: shaders, colores concretos (paleta de UI de `vfx-ui-engineer`), varios pisos.
 
 ## Fantasía (parte 2)
-- **Ladrón**: "La sombra es mía; la luz es de ellos". Ve cada haz de linterna y cada anillo; cruzar una sala iluminada es una apuesta, y apagarla es una declaración.
+- **Ladrón**: "La sombra es mía; la luz es de ellos". Ve cada haz de linterna y oye a los guardias antes de que ellos le oigan a él; cruzar una sala iluminada es una apuesta, y apagarla es una declaración.
 - **Guardias**: "Mi linterna es lo único que tengo en la oscuridad, y el ladrón la ve venir". Cada guardia sabe lo que su linterna, sus ojos y sus oídos le dicen; el resto llega por la radio, y la radio se oye.
 
 ## Reglas (parte 2)
@@ -223,7 +223,7 @@ d_h(G, L) ≤ F_alcance   y   ángulo_h(frente_G, L − G) ≤ F_semiángulo   y
 - La `SpotLight3D` visible toma `spot_range` y `spot_angle` de estos mismos campos: lo que se ve iluminado es lo que detecta (invariante 14). El haz tiene que leerse hasta su borde: la atenuación no puede dejar el último 20 % del alcance a oscuras.
 - El borde pertenece al cono (como en el arco ciego de la parte 1).
 - **El ladrón ve todos los haces encendidos**, también tras los muros, como silueta del sector en el suelo (MASTER_GSD §2, pilar 3).
-- **Apagar la linterna**: el guardia la alterna con un clic que emite un anillo de `flashlight_toggle_noise_radius`. Apagada, el guardia solo ve por proximidad y por P2.2, y su haz desaparece para el ladrón.
+- **Apagar la linterna**: el guardia la alterna con un clic que emite un ruido de `flashlight_toggle_noise_radius`. Apagada, el guardia solo ve por proximidad y por P2.2, y su haz desaparece para el ladrón.
 
 ### P2.2 Lámparas y zonas de luz
 - **Base oscura**: el museo de noche no tiene luz ambiente que detecte. Un punto de visibilidad está **iluminado** si alguna lámpara encendida cumple `d_h(lámpara, punto) ≤ lit_radius` y el rayo desde la bombilla hasta el punto está libre. Los muebles proyectan sombra: agacharse tras una vitrina en una sala iluminada también oculta.
@@ -239,44 +239,64 @@ d_h(G, L) ≤ F_alcance   y   ángulo_h(frente_G, L − G) ≤ F_semiángulo   y
 | `lamp_street` (farola tras ventana) | 3,0 m | no | no | luz fija: la sombra no siempre se compra |
 
 - **Apagar y encender**:
-  - **Interruptor de pared** (ladrón y guardias): `switch_time` 0,5 s; clic con anillo de `switch_noise_radius` 2,0 m. Apaga o enciende todas las lámparas de su circuito. El guardia lo deshace con la misma acción.
-  - **Desenroscar la bombilla** (solo ladrón, solo tipos desenroscables): `unscrew_time` 2,0 s, anillo de `unscrew_noise_radius` 1,0 m. La lámpara queda apagada hasta que un guardia la vuelva a enroscar (`rescrew_time` 3,0 s); el interruptor no la arregla.
+  - **Interruptor de pared** (ladrón y guardias): `switch_time` 0,5 s; clic con ruido de `switch_noise_radius` 2,0 m. Apaga o enciende todas las lámparas de su circuito. El guardia lo deshace con la misma acción.
+  - **Desenroscar la bombilla** (solo ladrón, solo tipos desenroscables): `unscrew_time` 2,0 s, ruido de `unscrew_noise_radius` 1,0 m. La lámpara queda apagada hasta que un guardia la vuelva a enroscar (`rescrew_time` 3,0 s); el interruptor no la arregla.
   - **Cuerda de piano** (MASTER_GSD §3.1): apaga a distancia una lámpara desenroscable; su ruido y sus tiempos los fija `gadgets.md`, con la misma regla de rastro.
 - **Rastro visible** (pilar 2): una lámpara que cambia de estado cambia la luz del mundo; cualquier guardia que tenga esa zona en pantalla lo ve. No hay aviso global (ver O3).
 - **El ladrón sabe si está iluminado** (requisito de legibilidad): el ladrón ve la luz del mundo; lo que no ve con claridad es si su punto bajo queda en sombra (ver O1).
 - **Requisito de nivel** (para `/level`): cada sala iluminada tiene al menos un bolsillo de sombra alcanzable (cobertura baja o zona fuera de `lit_radius`) y su interruptor a la vista de una entrada; ninguna ruta obligatoria atraviesa solo zonas de luz fija (`lamp_street`).
 
 ### P2.3 Información entre guardias
-- **La percepción es por guardia**: lo que detecta un guardia (proximidad, linterna, luz) solo hace visible al ladrón en la pantalla de ese guardia, y lo que oye solo lo ve él (regla de la parte 1). Un guardia **no ve** los anillos que alcanzan a sus compañeros.
-- **Walkie-talkie: ping** (MASTER_GSD §3.2): el guardia marca un punto de su pantalla; todos los guardias ven un marcador allí durante `ping_marker_time` 3,0 s; el walkie del que marca emite estática con anillo de `ping_noise_radius` 6,0 m (de forma discontinua, ver P2.4). Enfriamiento `ping_cooldown` 1,5 s.
-- **Voz**: hablar por el walkie es pulsar para hablar; al empezar y cada `voice_pulse_interval` 2,0 s mientras se habla, el walkie emite el mismo anillo de estática.
+- **La percepción es por guardia**: lo que detecta un guardia (proximidad, linterna, luz) solo hace visible al ladrón en la pantalla de ese guardia, y lo que oye solo le suena a él (regla de la parte 1). Un guardia **no oye** los ruidos que alcanzan a sus compañeros pero no a él.
+- **Walkie-talkie: ping** (MASTER_GSD §3.2): el guardia marca un punto de su pantalla; todos los guardias ven un marcador allí durante `ping_marker_time` 3,0 s; el walkie del que marca emite estática (categoría mecanismo, P2.4) con radio `ping_noise_radius` 6,0 m. Enfriamiento `ping_cooldown` 1,5 s.
+- **Voz**: hablar por el walkie es pulsar para hablar; al empezar y cada `voice_pulse_interval` 2,0 s mientras se habla, el walkie emite la misma estática.
 - **Supuesto de diseño**: los guardias pueden hablar por un canal externo (Discord). El balance no puede depender de que no lo hagan; por eso lo que se comparte de verdad (posiciones exactas en pantalla) es la percepción por guardia, y lo que la voz externa no da es el marcador preciso del ping.
 - **Silbato**: sin cambios respecto al GSD; lo detalla `gadgets.md`.
 
-### P2.4 Aspecto y legibilidad de los anillos
-Solo reglas; el shader y la paleta son de `vfx-ui-engineer`.
-- **Verdad geométrica**: el radio final dibujado es exactamente el radio emitido; el anillo se centra en el origen y se dibuja completo, también tras muros y en la oscuridad (MASTER_GSD §5.4). Oír se decide en el instante de la emisión; el crecimiento es presentación.
-- **Forma por categoría de fuente**, distinguible en escala de grises (el color nunca es la única pista):
+### P2.4 Cómo se percibe un ruido
+Aprobada el 2026-10-23; **sustituye a los anillos de ruido** ("Aspecto y legibilidad de los anillos"), retirados tras verlos en juego. No hay representación del ruido en el mundo. Solo reglas: las muestras, la mezcla y el aspecto del HUD son de `technical-artist` y `vfx-ui-engineer`.
+- **Alcance**: un ruido de radio `r` alcanza a quien esté a una distancia horizontal `d ≤ r`. Para el ladrón, con los ruidos de equipo `guard`, el alcance es `r × thief_hearing_mult` (D8). Se decide en el instante de la emisión.
+- **Audio posicional**: a quien le alcanza, el ruido le suena con el volumen de la fórmula; a quien no, no le suena nada ("si lo oyes, te ha alcanzado"). El oyente es el personaje local, no la cámara: la distancia es la de la regla y el paneo usa la orientación de la cámara isométrica.
+- **Categoría de la fuente**: elige la familia de muestras.
 
-| Categoría | Ejemplos | Forma |
+| Categoría | Ejemplos | Sonido |
 |---|---|---|
-| Paso | pasos de cualquier modo | anillo fino continuo |
-| Golpe u objeto | porra, captura, monedas, jarrón | anillo grueso o doble |
-| Mecanismo | walkie, teléfono, despertador, interruptor, bombilla, linterna | anillo discontinuo |
+| Paso | pasos de cualquier modo | muestra de la superficie bajo los pies (alfombra, mármol, parqué) |
+| Golpe u objeto | porra, captura, monedas, jarrón, botín | golpe seco |
+| Mecanismo | walkie, teléfono, despertador, interruptor, bombilla, linterna, caja fuerte, coche, fichar | clic, rosca, estática o motor |
 
-- **Color**: hay dos papeles, **propio** (lo que emite quien mira o sus gadgets) y **ajeno**. El ladrón, además, distingue **guardia** frente a **propio** (pilar 3). Los guardias ven todos los anillos ajenos en un mismo color neutro: no distinguen por el anillo a un compañero del ladrón. No hay color por superficie ni por modo: la superficie y el modo ya se leen en el radio y la cadencia.
-- **Tiempos**: el anillo crece en `ring_grow_time` 0,4 s y vive `ring_lifetime_step` 1,4 s (pasos) o `ring_lifetime_event` 2,0 s (golpes y mecanismos), desvaneciéndose al final. Una fuente sostenida (despertador, voz) emite pulsos cada `pulse_interval` 0,6 s, no un anillo largo.
-- **Rastro legible**: la vida de un anillo de paso cubre al menos dos pasos consecutivos del modo más lento, para que se lea la dirección de marcha (invariante 22).
-- **Tamaño mínimo**: un anillo de `min_radius` (0,5 m) se distingue del personaje y tiene al menos 2 px de trazo a 1080p con la cámara de tamaño 14 (evidencia por captura).
-- **Fuera de pantalla**: si un anillo alcanza a quien mira y su origen queda fuera de su pantalla, aparece un marcador en el borde de la pantalla que apunta al origen durante la vida del anillo.
-- **Límite**: como mucho `max_rings` 48 anillos vivos por cliente; si se superan, se acortan los más viejos, nunca se descarta uno nuevo.
+- **Mismos pasos para los dos bandos** (D10): el guardia no distingue de oído a un compañero del ladrón; las botas solo cambian el radio y, con él, el volumen. El sigilo y el agachado no tienen muestras propias: se oyen por el volumen y la cadencia.
+- **Pasos propios**: sin posición, flojos (`own_step_volume_db`) y escalados por `r / meter_full_scale`. Cada paso varía su tono en ±`pitch_jitter`.
+- **Fuentes sostenidas** (despertador, voz): emiten pulsos cada `pulse_interval`, cada uno con su propio alcance.
+- **Chevron en el borde** (D9): si un ruido de **golpe o mecanismo** alcanza a quien escucha y su origen queda fuera de su pantalla, el HUD muestra un chevron en el borde que apunta al origen durante `offscreen_marker_time`. Los pasos fuera de pantalla solo suenan.
+- **Vúmetro del ladrón** (D11): solo con el ladrón como jugador local, un vúmetro de 10 segmentos muestra el radio del último ruido de su bando (pasos, botín, caja fuerte, interruptor…), en una escala lineal de 0 a `meter_full_scale`, con un LED de saturación por encima. El pico se mantiene `meter_hold_time` y cae a 0 en `meter_fall_time`. Lleva una marca fija en `proximity_radius`. No muestra la distancia a ningún guardia. Va junto al indicador de exposición (O1), en un único bloque.
+
+Fórmula del volumen:
+
+```
+g = v_cat × (f + (1 − f) × (1 − d / r_ef))   si d ≤ r_ef;   g = 0 en otro caso
+```
+
+| Variable | Significado | Fuente |
+|---|---|---|
+| `g` | Ganancia lineal del ruido en el oyente | resultado |
+| `v_cat` | Volumen base de la categoría (mezcla, no balance) | `assets/audio/noise_mix.tres` |
+| `f` | Fracción audible justo en el borde: el borde nunca es silencio | `noise_feedback.tres` → `audio_edge_floor` |
+| `d` | Distancia horizontal del oyente al origen | geometría |
+| `r_ef` | `r`, o `r × thief_hearing_mult` para el ladrón con ruidos de guardia | `noise_feedback.tres` |
+
+- Rango de salida: de `f × v_cat` en el borde a `v_cat` en el origen; 0 fuera de alcance.
+- Ejemplos resueltos (`f` 0,2):
+  - Guardia a 3 m de un ladrón que anda sobre parqué (`r` 5,25 m): 0,2 + 0,8 × (1 − 3/5,25) = **0,54 × `v_cat`**.
+  - El mismo ladrón en sigilo (`r` 1,58 m): 3 > 1,58 → **no le suena**.
+  - Ladrón a 6 m de un guardia que anda sobre mármol (`r` 5,04 m; `r_ef` = 7,56 m): 0,2 + 0,8 × (1 − 6/7,56) = **0,37 × `v_cat`**. Un guardia en esa misma posición no lo oiría.
 
 ### P2.5 Añadidos para cerrar el sistema
 O1, O2 y O4 entran ahora; O3 queda aplazado a `interaction.md`.
 - **O1 Indicador de exposición del ladrón**: el HUD muestra tres estados, sombra, iluminado (P2.2) o en un haz (P2.1), calculados con sus propios puntos de visibilidad. Sin él, el agachado en una sala iluminada es una adivinanza.
 - **O2 Última posición vista**: cuando un guardia deja de percibir al ladrón, en su pantalla queda una silueta fija en la última posición durante `last_seen_linger` 1,5 s. Solo en ese guardia; compartirla es el ping.
 - **O3 Panel de pilotos** (aplazado a `interaction.md`): en la sala de seguridad, un panel de bombillas piloto muestra qué circuitos están apagados (tecnología de 1984). Es la única vía para que un guardia sepa de un apagón fuera de su pantalla, y obliga a ir a mirarlo. Se detalla en `interaction.md`.
-- **O4 Ruidos que no son pasos a `.tres`**: la porra (4,5 m) y la captura (8,0 m) son hoy constantes en `guard_controller_3d.gd`; pasan a `perception_guard.tres` → `baton_swing_noise_radius` y `capture_noise_radius` sin cambiar valores, con la categoría de P2.4.
+- **O4 Ruidos que no son pasos a `.tres`**: la porra (4,5 m) y la captura (8,0 m) son hoy constantes en `guard_controller_3d.gd`; pasan a `perception_guard.tres` → `baton_swing_noise_radius` y `capture_noise_radius` sin cambiar valores, con la categoría de P2.4 (golpe).
 
 ### Interacciones (parte 2)
 - **Agachado**: no reduce el ángulo ni el alcance de la linterna; solo protege con oclusión. En abierto, agachado en el haz = visto.
@@ -292,7 +312,7 @@ O1, O2 y O4 entran ahora; O3 queda aplazado a `interaction.md`.
 - Dos guardias activan el mismo interruptor a la vez: gana el último; los dos clics suenan.
 - Un guardia enrosca una bombilla mientras el ladrón está en su `lit_radius`: el ladrón queda iluminado en cuanto acaba `rescrew_time`.
 - Linterna apagada y ladrón en proximidad: la proximidad sigue funcionando.
-- Interrumpir el desenroscado: no apaga y el anillo ya emitido no se retira.
+- Interrumpir el desenroscado: no apaga y el ruido ya emitido no se retira.
 
 ## Números (parte 2)
 Todos nuevos. Los de linterna arrancan con los valores actuales de la escena.
@@ -314,12 +334,18 @@ Todos nuevos. Los de linterna arrancan con los valores actuales de la escena.
 | Estática del walkie | `guard_radio.tres` → `ping_noise_radius` | curva | 5-8 m | 6,0 (GSD). |
 | Enfriamiento del ping | `guard_radio.tres` → `ping_cooldown` | ritmo | 1-3 s | 1,5. Evita el spam sin impedir dos avisos seguidos. |
 | Pulso de voz | `guard_radio.tres` → `voice_pulse_interval` | ritmo | 1,5-3,0 s | 2,0. Una frase corta ya delata. |
-| Crecimiento del anillo | `noise_rings.tres` → `ring_grow_time` | sensación | 0,25-0,8 s | 0,4. El GSD dice 0,8; a la cadencia de carrera (0,28 s) eso deja el anillo dos pasos por detrás. |
-| Vida del anillo de paso | `noise_rings.tres` → `ring_lifetime_step` | sensación | 1,2-2,0 s | 1,4. ≥ 2 × 0,60 s (sigilo, el paso más lento): siempre hay al menos dos anillos de la misma estela a la vista. |
-| Vida del anillo de evento | `noise_rings.tres` → `ring_lifetime_event` | sensación | 1,5-3,0 s | 2,0. Un golpe o un clic se tienen que poder buscar. |
-| Pulso de fuente sostenida | `noise_rings.tres` → `pulse_interval` | sensación | 0,4-1,0 s | 0,6. |
-| Anillos vivos | `noise_rings.tres` → `max_rings` | sensación | 32-64 | 48. Cuatro guardias corriendo más el ladrón no lo alcanzan. |
+| Pulso de fuente sostenida | `noise_feedback.tres` → `pulse_interval` | ritmo | 0,4-1,0 s | 0,6. Una fuente larga suena como pulsos, cada uno con su alcance. |
+| Escala del vúmetro | `noise_feedback.tres` → `meter_full_scale` | sensación | 8-12 m | 10. El ruido más fuerte del ladrón (carrera en parqué, 10,5 m) satura: corre y lo sabe. |
+| Retención del pico | `noise_feedback.tres` → `meter_hold_time` | sensación | 0,1-0,2 s | 0,15. Da tiempo a leer el pico sin tapar el siguiente paso. |
+| Caída del vúmetro | `noise_feedback.tres` → `meter_fall_time` | ritmo | 0,3-0,4 s; retención + caída ≤ `step_interval_crouch` | 0,4. En sigilo y agachado la aguja vuelve a 0 entre pasos y late con la cadencia; andando y corriendo queda llena. |
+| Volumen en el borde | `noise_feedback.tres` → `audio_edge_floor` | sensación | 0,1-0,35 | 0,2. Lo que te alcanza por poco se oye flojo, pero se oye. |
+| Pasos propios | `noise_feedback.tres` → `own_step_volume_db` | sensación | -28 a -16 dB | -22. Sutiles: acompañan sin tapar los ajenos. |
+| Variación de tono | `noise_feedback.tres` → `pitch_jitter` | sensación | 0,03-0,1 | 0,06. Evita el efecto ametralladora sin cambiar la superficie que se reconoce. |
+| Oído del ladrón | `noise_feedback.tres` → `thief_hearing_mult` | curva | 1,0-2,0 | 1,5 (D8). Sustituye la ventaja de ver todos los anillos; a 2,0 el ladrón oiría a un guardia andando sobre parqué a ~12,6 m, casi una sala entera. |
+| Chevron del borde | `noise_feedback.tres` → `offscreen_marker_time` | sensación | 1,5-3,0 s | 2,0. Un golpe o un clic se tienen que poder buscar. |
 | Última posición vista (O2) | `perception_guard.tres` → `last_seen_linger` | sensación | 1-3 s | 1,5. |
+
+Los volúmenes por categoría (`v_cat`: paso -14 dB, golpe -6 dB, mecanismo -10 dB como punto de partida) son de mezcla, no de balance: viven en `assets/audio/noise_mix.tres` y se ajustan de oído sin TUNE.
 
 ### Invariantes (parte 2)
 Comprueban relaciones leyendo los `.tres`, no valores literales.
@@ -331,22 +357,22 @@ Comprueban relaciones leyendo los `.tres`, no valores literales.
 18. **Los muebles dan sombra**: un punto con el rayo desde la bombilla bloqueado no está iluminado, aunque esté dentro de `lit_radius`.
 19. **La luz ve más que la linterna**: `lit_sight_range` ≥ `flashlight_range`.
 20. **Apagar deja rastro y ninguna vía domina**: `switch_noise_radius`, `unscrew_noise_radius` y `flashlight_toggle_noise_radius` ≥ `min_radius`; `unscrew_time` > `switch_time` y `unscrew_noise_radius` ≤ `switch_noise_radius`; `rescrew_time` ≥ `unscrew_time`.
-21. **Percepción por guardia**: con dos guardias, si solo A cumple alguna condición de detección, el ladrón es visible en el cliente de A y no en el de B; un anillo que alcanza a A y no a B no se dibuja para B.
-22. **Rastro legible**: `ring_lifetime_step` ≥ 2 × el mayor `step_interval_<modo>` de los dos bandos, y `ring_grow_time` < `ring_lifetime_step`.
-23. **La radio se oye**: cada ping y cada pulso de voz emiten un anillo de `ping_noise_radius` > `proximity_radius`.
-24. **Anillo exacto**: el radio final dibujado = radio emitido (tolerancia de 1 cm).
+21. **Percepción por guardia**: con dos guardias, si solo A cumple alguna condición de detección, el ladrón es visible en el cliente de A y no en el de B; un ruido que alcanza a A y no a B suena en el cliente de A y no en el de B.
+22. **El vúmetro late con la cadencia**: `meter_hold_time` + `meter_fall_time` ≤ `step_interval_sneak` y ≤ `step_interval_crouch` del ladrón; `meter_full_scale` ≥ `min_radius` × 10 (el radio mínimo enciende al menos un segmento).
+23. **La radio se oye**: cada ping y cada pulso de voz emiten un ruido de `ping_noise_radius` > `proximity_radius`.
+24. **Si lo oyes, te ha alcanzado**: un ruido suena en el cliente de un oyente si y solo si `d ≤ r_ef` (tolerancia 1 cm), con `r_ef` = `r × thief_hearing_mult` solo para el ladrón y ruidos de guardia; en el borde suena con ganancia ≥ `audio_edge_floor` × `v_cat` > 0; `thief_hearing_mult` ≥ 1. El chevron solo aparece en golpes y mecanismos.
 
 ## Contrajuego (parte 2)
 | Acción | Quién | Qué percibe el otro bando | Cómo puede responder |
 |---|---|---|---|
 | Barrer con la linterna | guardia | El sector del haz, también tras muros | Esperar a que pase, ir por la espalda, agacharse tras cobertura alta respecto al haz. |
-| Apagar la linterna | guardia | Clic de 1 m y el haz que desaparece; sus pasos siguen | Leer sus anillos; desconfiar de una zona oscura donde un haz se apagó. |
+| Apagar la linterna | guardia | Clic de 1 m y el haz que desaparece; sus pasos siguen | Escuchar sus pasos; desconfiar de una zona oscura donde un haz se apagó. |
 | Cruzar una zona iluminada | ladrón | Visible a 12 m en 240° | Apagarla antes, rodearla, usar la sombra de los muebles, ir por la espalda. |
 | Apagar por interruptor | ladrón | Clic de 2 m y la sala que se oscurece en su pantalla | Volver a encender con el mismo gesto; vigilar el interruptor. |
-| Desenroscar bombilla | ladrón | Anillo de 1 m y la lámpara apagada | Enroscarla (3 s de ronda); usar la linterna en esa sala. |
+| Desenroscar bombilla | ladrón | Ruido de 1 m y la lámpara apagada | Enroscarla (3 s de ronda); usar la linterna en esa sala. |
 | Ping de walkie | guardia | Estática discontinua de 6 m en su posición | Alejarse del guardia que avisa; el ladrón sabe que le han localizado. |
 | Hablar por walkie | guardia | Estática cada 2 s mientras habla | Igual que el ping; además sabe que hay coordinación en curso. |
-| Lanzar un ruido señuelo (monedas, despertador) | ladrón | Un guardia ve el anillo si le alcanza, sin color de bando | Comprobar si coincide con pasos; mandar a uno solo; pedir confirmación por ping. |
+| Lanzar un ruido señuelo (monedas, despertador) | ladrón | Un guardia lo oye si le alcanza (chevron si está fuera de pantalla), sin pista de bando | Comprobar si coincide con pasos; mandar a uno solo; pedir confirmación por ping. |
 
 ## Qué medir (parte 2)
 | Evento de telemetría | Pregunta que responde | Señal de alarma |
@@ -361,8 +387,8 @@ Comprueban relaciones leyendo los `.tres`, no valores literales.
 ## Autorrevisión (parte 2)
 Veredicto: `APROBABLE`. Alcance: L (percepción, niveles, red y UI).
 - Pilar 1: lámparas de 1984, interruptores, bombillas, walkie y panel de pilotos; sin visión nocturna.
-- Pilar 2: todo cambio de luz y toda comunicación dejan anillo; el único silencio es un guardia quieto con la linterna apagada, que sigue siendo visible al ladrón por línea de visión.
-- Pilar 3: el ladrón ve haces, anillos con bando y luz; los guardias solo saben lo propio y pagan la radio.
+- Pilar 2: todo cambio de luz y toda comunicación dejan ruido audible para quien alcanzan; el único silencio es un guardia quieto con la linterna apagada, que sigue siendo visible al ladrón por línea de visión.
+- Pilar 3: el ladrón ve haces y luz, oye a los guardias a 1,5 × su radio y lee su propio ruido en el vúmetro; los guardias solo saben lo propio y pagan la radio.
 - Pilar 4: cada acción nueva tiene fila de contrajuego; ninguna vía de apagar domina (invariante 20).
 - Pilar 5: los tiempos de interacción son ≤ 3 s; el reloj de fichar sigue empujando a los guardias fuera de las salas iluminadas.
 - Pilar 6: apagar luces y señuelos no son violencia.
@@ -373,7 +399,13 @@ Tomadas por el usuario el 2026-10-23, todas con la opción recomendada:
 - D1: sin linterna, un guardia ve con luz en todo salvo el arco ciego (240°) hasta `lit_sight_range`.
 - D2: el ladrón apaga por interruptor o desenroscando bombillas; la caja de fusibles queda para `interaction.md` si un nivel la pide.
 - D3: la linterna se puede apagar, con un clic de `flashlight_toggle_noise_radius`.
-- D4: cada guardia ve solo los anillos que le alcanzan; se comparte por ping de walkie, que suena.
+- D4: cada guardia percibe solo los ruidos que le alcanzan (hoy por audio, P2.4); se comparte por ping de walkie, que suena.
 - D5: voz por walkie con estática al empezar y cada `voice_pulse_interval`.
-- D6: anillos con forma por categoría y color propio/ajeno; el ladrón distingue además a los guardias; sin tinte por superficie.
+- D6: **obsoleta** (2026-10-23, sustituida por D8-D11): anillos con forma por categoría y color propio/ajeno.
+
+Tomadas por el usuario el 2026-10-23 al retirar los anillos (P2.4 reescrita), todas con la opción recomendada:
+- D8: sin anillos, el ladrón oye los ruidos de guardia a `thief_hearing_mult` 1,5 × su radio y sigue viendo los haces tras los muros; el pilar 3 pasa a "ve linternas y oye más lejos".
+- D9: el chevron del borde, solo para golpes y mecanismos fuera de pantalla; los pasos solo suenan.
+- D10: los mismos pasos (por superficie) para los dos bandos; el bando solo se nota en el radio.
+- D11: el vúmetro del ladrón mide todo ruido de su bando, no solo los pasos.
 - D7: O1, O2 y O4 entran ahora; O3 (panel de pilotos) con `interaction.md`.
