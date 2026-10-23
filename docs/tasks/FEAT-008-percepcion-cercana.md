@@ -41,14 +41,14 @@ Aplicar las reglas de percepción de `stealth.md`. Hoy el guardia percibe con un
 | 2 | Invariante 12: con los dos personajes en el suelo (Y = 0), sin linterna y el ladrón delante del guardia, se detecta a `proximity_radius` − 0,01 m y no a `proximity_radius` + 0,01 m | `test_perception.gd::test_proximity_horizontal_edge` |
 | 3 | La altura no cuenta en la distancia: el ladrón a `proximity_radius` − 0,01 m en horizontal y 0,8 m más alto que el guardia, delante, se detecta | `test_perception.gd::test_proximity_ignores_height` |
 | 4 | Arco ciego: un ladrón a 1,0 m detrás del guardia (180°) no se detecta por proximidad. A 1,0 m y a un ángulo de 180° − `rear_blind_arc_deg`/2 − 1° respecto al frente, sí; a 180° − `rear_blind_arc_deg`/2 + 1°, no | `test_perception.gd::test_rear_blind_arc` |
-| 5 | Puntos de visibilidad: con una caja de 1,0 m de alto entre los dos, a 1,2 m de distancia y delante, el ladrón de pie se detecta y el agachado no | `test_perception.gd::test_low_cover_hides_crouched_only` |
+| 5 | Puntos de visibilidad: guardia en el origen mirando a −Z y ladrón en z = −1,2; caja de 1,0 m de alto y 0,2 m de fondo centrada en z = −1,0 (pegada al ladrón). De pie se detecta y agachado no. (Con la caja a mitad de camino el rayo a 0,9 m pasa por encima: no es un caso válido) | `test_perception.gd::test_low_cover_hides_crouched_only` |
 | 6 | Un muro de 3 m entre los dos impide la detección por proximidad | `test_perception.gd::test_full_wall_blocks_proximity` |
-| 7 | Cono: con la linterna apuntando al ladrón a 5 m y una caja de 1,0 m delante del ladrón, el ladrón de pie se detecta y el agachado no | `test_perception.gd::test_cone_uses_visibility_points` |
+| 7 | Cono: linterna apuntando al ladrón en z = −5,0; caja de 1,0 m de alto y 0,2 m de fondo centrada en z = −4,8. De pie se detecta y agachado no | `test_perception.gd::test_cone_uses_visibility_points` |
 | 8 | Porra: `validate_melee_hit` acierta a `melee_range` − 0,01 m y falla a `melee_range` + 0,01 m (horizontal), acierta con 0,5 m de diferencia de altura y falla con un muro de por medio | `test_perception.gd::test_melee_range_edge` |
 | 9 | Invariante 11 (IA): un ruido de radio R del ladrón a R − 0,01 m en horizontal pone a la IA en `INVESTIGATE`; a R + 0,01 m no cambia su estado | `test_perception.gd::test_ai_hears_exactly_the_ring` |
 | 10 | Invariante 11 (anillos): `PerceptionRules.ring_visible_to` devuelve verdadero para un guardia a R − 0,01 m y falso a R + 0,01 m; verdadero para el ladrón a cualquier distancia, y verdadero si no hay espectador (`null`) | `test_perception.gd::test_ring_visibility_rule` |
 | 11 | `HeistMap3D` no crea un `SoundWave3D` para un ruido fuera del alcance del guardia local y sí para uno dentro | `test_perception.gd::test_map_filters_rings_for_local_guard` |
-| 12 | Ningún número de percepción queda en el código: no hay `1.8`, `1.6`, `0.9` ni `HEARING_RADIUS_FACTOR` en `guard_controller_3d.gd` ni en `guard_ai_3d.gd`, y no existe `@export var melee_range` | `grep -nE '1\.8\|1\.6\|0\.9\|HEARING_RADIUS_FACTOR\|var melee_range' src/entities/guard/*.gd` sin resultados |
+| 12 | Ningún número de percepción queda en el código: desaparecen `HEARING_RADIUS_FACTOR`, `@export var melee_range`, la comparación `<= 1.8` y los desplazamientos fijos de ojos, torso y punto de visibilidad (`Vector3(0.0, 0.9/1.5/1.0, 0.0)`). Otras constantes que no son de percepción (`INVESTIGATE_REACHED_DISTANCE`, el `0.98` de la linterna y `reach_distance`) no se tocan | `grep -nE 'HEARING_RADIUS_FACTOR\|var melee_range\|<= 1\.8\|Vector3\(0\.0, (0\.9\|1\.5\|1\.0), 0\.0\)' src/entities/guard/*.gd` sin resultados |
 | 13 | Suite en verde y lint limpio en los archivos cambiados | `run_tests.sh` y `lint.sh` en el informe de PKG-1 y en CI |
 
 ## Contratos
@@ -173,7 +173,7 @@ Ninguno.
   - `./tools/ci/check_patterns.sh`
   - `python3 tools/ci/check_scope.py`
   - `./tools/ci/run_tests.sh`
-  - `grep -nE '1\.8|1\.6|0\.9|HEARING_RADIUS_FACTOR|var melee_range' src/entities/guard/guard_controller_3d.gd src/entities/guard/guard_ai_3d.gd` (sin resultados)
+  - `grep -nE 'HEARING_RADIUS_FACTOR|var melee_range|<= 1\.8|Vector3\(0\.0, (0\.9|1\.5|1\.0), 0\.0\)' src/entities/guard/guard_controller_3d.gd src/entities/guard/guard_ai_3d.gd` (sin resultados). Si el grep encontrara algo que no es de percepción, entrega como `bloqueado`: no reescribas código para esquivarlo
 - **Fuera de alcance**:
   - `player_base_3d.gd`, `thief_controller_3d.gd`, `sound_wave_3d.gd`, `museum_velvet_84.gd` y cualquier `.tscn`;
   - la estamina, la linterna y `swing_baton`.
@@ -189,6 +189,7 @@ Ninguno.
   - Las posiciones se construyen a partir del perfil (por ejemplo, `profile.proximity_radius - 0.01`).
   - Los obstáculos usan geometría fija del escenario: caja de 1,0 m de alto, muro de 3 m y diferencia de altura de 0,5 y 0,8 m.
   - Cada personaje se añade al árbol con `add_child_autofree` **antes** de usarlo: los perfiles se cargan en `_ready`.
+  - Asigna `position` (no `global_position`) antes de `add_child_autofree`, y llama a `set_physics_process(false)` en cada personaje para que la física no lo mueva entre esperas.
   - El guardia, sin rotar, mira a −Z.
   - Sin `get_node("/root/…")`. El archivo tiene 300 líneas o menos.
   - Para el criterio 11, instancia un `HeistMap3D` mínimo (`HeistMap3D.new()` con un guardia hijo como `local_player` vía `set_local_player`), emite `SignalBus.noise_emitted_3d` y cuenta los hijos `SoundWave3D` del mapa.
