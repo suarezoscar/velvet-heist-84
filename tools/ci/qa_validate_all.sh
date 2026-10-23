@@ -43,15 +43,22 @@ cat <<'EOF' > "${TMP_SPECS_DIR}/missing_asset.json"
 }
 EOF
 
+MISSING_LOG="${TMP_SPECS_DIR}/validate_missing.log"
 STATUS=0
-blender -b --factory-startup --python-exit-code 1 -P tools/blender_scripts/validate_all.py -- --specs-dir "${TMP_SPECS_DIR}" || STATUS=$?
+blender -b --factory-startup --python-exit-code 1 -P tools/blender_scripts/validate_all.py -- --specs-dir "${TMP_SPECS_DIR}" > "${MISSING_LOG}" 2>&1 || STATUS=$?
+cat "${MISSING_LOG}"
 
-if [ "${STATUS}" -eq 1 ]; then
-    echo "==> Paso 2 superado: validate_all.py devolvió código 1 ante asset faltante."
-else
+if [ "${STATUS}" -ne 1 ]; then
     echo "==> Error: se esperaba código 1 pero se obtuvo ${STATUS}."
     exit 1
 fi
+
+if ! grep -q "FAIL missing_asset" "${MISSING_LOG}"; then
+    echo "==> Error: la salida de validate_all.py no contiene 'FAIL missing_asset'."
+    exit 1
+fi
+
+echo "==> Paso 2 superado: validate_all.py devolvió código 1 y contiene 'FAIL missing_asset'."
 
 echo "=== [QA] Paso 3: Comprobar cobertura de previews >= 2% (Criterio 8) ==="
 CHECK_SCRIPT="${TMP_SPECS_DIR}/check_previews.py"
