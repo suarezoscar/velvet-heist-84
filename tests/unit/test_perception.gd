@@ -46,8 +46,8 @@ func _create_obstacle(pos: Vector3, size: Vector3) -> StaticBody3D:
 
 func _count_sound_waves(parent: Node) -> int:
 	var count: int = 0
-	for child: Node in parent.get_children():
-		if child is SoundWave3D:
+	for child: Node in parent.find_children("*", "", true, false):
+		if child.is_in_group(&"noise_audio"):
 			count += 1
 	return count
 
@@ -224,24 +224,23 @@ func test_ring_visibility_rule() -> void:
 	var thief: ThiefController3D = _create_thief(Vector3(0.0, 0.0, 10.0))
 	var ring_radius: float = 4.0
 
+	var pos_in: Vector3 = Vector3(0.0, 0.0, -(ring_radius - 0.01))
 	assert_true(
-		PerceptionRules.ring_visible_to(
-			guard, Vector3(0.0, 0.0, -(ring_radius - 0.01)), ring_radius
-		),
+		PerceptionRules.noise_reaches(guard, pos_in, ring_radius, &"thief", 1.5),
 		"Guardia a R - 0.01m ve el anillo"
 	)
+	var pos_out: Vector3 = Vector3(0.0, 0.0, -(ring_radius + 0.01))
 	assert_false(
-		PerceptionRules.ring_visible_to(
-			guard, Vector3(0.0, 0.0, -(ring_radius + 0.01)), ring_radius
-		),
+		PerceptionRules.noise_reaches(guard, pos_out, ring_radius, &"thief", 1.5),
 		"Guardia a R + 0.01m no ve el anillo"
 	)
-	assert_true(
-		PerceptionRules.ring_visible_to(thief, Vector3(0.0, 0.0, 100.0), ring_radius),
+	var pos_far: Vector3 = Vector3(0.0, 0.0, 100.0)
+	assert_false(
+		PerceptionRules.noise_reaches(thief, pos_far, ring_radius, &"thief", 1.5),
 		"Ladrón ve el anillo a cualquier distancia"
 	)
-	assert_true(
-		PerceptionRules.ring_visible_to(null, Vector3(0.0, 0.0, 100.0), ring_radius),
+	assert_false(
+		PerceptionRules.noise_reaches(null, pos_far, ring_radius, &"thief", 1.5),
 		"Espectador null siempre ve el anillo"
 	)
 
@@ -259,8 +258,10 @@ func test_map_filters_rings_for_local_guard() -> void:
 	map.set_local_player(guard)
 
 	var ring_radius: float = 4.0
-	SignalBus.noise_emitted_3d.emit(Vector3(0.0, 0.0, -(ring_radius + 1.0)), ring_radius, &"thief")
+	var pos_out: Vector3 = Vector3(0.0, 0.0, -(ring_radius + 1.0))
+	NoiseEmit.emit(pos_out, ring_radius, &"thief", NoiseEmit.STEP, null)
 	assert_eq(_count_sound_waves(map), 0, "No crea SoundWave3D si está fuera de alcance")
 
-	SignalBus.noise_emitted_3d.emit(Vector3(0.0, 0.0, -(ring_radius - 1.0)), ring_radius, &"thief")
+	var pos_in: Vector3 = Vector3(0.0, 0.0, -(ring_radius - 1.0))
+	NoiseEmit.emit(pos_in, ring_radius, &"thief", NoiseEmit.STEP, null)
 	assert_eq(_count_sound_waves(map), 1, "Crea SoundWave3D si está dentro de alcance")
