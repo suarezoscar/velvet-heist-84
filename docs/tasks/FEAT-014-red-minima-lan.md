@@ -263,6 +263,17 @@ func _client_noise(pos: Vector3, radius: float, team: StringName, category: Stri
 - `_collect_light_loot` y `deposit_into_trunk` hacen `queue_free()` en el servidor. `NetSession` (servidor) guarda la ruta de cada nodo del grupo `&"net_state"` y, cuando uno sale del árbol (`tree_exiting`), envía en el siguiente `_client_world_state` la clave de su ruta con el valor `{"removed": true}`. El cliente hace `queue_free()` de ese nodo.
 - El botín que crea `SafeBox3D._spawn_loot_contents` solo existe en el servidor. Al abrirse la caja fuerte, el estado público de `SafeBox3D` incluye `opened: true`, y el cliente ejecuta el mismo `_spawn_loot_contents` en `apply_net_state` cuando `opened` pasa de false a true. Esto crea nodos con los mismos nombres y rutas, siempre que `_spawn_loot_contents` les dé un nombre fijo. Si hoy no se lo da, PKG-3 le asigna `name = "SafeLoot_%d" % i`.
 
+**`NetRoleRegistry`** (`src/network/net_role_registry.gd`, `class_name NetRoleRegistry extends RefCounted`): saca de `NetManager` la lógica de roles para que `core/net_manager.gd` baje de 300 líneas (en master ya tenía 345). Funciones estáticas sobre el diccionario de jugadores (`peer_id → player_info`):
+```gdscript
+static func is_role_available(players: Dictionary, role: StringName) -> bool
+static func peer_for_role(players: Dictionary, role: StringName) -> int   # 0 si nadie lo ocupa
+static func role_for_peer(players: Dictionary, peer_id: int) -> StringName   # &"" si no está
+static func next_available_role(players: Dictionary) -> StringName   # &"" si no queda ninguno
+## Asigna desired_role a peer_id si está en NetConfig.ROLES y libre (o ya es suyo); true si lo asigna
+static func try_assign(players: Dictionary, peer_id: int, desired_role: StringName) -> bool
+```
+Los métodos públicos de `NetManager` con el mismo propósito se quedan como envoltorios de una línea; las firmas públicas no cambian. Además se borra el código muerto del host (`start_host` solo devuelve `ERR_UNAVAILABLE`).
+
 **`NetManager`** (`core/net_manager.gd`):
 - `AVAILABLE_ROLES = NetConfig.ROLES`; `ROLE_GUARD_3` se mantiene como constante, pero `_assign_role_internal` rechaza cualquier rol fuera de `AVAILABLE_ROLES`;
 - `start_host` devuelve `ERR_UNAVAILABLE` sin crear nada (host fuera del PoC);
@@ -286,7 +297,7 @@ func _client_noise(pos: Vector3, radius: float, team: StringName, category: Stri
 | `far_noise` | `guards[0]` a 20 m del ladrón en línea recta libre de muros, o en la posición más lejana del suelo del museo si no la hay |
 | `loot` | el ladrón a 1.0 m de un `LootItem3D` ligero, mirándolo |
 
-En cada envío, el servidor escribe en la salida estándar una línea `NETLOG {json}` por evento: `sent_snapshot` (peer y roles), `own_state` (peer y pos), `world` (peer y rutas), `noise` (peer) y `game` (estado). Así lo puede comprobar el script de QA.
+Si el servidor arrancó con `--net-log` o con `--net-test=<montaje>` en los argumentos de usuario, y en un build de depuración, escribe en la salida estándar una línea `NETLOG {json}` por envío (sin esos argumentos no escribe nada, para no llenar la consola al jugar): `sent_snapshot` (peer y roles), `own_state` (peer y pos), `world` (peer y rutas), `noise` (peer) y `game` (estado). Así lo puede comprobar el script de QA.
 
 ### Contrato de PKG-4 (`vfx-ui-engineer`): lobby
 `scenes/ui/main_menu.gd` y `.tscn`:
@@ -366,6 +377,8 @@ Toda la FEAT. Autoridad: servidor (peer 1) sobre todo. Frecuencias y destinatari
   src/network/net_session_client.gd.uid
   src/network/net_test_hooks.gd
   src/network/net_test_hooks.gd.uid
+  src/network/net_role_registry.gd
+  src/network/net_role_registry.gd.uid
   core/net_manager.gd
   src/maps/heist_map_3d.gd
   src/systems/safe_box_3d.gd  # excepción: nombre fijo del botín creado y creación en el cliente al abrirse
@@ -382,7 +395,7 @@ Toda la FEAT. Autoridad: servidor (peer 1) sobre todo. Frecuencias y destinatari
   - autoridad en el mapa: los tres actores tienen `get_multiplayer_authority() == 1`, el servidor tiene `is_multiplayer_authority()` true en todos, los guardias con rol ocupado tienen `is_ai_controlled == false` y `map.local_player` es null en el servidor dedicado;
   - los asserts de "solo procesa input sobre su entidad" y de interpolación con `set_net_transform` (el apartado 2 y el 3 de `test_06` y sus equivalentes en `test_multiplayer_lobby.gd`) se borran: ese comportamiento ya no existe y lo cubren los criterios 2, 4 y 5 en PKG-QA;
   - el resto de los tests de esos dos archivos no se toca.
-- **Prueba manual obligatoria antes de entregar**: servidor y dos clientes headless en el mismo equipo durante 20 s, sin errores en el log (`tools/ci/scan_godot_log.sh`). Pega en el informe las líneas `NETLOG` de un `sent_snapshot` y un `own_state`.
+- **Prueba manual obligatoria antes de entregar**: servidor y dos clientes headless en el mismo equipo durante 20 s, sin errores en el log (`tools/ci/scan_godot_log.sh`). Pega en el informe las líneas `NETLOG` de un `sent_snapshot` y un `own_state` (arranca el servidor con `--net-log`). Si todavía no hay forma de lanzar clientes headless (el arnés es de PKG-QA), basta con el servidor dedicado arrancando 20 s sin errores y su `NETLOG` de arranque; dilo en el informe.
 - **Comandos de cierre**: los de PKG-1.
 
 ### PKG-4 — Lobby
@@ -391,8 +404,11 @@ Toda la FEAT. Autoridad: servidor (peer 1) sobre todo. Frecuencias y destinatari
   ```allowed
   scenes/ui/main_menu.gd
   scenes/ui/main_menu.tscn
+  scenes/ui/lobby_view.gd
+  scenes/ui/lobby_view.gd.uid
   ```
 - **Contratos**: "Contrato de PKG-4".
+- **300 líneas**: `main_menu.gd` tiene 523. Saca la lógica de la vista del lobby (conexión, roles, lista de jugadores e "Iniciar partida") a `scenes/ui/lobby_view.gd` (`class_name LobbyView extends Control`), asignado como script del nodo `LobbyView` de `main_menu.tscn`. `main_menu.gd` conserva la navegación entre vistas. Los dos archivos quedan por debajo de 300 líneas y el comportamiento no cambia salvo lo que pide el contrato.
 - **Rutas `/root/`**: `check_patterns.sh` revisa el archivo entero. Si un archivo que tocas ya tiene `get_node_or_null("/root/<Autoload>")` (por ejemplo `security_camera_3d.gd:106` o `main_menu.gd:121`), sustitúyelo por el nombre del autoload (`SignalBus`, `NetManager`).
 - **Comandos de cierre**: los de PKG-1. Sin MCP ni capturas.
 
@@ -412,7 +428,7 @@ Toda la FEAT. Autoridad: servidor (peer 1) sobre todo. Frecuencias y destinatari
   ```
 - **Tests obligatorios**: los de la columna "Evidencia" de los criterios 1 a 12.
 - **`qa_net_loopback.sh <escenario>`** (`start`, `move`, `secret`, `capture`, `far_noise` o `loot`; sin argumento, todos en secuencia):
-  - lanza un servidor dedicado headless (con `--net-test=<montaje>` cuando el escenario lo tiene) y dos clientes headless que ejecutan la escena arnés `tests/integration/net/net_client_harness.tscn` con `-- --role=thief` o `-- --role=guard_1`;
+  - lanza un servidor dedicado headless con `--net-log` (y con `--net-test=<montaje>` cuando el escenario lo tiene) y dos clientes headless que ejecutan la escena arnés `tests/integration/net/net_client_harness.tscn` con `-- --role=thief` o `-- --role=guard_1`;
   - el arnés se conecta a `127.0.0.1`, pide su rol y, en el cliente ladrón, llama a `request_start()` cuando los dos roles están ocupados;
   - cuando carga el mapa, ejecuta el guion del escenario (pulsar teclas con `Input.action_press` y `action_release`) y escribe líneas `HARNESS {json}` con lo que observa;
   - el script recoge las tres salidas y comprueba los criterios 4 a 8 y 10 con `python3`;
