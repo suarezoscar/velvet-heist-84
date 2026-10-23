@@ -64,14 +64,14 @@ Los colores y el grosor viven en `assets/ui/noise_ring_style.tres` (presentació
 
 ## Contratos
 
-### PKG-1: `core/signal_bus.gd`
+### Contrato de PKG-1: `core/signal_bus.gd`
 ```gdscript
 ## Ruido con categoría y emisor; noise_emitted_3d se sigue emitiendo para quien ya lo escucha
 signal noise_event_3d(world_position: Vector3, radius: float, source_team: StringName,
 		category: StringName, emitter: Node)
 ```
 
-### PKG-2: categorías y emisión
+### Contrato de PKG-2: categorías y emisión
 `src/systems/noise/noise_emit.gd`:
 ```gdscript
 class_name NoiseEmit extends RefCounted
@@ -129,7 +129,7 @@ Para no duplicar reglas, `GuardSenses` expone:
 
 `HeistMap3D` crea un `LocalViewPresenter` en `_ready` y deja de conectar `noise_emitted_3d` para dibujar.
 
-### PKG-3: presentación (`vfx-ui-engineer`)
+### Contrato de PKG-3: presentación (`vfx-ui-engineer`)
 - **`SoundWave3D`** (reescrito):
   ```gdscript
   static func create_at(parent: Node, pos: Vector3, radius: float, category: StringName,
@@ -187,7 +187,7 @@ Ninguno: es presentación local. `noise_event_3d` es local y la red autoritativa
   scenes/ui/hud_84.tscn
   src/maps/heist_map_3d.gd  # excepción: adaptar la llamada a SoundWave3D.create_at a la firma nueva (papel `other`, vida ring_lifetime_event fija hasta PKG-2)
   ```
-- **Contratos y valores**: los de "PKG-3" y la tabla "Estilo".
+- **Contratos y valores**: los de "Contrato de PKG-3" y la tabla "Estilo". Las capturas del criterio 11 las hace el planificador tras la entrega (en headless no se puede renderizar); no uses MCP.
 - **Capturas** (criterio 11):
   - escena de prueba temporal fuera del repositorio, o la captura de la ejecución de `test_isometric_gym`;
   - un anillo de cada categoría y papel, a 1920 × 1080 y con la cámara de tamaño 14, más una versión en escala de grises;
@@ -221,7 +221,7 @@ Ninguno: es presentación local. `noise_event_3d` es local y la red autoritativa
   src/systems/lighting/lamp_3d.gd
   src/systems/lighting/light_switch_3d.gd
   ```
-- **Contratos y valores**: los de "PKG-2" y la tabla de categorías.
+- **Contratos y valores**: los de "Contrato de PKG-2" y la tabla de categorías.
 - **Tests**: los existentes en verde, sin tocarlos. Si alguno escucha `noise_emitted_3d` y falla, entrega `bloqueado` con la salida.
 - **Comandos de cierre**: los de PKG-1, más `./tools/ci/check_patterns.sh`.
 
