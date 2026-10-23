@@ -386,6 +386,8 @@ Toda la FEAT. Autoridad: servidor (peer 1) sobre todo. Frecuencias y destinatari
   tools/net/run_server.sh
   tests/unit/test_multiplayer_lobby.gd  # excepción: adaptar a roles limitados y a la ausencia de host
   tests/integration/test_global_gameplay_loop.gd  # excepción: test_06 comprobaba el modelo antiguo de autoridad por cliente
+  tests/integration/test_gameplay_loop_late.gd  # excepción: mitad de test_global_gameplay_loop.gd (434 líneas) para bajar de 300
+  tests/integration/test_gameplay_loop_late.gd.uid  # excepción: idem
   ```
 - **`tools/net/run_server.sh`**: `#!/usr/bin/env bash`. Lanza `godot --headless --path <raíz del repo> -- --server --port "${1:-7777}"`, con el binario de `tools/ci/godot_version.env`, como hace `tools/ci/run_tests.sh`.
 - **Contratos**: "Contrato de PKG-3" y la tabla de replicación.
@@ -395,6 +397,7 @@ Toda la FEAT. Autoridad: servidor (peer 1) sobre todo. Frecuencias y destinatari
   - autoridad en el mapa: los tres actores tienen `get_multiplayer_authority() == 1`, el servidor tiene `is_multiplayer_authority()` true en todos, los guardias con rol ocupado tienen `is_ai_controlled == false` y `map.local_player` es null en el servidor dedicado;
   - los asserts de "solo procesa input sobre su entidad" y de interpolación con `set_net_transform` (el apartado 2 y el 3 de `test_06` y sus equivalentes en `test_multiplayer_lobby.gd`) se borran: ese comportamiento ya no existe y lo cubren los criterios 2, 4 y 5 en PKG-QA;
   - el resto de los tests de esos dos archivos no se toca.
+- **División de `test_global_gameplay_loop.gd`** (434 líneas; tocarlo exige bajar de 300): los tests `test_04` a `test_08` (`test_06` ya adaptado) se mueven tal cual a `tests/integration/test_gameplay_loop_late.gd`, con la misma cabecera (`extends GutTest`, `MAP_SCENE_PATH`, `before_each` y `after_each` copiados sin cambios). `test_global_gameplay_loop.gd` se queda con la cabecera y `test_01` a `test_03`. Ningún test cambia salvo `test_06`; el número total de tests de la suite es el mismo.
 - **Prueba manual obligatoria antes de entregar**: servidor y dos clientes headless en el mismo equipo durante 20 s, sin errores en el log (`tools/ci/scan_godot_log.sh`). Pega en el informe las líneas `NETLOG` de un `sent_snapshot` y un `own_state` (arranca el servidor con `--net-log`). Si todavía no hay forma de lanzar clientes headless (el arnés es de PKG-QA), basta con el servidor dedicado arrancando 20 s sin errores y su `NETLOG` de arranque; dilo en el informe.
 - **Comandos de cierre**: los de PKG-1.
 
