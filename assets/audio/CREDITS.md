@@ -9,9 +9,9 @@ Se copian sin modificar (solo cambia el nombre en `impact/`). Las incorporó FEA
 | `sfx/step_wood/` | `footstep_wood_000`…`004.ogg` | `Audio/footstep_wood_000`…`004.ogg` | Impact Sounds 1.0 |
 | `sfx/step_hard/` | `footstep_concrete_000`…`004.ogg` | `Audio/footstep_concrete_000`…`004.ogg` | Impact Sounds 1.0 |
 | `sfx/impact/` | `impact_punch_000`…`004.ogg` | `Audio/impactPunch_medium_000`…`004.ogg` | Impact Sounds 1.0 |
-| `sfx/mechanism/` | `switch_001`…`005.ogg` | `Audio/switch_001`…`005.ogg` | Interface Sounds |
+| `sfx/mechanism/` | `switch_001`…`005.ogg` | `Audio/switch_001`…`005.ogg` | Interface Sounds 1.0 |
 
 | Paquete | URL | SHA-256 del zip |
 |---|---|---|
 | Impact Sounds 1.0 | https://kenney.nl/assets/impact-sounds | `029d734af1582474edf3a694d1b0cebc97c1c152f2f39fa34d4c2bafc5de77f8` |
-| Interface Sounds | https://kenney.nl/assets/interface-sounds | `f2193d072726d6758a5f7871b2dcc54dcce0d5c35c6f0a62f92549b327c81232` |
+| Interface Sounds 1.0 | https://kenney.nl/assets/interface-sounds | `f2193d072726d6758a5f7871b2dcc54dcce0d5c35c6f0a62f92549b327c81232` |
