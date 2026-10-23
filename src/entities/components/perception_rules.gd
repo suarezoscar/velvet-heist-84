@@ -38,12 +38,29 @@ static func visibility_points(target: PlayerBase3D, profile: PerceptionProfile) 
 	return points
 
 
-## true si viewer es null o viewer.team_id != &"guard"; si es guardia,
-## horizontal_distance(viewer.global_position, origin) <= radius
-static func ring_visible_to(viewer: PlayerBase3D, origin: Vector3, radius: float) -> bool:
-	if viewer == null or viewer.team_id != &"guard":
-		return true
-	return horizontal_distance(viewer.global_position, origin) <= radius
+## Radio efectivo para el cálculo de alcance sonoro y ganancia.
+## Aplica thief_hearing_mult si el oyente es ladrón y el origen del ruido es un guardia.
+static func effective_radius(
+	listener: PlayerBase3D, radius: float, source_team: StringName, thief_hearing_mult: float
+) -> float:
+	if listener != null and listener.team_id == &"thief" and source_team == &"guard":
+		return radius * thief_hearing_mult
+	return radius
+
+
+## false si listener es null. r_ef = radius × thief_hearing_mult si listener.team_id == &"thief"
+## y source_team == &"guard"; si no, radius. true si horizontal_distance(listener, origin) <= r_ef
+static func noise_reaches(
+	listener: PlayerBase3D,
+	origin: Vector3,
+	radius: float,
+	source_team: StringName,
+	thief_hearing_mult: float
+) -> bool:
+	if listener == null:
+		return false
+	var r_ef: float = effective_radius(listener, radius, source_team, thief_hearing_mult)
+	return horizontal_distance(listener.global_position, origin) <= r_ef
 
 
 ## Sector horizontal: d_h <= range y ángulo en XZ entre axis y (target - origin) <= half_angle_deg

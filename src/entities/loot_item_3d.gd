@@ -22,10 +22,12 @@ extends Area3D
 var is_collected: bool = false
 var holder_thief: Node3D = null
 
+
 func _ready() -> void:
-	collision_layer = 4 # Interactuable
+	collision_layer = 4  # Interactuable
 	collision_mask = 2  # Ladrón
 	monitoring = true
+
 
 ## Solo puede interactuarse si no ha sido asegurado todavía y el actor es un ladrón válido
 func can_interact(actor: Node3D = null) -> bool:
@@ -40,10 +42,12 @@ func can_interact(actor: Node3D = null) -> bool:
 				return false
 	return true
 
+
 ## Devuelve el texto descriptivo para el tooltip del HUD
 func get_interaction_text(_actor: Node3D = null) -> String:
 	var type_desc: String = "Pesado" if is_heavy else "Ligero"
 	return "%s (%s - $%d) [E]" % [loot_name, type_desc, loot_value]
+
 
 ## Ejecuta la recolección o transporte del botín
 func interact(actor: Node3D) -> void:
@@ -59,16 +63,14 @@ func interact(actor: Node3D) -> void:
 	else:
 		_collect_light_loot(thief)
 
+
 func _collect_light_loot(thief: ThiefController3D) -> void:
 	is_collected = true
 	print("[LootItem3D] Botín ligero '%s' guardado en el maletín (+$%d)" % [loot_name, loot_value])
-
-	var bus: Node = get_node_or_null("/root/SignalBus")
-	if bus != null:
-		bus.emit_signal("loot_stolen", loot_value, is_masterpiece)
-		bus.emit_signal("noise_emitted_3d", thief.global_position, 2.5, &"thief")
-
+	SignalBus.loot_stolen.emit(loot_value, is_masterpiece)
+	NoiseEmit.emit(thief.global_position, 2.5, &"thief", NoiseEmit.IMPACT, thief)
 	queue_free()
+
 
 func _attach_to_thief_hands(thief: ThiefController3D) -> void:
 	is_collected = true
@@ -85,14 +87,12 @@ func _attach_to_thief_hands(thief: ThiefController3D) -> void:
 	rotation = Vector3.ZERO
 	print("[LootItem3D] Botín pesado '%s' cargado en brazos. Velocidad reducida -20%%" % loot_name)
 
+
 ## Deposita el botín pesado en el maletero del coche de fuga
 func deposit_into_trunk(car_position: Vector3) -> void:
 	print("[LootItem3D] Objeto pesado '%s' depositado en el maletero del coche." % loot_name)
-
-	var bus: Node = get_node_or_null("/root/SignalBus")
-	if bus != null:
-		bus.emit_signal("loot_stolen", loot_value, is_masterpiece)
-		bus.emit_signal("noise_emitted_3d", car_position, 3.5, &"thief")
+	SignalBus.loot_stolen.emit(loot_value, is_masterpiece)
+	NoiseEmit.emit(car_position, 3.5, &"thief", NoiseEmit.IMPACT, holder_thief)
 
 	if holder_thief != null and holder_thief is ThiefController3D:
 		var thief: ThiefController3D = holder_thief as ThiefController3D
