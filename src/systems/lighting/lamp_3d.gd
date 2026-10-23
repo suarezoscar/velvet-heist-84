@@ -87,7 +87,9 @@ func interact(actor: Node3D) -> void:
 	if player.team_id == &"thief":
 		_is_unscrewing = true
 		_time_left = rules.unscrew_time
-		SignalBus.noise_emitted_3d.emit(global_position, rules.unscrew_noise_radius, player.team_id)
+		NoiseEmit.emit(
+			global_position, rules.unscrew_noise_radius, player.team_id, NoiseEmit.MECHANISM, player
+		)
 	else:
 		_is_unscrewing = false
 		_time_left = rules.rescrew_time

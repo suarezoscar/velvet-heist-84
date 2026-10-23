@@ -103,8 +103,12 @@ func set_flashlight(on: bool) -> void:
 		maglite_light.visible = on
 	if perception == null:
 		perception = load(PERCEPTION_PROFILE_PATH) as PerceptionProfile
-	SignalBus.noise_emitted_3d.emit(
-		global_position, perception.flashlight_toggle_noise_radius, &"guard"
+	NoiseEmit.emit(
+		global_position,
+		perception.flashlight_toggle_noise_radius,
+		&"guard",
+		NoiseEmit.MECHANISM,
+		self
 	)
 
 
@@ -218,7 +222,9 @@ func swing_baton(target_thief: ThiefController3D = null) -> bool:
 	baton_cooldown = BATON_COOLDOWN_TIME
 	if perception == null:
 		perception = load(PERCEPTION_PROFILE_PATH) as PerceptionProfile
-	SignalBus.noise_emitted_3d.emit(global_position, perception.baton_swing_noise_radius, &"guard")
+	NoiseEmit.emit(
+		global_position, perception.baton_swing_noise_radius, &"guard", NoiseEmit.IMPACT, self
+	)
 
 	if valid_hit:
 		var is_captured: bool = true
@@ -236,7 +242,9 @@ func _capture_thief() -> void:
 		perception = load(PERCEPTION_PROFILE_PATH) as PerceptionProfile
 	var p_id: int = get_multiplayer_authority()
 	SignalBus.thief_captured.emit(p_id)
-	SignalBus.noise_emitted_3d.emit(global_position, perception.capture_noise_radius, &"guard")
+	NoiseEmit.emit(
+		global_position, perception.capture_noise_radius, &"guard", NoiseEmit.IMPACT, self
+	)
 
 
 func _process_stamina_and_sprint(delta: float, input_dir: Vector2) -> void:

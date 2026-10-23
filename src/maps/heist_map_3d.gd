@@ -2,7 +2,7 @@
 ## Base común de los mapas jugables. Localiza al ladrón y a los guardias hijos directos,
 ## decide qué personaje controla esta máquina (como mucho uno), sigue a ese personaje con
 ## la cámara isométrica, vincula el HUD, evalúa la percepción de los guardias, ejecuta el
-## golpe de porra del jugador local y dibuja las ondas de sonido.
+## golpe de porra del jugador local y crea NoiseAudioPresenter y LocalViewPresenter.
 ## Dependencias: SignalBus, NetManager, GameManager. Nodos opcionales: IsometricCamera3D, HUD84.
 class_name HeistMap3D
 extends Node3D
@@ -18,10 +18,17 @@ const DEBUG_SWITCH_KEYS: Array[Key] = [KEY_F1, KEY_F2, KEY_F3, KEY_F4, KEY_F5]
 ## Sufijos de mallas auxiliares de colisión importadas desde Blender que no deben verse
 const COLLISION_HELPER_SUFFIXES: Array[String] = ["-col", "-colonly"]
 
+const NOISE_FEEDBACK_PROFILE: NoiseFeedbackProfile = preload(
+	"res://data/balance/noise_feedback.tres"
+)
+const NOISE_MIX: NoiseMix = preload("res://assets/audio/noise_mix.tres")
+
 var camera: Camera3D = null
 var hud: HUD84 = null
 var thief: ThiefController3D = null
 var guards: Array[GuardController3D] = []
+var noise_audio_presenter: NoiseAudioPresenter = null
+var local_view_presenter: LocalViewPresenter = null
 
 ## Personaje controlado por esta máquina (null en un servidor dedicado)
 var local_player: PlayerBase3D = null
@@ -37,7 +44,15 @@ func _ready() -> void:
 	for guard: GuardController3D in guards:
 		_ai_defaults[guard] = guard.is_ai_controlled
 	_hide_collision_helpers(self)
-	SignalBus.noise_emitted_3d.connect(_on_noise_emitted)
+	noise_audio_presenter = NoiseAudioPresenter.new()
+	noise_audio_presenter.name = "NoiseAudioPresenter"
+	add_child(noise_audio_presenter)
+	noise_audio_presenter.setup(self, NOISE_FEEDBACK_PROFILE, NOISE_MIX)
+
+	local_view_presenter = LocalViewPresenter.new()
+	local_view_presenter.name = "LocalViewPresenter"
+	add_child(local_view_presenter)
+	local_view_presenter.setup(self)
 	for actor: PlayerBase3D in get_actors():
 		actor.camera = camera
 	_on_map_ready()
@@ -196,11 +211,3 @@ func _process_local_strike() -> void:
 ## Golpe del guardia local. Los mapas con red lo redirigen al servidor.
 func _perform_strike(guard: GuardController3D) -> void:
 	guard.swing_baton(thief)
-
-
-func _on_noise_emitted(pos: Vector3, radius: float, team: StringName) -> void:
-	if radius <= 0.0:
-		return
-	if not PerceptionRules.ring_visible_to(local_player, pos, radius):
-		return
-	SoundWave3D.create_at(self, pos, radius, team)
