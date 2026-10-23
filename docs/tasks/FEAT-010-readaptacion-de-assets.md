@@ -137,7 +137,7 @@ Ninguno.
 ## Estado de los paquetes
 | PKG | Agente | Rama | Depende de | Estado | Vueltas | Notas |
 |---|---|---|---|---|---|---|
-| PKG-1 | technical-artist | `feat/010-pkg1` | FEAT-009 PKG-1 y PKG-2 | pendiente | 0 | |
+| PKG-1 | technical-artist | `feat/010-pkg1` | FEAT-009 PKG-1 y PKG-2 | entregado | 0 | `bloqueado` previsto por tests antiguos; los adapta en la vuelta 1 |
 | PKG-QA | qa-engineer | `feat/010-pkgqa` | PKG-1 | pendiente | 0 | |
 
 ## Paquetes de ejecución
@@ -165,6 +165,8 @@ Ninguno.
   assets/models/raw/polyhaven/*.glb
   assets/previews/*_iso.png
   assets/previews/*_iso.png.import
+  tools/blender_scripts/test_validator.py  # excepción: adaptar los tests existentes a `pivot_position` y `-colonly`, sin añadir tests nuevos
+  tests/unit/test_asset_import.gd  # excepción: adaptar `test_assets_match_their_cards` a los tipos de pivote, sin añadir tests nuevos
   ```
 - **Pasos**:
   1. `./tools/ci/import.sh`.
@@ -182,7 +184,12 @@ Ninguno.
   7. `blender -b --factory-startup --python-exit-code 1 -P tools/blender_scripts/validate_all.py -- --reports-dir tools/blender_scripts/reports` (sale con 0; 24/24).
   8. `./tools/ci/import.sh`. Si aparecen texturas extraídas nuevas o desaparecen otras, `git add` / `git rm` de cada una por su ruta.
 - **Reglas de ejecución**: sin comodines en ningún comando; un `git add` o `git rm` por ruta. Nada de MCP de Blender.
-- **Tests**: `./tools/ci/run_blender_tests.sh` y `./tools/ci/run_tests.sh` en verde sin tocar los tests. Si algún test existente falla por el renombrado `pivot_position` o por `-colonly`, entrega `bloqueado` con la salida; los adapta PKG-QA.
+- **Tests**: `./tools/ci/run_blender_tests.sh` y `./tools/ci/run_tests.sh` en verde. Los tests existentes que fallen solo por el contrato nuevo se adaptan aquí, sin cambiar lo que prueban:
+  - el nombre `pivot_position`;
+  - las colisiones `-colonly`;
+  - los tipos de pivote en `test_assets_match_their_cards`, con Godot Y = Blender Z y Godot Z = −Blender Y.
+
+  Los tests nuevos los escribe PKG-QA.
 - **Comandos de cierre**: `./tools/ci/import.sh` · `./tools/ci/check_scripts.sh` · `./tools/ci/lint.sh` · `./tools/ci/check_patterns.sh` · `python3 tools/ci/check_scope.py` · `./tools/ci/run_tests.sh` · `./tools/ci/run_blender_tests.sh` · el comando del paso 7.
 - **Fuera de alcance**: escenas de `scenes/`, `src/`, personajes, `test_validator.py`, `tests/`.
 
@@ -196,7 +203,6 @@ Ninguno.
   ```
 - **Tests obligatorios**:
   - `test_validator.py`:
-    - adapta los tests existentes al nombre `pivot_position` y a `-colonly`;
     - `test_collision_suffix_*` → crit. 2: falla con `Box-col` y pasa con `Box-colonly`, comprobando el check `collision_mesh`;
     - `test_pivot_types_*` → crit. 3, sobre una pieza de 0,25 m:
       - `top_center`: pasa con `max_z = 0`; falla con la pieza apoyada en Z=0;
@@ -204,7 +210,7 @@ Ninguno.
       - `bottom_center` falla con una pieza colgada (`max_z = 0`);
       - `pivot: "side"` falla `spec_schema`.
   - `test_asset_import.gd`:
-    - `test_assets_match_their_cards` aplica en Godot el tipo de pivote de cada ficha (Godot Y = Blender Z; Godot Z = −Blender Y) → crit. 9;
+    - `test_assets_match_their_cards` (adaptado en PKG-1): comprueba con una mutación que falla si una ficha `top_center` se valida como `bottom_center` → crit. 9;
     - nuevo `test_collision_meshes_are_invisible`: para cada `.glb` de primer nivel, ninguna `MeshInstance3D` tiene un nombre derivado de una colisión (termina en `-col`, `-colonly` o coincide con el nombre de un nodo `CollisionShape3D` o `StaticBody3D` hermano) → crit. 1.
 
       Antes de darlo por bueno, comprueba que fallaría contra un `.glb` con `-col`: usa `assets/models/raw/polyhaven/ceramic_vase.glb`, que conserva `ceramic_vase_02-col`, cargándolo por ruta con `GLTFDocument`, porque `.gdignore` impide importarlo. Ese caso va como test propio, `test_collision_check_detects_visible_col`.
