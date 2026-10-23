@@ -53,6 +53,7 @@ func _ready() -> void:
 	add_to_group(&"guards")
 	interactor = Interactor3D.new()
 	interactor.name = "GuardInteractor"
+	interactor.reach_distance = 1.8
 	add_child(interactor)
 
 
@@ -89,7 +90,7 @@ func _update_maglite_orientation() -> void:
 	var dir_to_target: Vector3 = (look_target_position - maglite_light.global_position).normalized()
 	if dir_to_target.length_squared() > 0.01:
 		var up_vector: Vector3 = Vector3.UP
-		if 1.0 - absf(dir_to_target.dot(Vector3.UP)) < 0.02:
+		if absf(dir_to_target.dot(Vector3.UP)) > 0.98:
 			up_vector = Vector3.FORWARD
 		maglite_light.look_at(look_target_position, up_vector)
 
