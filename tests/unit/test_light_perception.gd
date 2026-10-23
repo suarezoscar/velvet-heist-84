@@ -13,8 +13,8 @@ func _create_guard(pos: Vector3 = Vector3.ZERO) -> GuardController3D:
 	var scene: PackedScene = load(GUARD_SCENE_PATH) as PackedScene
 	var guard: GuardController3D = autofree(scene.instantiate() as GuardController3D)
 	guard.position = pos
-	guard.set_physics_process(false)
 	add_child_autofree(guard)
+	guard.set_physics_process(false)
 	return guard
 
 
@@ -22,8 +22,8 @@ func _create_thief(pos: Vector3 = Vector3.ZERO) -> ThiefController3D:
 	var scene: PackedScene = load(THIEF_SCENE_PATH) as PackedScene
 	var thief: ThiefController3D = autofree(scene.instantiate() as ThiefController3D)
 	thief.position = pos
-	thief.set_physics_process(false)
 	add_child_autofree(thief)
+	thief.set_physics_process(false)
 	return thief
 
 
@@ -47,8 +47,8 @@ func _create_lamp(pos: Vector3, profile: LampProfile, start_on: bool = true) -> 
 	lamp.profile = profile
 	lamp.start_on = start_on
 	lamp.position = pos
-	lamp.set_physics_process(false)
 	add_child_autofree(lamp)
+	lamp.set_physics_process(false)
 	return lamp
 
 
@@ -61,8 +61,7 @@ func test_inv13_cone_in_front_field() -> void:
 	var profile: PerceptionProfile = load(PROFILE_PATH) as PerceptionProfile
 	assert_not_null(profile, "perception_guard.tres debe cargarse")
 	assert_gt(profile.flashlight_range, profile.proximity_radius, "Inv 13: range > proximity")
-	var max_angle: float = (360.0 - profile.rear_blind_arc_deg) / 2.0
-	assert_lte(profile.flashlight_half_angle_deg, max_angle, "Inv 13: angle <= (360-blind)/2")
+	assert_lte(profile.flashlight_half_angle_deg, (360.0 - profile.rear_blind_arc_deg) / 2.0)
 
 
 ## Criterio 2: Invariante 14: SpotLight3D tiene spot_range, spot_angle y altura de perception_guard
@@ -79,7 +78,6 @@ func test_inv14_beam_is_truth() -> void:
 func test_inv15_cone_edges() -> void:
 	var guard: GuardController3D = _create_guard(Vector3.ZERO)
 	var profile: PerceptionProfile = guard.perception
-	guard.rotation = Vector3.ZERO
 	guard.look_target_position = Vector3(0.0, profile.flashlight_height, -10.0)
 
 	var d_in: float = profile.flashlight_range - 0.01
@@ -90,6 +88,15 @@ func test_inv15_cone_edges() -> void:
 	thief.position = Vector3(0.0, 0.0, -(profile.flashlight_range + 0.01))
 	await wait_physics_frames(2)
 	assert_false(guard.check_detection_on_thief(thief), "No detectado a range + 0.01m")
+	assert_true(
+		PerceptionRules.is_in_flashlight_cone(
+			Vector3.ZERO,
+			Vector3.FORWARD,
+			Vector3(0.0, 0.0, -profile.flashlight_range),
+			profile.flashlight_range,
+			profile.flashlight_half_angle_deg
+		)
+	)
 
 	var d_mid: float = (profile.flashlight_range + profile.proximity_radius) * 0.5
 	var angle_in_rad: float = deg_to_rad(profile.flashlight_half_angle_deg - 0.5)
@@ -105,6 +112,7 @@ func test_inv15_cone_edges() -> void:
 	# El cono de detección es horizontal y no el cono 3D de SpotLight3D inclinado al suelo
 	thief.position = Vector3(0.0, 0.0, -d_in)
 	guard.maglite_light.rotation_degrees = Vector3(-70.0, 0.0, 0.0)
+	assert_lt((-guard.maglite_light.global_transform.basis.z).y, -0.5, "foco inclinado")
 	await wait_physics_frames(2)
 	assert_true(guard.check_detection_on_thief(thief), "Detecta con foco inclinado a suelo")
 
@@ -112,11 +120,10 @@ func test_inv15_cone_edges() -> void:
 ## Criterio 4: Invariante 16: cobertura de 1.0m oculta al ladrón agachado a 3m; de pie es detectado
 func test_inv16_crouch_hides_from_flashlight() -> void:
 	var guard: GuardController3D = _create_guard(Vector3.ZERO)
-	guard.rotation = Vector3.ZERO
 	guard.look_target_position = Vector3(0.0, guard.perception.flashlight_height, -10.0)
 
 	var thief: ThiefController3D = _create_thief(Vector3(0.0, 0.0, -3.0))
-	var cover: StaticBody3D = _create_obstacle(Vector3(0.0, 0.5, -2.7), Vector3(2.0, 1.0, 0.2))
+	_create_obstacle(Vector3(0.0, 0.5, -2.55), Vector3(2.0, 1.0, 0.1))
 
 	thief.is_crouching = true
 	await wait_physics_frames(2)
@@ -127,11 +134,20 @@ func test_inv16_crouch_hides_from_flashlight() -> void:
 	assert_true(guard.check_detection_on_thief(thief), "De pie tras 1.0m sí detectado")
 
 
+## Origen del cono a la altura de la linterna (1.4m) y no de los ojos (1.5m)
+func test_cone_origin_is_flashlight_height() -> void:
+	var guard: GuardController3D = _create_guard(Vector3.ZERO)
+	var thief: ThiefController3D = _create_thief(Vector3(0.0, 0.0, -8.0))
+	_create_obstacle(Vector3(0.0, 1.5, -0.5), Vector3(2.0, 0.12, 0.1))
+
+	await wait_physics_frames(2)
+	assert_true(guard.check_detection_on_thief(thief))
+
+
 ## Criterio 5: linterna apagada oculta SpotLight3D y no detecta; emite ruido al cambiar
 func test_flashlight_toggle() -> void:
 	var guard: GuardController3D = _create_guard(Vector3.ZERO)
 	var profile: PerceptionProfile = guard.perception
-	guard.rotation = Vector3.ZERO
 	guard.look_target_position = Vector3(0.0, profile.flashlight_height, -10.0)
 
 	var thief: ThiefController3D = _create_thief(Vector3(0.0, 0.0, -4.0))
@@ -194,6 +210,19 @@ func test_inv17_light_detects() -> void:
 	assert_false(guard.check_detection_on_thief(thief), "Lámpara apagada no detecta")
 
 
+## Luz respeta el arco ciego trasero del guardia
+func test_light_respects_blind_arc() -> void:
+	var guard: GuardController3D = _create_guard(Vector3.ZERO)
+	guard.set_flashlight(false)
+
+	var thief: ThiefController3D = _create_thief(Vector3(0.0, 0.0, 3.0))
+	var lamp_prof: LampProfile = load(LAMP_CEILING_PATH) as LampProfile
+	_create_lamp(Vector3(0.0, 2.5, 3.0), lamp_prof, true)
+
+	await wait_physics_frames(2)
+	assert_false(guard.check_detection_on_thief(thief))
+
+
 ## Criterio 7: Invariante 18: un punto dentro de lit_radius con rayo bloqueado no está iluminado
 func test_inv18_furniture_casts_shadow() -> void:
 	var lamp_prof: LampProfile = load(LAMP_CEILING_PATH) as LampProfile
@@ -218,7 +247,10 @@ func test_inv18_furniture_casts_shadow() -> void:
 ## Criterio 14: O4: porra y captura emiten radios leídos de perception_guard.tres
 func test_o4_noises_from_tres() -> void:
 	var guard: GuardController3D = _create_guard(Vector3.ZERO)
-	var profile: PerceptionProfile = guard.perception
+	var p: PerceptionProfile = guard.perception.duplicate() as PerceptionProfile
+	p.baton_swing_noise_radius += 1.0
+	p.capture_noise_radius += 1.0
+	guard.perception = p
 
 	var noises: Array[Dictionary] = []
 	var on_noise: Callable = func(pos: Vector3, radius: float, team: StringName) -> void:
@@ -228,11 +260,11 @@ func test_o4_noises_from_tres() -> void:
 	guard.swing_baton(null)
 	assert_false(noises.is_empty(), "swing_baton debe emitir ruido")
 	var baton_noise: Dictionary = noises.back()
-	assert_almost_eq(baton_noise.get("radius", 0.0), profile.baton_swing_noise_radius, 0.01)
+	assert_almost_eq(baton_noise.get("radius", 0.0), p.baton_swing_noise_radius, 0.01)
 
 	guard.call("_capture_thief")
 	var capture_noise: Dictionary = noises.back()
-	assert_almost_eq(capture_noise.get("radius", 0.0), profile.capture_noise_radius, 0.01)
+	assert_almost_eq(capture_noise.get("radius", 0.0), p.capture_noise_radius, 0.01)
 
 	SignalBus.noise_emitted_3d.disconnect(on_noise)
 
@@ -247,6 +279,7 @@ func test_guard_faces_aim() -> void:
 	var guard: GuardController3D = _create_guard(Vector3.ZERO)
 	guard.look_target_position = Vector3(0.0, 1.4, -5.0)
 	guard.velocity = Vector3(5.0, 0.0, 0.0)
+	guard.rotation.y = deg_to_rad(90.0)
 
 	for _i: int in range(25):
 		guard.update_presentation(0.1)

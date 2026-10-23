@@ -14,7 +14,6 @@ func _create_map_with_actors() -> Dictionary:
 	var thief: ThiefController3D = thief_scene.instantiate() as ThiefController3D
 	thief.name = "Thief"
 	thief.position = Vector3(0.0, 0.0, -4.0)
-	thief.set_physics_process(false)
 	map.add_child(thief)
 
 	var guard_a: GuardController3D = guard_scene.instantiate() as GuardController3D
@@ -22,7 +21,6 @@ func _create_map_with_actors() -> Dictionary:
 	guard_a.position = Vector3(0.0, 0.0, 0.0)
 	guard_a.rotation = Vector3.ZERO
 	guard_a.look_target_position = Vector3(0.0, 1.4, -10.0)
-	guard_a.set_physics_process(false)
 	map.add_child(guard_a)
 
 	var guard_b: GuardController3D = guard_scene.instantiate() as GuardController3D
@@ -30,10 +28,12 @@ func _create_map_with_actors() -> Dictionary:
 	guard_b.position = Vector3(50.0, 0.0, 50.0)
 	guard_b.rotation = Vector3.ZERO
 	guard_b.look_target_position = Vector3(50.0, 1.4, 60.0)
-	guard_b.set_physics_process(false)
 	map.add_child(guard_b)
 
 	add_child_autofree(map)
+	thief.set_physics_process(false)
+	guard_a.set_physics_process(false)
+	guard_b.set_physics_process(false)
 	return {"map": map, "thief": thief, "guard_a": guard_a, "guard_b": guard_b}
 
 
@@ -113,15 +113,15 @@ func test_last_seen_data() -> void:
 	guard.position = Vector3.ZERO
 	guard.rotation = Vector3.ZERO
 	guard.look_target_position = Vector3(0.0, 1.4, -10.0)
-	guard.set_physics_process(false)
 	add_child_autofree(guard)
+	guard.set_physics_process(false)
 
 	var thief_scene: PackedScene = load(THIEF_SCENE_PATH) as PackedScene
 	var thief_pos: Vector3 = Vector3(0.0, 0.0, -4.0)
 	var thief: ThiefController3D = autofree(thief_scene.instantiate() as ThiefController3D)
 	thief.position = thief_pos
-	thief.set_physics_process(false)
 	add_child_autofree(thief)
+	thief.set_physics_process(false)
 
 	await wait_physics_frames(2)
 	var profile: PerceptionProfile = guard.perception

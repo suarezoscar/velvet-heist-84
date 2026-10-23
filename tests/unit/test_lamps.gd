@@ -7,6 +7,7 @@ const PERCEPTION_PATH: String = "res://data/balance/perception_guard.tres"
 const STEP_NOISE_PATH: String = "res://data/balance/step_noise.tres"
 const LAMP_CEILING_PATH: String = "res://data/balance/lamp_ceiling.tres"
 const LAMP_DESK_PATH: String = "res://data/balance/lamp_desk.tres"
+const LAMP_STREET_PATH: String = "res://data/balance/lamp_street.tres"
 const SWITCH_SCENE_PATH: String = "res://scenes/entities/light_switch.tscn"
 const LAMP_SCENE_PATH: String = "res://scenes/entities/lamp.tscn"
 const GUARD_SCENE_PATH: String = "res://scenes/entities/guard_player.tscn"
@@ -18,8 +19,8 @@ func _create_switch(circuit: int, pos: Vector3 = Vector3.ZERO) -> LightSwitch3D:
 	var sw: LightSwitch3D = autofree(scene.instantiate() as LightSwitch3D)
 	sw.circuit_id = circuit
 	sw.position = pos
-	sw.set_physics_process(false)
 	add_child_autofree(sw)
+	sw.set_physics_process(false)
 	return sw
 
 
@@ -29,8 +30,8 @@ func _create_lamp(circuit: int, profile_path: String, pos: Vector3 = Vector3.ZER
 	lamp.circuit_id = circuit
 	lamp.profile = load(profile_path) as LampProfile
 	lamp.position = pos
-	lamp.set_physics_process(false)
 	add_child_autofree(lamp)
+	lamp.set_physics_process(false)
 	return lamp
 
 
@@ -38,8 +39,8 @@ func _create_thief(pos: Vector3 = Vector3.ZERO) -> ThiefController3D:
 	var scene: PackedScene = load(THIEF_SCENE_PATH) as PackedScene
 	var thief: ThiefController3D = autofree(scene.instantiate() as ThiefController3D)
 	thief.position = pos
-	thief.set_physics_process(false)
 	add_child_autofree(thief)
+	thief.set_physics_process(false)
 	return thief
 
 
@@ -47,8 +48,8 @@ func _create_guard(pos: Vector3 = Vector3.ZERO) -> GuardController3D:
 	var scene: PackedScene = load(GUARD_SCENE_PATH) as PackedScene
 	var guard: GuardController3D = autofree(scene.instantiate() as GuardController3D)
 	guard.position = pos
-	guard.set_physics_process(false)
 	add_child_autofree(guard)
+	guard.set_physics_process(false)
 	return guard
 
 
@@ -105,6 +106,7 @@ func test_switch_toggles_circuit() -> void:
 	var sw: LightSwitch3D = _create_switch(1, Vector3.ZERO)
 	var lamp_a: Lamp3D = _create_lamp(1, LAMP_CEILING_PATH, Vector3(2.0, 2.5, 0.0))
 	var lamp_b: Lamp3D = _create_lamp(1, LAMP_CEILING_PATH, Vector3(-2.0, 2.5, 0.0))
+	var street: Lamp3D = _create_lamp(1, LAMP_STREET_PATH, Vector3(4.0, 3.0, 0.0))
 	var lamp_other: Lamp3D = _create_lamp(2, LAMP_CEILING_PATH, Vector3(0.0, 2.5, 5.0))
 	var thief: ThiefController3D = _create_thief(Vector3.ZERO)
 
@@ -116,6 +118,7 @@ func test_switch_toggles_circuit() -> void:
 	await wait_physics_frames(2)
 	assert_true(lamp_a.is_switched_on, "Lámpara A encendida inicialmente")
 	assert_true(lamp_b.is_switched_on, "Lámpara B encendida inicialmente")
+	assert_true(street.is_switched_on, "Farola encendida inicialmente")
 	assert_true(lamp_other.is_switched_on, "Lámpara de otro circuito encendida")
 
 	# 1. Interacción completada manteniendo el foco
@@ -125,6 +128,7 @@ func test_switch_toggles_circuit() -> void:
 
 	assert_false(lamp_a.is_switched_on, "Lámpara A conmutada a apagada")
 	assert_false(lamp_b.is_switched_on, "Lámpara B conmutada a apagada")
+	assert_true(street.is_switched_on, "la farola no se apaga por interruptor")
 	assert_true(lamp_other.is_switched_on, "Lámpara de circuito 2 permanece encendida")
 	assert_false(noises.is_empty(), "Interruptor completado emite ruido")
 	var sw_noise: Dictionary = noises.back()
