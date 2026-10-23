@@ -148,15 +148,11 @@ Comprueban relaciones leyendo los `.tres`, no valores literales.
 | `thief_sprint(duration, escaped)` | ¿La carrera ilimitada del ladrón rompe las persecuciones? (A3) | Más del 80 % de las persecuciones en abierto acaban en huida. |
 
 ## Estado
-Implementado parcialmente en FEAT-005 (`src/entities/player_base_3d.gd:298-368`, `523-583`), con reglas distintas de este documento:
-- Cinco posturas en `PlayerBase3D`, también para los guardias. TIPTOE y PRONE emiten radio 0; TIPTOE no tiene tecla.
-- Con los números actuales del ladrón (`thief_controller_3d.gd:45-47`), CROUCH va a 2,75 m/s con ruido ×0,35, y con `sneak` pulsado ×0,105: domina a todo. TIPTOE va a 2,25 m/s en silencio frente a los 2,4 m/s del sigilo.
-- Correr agachado conserva el multiplicador de carrera en el ruido (`surface_detector_3d.gd:51-56`).
-- La percepción usa un punto fijo a 0,9 m y una distancia 3D de ojos a torso, sin arco ciego (`guard_controller_3d.gd:107-117`).
-- La IA oye a 1,5 veces el radio dibujado (`guard_ai_3d.gd:20,138`). Todos los clientes ven todos los anillos (`heist_map_3d.gd:183`).
-- El museo asigna 9 multiplicadores sueltos por sala (`src/generation/floorplan_blueprint.gd`), no tipos de superficie.
-
-Falta todo lo de este documento. Va en el paquete B (`.tres` con los valores actuales y tests de los invariantes), una `TUNE` (porra 1,5; sprint del guardia ×1,5) y la FEAT de mecánicas de sigilo locales (grupo D de la auditoría).
+- **Modos de movimiento y ruido de pasos**: implementados en FEAT-007 (hecha, 2026-10-23). Están en `MovementProfile`, `StepNoiseProfile` y `data/balance/movement_*.tres` y `step_noise.tres`, con tests de los invariantes 1-6 y 10.
+- **Percepción cercana, porra, oído de la IA y anillos por alcance**: en FEAT-008 (código integrado, tests de aceptación en curso), con `PerceptionProfile`, `PerceptionRules` y `perception_guard.tres`. Invariantes 7, 8, 9, 11 y 12.
+- **Superficies por tipo en el museo**: pendiente; el museo sigue con 9 multiplicadores sueltos (`src/generation/floorplan_blueprint.gd`). Va con `/level`.
+- **Indicador de modo en el HUD**: pendiente; `PlayerBase3D` ya emite `crouch_changed` y `stand_up_blocked`.
+- **Red**: el modo y la detección no se replican; va con la red autoritativa.
 
 ## Decisiones
 Tomadas por el usuario el 2026-10-22, todas con la opción recomendada:
