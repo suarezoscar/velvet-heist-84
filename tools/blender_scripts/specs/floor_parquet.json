@@ -6,5 +6,11 @@
   "pivot": "bottom_center",
   "max_triangles": 500,
   "materials": ["ParquetWood"],
-  "collision": true
+  "collision": true,
+  "source": {
+    "origin": "procedural",
+    "url": "tools/blender_scripts/gen_core_assets.py",
+    "license": "propia",
+    "author": "velvet-heist-84"
+  }
 }

@@ -2,9 +2,14 @@
   "asset": "stethoscope",
   "checks": [
     {
+      "name": "spec_schema",
+      "pass": true,
+      "detail": "Esquema de ficha válido."
+    },
+    {
       "name": "snake_case_names",
       "pass": true,
-      "detail": "Todos los nombres de objetos y materiales son válidos (sin espacios ni puntos)."
+      "detail": "Todos los nombres de objetos y materiales son válidos."
     },
     {
       "name": "applied_transforms",
@@ -14,12 +19,12 @@
     {
       "name": "pivot_bottom_center",
       "pass": true,
-      "detail": "Pivote en la base inferior central correcto: Z_min=0.000m, Centro XY=(0.000, 0.000)m."
+      "detail": "Pivote en la base inferior central correcto: Z_min=0.0000m, Centro XY=(0.0000, 0.0000)m."
     },
     {
       "name": "target_dimensions",
       "pass": true,
-      "detail": "Dimensiones dentro de ±1%: (0.260, 0.320, 0.050)m vs esperadas (0.260, 0.320, 0.050)m."
+      "detail": "Dimensiones dentro de tolerancia: (0.2600, 0.3200, 0.0500)m vs esperadas (0.2600, 0.3200, 0.0500)m."
     },
     {
       "name": "triangle_budget",
@@ -29,7 +34,7 @@
     {
       "name": "palette_materials",
       "pass": true,
-      "detail": "Materiales válidos (Steel80s, BakeliteBlack, BrassGold)."
+      "detail": "Materiales válidos (Steel80s, BrassGold, BakeliteBlack)."
     },
     {
       "name": "no_procedural_nodes",
