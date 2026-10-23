@@ -63,6 +63,56 @@ def apply_bevel(obj, width=0.02, segments=2):
     bpy.ops.object.modifier_apply(modifier="Bevel")
 
 
+def center_on_aabb(objects: list) -> None:
+    """
+    Calcula la AABB de mundo de las mallas visuales (sin -col / -colonly) de objects;
+    desplaza los vértices de todas las mallas de objects (incluida la colisión) en
+    (-centro_x, -centro_y, -min_z); deja location, rotation_euler y scale en identidad;
+    solo traslada, nunca escala.
+    """
+    visual_objs = [
+        obj for obj in objects
+        if getattr(obj, "type", None) == "MESH"
+        and not obj.name.lower().endswith("-col")
+        and not obj.name.lower().endswith("-colonly")
+    ]
+    if not visual_objs:
+        return
+
+    all_corners = []
+    for obj in visual_objs:
+        if obj.bound_box:
+            for corner in obj.bound_box:
+                all_corners.append(obj.matrix_world @ mathutils.Vector(corner))
+
+    if not all_corners:
+        return
+
+    min_x = min(v.x for v in all_corners)
+    max_x = max(v.x for v in all_corners)
+    min_y = min(v.y for v in all_corners)
+    max_y = max(v.y for v in all_corners)
+    min_z = min(v.z for v in all_corners)
+
+    center_x = (min_x + max_x) / 2.0
+    center_y = (min_y + max_y) / 2.0
+
+    offset = mathutils.Vector((-center_x, -center_y, -min_z))
+
+    mesh_objs = [obj for obj in objects if getattr(obj, "type", None) == "MESH"]
+    for obj in mesh_objs:
+        mat_world = obj.matrix_world.copy()
+        for v in obj.data.vertices:
+            v.co = (mat_world @ v.co) + offset
+        obj.matrix_world = mathutils.Matrix.Identity(4)
+        obj.location = (0.0, 0.0, 0.0)
+        obj.rotation_euler = (0.0, 0.0, 0.0)
+        obj.scale = (1.0, 1.0, 1.0)
+        obj.data.update()
+
+    bpy.context.view_layer.update()
+
+
 # 1. Suelos modulares (2.0m x 2.0m x 0.1m, pivote en Z=0.0)
 def generate_floor(filename: str, mat_name: str, prefix: str):
     clear_scene()
@@ -115,99 +165,7 @@ def generate_wall(filename: str):
     export_glb(filename)
 
 
-# 3. Cápsula Ladrón (0.8m diámetro x 1.8m alto, base en Z=0.0)
-def generate_thief_pawn(filename: str):
-    clear_scene()
-    mat_suit = create_pbr_material("VelvetBlack", "VelvetBlack")
-    mat_accent = create_pbr_material("BrassGold", "BrassGold")
-
-    # Cuerpo cilíndrico: radio=0.40m, altura=1.30m, base en Z=0.00 (centro Z=0.65)
-    bpy.ops.mesh.primitive_cylinder_add(
-        radius=0.40, depth=1.30, location=(0.0, 0.0, 0.65)
-    )
-    body = bpy.context.active_object
-    body.name = "Thief_Body"
-    bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
-    body.data.materials.append(mat_suit)
-    apply_bevel(body, width=0.02, segments=2)
-
-    # Cabeza: esfera en la parte superior, radio=0.25m, centro en Z=1.55 (va de 1.30 a 1.80m)
-    bpy.ops.mesh.primitive_uv_sphere_add(
-        radius=0.25, location=(0.0, 0.0, 1.55)
-    )
-    head = bpy.context.active_object
-    head.name = "Thief_Head"
-    bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
-    head.data.materials.append(mat_suit)
-
-    # Antifaz dorado ochentero en el frontal (centrado en XY)
-    bpy.ops.mesh.primitive_cube_add(
-        size=1.0, location=(0.0, 0.22, 1.56), scale=(0.32, 0.08, 0.08)
-    )
-    mask = bpy.context.active_object
-    mask.name = "Thief_Mask"
-    bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
-    mask.data.materials.append(mat_accent)
-
-    export_glb(filename)
-
-
-# 4. Cápsula Guardia con Linterna Maglite (0.8m diámetro base x 1.8m alto)
-def generate_guard_pawn(filename: str):
-    clear_scene()
-    mat_uniform = create_pbr_material("GuardNavy", "GuardNavy")
-    mat_maglite = create_pbr_material("BakeliteBlack", "BakeliteBlack")
-    mat_brass = create_pbr_material("BrassGold", "BrassGold")
-
-    # Cuerpo cilíndrico: radio=0.40m, altura=1.35m, base en Z=0.00 (centro Z=0.675)
-    bpy.ops.mesh.primitive_cylinder_add(
-        radius=0.40, depth=1.35, location=(0.0, 0.0, 0.675)
-    )
-    body = bpy.context.active_object
-    body.name = "Guard_Body"
-    bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
-    body.data.materials.append(mat_uniform)
-    apply_bevel(body, width=0.02, segments=2)
-
-    # Cabeza cilíndrica / cuello: radio=0.28m, altura=0.30m, centro en Z=1.50 (va de 1.35 a 1.65m)
-    bpy.ops.mesh.primitive_cylinder_add(
-        radius=0.28, depth=0.30, location=(0.0, 0.0, 1.50)
-    )
-    head = bpy.context.active_object
-    head.name = "Guard_Head"
-    bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
-    head.data.materials.append(mat_uniform)
-
-    # Gorra de guardia con visera: radio=0.34m, altura=0.15m, centro en Z=1.725 (va de 1.65 a 1.80m)
-    bpy.ops.mesh.primitive_cylinder_add(
-        radius=0.34, depth=0.15, location=(0.0, 0.0, 1.725)
-    )
-    cap = bpy.context.active_object
-    cap.name = "Guard_Cap"
-    bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
-    cap.data.materials.append(mat_uniform)
-
-    # Linterna Maglite en la mano (lado derecho hacia adelante)
-    bpy.ops.mesh.primitive_cylinder_add(
-        radius=0.035, depth=0.30, location=(0.36, 0.20, 0.85), rotation=(1.5708, 0.0, 0.0)
-    )
-    torch = bpy.context.active_object
-    torch.name = "Maglite_Torch"
-    bpy.ops.object.transform_apply(scale=True, rotation=True, location=False)
-    torch.data.materials.append(mat_maglite)
-
-    bpy.ops.mesh.primitive_cylinder_add(
-        radius=0.055, depth=0.08, location=(0.36, 0.38, 0.85), rotation=(1.5708, 0.0, 0.0)
-    )
-    torch_head = bpy.context.active_object
-    torch_head.name = "Maglite_Head"
-    bpy.ops.object.transform_apply(scale=True, rotation=True, location=False)
-    torch_head.data.materials.append(mat_brass)
-
-    export_glb(filename)
-
-
-# 5. Caja Fuerte Años 80 (safe_box_84.glb)
+# 3. Caja Fuerte Años 80 (safe_box_84.glb)
 def generate_safe_box(filename: str):
     clear_scene()
     mat_steel = create_pbr_material("Steel80s", "Steel80s")
@@ -249,6 +207,7 @@ def generate_safe_box(filename: str):
     col.name = "SafeBox-col"
     bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
 
+    center_on_aabb(list(bpy.data.objects))
     export_glb(filename)
 
 
@@ -358,6 +317,7 @@ def generate_time_clock(filename: str):
     col.name = "TimeClock-col"
     bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
 
+    center_on_aabb(list(bpy.data.objects))
     export_glb(filename)
 
 
@@ -493,21 +453,42 @@ def generate_loot_masterpiece(filename: str):
     export_glb(filename)
 
 
+GENERATORS = {
+    "floor_carpet": lambda: generate_floor("floor_carpet.glb", "CarpetWine", "Floor_Carpet"),
+    "floor_parquet": lambda: generate_floor("floor_parquet.glb", "ParquetWood", "Floor_Parquet"),
+    "floor_marble": lambda: generate_floor("floor_marble.glb", "MarbleWhite", "Floor_Marble"),
+    "wall_mahogany": lambda: generate_wall("wall_mahogany.glb"),
+    "safe_box_84": lambda: generate_safe_box("safe_box_84.glb"),
+    "rotary_phone_84": lambda: generate_rotary_phone("rotary_phone_84.glb"),
+    "time_clock_84": lambda: generate_time_clock("time_clock_84.glb"),
+    "escape_car_84": lambda: generate_escape_car("escape_car_84.glb"),
+    "loot_cash": lambda: generate_loot_cash("loot_cash.glb"),
+    "loot_masterpiece": lambda: generate_loot_masterpiece("loot_masterpiece.glb"),
+}
+
+
 def main():
-    print("=== [Blender CLI] Generando assets núcleo Velvet '84 (Fase 1 y 2) ===")
-    generate_floor("floor_carpet.glb", "CarpetWine", "Floor_Carpet")
-    generate_floor("floor_parquet.glb", "ParquetWood", "Floor_Parquet")
-    generate_floor("floor_marble.glb", "MarbleWhite", "Floor_Marble")
-    generate_wall("wall_mahogany.glb")
-    generate_thief_pawn("thief_pawn.glb")
-    generate_guard_pawn("guard_pawn.glb")
-    generate_safe_box("safe_box_84.glb")
-    generate_rotary_phone("rotary_phone_84.glb")
-    generate_time_clock("time_clock_84.glb")
-    generate_escape_car("escape_car_84.glb")
-    generate_loot_cash("loot_cash.glb")
-    generate_loot_masterpiece("loot_masterpiece.glb")
-    print("=== [Blender CLI] Generación completada con éxito ===")
+    argv = sys.argv
+    targets = []
+    if "--" in argv:
+        targets = argv[argv.index("--") + 1:]
+
+    normalized_targets = [t[:-4] if t.endswith(".glb") else t for t in targets]
+
+    if normalized_targets:
+        for t in normalized_targets:
+            if t in GENERATORS:
+                print(f"=== Generando {t} ===")
+                GENERATORS[t]()
+            else:
+                print(f"Aviso: Generador desconocido para '{t}'", file=sys.stderr)
+                sys.exit(1)
+    else:
+        print("=== [Blender CLI] Generando assets núcleo Velvet '84 ===")
+        for name, gen_fn in GENERATORS.items():
+            print(f"=== Generando {name} ===")
+            gen_fn()
+        print("=== [Blender CLI] Generación completada con éxito ===")
 
 
 if __name__ == "__main__":

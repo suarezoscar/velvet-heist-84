@@ -1,0 +1,51 @@
+{
+  "asset": "floor_marble",
+  "checks": [
+    {
+      "name": "spec_schema",
+      "pass": true,
+      "detail": "Esquema de ficha válido."
+    },
+    {
+      "name": "snake_case_names",
+      "pass": true,
+      "detail": "Todos los nombres de objetos y materiales son válidos."
+    },
+    {
+      "name": "applied_transforms",
+      "pass": true,
+      "detail": "Escala (1, 1, 1) y rotación (0, 0, 0) aplicadas en todas las mallas."
+    },
+    {
+      "name": "pivot_bottom_center",
+      "pass": true,
+      "detail": "Pivote en la base inferior central correcto: Z_min=0.0000m, Centro XY=(0.0000, 0.0000)m."
+    },
+    {
+      "name": "target_dimensions",
+      "pass": true,
+      "detail": "Dimensiones dentro de tolerancia: (2.0000, 2.0000, 0.1000)m vs esperadas (2.0000, 2.0000, 0.1000)m."
+    },
+    {
+      "name": "triangle_budget",
+      "pass": true,
+      "detail": "Triángulos: 44 <= presupuesto (500)."
+    },
+    {
+      "name": "palette_materials",
+      "pass": true,
+      "detail": "Materiales válidos (MarbleWhite)."
+    },
+    {
+      "name": "no_procedural_nodes",
+      "pass": true,
+      "detail": "Todos los materiales usan Principled BSDF limpio sin nodos procedurales."
+    },
+    {
+      "name": "collision_mesh",
+      "pass": true,
+      "detail": "Malla de colisión presente: Floor_Marble-col."
+    }
+  ],
+  "pass": true
+}

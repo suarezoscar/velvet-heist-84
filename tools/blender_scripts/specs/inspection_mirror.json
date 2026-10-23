@@ -6,5 +6,11 @@
   "pivot": "bottom_center",
   "max_triangles": 500,
   "materials": ["Steel80s", "ChromeTrim"],
-  "collision": false
+  "collision": false,
+  "source": {
+    "origin": "procedural",
+    "url": "tools/blender_scripts/gen_gadgets_assets.py",
+    "license": "propia",
+    "author": "velvet-heist-84"
+  }
 }
