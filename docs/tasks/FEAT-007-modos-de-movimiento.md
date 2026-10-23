@@ -1,6 +1,6 @@
 # FEAT-007 — Modos de movimiento y ruido de pasos
 
-- **Estado**: aprobada
+- **Estado**: hecha (2026-10-23)
 - **Diseño**: `docs/gdd/systems/stealth.md` (aprobado, parte 1): secciones "Modos de movimiento", "Ruido de pasos", "Números" e invariantes 1-6 y 10
 - **Revisor**: `reviewer` (Claude)
 - **Rama de integración**: `master`
@@ -232,9 +232,9 @@ Ninguno. Las animaciones `tiptoe_walk`, `prone_*` y `cover_*` siguen dentro de l
 ## Estado de los paquetes
 | PKG | Agente | Rama | Depende de | Estado | Vueltas | Notas |
 |---|---|---|---|---|---|---|
-| PKG-1 | gameplay-engineer | `feat/007-pkg1` | — | en curso | 0 | |
-| PKG-2 | integrator | `feat/007-pkg2` | — | revisado | 0 | En paralelo con PKG-1; no comparten archivos |
-| PKG-QA | qa-engineer | `feat/007-pkgqa` | PKG-1 | pendiente | 0 | |
+| PKG-1 | gameplay-engineer | `feat/007-pkg1` | — | integrado | 1 | Bloqueo por los `.uid` resuelto en check_scope (PR #8); vuelta 1: borrar `.uid` de tests eliminados; PR #10 |
+| PKG-2 | integrator | `feat/007-pkg2` | — | integrado | 0 | PR #3 |
+| PKG-QA | qa-engineer | `feat/007-pkgqa` | PKG-1 | integrado | 1 | Vuelta 1: montaje de tests y mutaciones del reviewer; PR #16 |
 
 ## Paquetes de ejecución
 
@@ -325,6 +325,13 @@ Ninguno. Las animaciones `tiptoe_walk`, `prone_*` y `cover_*` siguen dentro de l
 - **Comandos de cierre**:
   - `./tools/ci/run_tests.sh` (todo verde; pega el resumen)
   - `./tools/ci/lint.sh` · `./tools/ci/check_patterns.sh` · `python3 tools/ci/check_scope.py`
+
+## Cierre (2026-10-23)
+- `/verify` en `master` (`d3dec93`): import 0, check_scripts 0, run_tests 86/86; sin `Stance`, `TIPTOE`, `PRONE` ni `WALL_COVER` en src, tests ni scenes/entities; `project.godot` sin `prone` ni `wall_cover`; `player_base_3d.gd` con 285 líneas.
+- Criterios 1-13 y 16: `tests/unit/test_movement_modes.gd`, `tests/unit/test_step_noise.gd` y `tests/stress/test_movement_stress.gd`. El reviewer verificó con 7 mutaciones que los tests las detectan.
+- Criterio 14: grep y PKG-2. Criterio 15: lint de PKG-1 y CI.
+- Pendiente para una FEAT futura: cargar los perfiles en `_init` y quitar los valores de respaldo de `player_base_3d.gd` (sugerencias del reviewer).
+- Pendiente de validar jugando: la sensación del agachado a 2,0 m/s.
 
 ## Riesgos y decisiones abiertas
 - **Sensación**: el ladrón agachado será notablemente más lento (2,0 frente a 2,75 m/s). Es lo que pide el diseño; se valida jugando antes del cierre.
