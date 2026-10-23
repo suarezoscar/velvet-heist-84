@@ -124,28 +124,6 @@ func perform_action(action: StringName) -> bool:
 	return result
 
 
-## Devuelve el snapshot de estado del guardia para red
-func get_net_actor_state() -> Dictionary:
-	var state: Dictionary = super.get_net_actor_state()
-	state["flashlight"] = flashlight_on
-	state["last_seen_left"] = last_seen_time_left
-	state["last_seen_pos"] = last_seen_position
-	state["perceiving"] = is_perceiving_thief
-	state["stamina"] = stamina
-	return state
-
-
-## Aplica el snapshot de estado del guardia recibido por red
-func apply_net_actor_state(state: Dictionary) -> void:
-	super.apply_net_actor_state(state)
-	if state.has("flashlight"):
-		apply_flashlight_state(bool(state["flashlight"]))
-	stamina = float(state.get("stamina", stamina))
-	is_perceiving_thief = bool(state.get("perceiving", is_perceiving_thief))
-	last_seen_position = state.get("last_seen_pos", last_seen_position) as Vector3
-	last_seen_time_left = float(state.get("last_seen_left", last_seen_time_left))
-
-
 ## Enciende o apaga la linterna Maglite emitiendo ruido sonoro
 func set_flashlight(on: bool) -> void:
 	if flashlight_on == on:

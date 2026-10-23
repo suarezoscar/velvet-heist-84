@@ -34,9 +34,6 @@ var baton_hits_taken: int = 0
 ## Estado de detección por parte de guardias
 var is_detected_by_guard: bool = false
 
-## Estamina actual del ladrón
-var stamina: float = 100.0
-
 ## Componente modular de interacción
 var interactor: Interactor3D = null
 
@@ -93,20 +90,6 @@ func perform_action(action: StringName) -> bool:
 		_:
 			result = super.perform_action(action)
 	return result
-
-
-## Devuelve el snapshot de estado del ladrón para red
-func get_net_actor_state() -> Dictionary:
-	var state: Dictionary = super.get_net_actor_state()
-	state["stamina"] = stamina
-	return state
-
-
-## Aplica el snapshot de estado del ladrón recibido por red
-func apply_net_actor_state(state: Dictionary) -> void:
-	super.apply_net_actor_state(state)
-	if state.has("stamina"):
-		stamina = float(state["stamina"])
 
 
 ## Simulación física del ladrón con penalización autoritativa por botín pesado
