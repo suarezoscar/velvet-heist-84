@@ -21,7 +21,7 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	if _active_actor != null:
-		if _active_actor.interactor == null or _active_actor.interactor.current_target != self:
+		if not _is_actor_focusing(_active_actor):
 			_active_actor = null
 			_time_left = 0.0
 			return
@@ -62,8 +62,10 @@ func _complete_switch(actor: PlayerBase3D) -> void:
 
 	var circuit_lamps: Array[Lamp3D] = []
 	for node: Node in get_tree().get_nodes_in_group(&"lamps"):
-		if node is Lamp3D and (node as Lamp3D).circuit_id == circuit_id:
-			circuit_lamps.append(node as Lamp3D)
+		var lamp: Lamp3D = node as Lamp3D
+		if lamp != null and lamp.circuit_id == circuit_id:
+			if lamp.profile != null and lamp.profile.has_switch:
+				circuit_lamps.append(lamp)
 
 	var any_lit: bool = false
 	for lamp: Lamp3D in circuit_lamps:
@@ -74,3 +76,19 @@ func _complete_switch(actor: PlayerBase3D) -> void:
 	var target_state: bool = not any_lit
 	for lamp: Lamp3D in circuit_lamps:
 		lamp.set_switched(target_state)
+
+
+func _is_actor_focusing(actor: PlayerBase3D) -> bool:
+	if actor == null:
+		return false
+	var interactor: Interactor3D = null
+	var thief: ThiefController3D = actor as ThiefController3D
+	if thief != null:
+		interactor = thief.interactor
+	else:
+		var guard: GuardController3D = actor as GuardController3D
+		if guard != null:
+			interactor = guard.interactor
+	if interactor == null:
+		return false
+	return interactor.current_target == self

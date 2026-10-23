@@ -30,24 +30,10 @@ func _ready() -> void:
 	bulb = get_node_or_null("Visuals/Bulb") as OmniLight3D
 	_interaction_area = get_node_or_null("Sensors/InteractionArea") as Area3D
 	if _interaction_area != null:
-		var script_area: GDScript = GDScript.new()
-		script_area.source_code = """@tool
-extends Area3D
-var lamp: Node3D = null
-
-func can_interact(actor: Node3D) -> bool:
-	return lamp.can_interact(actor) if lamp != null else false
-
-func interact(actor: Node3D) -> void:
-	if lamp != null:
-		lamp.interact(actor)
-
-func get_interaction_text(actor: Node3D = null) -> String:
-	return lamp.get_interaction_text(actor) if lamp != null else ""
-"""
-		script_area.reload()
-		_interaction_area.set_script(script_area)
-		_interaction_area.set("lamp", self)
+		if profile == null or not profile.unscrewable:
+			_interaction_area.collision_layer = 0
+		if _interaction_area is LampInteractionArea:
+			(_interaction_area as LampInteractionArea).lamp = self
 
 	is_switched_on = start_on
 	_was_lit = is_lit()
@@ -116,9 +102,19 @@ func get_interaction_text(actor: Node3D = null) -> String:
 
 
 func _is_actor_focusing(actor: PlayerBase3D) -> bool:
-	if actor == null or actor.interactor == null:
+	if actor == null:
 		return false
-	var target: Node3D = actor.interactor.current_target
+	var interactor: Interactor3D = null
+	var thief: ThiefController3D = actor as ThiefController3D
+	if thief != null:
+		interactor = thief.interactor
+	else:
+		var guard: GuardController3D = actor as GuardController3D
+		if guard != null:
+			interactor = guard.interactor
+	if interactor == null:
+		return false
+	var target: Node3D = interactor.current_target
 	return target == self or target == _interaction_area
 
 
