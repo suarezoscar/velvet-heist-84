@@ -106,7 +106,7 @@ func apply_net_state(state: Dictionary) -> void
 func is_simulating() -> bool
 ```
 - `_physics_process` y los manejadores de `loot_stolen` y `thief_captured` no hacen nada si `is_simulating()` es false.
-- `NetManager` es otro autoload: se consulta con `get_node_or_null("/root/NetManager")`, como hace hoy con `SignalBus`.
+- `NetManager` y `SignalBus` se consultan por su nombre de autoload, nunca con rutas `/root/...`: `check_patterns.sh` lo prohíbe en todo archivo cambiado.
 - Sin red, `is_simulating()` es true.
 
 ### Contrato de PKG-2 (`gameplay-engineer`): estado de mundo y acciones, sin red
@@ -299,8 +299,8 @@ Toda la FEAT. Autoridad: servidor (peer 1) sobre todo. Frecuencias y destinatari
 ## Estado de los paquetes
 | PKG | Agente | Rama | Depende de | Estado | Vueltas | Notas |
 |---|---|---|---|---|---|---|
-| PKG-1 | integrator | `feat/014-pkg1` | FEAT-012 hecha | pendiente | 0 | |
-| PKG-2 | gameplay-engineer | `feat/014-pkg2` | FEAT-012 hecha | pendiente | 0 | Paralelo a PKG-1 y PKG-4 |
+| PKG-1 | integrator | `feat/014-pkg1` | FEAT-012 hecha | integrado | 0 | Una vuelta descartada por error de la spec (ruta `/root/`) |
+| PKG-2 | gameplay-engineer | `feat/014-pkg2` | FEAT-012 hecha | en curso | 0 | Paralelo a PKG-1 y PKG-4 |
 | PKG-4 | vfx-ui-engineer | `feat/014-pkg4` | PKG-3 | pendiente | 0 | Usa `request_start` |
 | PKG-3 | gameplay-engineer | `feat/014-pkg3` | PKG-1, PKG-2 | pendiente | 0 | |
 | PKG-QA | qa-engineer | `feat/014-pkgqa` | PKG-3, PKG-4 | pendiente | 0 | |
@@ -337,6 +337,7 @@ Toda la FEAT. Autoridad: servidor (peer 1) sobre todo. Frecuencias y destinatari
   ```
 - **Contratos**: "Contrato de PKG-2".
 - **Restricción**: si `player_base_3d.gd` supera 300 líneas, saca `get_net_actor_state` y `apply_net_actor_state` a `src/entities/components/actor_net_state.gd` (`class_name ActorNetState extends RefCounted`, con `static func read(actor) -> Dictionary` y `static func write(actor, state) -> void`), añadido a `allowed` en la entrega con su `.uid`. Este es el único archivo extra permitido.
+- **Rutas `/root/`**: `check_patterns.sh` revisa el archivo entero. Si un archivo que tocas ya tiene `get_node_or_null("/root/<Autoload>")` (por ejemplo `security_camera_3d.gd:106` o `main_menu.gd:121`), sustitúyelo por el nombre del autoload (`SignalBus`, `NetManager`).
 - **Tests**: unitarios de `perform_action` (las 7 acciones) y de `step_dial` y `cancel_cracking`, en `test_net_state_unit.gd`.
 - **Comandos de cierre**: los de PKG-1.
 - **Fuera de alcance**: nada de RPC ni de `src/network/`.
@@ -379,6 +380,7 @@ Toda la FEAT. Autoridad: servidor (peer 1) sobre todo. Frecuencias y destinatari
   scenes/ui/main_menu.tscn
   ```
 - **Contratos**: "Contrato de PKG-4".
+- **Rutas `/root/`**: `check_patterns.sh` revisa el archivo entero. Si un archivo que tocas ya tiene `get_node_or_null("/root/<Autoload>")` (por ejemplo `security_camera_3d.gd:106` o `main_menu.gd:121`), sustitúyelo por el nombre del autoload (`SignalBus`, `NetManager`).
 - **Comandos de cierre**: los de PKG-1. Sin MCP ni capturas.
 
 ### PKG-QA — Tests de aceptación
