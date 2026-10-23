@@ -304,9 +304,9 @@ Toda la FEAT. Autoridad: servidor (peer 1) sobre todo. Frecuencias y destinatari
 | PKG | Agente | Rama | Depende de | Estado | Vueltas | Notas |
 |---|---|---|---|---|---|---|
 | PKG-1 | integrator | `feat/014-pkg1` | FEAT-012 hecha | integrado | 0 | Una vuelta descartada por error de la spec (ruta `/root/`) |
-| PKG-2 | gameplay-engineer | `feat/014-pkg2` | FEAT-012 hecha | en curso | 0 | Paralelo a PKG-1 y PKG-4 |
+| PKG-2 | gameplay-engineer | `feat/014-pkg2` | FEAT-012 hecha | integrado | 1 | Paralelo a PKG-1 y PKG-4 |
 | PKG-4 | vfx-ui-engineer | `feat/014-pkg4` | PKG-3 | pendiente | 0 | Usa `request_start` |
-| PKG-3 | gameplay-engineer | `feat/014-pkg3` | PKG-1, PKG-2 | pendiente | 0 | |
+| PKG-3 | gameplay-engineer | `feat/014-pkg3` | PKG-1, PKG-2 | en curso | 0 | |
 | PKG-QA | qa-engineer | `feat/014-pkgqa` | PKG-3, PKG-4 | pendiente | 0 | |
 
 ## Paquetes de ejecución
@@ -372,10 +372,16 @@ Toda la FEAT. Autoridad: servidor (peer 1) sobre todo. Frecuencias y destinatari
   scenes/maps/museum_velvet_84.gd  # excepción: quitar la red antigua del mapa (la FEAT lo pide)
   tools/net/run_server.sh
   tests/unit/test_multiplayer_lobby.gd  # excepción: adaptar a roles limitados y a la ausencia de host
+  tests/integration/test_global_gameplay_loop.gd  # excepción: test_06 comprobaba el modelo antiguo de autoridad por cliente
   ```
 - **`tools/net/run_server.sh`**: `#!/usr/bin/env bash`. Lanza `godot --headless --path <raíz del repo> -- --server --port "${1:-7777}"`, con el binario de `tools/ci/godot_version.env`, como hace `tools/ci/run_tests.sh`.
 - **Contratos**: "Contrato de PKG-3" y la tabla de replicación.
-- **Adaptación de `test_multiplayer_lobby.gd`**: solo los asserts que esperan `guard_3` disponible o un host con rol. Pasan a esperar el rechazo y `ERR_UNAVAILABLE`.
+- **Adaptación de los tests de red antiguos** (`test_multiplayer_lobby.gd` y `test_global_gameplay_loop.gd::test_06_multiplayer_integration_on_map`). Comprobaban el modelo anterior, en el que el host jugaba y cada cliente tenía autoridad sobre su personaje; esta FEAT lo sustituye a propósito. Cambia solo esto:
+  - todo `start_host(...)` pasa a `start_dedicated_server(<el mismo puerto>)`, y se registra el ladrón con su propio peer (por ejemplo `register_player(4, "Ladron", NetManagerNode.ROLE_THIEF)`). Un test que comprueba el propio `start_host` pasa a esperar `ERR_UNAVAILABLE`;
+  - los asserts de `guard_3` pasan a esperar el rechazo;
+  - autoridad en el mapa: los tres actores tienen `get_multiplayer_authority() == 1`, el servidor tiene `is_multiplayer_authority()` true en todos, los guardias con rol ocupado tienen `is_ai_controlled == false` y `map.local_player` es null en el servidor dedicado;
+  - los asserts de "solo procesa input sobre su entidad" y de interpolación con `set_net_transform` (el apartado 2 y el 3 de `test_06` y sus equivalentes en `test_multiplayer_lobby.gd`) se borran: ese comportamiento ya no existe y lo cubren los criterios 2, 4 y 5 en PKG-QA;
+  - el resto de los tests de esos dos archivos no se toca.
 - **Prueba manual obligatoria antes de entregar**: servidor y dos clientes headless en el mismo equipo durante 20 s, sin errores en el log (`tools/ci/scan_godot_log.sh`). Pega en el informe las líneas `NETLOG` de un `sent_snapshot` y un `own_state`.
 - **Comandos de cierre**: los de PKG-1.
 
