@@ -21,7 +21,7 @@ shape = SubResource("CapsuleShape3D_7icro")
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
 
 [node name="MagliteSpotLight" type="SpotLight3D" parent="." unique_id=2105594722]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, -0.4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, -0.4)
 light_color = Color(1, 0.95, 0.75, 1)
 light_energy = 3.5
 shadow_enabled = true

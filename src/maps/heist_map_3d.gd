@@ -73,6 +73,7 @@ func set_local_player(player: PlayerBase3D) -> void:
 			overlay.set("player_pawn", followed)
 	if camera != null and followed != null:
 		camera.global_position = followed.global_position + CAMERA_OFFSET
+	_update_thief_local_visibility()
 
 
 ## Personaje que sigue la cámara: el local o, sin él (servidor dedicado), el ladrón
@@ -134,6 +135,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		if previous != null:
 			previous.is_ai_controlled = _ai_defaults.get(previous, false)
 		set_local_player(actors[index])
+		_update_thief_local_visibility()
 		print("[HeistMap3D] Control de depuración -> %s" % actors[index].name)
 		get_viewport().set_input_as_handled()
 
@@ -141,7 +143,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
 	_process_camera_follow(delta)
 	if not NetManager.is_online() or multiplayer.is_server():
-		_process_guards_perception()
+		_process_guards_perception(delta)
 	_process_local_strike()
 
 
@@ -153,18 +155,34 @@ func _process_camera_follow(delta: float) -> void:
 	camera.global_position = camera.global_position.lerp(desired_pos, CAMERA_FOLLOW_SPEED * delta)
 
 
-## Percepción autoritativa: cualquier guardia que vea al ladrón lo delata
-func _process_guards_perception() -> void:
+## Percepción autoritativa: actualiza la percepción de cada guardia y la visibilidad local
+func _process_guards_perception(delta: float) -> void:
 	if thief == null:
 		return
-	var is_spotted: bool = false
+	var lamps: Array[Lamp3D] = []
+	for node: Node in get_tree().get_nodes_in_group(&"lamps"):
+		if node is Lamp3D:
+			lamps.append(node as Lamp3D)
+	var any_spotted: bool = false
 	for guard: GuardController3D in guards:
-		if guard.check_detection_on_thief(thief):
-			is_spotted = true
-			break
-	thief.set_stealth_visibility(is_spotted)
-	if is_spotted:
-		SignalBus.thief_spotted.emit(thief.global_position)
+		guard.update_perception(thief, lamps, delta)
+		if guard.is_perceiving_thief:
+			any_spotted = true
+	thief.set_stealth_visibility(any_spotted)
+	_update_thief_local_visibility()
+
+
+func _update_thief_local_visibility() -> void:
+	if thief == null:
+		return
+	var is_visible: bool = (
+		local_player == thief
+		or (
+			local_player is GuardController3D
+			and (local_player as GuardController3D).is_perceiving_thief
+		)
+	)
+	thief.set_visible_to_local_viewer(is_visible)
 
 
 func _process_local_strike() -> void:
