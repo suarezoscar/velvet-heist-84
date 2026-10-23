@@ -3,6 +3,7 @@
 ## decide qué personaje controla esta máquina (como mucho uno), sigue a ese personaje con
 ## la cámara isométrica, vincula el HUD, evalúa la percepción de los guardias, ejecuta el
 ## golpe de porra del jugador local y crea NoiseAudioPresenter y LocalViewPresenter.
+## Con red crea NetSession (FEAT-014) y deja de simular percepción y golpe en el cliente.
 ## Dependencias: SignalBus, NetManager, GameManager. Nodos opcionales: IsometricCamera3D, HUD84.
 class_name HeistMap3D
 extends Node3D
@@ -106,9 +107,17 @@ func _setup_offline_control() -> void:
 	set_local_player(thief)
 
 
-## Con red: cada mapa decide según los roles de NetManager. Por defecto, el ladrón.
+## Con red: crea la sesión autoritativa y asigna el actor del rol local. El servidor
+## dedicado no controla a nadie; cada cliente controla al actor de su rol (FEAT-014).
 func _setup_online_control() -> void:
-	set_local_player(thief)
+	var session: NetSession = NetSession.new()
+	session.name = "NetSession"
+	add_child(session)
+	session.setup(self, noise_audio_presenter)
+	if NetManager.is_dedicated_server:
+		set_local_player(null)
+	else:
+		set_local_player(session.actor_for_role(NetManager.get_local_role()))
 
 
 ## Nombres de mallas extra a ocultar en este mapa (además de las de colisión)
@@ -159,7 +168,7 @@ func _physics_process(delta: float) -> void:
 	_process_camera_follow(delta)
 	if not NetManager.is_online() or multiplayer.is_server():
 		_process_guards_perception(delta)
-	_process_local_strike()
+		_process_local_strike()
 
 
 func _process_camera_follow(delta: float) -> void:

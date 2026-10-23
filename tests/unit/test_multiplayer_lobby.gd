@@ -1,54 +1,48 @@
 ## @file test_multiplayer_lobby.gd
-## Tests unitarios del Lobby Multijugador, Servidor Dedicado y Replicación (FEAT-003).
-## Cubre la inicialización de Host y Servidor Dedicado, handshake de conexión,
-## asignación y exclusión mutua de roles asimétricos, autoridad sobre entidades
-## en mapa y sincronización continua desacoplada.
+## Tests unitarios del lobby y la sesión de red (FEAT-003 y FEAT-014).
+## Cubre el servidor dedicado, el rechazo del host, los roles limitados a ladrón y dos
+## guardias, la asignación de autoridad del servidor y el handshake por loopback.
 extends GutTest
 
 const MAP_SCENE_PATH: String = "res://scenes/maps/museum_velvet_84.tscn"
 
+
 func before_each() -> void:
-	var net_mgr: NetManagerNode = get_node_or_null("/root/NetManager")
+	var net_mgr: NetManagerNode = NetManager
 	if net_mgr != null and multiplayer.multiplayer_peer != null:
 		net_mgr.disconnect_network()
+
 
 func after_each() -> void:
-	var net_mgr: NetManagerNode = get_node_or_null("/root/NetManager")
+	var net_mgr: NetManagerNode = NetManager
 	if net_mgr != null and multiplayer.multiplayer_peer != null:
 		net_mgr.disconnect_network()
 
+
 # ------------------------------------------------------------------------------
-# 1. Creación de Host y registro de peer 1
+# 1. El host que juega queda fuera del PoC (FEAT-014)
 # ------------------------------------------------------------------------------
 
-func test_start_host_registers_peer_1_as_thief() -> void:
-	var net_mgr: NetManagerNode = get_node_or_null("/root/NetManager")
+
+func test_start_host_is_unavailable() -> void:
+	var net_mgr: NetManagerNode = NetManager
 	assert_not_null(net_mgr, "NetManager Autoload debe existir en la escena raíz")
 
 	var err: Error = net_mgr.start_host(7777, 4)
-	assert_eq(err, OK, "start_host debe retornar OK")
-	assert_not_null(multiplayer.multiplayer_peer, "multiplayer_peer asignado en multiplayer")
-	assert_true(multiplayer.is_server(), "Host debe identificarse como servidor")
-	assert_false(net_mgr.is_dedicated_server, "is_dedicated_server debe ser falso")
-	assert_eq(net_mgr.get_local_role(), NetManagerNode.ROLE_THIEF, "Host toma rol Ladrón")
-	assert_eq(net_mgr.get_peer_id_for_role(NetManagerNode.ROLE_THIEF), 1, "Peer 1 es ladrón")
-	assert_true(net_mgr.is_server_authoritative(), "Host es autoritativo")
+	assert_eq(err, ERR_UNAVAILABLE, "start_host debe devolver ERR_UNAVAILABLE")
+	assert_null(multiplayer.multiplayer_peer, "start_host no crea ningún peer")
+	assert_eq(net_mgr.get_local_role(), &"", "start_host no ocupa ningún rol")
+	assert_true(net_mgr.get_connected_players().is_empty(), "start_host no registra jugadores")
+	assert_false(net_mgr.is_server_authoritative(), "start_host no crea autoridad")
 
-	var players: Dictionary = net_mgr.get_connected_players()
-	assert_true(players.has(1), "Lista de jugadores contiene al peer 1")
-	assert_eq(players[1]["role"], NetManagerNode.ROLE_THIEF, "Rol en player_info es thief")
-
-	net_mgr.disconnect_network()
-	assert_null(multiplayer.multiplayer_peer, "multiplayer_peer reseteado a null tras desconectar")
-	assert_eq(net_mgr.get_local_role(), &"", "local_role limpiado")
-	assert_true(net_mgr.get_connected_players().is_empty(), "connected_players vaciado")
 
 # ------------------------------------------------------------------------------
 # 2. Servidor Dedicado Headless
 # ------------------------------------------------------------------------------
 
+
 func test_start_dedicated_server() -> void:
-	var net_mgr: NetManagerNode = get_node_or_null("/root/NetManager")
+	var net_mgr: NetManagerNode = NetManager
 	var err: Error = net_mgr.start_dedicated_server(7778)
 	assert_eq(err, OK, "start_dedicated_server debe retornar OK")
 	assert_not_null(multiplayer.multiplayer_peer, "multiplayer_peer activo en servidor")
@@ -61,163 +55,124 @@ func test_start_dedicated_server() -> void:
 	net_mgr.disconnect_network()
 	assert_null(multiplayer.multiplayer_peer, "Red desconectada")
 
+
 # ------------------------------------------------------------------------------
-# 3. Asignación y exclusión mutua de roles
+# 3. Asignación y exclusión mutua de roles, limitados al PoC
 # ------------------------------------------------------------------------------
+
 
 func test_role_assignment_and_mutual_exclusion() -> void:
-	var net_mgr: NetManagerNode = get_node_or_null("/root/NetManager")
-	net_mgr.start_host(7777, 4)
+	var net_mgr: NetManagerNode = NetManager
+	net_mgr.start_dedicated_server(7777)
 
-	# Peer 1 (Host) es ladrón
-	assert_eq(net_mgr.get_peer_id_for_role(NetManagerNode.ROLE_THIEF), 1, "Peer 1 es Ladrón")
-
-	# Registrar Peer 2
-	var reg2: bool = net_mgr.register_player(2, "GuardiaBeta")
+	var reg2: bool = net_mgr.register_player(2, "Infiltrado")
 	assert_true(reg2, "Peer 2 registrado")
-	# Debe haber obtenido guard_1 como primer rol disponible
-	assert_eq(net_mgr.get_role_for_peer(2), NetManagerNode.ROLE_GUARD_1, "Peer 2 recibe guard_1")
-	assert_eq(net_mgr.get_peer_id_for_role(NetManagerNode.ROLE_GUARD_1), 2)
+	assert_eq(net_mgr.get_role_for_peer(2), NetManagerNode.ROLE_THIEF, "Peer 2 recibe thief")
+	assert_eq(net_mgr.get_peer_id_for_role(NetManagerNode.ROLE_THIEF), 2)
 
-	# Exclusión mutua: Peer 2 intenta solicitar rol ladrón (&"thief")
-	var try_thief: bool = net_mgr.assign_role(2, NetManagerNode.ROLE_THIEF)
-	assert_false(try_thief, "assign_role debe rechazar rol si ya está ocupado")
-	assert_eq(net_mgr.get_role_for_peer(2), NetManagerNode.ROLE_GUARD_1, "Peer 2 conserva guard_1")
-	assert_eq(net_mgr.get_peer_id_for_role(NetManagerNode.ROLE_THIEF), 1, "Peer 1 sigue ladrón")
+	var reg3: bool = net_mgr.register_player(3, "GuardiaBeta")
+	assert_true(reg3, "Peer 3 registrado")
+	assert_eq(net_mgr.get_role_for_peer(3), NetManagerNode.ROLE_GUARD_1, "Peer 3 recibe guard_1")
 
-	# Peer 1 cambia voluntariamente a guard_2
-	var change_p1: bool = net_mgr.assign_role(1, NetManagerNode.ROLE_GUARD_2)
-	assert_true(change_p1, "Peer 1 cambia a guard_2 exitosamente")
-	assert_eq(net_mgr.get_local_role(), NetManagerNode.ROLE_GUARD_2, "local_role en peer 1")
-	assert_eq(net_mgr.get_peer_id_for_role(NetManagerNode.ROLE_GUARD_2), 1)
+	# guard_3 ya no está en el catálogo del PoC
+	assert_false(
+		net_mgr.assign_role(2, NetManagerNode.ROLE_GUARD_3),
+		"assign_role rechaza guard_3 fuera del PoC"
+	)
+	assert_false(
+		net_mgr.is_role_available(NetManagerNode.ROLE_GUARD_3), "guard_3 no está disponible"
+	)
 
-	# Ahora que thief está desocupado, Peer 2 puede tomarlo
-	var change_p2: bool = net_mgr.assign_role(2, NetManagerNode.ROLE_THIEF)
-	assert_true(change_p2, "Peer 2 adquiere el rol de ladrón ahora disponible")
-	assert_eq(net_mgr.get_peer_id_for_role(NetManagerNode.ROLE_THIEF), 2, "Peer 2 nuevo ladrón")
+	# Exclusión mutua: un rol ocupado no se puede asignar a otro peer
+	assert_false(
+		net_mgr.assign_role(2, NetManagerNode.ROLE_GUARD_1), "guard_1 ocupado no se reasigna"
+	)
+	var change_p2: bool = net_mgr.assign_role(2, NetManagerNode.ROLE_GUARD_2)
+	assert_true(change_p2, "Peer 2 cambia a guard_2")
+	assert_eq(net_mgr.get_role_for_peer(2), NetManagerNode.ROLE_GUARD_2)
 
-	# Intentar asignar rol inexistente
+	# El ladrón queda libre y lo puede tomar otro peer
+	var change_p3: bool = net_mgr.assign_role(3, NetManagerNode.ROLE_THIEF)
+	assert_true(change_p3, "Peer 3 adquiere el rol de ladrón")
+	assert_eq(net_mgr.get_peer_id_for_role(NetManagerNode.ROLE_THIEF), 3)
+
+	# Intentar asignar un rol inexistente
 	var invalid_role: bool = net_mgr.assign_role(2, &"detective")
 	assert_false(invalid_role, "Rechaza roles fuera del catálogo asimétrico")
 
 	net_mgr.disconnect_network()
 
+
 # ------------------------------------------------------------------------------
-# 4. Asignación de autoridad multijugador sobre mapa
+# 4. Autoridad del servidor e IA de los guardias sin humano
 # ------------------------------------------------------------------------------
 
-func test_multiplayer_authority_assignment_on_map() -> void:
-	var net_mgr: NetManagerNode = get_node_or_null("/root/NetManager")
-	net_mgr.start_host(7777, 4)
+
+func test_server_authority_and_ai_guards() -> void:
+	var net_mgr: NetManagerNode = NetManager
+	net_mgr.start_dedicated_server(7777)
 	net_mgr.register_player(2, "Guardia1", NetManagerNode.ROLE_GUARD_1)
-	net_mgr.register_player(3, "Guardia2", NetManagerNode.ROLE_GUARD_2)
 
 	var map_scene: PackedScene = load(MAP_SCENE_PATH)
 	var map: Node3D = autofree(map_scene.instantiate())
 	add_child_autofree(map)
 	await wait_physics_frames(1)
 
-	var thief_node: CharacterBody3D = map.get_node("ThiefPlayer")
-	var guard1_node: CharacterBody3D = map.get_node("GuardPlayer1")
-	var guard2_node: CharacterBody3D = map.get_node("GuardPlayer2")
+	assert_eq(map.thief.get_multiplayer_authority(), 1, "Thief tiene autoridad del servidor")
+	assert_eq(map.guards[0].get_multiplayer_authority(), 1, "Guard 1 tiene autoridad del servidor")
+	assert_eq(map.guards[1].get_multiplayer_authority(), 1, "Guard 2 tiene autoridad del servidor")
 
-	assert_eq(thief_node.get_multiplayer_authority(), 1, "Thief asignado a peer 1")
-	assert_eq(guard1_node.get_multiplayer_authority(), 2, "Guard 1 asignado a peer 2")
-	assert_eq(guard2_node.get_multiplayer_authority(), 3, "Guard 2 asignado a peer 3")
+	assert_false(map.thief.is_locally_controlled, "El servidor no controla al ladrón")
+	assert_false(map.guards[0].is_locally_controlled, "El servidor no controla al Guard 1")
+	assert_null(map.local_player, "El servidor dedicado no tiene jugador local")
 
-	assert_true(thief_node.is_multiplayer_authority(), "Host posee autoridad de Thief")
-	assert_false(guard1_node.is_multiplayer_authority(), "Host NO tiene autoridad Guard 1")
-	assert_false(guard2_node.is_multiplayer_authority(), "Host NO tiene autoridad Guard 2")
+	assert_false(map.guards[0].is_ai_controlled, "Guard 1 ocupado por un humano: sin IA")
+	assert_true(map.guards[1].is_ai_controlled, "Guard 2 sin humano: controlado por la IA")
 
-	assert_false(guard1_node.is_ai_controlled, "Guard 1 es controlado por humano")
-	assert_false(guard2_node.is_ai_controlled, "Guard 2 es controlado por humano")
-
-	net_mgr.disconnect_network()
-
-# ------------------------------------------------------------------------------
-# 5. Restricción de captura de input solo a la entidad autorizada
-# ------------------------------------------------------------------------------
-
-func test_local_input_processing_restricted_to_authority() -> void:
-	var net_mgr: NetManagerNode = get_node_or_null("/root/NetManager")
-	net_mgr.start_host(7777, 4)
-
-	var guard: GuardController3D = autofree(GuardController3D.new())
-	guard.name = "GuardRemote"
-	guard.set_multiplayer_authority(2) # Remoto, no local (local es 1)
-	guard.is_ai_controlled = false
-	add_child_autofree(guard)
-
-	var thief: ThiefController3D = autofree(ThiefController3D.new())
-	thief.name = "ThiefLocal"
-	thief.set_multiplayer_authority(1) # Local
-	add_child_autofree(thief)
-
-	await wait_physics_frames(1)
-
-	assert_false(guard.is_multiplayer_authority(), "Guard es remoto")
-	assert_true(thief.is_multiplayer_authority(), "Thief es local")
-
-	var initial_input: Vector2 = guard.current_input_dir
-	guard._physics_process(0.016)
-	assert_eq(guard.current_input_dir, initial_input, "Guard remoto no procesa input local")
+	# Los roles guard_N mapean a guards[N-1] en orden de escena
+	var session: NetSession = map.get_node("NetSession") as NetSession
+	assert_not_null(session, "El mapa con red crea NetSession")
+	assert_eq(session.actor_for_role(NetManagerNode.ROLE_THIEF), map.thief, "thief → map.thief")
+	assert_eq(
+		session.actor_for_role(NetManagerNode.ROLE_GUARD_1), map.guards[0], "guard_1 → guards[0]"
+	)
+	assert_eq(
+		session.actor_for_role(NetManagerNode.ROLE_GUARD_2), map.guards[1], "guard_2 → guards[1]"
+	)
 
 	net_mgr.disconnect_network()
 
+
 # ------------------------------------------------------------------------------
-# 6. Vinculación de cámara y HUD según local_role
+# 5. El servidor dedicado no sigue a ningún jugador local
 # ------------------------------------------------------------------------------
 
-func test_camera_and_hud_binding_to_local_role() -> void:
-	var net_mgr: NetManagerNode = get_node_or_null("/root/NetManager")
-	net_mgr.start_host(7777, 4)
-	net_mgr.assign_role(1, NetManagerNode.ROLE_GUARD_1)
+
+func test_dedicated_server_has_no_local_player() -> void:
+	var net_mgr: NetManagerNode = NetManager
+	net_mgr.start_dedicated_server(7777)
+	net_mgr.register_player(2, "Guardia1", NetManagerNode.ROLE_GUARD_1)
 
 	var map_scene: PackedScene = load(MAP_SCENE_PATH)
 	var map: Node3D = autofree(map_scene.instantiate())
 	add_child_autofree(map)
 	await wait_physics_frames(1)
 
-	var guard1_node: CharacterBody3D = map.get_node("GuardPlayer1")
-	assert_eq(map.local_player, guard1_node, "local_player configurado a Guard 1")
+	assert_null(map.local_player, "local_player nulo en servidor dedicado")
 
 	var hud_node: CanvasLayer = map.get_node("HUD84")
-	assert_eq(hud_node.target_player, guard1_node, "HUD target_player vinculado a Guard 1")
+	assert_eq(hud_node.target_player, map.thief, "HUD sigue al ladrón en servidor dedicado")
 
 	net_mgr.disconnect_network()
 
-# ------------------------------------------------------------------------------
-# 7. Sincronización continua de red e interpolación
-# ------------------------------------------------------------------------------
-
-func test_continuous_replication_sync_and_interpolation() -> void:
-	var player: PlayerBase3D = autofree(PlayerBase3D.new())
-	add_child_autofree(player)
-	await wait_physics_frames(1)
-
-	player.global_position = Vector3.ZERO
-	var target_pos: Vector3 = Vector3(8.0, 0.0, 4.0)
-	var target_vel: Vector3 = Vector3(3.0, 0.0, 1.5)
-	var target_look: Vector3 = Vector3(12.0, 0.0, 4.0)
-
-	player.set_net_transform(target_pos, target_vel)
-	player.look_target_position = target_look
-	assert_true(player.is_net_interpolating, "Bandera de interpolación de red activada")
-
-	for i in range(10):
-		player.update_presentation(0.05)
-
-	assert_gt(player.global_position.x, 0.0, "Interpolación avanza hacia objetivo X")
-	assert_gt(player.global_position.z, 0.0, "Interpolación avanza hacia objetivo Z")
-	assert_eq(player.velocity, target_vel, "Velocidad de replicación asignada")
-	assert_ne(player.rotation.y, 0.0, "Rotación orientada al objetivo de mirada")
 
 # ------------------------------------------------------------------------------
-# 8. Modo local / offline mantiene comportamiento original
+# 6. Modo local / offline mantiene comportamiento original
 # ------------------------------------------------------------------------------
+
 
 func test_offline_mode_retains_singleplayer_behavior() -> void:
-	var net_mgr: NetManagerNode = get_node_or_null("/root/NetManager")
+	var net_mgr: NetManagerNode = NetManager
 	if multiplayer.multiplayer_peer != null:
 		net_mgr.disconnect_network()
 
@@ -237,14 +192,16 @@ func test_offline_mode_retains_singleplayer_behavior() -> void:
 	var hud_node: CanvasLayer = map.get_node("HUD84")
 	assert_eq(hud_node.target_player, thief_node, "HUD vinculado a Thief en offline")
 
+
 # ------------------------------------------------------------------------------
-# 9. Handshake de conexión por Loopback 127.0.0.1 (Criterio 8)
+# 7. Handshake de conexión por Loopback 127.0.0.1
 # ------------------------------------------------------------------------------
 
+
 func test_loopback_connection_handshake() -> void:
-	var net_mgr: NetManagerNode = get_node_or_null("/root/NetManager")
-	var host_err: Error = net_mgr.start_host(7789, 4)
-	assert_eq(host_err, OK, "Host iniciado en puerto 7789")
+	var net_mgr: NetManagerNode = NetManager
+	var server_err: Error = net_mgr.start_dedicated_server(7789)
+	assert_eq(server_err, OK, "Servidor dedicado iniciado en puerto 7789")
 
 	var client_peer: ENetMultiplayerPeer = ENetMultiplayerPeer.new()
 	var client_err: Error = client_peer.create_client("127.0.0.1", 7789)
@@ -260,7 +217,7 @@ func test_loopback_connection_handshake() -> void:
 			break
 		await wait_physics_frames(2)
 
-	assert_true(is_connected, "Handshake exitoso entre Host y Cliente por loopback")
+	assert_true(is_connected, "Handshake exitoso entre servidor dedicado y cliente por loopback")
 
 	client_peer.close()
 	net_mgr.disconnect_network()
