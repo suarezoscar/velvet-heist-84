@@ -34,7 +34,7 @@
     {
       "name": "palette_materials",
       "pass": true,
-      "detail": "Materiales válidos (BrassGold, Steel80s, BakeliteBlack)."
+      "detail": "Materiales válidos (BakeliteBlack, BrassGold, Steel80s)."
     },
     {
       "name": "no_procedural_nodes",

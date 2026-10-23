@@ -34,7 +34,7 @@
     {
       "name": "palette_materials",
       "pass": true,
-      "detail": "Materiales válidos (PaperWhite, CashGreen)."
+      "detail": "Materiales válidos (CashGreen, PaperWhite)."
     },
     {
       "name": "no_procedural_nodes",

@@ -424,7 +424,7 @@ def check_palette_materials(visual_objects: List[bpy.types.Object], spec: Dict[s
     origin = source.get("origin") if isinstance(source, dict) else "procedural"
     is_procedural = origin == "procedural"
 
-    for mat in materials_found:
+    for mat in sorted(materials_found, key=lambda m: m.name):
         if mat.name not in allowed_materials:
             errors.append(f"El material '{mat.name}' no está en la lista 'materials' de la ficha.")
             continue
@@ -439,7 +439,7 @@ def check_palette_materials(visual_objects: List[bpy.types.Object], spec: Dict[s
 
     passed = len(errors) == 0
     detail = (
-        f"Materiales válidos ({', '.join(m.name for m in materials_found)})."
+        f"Materiales válidos ({', '.join(sorted(m.name for m in materials_found))})."
         if passed
         else " ; ".join(errors)
     )

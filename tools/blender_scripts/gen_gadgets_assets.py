@@ -73,31 +73,6 @@ def apply_bevel(obj, width=0.01, segments=1):
     bpy.ops.object.modifier_apply(modifier="bevel_mod")
 
 
-def compute_visual_bounds(visual_objects):
-    """Calcula la caja delimitadora AABB de una lista de objetos visuales."""
-    all_corners = []
-    for obj in visual_objects:
-        if obj.type == "MESH" and obj.bound_box:
-            for corner in obj.bound_box:
-                world_corner = obj.matrix_world @ mathutils.Vector(corner)
-                all_corners.append(world_corner)
-
-    if not all_corners:
-        return mathutils.Vector((0, 0, 0)), mathutils.Vector((0, 0, 0))
-
-    min_v = mathutils.Vector((
-        min(v.x for v in all_corners),
-        min(v.y for v in all_corners),
-        min(v.z for v in all_corners),
-    ))
-    max_v = mathutils.Vector((
-        max(v.x for v in all_corners),
-        max(v.y for v in all_corners),
-        max(v.z for v in all_corners),
-    ))
-    return min_v, max_v
-
-
 def normalize_and_apply_visuals(visual_objects):
     """Aplica transformaciones previas a los objetos visuales y traslada
 

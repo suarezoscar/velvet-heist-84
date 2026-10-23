@@ -34,7 +34,7 @@
     {
       "name": "palette_materials",
       "pass": true,
-      "detail": "Materiales válidos (MahoganyWood, BrassGold, CarpetWine, GlassClear)."
+      "detail": "Materiales válidos (BrassGold, CarpetWine, GlassClear, MahoganyWood)."
     },
     {
       "name": "no_procedural_nodes",

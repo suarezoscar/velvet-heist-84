@@ -213,7 +213,7 @@ def run_test_suite():
     # =========================================================================
     # Criterio 3: test_pivot_tolerance_*
     # =========================================================================
-    print("\n>>> CRITERIO 3: Tolerancias de pivote y centrado (pivot_bottom_center)")
+    print("\n>>> CRITERIO 3: Tolerancias de pivote y centrado (pivot_position)")
 
     spec_pivot_tol = make_valid_spec(name="pivot_tol_test", dimensions=[0.25, 0.25, 0.25])
 
@@ -230,7 +230,7 @@ def run_test_suite():
     def test_pivot_tolerance_base_fail():
         # Base a Z=0.003m > PIVOT_Z_TOL (0.002m) -> FALLA
         assert_check_fails(
-            "pivot_bottom_center",
+            "pivot_position",
             "test_pivot_tolerance_base_fail: Falla con base a Z=0.003m (3 mm)",
             lambda: setup_pivot_cube(0.0, 0.0, 0.003),
             spec_pivot_tol,
@@ -239,7 +239,7 @@ def run_test_suite():
     def test_pivot_tolerance_base_pass():
         # Base a Z=0.001m <= PIVOT_Z_TOL (0.002m) -> PASA
         assert_check_passes(
-            "pivot_bottom_center",
+            "pivot_position",
             "test_pivot_tolerance_base_pass: Pasa con base a Z=0.001m (1 mm)",
             lambda: setup_pivot_cube(0.0, 0.0, 0.001),
             spec_pivot_tol,
@@ -248,7 +248,7 @@ def run_test_suite():
     def test_pivot_tolerance_x_fail():
         # Centro X en 0.010m (1 cm) > tol 0.005m -> FALLA
         assert_check_fails(
-            "pivot_bottom_center",
+            "pivot_position",
             "test_pivot_tolerance_x_fail: Falla con centro X a 0.010m (1 cm)",
             lambda: setup_pivot_cube(0.010, 0.0, 0.0),
             spec_pivot_tol,
@@ -257,7 +257,7 @@ def run_test_suite():
     def test_pivot_tolerance_x_pass():
         # Centro X en 0.002m (2 mm) <= tol 0.005m -> PASA
         assert_check_passes(
-            "pivot_bottom_center",
+            "pivot_position",
             "test_pivot_tolerance_x_pass: Pasa con centro X a 0.002m (2 mm)",
             lambda: setup_pivot_cube(0.002, 0.0, 0.0),
             spec_pivot_tol,
@@ -446,12 +446,12 @@ def run_test_suite():
 
             bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0.5))
             col = bpy.context.active_object
-            col.name = "SafeBox-col"
+            col.name = "SafeBox-colonly"
             bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
 
         assert_check_passes(
             "snake_case_names",
-            "test_names_safebox_pass: Pasa SafeBox_Mesh y SafeBox-col",
+            "test_names_safebox_pass: Pasa SafeBox_Mesh y SafeBox-colonly",
             setup,
             make_valid_spec(name="safebox_asset", materials=["Steel80s"], collision=True),
         )
@@ -500,7 +500,7 @@ def run_test_suite():
         obj.data.materials.append(mat)
 
     spec_pivot = make_valid_spec(name="broken_pivot")
-    assert_check_fails("pivot_bottom_center", "Rechazar base inferior en Z=0.5m (esperado Z=0.0m)", setup_offset_pivot, spec_pivot)
+    assert_check_fails("pivot_position", "Rechazar base inferior en Z=0.5m (esperado Z=0.0m)", setup_offset_pivot, spec_pivot)
 
     # Dimensiones fuera de tolerancia (+25%)
     def setup_wrong_dimensions():
@@ -566,7 +566,7 @@ def run_test_suite():
         obj.data.materials.append(mat)
 
     spec_col = make_valid_spec(name="broken_collision", collision=True)
-    assert_check_fails("collision_mesh", "Rechazar ausencia de malla de colisión '-col' requerida", setup_missing_collision, spec_col)
+    assert_check_fails("collision_mesh", "Rechazar ausencia de malla de colisión '-colonly' requerida", setup_missing_collision, spec_col)
 
     # Comprobación de versión de Blender
     def test_blender_version_mismatch():
