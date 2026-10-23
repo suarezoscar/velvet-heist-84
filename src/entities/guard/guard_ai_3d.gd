@@ -41,6 +41,8 @@ func _ready() -> void:
 		_nav_agent.radius = 0.4
 	SignalBus.noise_emitted_3d.connect(_on_noise_emitted)
 	SignalBus.thief_spotted.connect(_on_thief_spotted)
+	if _guard != null and _guard.has_signal("thief_perceived"):
+		_guard.thief_perceived.connect(_on_thief_perceived)
 	_find_thief.call_deferred()
 
 
@@ -150,3 +152,7 @@ func _on_thief_spotted(pos: Vector3) -> void:
 		investigation_point = pos
 		_investigate_timer = SPOTTED_INVESTIGATE_TIME
 		current_state = AIState.INVESTIGATE
+
+
+func _on_thief_perceived(_pos: Vector3) -> void:
+	current_state = AIState.CHASE

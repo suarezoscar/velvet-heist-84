@@ -105,9 +105,12 @@ func reset_baton_hits() -> void:
 ## Actualiza la visibilidad autoritativa del ladrón frente a los guardias
 func set_stealth_visibility(is_visible_to_guards: bool) -> void:
 	is_detected_by_guard = is_visible_to_guards
-	# El jugador local siempre ve a su propio ladrón en vista isométrica
+
+
+## Actualiza la visibilidad de la presentación para el observador local en esta máquina
+func set_visible_to_local_viewer(is_visible: bool) -> void:
 	if visual_root != null:
-		visual_root.visible = true
+		visual_root.visible = is_visible
 
 
 ## Consulta autoritativa: si un equipo concreto puede ver al ladrón

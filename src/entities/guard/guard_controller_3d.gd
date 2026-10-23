@@ -4,6 +4,8 @@
 class_name GuardController3D
 extends PlayerBase3D
 
+signal thief_perceived(position: Vector3)
+
 ## Ruta del perfil de movimiento del guardia
 const MOVEMENT_PROFILE_PATH: String = "res://data/balance/movement_guard.tres"
 
@@ -12,10 +14,6 @@ const PERCEPTION_PROFILE_PATH: String = "res://data/balance/perception_guard.tre
 
 ## Cooldown entre impactos de porra en segundos
 const BATON_COOLDOWN_TIME: float = 0.75
-
-## Radio (m) del ruido de un golpe de porra y de una captura
-const BATON_SWING_NOISE_RADIUS: float = 4.5
-const CAPTURE_NOISE_RADIUS: float = 8.0
 
 ## Linterna Maglite asignada al personaje
 @export var maglite_light: SpotLight3D
@@ -26,6 +24,22 @@ const CAPTURE_NOISE_RADIUS: float = 8.0
 ## Identificador y modo de control de este guardia
 @export var is_ai_controlled: bool = false
 @export var guard_id: int = 1
+
+## Estado de la linterna Maglite
+var flashlight_on: bool = true:
+	get:
+		if maglite_light != null:
+			return maglite_light.visible
+		return _flashlight_on
+	set(value):
+		_flashlight_on = value
+		if maglite_light != null:
+			maglite_light.visible = value
+
+## Estado O2 de percepción y última posición conocida
+var is_perceiving_thief: bool = false
+var last_seen_position: Vector3 = Vector3.ZERO
+var last_seen_time_left: float = 0.0
 
 ## Parámetros de energía / estamina y recarga de porra
 var stamina: float = 100.0
@@ -42,6 +56,9 @@ var focused_interactive: Node3D:
 	get:
 		return interactor.current_target if interactor != null else null
 
+var _flashlight_on: bool = true
+var _senses: GuardSenses = GuardSenses.new()
+
 
 func _ready() -> void:
 	if movement_profile == null:
@@ -56,6 +73,11 @@ func _ready() -> void:
 	interactor.reach_distance = 1.8
 	add_child(interactor)
 
+	if maglite_light != null and perception != null:
+		maglite_light.spot_range = perception.flashlight_range
+		maglite_light.spot_angle = perception.flashlight_half_angle_deg
+		maglite_light.position = Vector3(0.0, perception.flashlight_height, -0.4)
+
 
 ## La IA (GuardAI3D) escribe su intención con apply_world_move(); la simulación es la misma
 ## que para un jugador humano, así que la gravedad, la estamina y los pasos se aplican igual.
@@ -65,6 +87,25 @@ func _physics_process(delta: float) -> void:
 
 func _process_local_actions() -> void:
 	_handle_interaction_input()
+	if (
+		InputMap.has_action("toggle_flashlight")
+		and Input.is_action_just_pressed("toggle_flashlight")
+	):
+		set_flashlight(not flashlight_on)
+
+
+## Enciende o apaga la linterna Maglite emitiendo ruido sonoro
+func set_flashlight(on: bool) -> void:
+	if flashlight_on == on:
+		return
+	flashlight_on = on
+	if maglite_light != null:
+		maglite_light.visible = on
+	if perception == null:
+		perception = load(PERCEPTION_PROFILE_PATH) as PerceptionProfile
+	SignalBus.noise_emitted_3d.emit(
+		global_position, perception.flashlight_toggle_noise_radius, &"guard"
+	)
 
 
 ## Simulación física del guardia: gestiona estamina para sprint, cooldown de porra y movimiento
@@ -76,9 +117,27 @@ func simulate_movement(delta: float) -> void:
 	super.simulate_movement(delta)
 
 
-## Actualiza la presentación visual del guardia y la orientación del foco Maglite
+## Actualiza rotación del guardia orientada a su objetivo de apuntado y la linterna
 func update_presentation(delta: float) -> void:
-	super.update_presentation(delta)
+	if is_net_interpolating:
+		if global_position.distance_squared_to(net_target_position) > 25.0:
+			global_position = net_target_position
+		else:
+			global_position = global_position.lerp(
+				net_target_position, clampf(15.0 * delta, 0.0, 1.0)
+			)
+		velocity = net_target_velocity
+
+	var to_target: Vector3 = (look_target_position - global_position).slide(Vector3.UP)
+	var face_dir: Vector3
+	if to_target.length() >= 0.1:
+		face_dir = to_target
+	else:
+		face_dir = velocity.slide(Vector3.UP)
+
+	if face_dir.length_squared() > 0.01:
+		rotation.y = lerp_angle(rotation.y, atan2(-face_dir.x, -face_dir.z), 0.25)
+
 	_update_maglite_orientation()
 
 
@@ -95,47 +154,35 @@ func _update_maglite_orientation() -> void:
 		maglite_light.look_at(look_target_position, up_vector)
 
 
-## Evalúa si el ladrón es detectable según:
-## 1. Proximidad inmediata y línea de visión (sin estar en arco ciego trasero)
-## 2. Cono de la linterna Maglite (ángulo y distancia sin oclusión de muros)
+## Evalúa si el ladrón es detectable según proximidad, cono de linterna o iluminación
 func check_detection_on_thief(thief: ThiefController3D) -> bool:
 	if thief == null:
 		return false
+	var lamps: Array[Lamp3D] = []
+	if is_inside_tree():
+		for node: Node in get_tree().get_nodes_in_group(&"lamps"):
+			if node is Lamp3D:
+				lamps.append(node as Lamp3D)
+	return _senses.detects(self, thief, lamps) != &""
+
+
+## Actualiza la percepción sobre el ladrón, emite thief_perceived y gestiona la persistencia O2
+func update_perception(thief: ThiefController3D, lamps: Array[Lamp3D], delta: float) -> void:
 	if perception == null:
-		perception = load(PERCEPTION_PROFILE_PATH)
+		perception = load(PERCEPTION_PROFILE_PATH) as PerceptionProfile
+	var detects_thief: bool = false
+	if thief != null:
+		detects_thief = _senses.detects(self, thief, lamps) != &""
 
-	var space_state: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
-	var eyes: Vector3 = global_position + Vector3(0.0, perception.eye_height, 0.0)
-	var forward: Vector3 = -global_transform.basis.z
-	var points: Array[Vector3] = PerceptionRules.visibility_points(thief, perception)
-
-	# 1. Chequeo por radio de proximidad inmediata y arco ciego
-	if (
-		PerceptionRules.horizontal_distance(global_position, thief.global_position)
-		<= perception.proximity_radius
-	):
-		if not PerceptionRules.is_in_rear_blind_arc(
-			global_position, forward, thief.global_position, perception.rear_blind_arc_deg
-		):
-			for pt: Vector3 in points:
-				if _has_line_of_sight(space_state, eyes, pt):
-					return true
-
-	# 2. Chequeo dentro del cono de la linterna Maglite
-	if maglite_light != null and maglite_light.visible:
-		var light_origin: Vector3 = maglite_light.global_position
-		var light_forward: Vector3 = -maglite_light.global_transform.basis.z.normalized()
-		var spot_range: float = maglite_light.spot_range
-		var spot_half_angle: float = deg_to_rad(maglite_light.spot_angle)
-
-		for pt: Vector3 in points:
-			var dir_to_point: Vector3 = (pt - light_origin).normalized()
-			if light_origin.distance_to(pt) <= spot_range:
-				if light_forward.angle_to(dir_to_point) <= spot_half_angle:
-					if _has_line_of_sight(space_state, light_origin, pt):
-						return true
-
-	return false
+	if detects_thief:
+		is_perceiving_thief = true
+		last_seen_position = thief.global_position
+		last_seen_time_left = perception.last_seen_linger
+		thief_perceived.emit(thief.global_position)
+	else:
+		is_perceiving_thief = false
+		if last_seen_time_left > 0.0:
+			last_seen_time_left = maxf(0.0, last_seen_time_left - delta)
 
 
 ## Valida de forma autoritativa en el servidor si un golpe cuerpo a cuerpo es legítimo
@@ -169,7 +216,9 @@ func swing_baton(target_thief: ThiefController3D = null) -> bool:
 	var valid_hit: bool = target_thief != null and validate_melee_hit(target_thief)
 
 	baton_cooldown = BATON_COOLDOWN_TIME
-	SignalBus.noise_emitted_3d.emit(global_position, BATON_SWING_NOISE_RADIUS, &"guard")
+	if perception == null:
+		perception = load(PERCEPTION_PROFILE_PATH) as PerceptionProfile
+	SignalBus.noise_emitted_3d.emit(global_position, perception.baton_swing_noise_radius, &"guard")
 
 	if valid_hit:
 		var is_captured: bool = true
@@ -183,9 +232,11 @@ func swing_baton(target_thief: ThiefController3D = null) -> bool:
 
 
 func _capture_thief() -> void:
+	if perception == null:
+		perception = load(PERCEPTION_PROFILE_PATH) as PerceptionProfile
 	var p_id: int = get_multiplayer_authority()
 	SignalBus.thief_captured.emit(p_id)
-	SignalBus.noise_emitted_3d.emit(global_position, CAPTURE_NOISE_RADIUS, &"guard")
+	SignalBus.noise_emitted_3d.emit(global_position, perception.capture_noise_radius, &"guard")
 
 
 func _process_stamina_and_sprint(delta: float, input_dir: Vector2) -> void:
