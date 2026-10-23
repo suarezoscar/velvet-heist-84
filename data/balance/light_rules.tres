@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="LightRulesProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/systems/lighting/light_rules_profile.gd" id="1_rules"]
+
+[resource]
+script = ExtResource("1_rules")
+switch_time = 0.5
+switch_noise_radius = 2.0
+unscrew_time = 2.0
+unscrew_noise_radius = 1.0
+rescrew_time = 3.0

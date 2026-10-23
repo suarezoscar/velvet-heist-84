@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="LampProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/systems/lighting/lamp_profile.gd" id="1_profile"]
+
+[resource]
+script = ExtResource("1_profile")
+lamp_type = &"desk"
+lit_radius = 2.0
+has_switch = true
+unscrewable = true
+light_color = Color(1, 0.8, 0.5, 1)
+light_energy = 1.0
