@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="NoiseFeedbackProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/systems/noise/noise_feedback_profile.gd" id="1_feedback"]
+
+[resource]
+script = ExtResource("1_feedback")
+pulse_interval = 0.6
+meter_full_scale = 10.0
+meter_hold_time = 0.15
+meter_fall_time = 0.4
+audio_edge_floor = 0.2
+own_step_volume_db = -22.0
+pitch_jitter = 0.06
+thief_hearing_mult = 1.5
+offscreen_marker_time = 2.0

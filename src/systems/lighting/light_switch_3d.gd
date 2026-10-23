@@ -58,7 +58,9 @@ func get_interaction_text(_actor: Node3D = null) -> String:
 func _complete_switch(actor: PlayerBase3D) -> void:
 	if rules == null:
 		rules = load(LIGHT_RULES_PATH) as LightRulesProfile
-	SignalBus.noise_emitted_3d.emit(global_position, rules.switch_noise_radius, actor.team_id)
+	NoiseEmit.emit(
+		global_position, rules.switch_noise_radius, actor.team_id, NoiseEmit.MECHANISM, actor
+	)
 
 	var circuit_lamps: Array[Lamp3D] = []
 	for node: Node in get_tree().get_nodes_in_group(&"lamps"):

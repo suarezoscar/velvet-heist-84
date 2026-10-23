@@ -281,5 +281,5 @@ func _process_footstep_cadence(delta: float) -> void:
 
 func _emit_step_sound() -> void:
 	var radius: float = compute_step_radius()
-	SignalBus.noise_emitted_3d.emit(global_position, radius, team_id)
+	NoiseEmit.emit(global_position, radius, team_id, NoiseEmit.STEP, self)
 	SignalBus.footprint_stepped_3d.emit(global_position, rotation.y)
