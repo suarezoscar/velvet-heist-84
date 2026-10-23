@@ -2,7 +2,7 @@
 ## Base común de los mapas jugables. Localiza al ladrón y a los guardias hijos directos,
 ## decide qué personaje controla esta máquina (como mucho uno), sigue a ese personaje con
 ## la cámara isométrica, vincula el HUD, evalúa la percepción de los guardias, ejecuta el
-## golpe de porra del jugador local y dibuja las ondas de sonido.
+## golpe de porra del jugador local y crea NoiseAudioPresenter y LocalViewPresenter.
 ## Dependencias: SignalBus, NetManager, GameManager. Nodos opcionales: IsometricCamera3D, HUD84.
 class_name HeistMap3D
 extends Node3D

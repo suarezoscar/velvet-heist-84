@@ -13,6 +13,7 @@ var _listener: AudioListener3D = null
 
 ## Inicializa el presentador acústico vinculando el mapa, balance y mezcla
 func setup(map: HeistMap3D, feedback: NoiseFeedbackProfile, mix: NoiseMix) -> void:
+	assert(feedback != null and mix != null)
 	_map = map
 	_feedback = feedback
 	_mix = mix
@@ -27,11 +28,14 @@ func setup(map: HeistMap3D, feedback: NoiseFeedbackProfile, mix: NoiseMix) -> vo
 
 	if _map != null and _map.hud != null:
 		var meter: NoiseMeter84 = _map.hud.get_noise_meter()
-		if meter != null and _feedback != null:
-			var fs: float = _feedback.meter_full_scale
-			var ht: float = _feedback.meter_hold_time
-			var ft: float = _feedback.meter_fall_time
-			meter.configure(fs, ht, ft, 3.5)
+		if meter != null:
+			var profile: PerceptionProfile = load("res://data/balance/perception_guard.tres")
+			meter.configure(
+				_feedback.meter_full_scale,
+				_feedback.meter_hold_time,
+				_feedback.meter_fall_time,
+				profile.proximity_radius
+			)
 		var is_thief_local: bool = _map.local_player == _map.thief and _map.thief != null
 		_map.hud.set_noise_meter_visible(is_thief_local)
 
@@ -74,9 +78,7 @@ func _on_noise_event_3d(
 		if p_base.surface_detector != null:
 			m = p_base.surface_detector.get_surface_noise_multiplier()
 
-	var streams: Array[AudioStream] = []
-	if _mix != null:
-		streams = _mix.streams_for(category, m)
+	var streams: Array[AudioStream] = _mix.streams_for(category, m)
 
 	var player: Node = null
 
@@ -84,24 +86,15 @@ func _on_noise_event_3d(
 		if not streams.is_empty():
 			var player_2d: AudioStreamPlayer = AudioStreamPlayer.new()
 			if category == &"step":
-				var full_scale: float = 10.0
-				var base_vol: float = -22.0
-				if _feedback != null:
-					full_scale = _feedback.meter_full_scale
-					base_vol = _feedback.own_step_volume_db
-				var ratio: float = clampf(radius / full_scale, 0.05, 1.0)
-				player_2d.volume_db = base_vol + linear_to_db(ratio)
+				var ratio: float = clampf(radius / _feedback.meter_full_scale, 0.05, 1.0)
+				player_2d.volume_db = _feedback.own_step_volume_db + linear_to_db(ratio)
 			else:
-				var cat_db: float = 0.0
-				if _mix != null:
-					cat_db = _mix.category_db(category)
-				player_2d.volume_db = cat_db
+				player_2d.volume_db = _mix.category_db(category)
 			player = player_2d
 	else:
-		var hearing_mult: float = 1.5
-		if _feedback != null:
-			hearing_mult = _feedback.thief_hearing_mult
-		if not PerceptionRules.noise_reaches(local, pos, radius, source_team, hearing_mult):
+		if not PerceptionRules.noise_reaches(
+			local, pos, radius, source_team, _feedback.thief_hearing_mult
+		):
 			return
 
 		if not streams.is_empty():
@@ -111,16 +104,10 @@ func _on_noise_event_3d(
 
 			var d: float = PerceptionRules.horizontal_distance(local.global_position, pos)
 			var r_ef: float = PerceptionRules.effective_radius(
-				local, radius, source_team, hearing_mult
+				local, radius, source_team, _feedback.thief_hearing_mult
 			)
-			var edge_floor: float = 0.2
-			if _feedback != null:
-				edge_floor = _feedback.audio_edge_floor
-			var g: float = NoiseAudioRules.gain(d, r_ef, edge_floor)
-			var cat_db: float = 0.0
-			if _mix != null:
-				cat_db = _mix.category_db(category)
-			player_3d.volume_db = cat_db + linear_to_db(g)
+			var g: float = NoiseAudioRules.gain(d, r_ef, _feedback.audio_edge_floor)
+			player_3d.volume_db = _mix.category_db(category) + linear_to_db(g)
 			player = player_3d
 
 		if category != &"step":
@@ -129,18 +116,14 @@ func _on_noise_event_3d(
 				if local == _map.thief and source_team == &"guard":
 					role = &"guard"
 				if _map.hud != null:
-					var marker_time: float = 2.0
-					if _feedback != null:
-						marker_time = _feedback.offscreen_marker_time
-					_map.hud.show_offscreen_noise(pos, marker_time, role)
+					_map.hud.show_offscreen_noise(pos, _feedback.offscreen_marker_time, role)
 
 	if player != null:
 		var stream_idx: int = rng.randi_range(0, streams.size() - 1)
 		player.set("stream", streams[stream_idx])
-		var jitter: float = 0.06
-		if _feedback != null:
-			jitter = _feedback.pitch_jitter
-		player.set("pitch_scale", 1.0 + rng.randf_range(-jitter, jitter))
+		player.set(
+			"pitch_scale", 1.0 + rng.randf_range(-_feedback.pitch_jitter, _feedback.pitch_jitter)
+		)
 		player.add_to_group(&"noise_audio")
 		add_child(player)
 		if player is Node3D:
