@@ -359,11 +359,7 @@ def run_test_suite():
             obj = bpy.context.active_object
             obj.name = "lower_mesh"
             bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
-            mat = bpy.data.materials.new(name="steel80s")
-            mat.use_nodes = True
-            bsdf = mat.node_tree.nodes.get("Principled BSDF")
-            if bsdf is None:
-                bsdf = mat.node_tree.nodes.new("ShaderNodeBsdfPrincipled")
+            mat = create_pbr_material("steel80s", "Steel80s")
             obj.data.materials.append(mat)
 
         spec = make_valid_spec(materials=["steel80s"])
@@ -605,7 +601,6 @@ def run_test_suite():
         print(f"\n--- Test {tests_total}: Código de salida CLI ante asset inválido (esperado 1) ---")
         with tempfile.TemporaryDirectory() as tmpdir:
             clear_scene()
-            setup_bad_mesh = lambda: test_names_bad_mesh_fail  # recrear bad mesh
             bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0.5))
             obj = bpy.context.active_object
             obj.name = "Bad Mesh"
