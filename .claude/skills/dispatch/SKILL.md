@@ -4,7 +4,13 @@ description: Lanza un paquete aprobado de una FEAT en Antigravity CLI (agy) en s
 ---
 # /dispatch — orquestar un paquete con agy
 
-Uso: `/dispatch FEAT-XXX <N|qa>`. El script `tools/agy/dispatch.sh` es la fuente de verdad del comando de `agy`; su configuración está en `tools/agy/config.env`.
+Uso: `/dispatch FEAT-XXX <N|qa>`.
+- El script `tools/agy/dispatch.sh` es la fuente de verdad del comando del ejecutor, y su configuración está en `tools/agy/config.env`.
+- Hay dos ejecutores:
+  - `agy`, el de por defecto;
+  - `opencode`, con el modelo `OPENCODE_MODEL` y los permisos de `tools/agy/opencode.json`. Se elige con `--executor opencode`.
+- Con opencode, un comando denegado no corta la sesión: el resumen lo lista como aviso.
+- Si `agy` se queda sin cuota, cambia a opencode.
 
 ## 1. Comprobar antes de lanzar
 - La FEAT está `aprobada` y commiteada en su **rama de integración** (cabecera de la FEAT; por defecto `master`), que es la rama de la copia principal. Si falta el commit, hazlo tú: `docs(XXX): spec aprobada`, solo con la FEAT; es la ejecución de la aprobación del usuario. Si la FEAT usa una rama `feat/XXX-slug`, créala desde `master`, commitea ahí la FEAT y deja la copia principal en esa rama mientras dure.
