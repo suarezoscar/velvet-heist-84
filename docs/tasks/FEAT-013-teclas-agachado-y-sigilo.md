@@ -1,6 +1,6 @@
 # FEAT-013 — Ctrl agacha, C es sigilo
 
-- **Estado**: aprobada (2026-10-23; decisión 1A del usuario tras probar el juego)
+- **Estado**: hecha (2026-10-23; decisión 1A del usuario tras probar el juego)
 - **Diseño**: `n/a — técnica` (solo cambia qué tecla dispara cada acción; las reglas de `stealth.md` no cambian)
 - **Revisor**: `reviewer` (Claude)
 - **Rama de integración**: `master`
@@ -36,7 +36,7 @@ Ninguno.
 ## Estado de los paquetes
 | PKG | Agente | Rama | Depende de | Estado | Vueltas | Notas |
 |---|---|---|---|---|---|---|
-| PKG-1 | integrator | `feat/013-pkg1` | — | pendiente | 0 | |
+| PKG-1 | integrator | `feat/013-pkg1` | — | integrado | 0 | PR #34 |
 
 ## Paquetes de ejecución
 
@@ -49,3 +49,7 @@ Ninguno.
 - **Cambio**: el del contrato. Nada más en `project.godot`.
 - **Tests**: no hay tests nuevos; el revisor comprueba los criterios 1 a 3 en Godot headless.
 - **Comandos de cierre**: `./tools/ci/import.sh` · `python3 tools/ci/check_scope.py` · `./tools/ci/run_tests.sh`.
+
+## Cierre (2026-10-23)
+- PR #34 integrado con CI verde. El revisor comprobó los criterios 1-3 en Godot headless (Ctrl dispara solo `crouch` y C solo `sneak`) y `run_tests` 98/98.
+- Aviso para el futuro: no añadir coincidencia exacta (`exact_match`) a `crouch`, porque Ctrl llega con el modificador Ctrl activo.
