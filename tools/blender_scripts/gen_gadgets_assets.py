@@ -35,6 +35,7 @@ try:
     import bpy
     import mathutils
     from lib.palette import PALETTE, create_pbr_material
+    from lib.blender_utils import add_box_collision, center_by_pivot
 except ImportError:
     print("Error: Este script debe ejecutarse dentro de Blender headless (blender -b -P <script.py>).")
     sys.exit(1)
@@ -97,48 +98,18 @@ def compute_visual_bounds(visual_objects):
     return min_v, max_v
 
 
-def normalize_and_apply_visuals(visual_objects, exp_x: float, exp_y: float, exp_z: float):
+def normalize_and_apply_visuals(visual_objects):
+    """Aplica transformaciones previas a los objetos visuales y traslada
+
+    a bottom_center usando center_by_pivot (sin escalado no uniforme).
     """
-    Ajusta con precisión milimétrica la escala y posición de los objetos visuales para
-    cumplir exactamente la ficha técnica:
-    - Base inferior en Z = 0.0
-    - Centrado perfecto en XY = (0.0, 0.0)
-    - Dimensiones totales exactas (exp_x, exp_y, exp_z)
-    - Escala (1, 1, 1) y rotación (0, 0, 0) aplicadas
-    """
-    # 1. Aplicar transformaciones previas a nivel de objeto
     for obj in visual_objects:
         bpy.context.view_layer.objects.active = obj
         obj.select_set(True)
         bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
         obj.select_set(False)
 
-    # 2. Medir bounding box actual
-    min_v, max_v = compute_visual_bounds(visual_objects)
-    curr_w = max_v.x - min_v.x
-    curr_d = max_v.y - min_v.y
-    curr_h = max_v.z - min_v.z
-
-    scale_x = exp_x / curr_w if curr_w > 1e-5 else 1.0
-    scale_y = exp_y / curr_d if curr_d > 1e-5 else 1.0
-    scale_z = exp_z / curr_h if curr_h > 1e-5 else 1.0
-
-    curr_cx = (min_v.x + max_v.x) / 2.0
-    curr_cy = (min_v.y + max_v.y) / 2.0
-    curr_min_z = min_v.z
-
-    # 3. Transformar vértices de cada malla directamente
-    for obj in visual_objects:
-        if obj.type == "MESH" and obj.data:
-            mesh = obj.data
-            for v in mesh.vertices:
-                v.co.x = (v.co.x - curr_cx) * scale_x
-                v.co.y = (v.co.y - curr_cy) * scale_y
-                v.co.z = (v.co.z - curr_min_z) * scale_z
-            mesh.update()
-            obj.location = (0.0, 0.0, 0.0)
-            obj.rotation_euler = (0.0, 0.0, 0.0)
-            obj.scale = (1.0, 1.0, 1.0)
+    center_by_pivot(visual_objects, "bottom_center")
 
 
 # =============================================================================
@@ -271,16 +242,8 @@ def generate_alarm_clock(filename: str = "alarm_clock.glb"):
     rear_foot.data.materials.append(mat_brass)
     visual_objects.append(rear_foot)
 
-    # Normalizar dimensiones visuales exactamente a la ficha
-    normalize_and_apply_visuals(visual_objects, exp_x=0.18, exp_y=0.12, exp_z=0.22)
-
-    # Malla de colisión estática para Godot
-    bpy.ops.mesh.primitive_cube_add(
-        size=1.0, location=(0.0, 0.0, 0.11), scale=(0.18, 0.12, 0.22)
-    )
-    col = bpy.context.active_object
-    col.name = "alarm_clock-col"
-    bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
+    normalize_and_apply_visuals(visual_objects)
+    add_box_collision(visual_objects, "alarm_clock")
 
     export_glb(filename)
 
@@ -354,16 +317,8 @@ def generate_wood_wedge(filename: str = "wood_wedge.glb"):
     apply_bevel(obj, width=0.003, segments=1)
     visual_objects.append(obj)
 
-    # Normalizar dimensiones visuales exactamente a la ficha
-    normalize_and_apply_visuals(visual_objects, exp_x=0.25, exp_y=0.08, exp_z=0.08)
-
-    # Malla de colisión estática para Godot
-    bpy.ops.mesh.primitive_cube_add(
-        size=1.0, location=(0.0, 0.0, 0.04), scale=(0.25, 0.08, 0.08)
-    )
-    col = bpy.context.active_object
-    col.name = "wood_wedge-col"
-    bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
+    normalize_and_apply_visuals(visual_objects)
+    add_box_collision(visual_objects, "wood_wedge")
 
     export_glb(filename)
 
@@ -495,8 +450,7 @@ def generate_stethoscope(filename: str = "stethoscope.glb"):
     bell_stem.data.materials.append(mat_brass)
     visual_objects.append(bell_stem)
 
-    # Normalizar dimensiones visuales exactamente a la ficha
-    normalize_and_apply_visuals(visual_objects, exp_x=0.26, exp_y=0.32, exp_z=0.05)
+    normalize_and_apply_visuals(visual_objects)
 
     export_glb(filename)
 
@@ -589,8 +543,7 @@ def generate_inspection_mirror(filename: str = "inspection_mirror.glb"):
     mirror_surface.data.materials.append(mat_chrome)
     visual_objects.append(mirror_surface)
 
-    # Normalizar dimensiones visuales exactamente a la ficha
-    normalize_and_apply_visuals(visual_objects, exp_x=0.10, exp_y=0.38, exp_z=0.04)
+    normalize_and_apply_visuals(visual_objects)
 
     export_glb(filename)
 
@@ -704,16 +657,8 @@ def generate_tripwire_bell(filename: str = "tripwire_bell.glb"):
     pull_ring.data.materials.append(mat_brass)
     visual_objects.append(pull_ring)
 
-    # Normalizar dimensiones visuales exactamente a la ficha
-    normalize_and_apply_visuals(visual_objects, exp_x=0.12, exp_y=0.14, exp_z=0.18)
-
-    # Malla de colisión estática para Godot
-    bpy.ops.mesh.primitive_cube_add(
-        size=1.0, location=(0.0, 0.0, 0.09), scale=(0.12, 0.14, 0.18)
-    )
-    col = bpy.context.active_object
-    col.name = "tripwire_bell-col"
-    bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
+    normalize_and_apply_visuals(visual_objects)
+    add_box_collision(visual_objects, "tripwire_bell")
 
     export_glb(filename)
 

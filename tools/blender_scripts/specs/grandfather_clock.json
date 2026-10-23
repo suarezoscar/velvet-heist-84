@@ -1,0 +1,16 @@
+{
+  "name": "grandfather_clock",
+  "feat": "FEAT-010",
+  "description": "Reloj de pie clásico de madera con péndulo y esfera analógica.",
+  "dimensions": [0.626, 0.426, 2.191],
+  "pivot": "bottom_center",
+  "max_triangles": 5000,
+  "materials": ["vintage_grandfather_clock_01", "vintage_grandfather_clock_01_glass"],
+  "collision": true,
+  "source": {
+    "origin": "polyhaven",
+    "url": "https://polyhaven.com/a/vintage_grandfather_clock_01",
+    "license": "CC0",
+    "author": "Yann Kervran, James Ray Cock"
+  }
+}

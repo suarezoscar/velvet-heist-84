@@ -26,6 +26,7 @@ try:
     import bpy
     import mathutils
     from lib.palette import PALETTE, create_pbr_material
+    from lib.blender_utils import center_by_pivot
 except ImportError:
     print("Error: Este script debe ejecutarse dentro del contexto de Blender (blender -b -P <script.py>).")
     sys.exit(1)
@@ -63,54 +64,7 @@ def apply_bevel(obj, width=0.02, segments=2):
     bpy.ops.object.modifier_apply(modifier="Bevel")
 
 
-def center_on_aabb(objects: list) -> None:
-    """
-    Calcula la AABB de mundo de las mallas visuales (sin -col / -colonly) de objects;
-    desplaza los vértices de todas las mallas de objects (incluida la colisión) en
-    (-centro_x, -centro_y, -min_z); deja location, rotation_euler y scale en identidad;
-    solo traslada, nunca escala.
-    """
-    visual_objs = [
-        obj for obj in objects
-        if getattr(obj, "type", None) == "MESH"
-        and not obj.name.lower().endswith("-col")
-        and not obj.name.lower().endswith("-colonly")
-    ]
-    if not visual_objs:
-        return
 
-    all_corners = []
-    for obj in visual_objs:
-        if obj.bound_box:
-            for corner in obj.bound_box:
-                all_corners.append(obj.matrix_world @ mathutils.Vector(corner))
-
-    if not all_corners:
-        return
-
-    min_x = min(v.x for v in all_corners)
-    max_x = max(v.x for v in all_corners)
-    min_y = min(v.y for v in all_corners)
-    max_y = max(v.y for v in all_corners)
-    min_z = min(v.z for v in all_corners)
-
-    center_x = (min_x + max_x) / 2.0
-    center_y = (min_y + max_y) / 2.0
-
-    offset = mathutils.Vector((-center_x, -center_y, -min_z))
-
-    mesh_objs = [obj for obj in objects if getattr(obj, "type", None) == "MESH"]
-    for obj in mesh_objs:
-        mat_world = obj.matrix_world.copy()
-        for v in obj.data.vertices:
-            v.co = (mat_world @ v.co) + offset
-        obj.matrix_world = mathutils.Matrix.Identity(4)
-        obj.location = (0.0, 0.0, 0.0)
-        obj.rotation_euler = (0.0, 0.0, 0.0)
-        obj.scale = (1.0, 1.0, 1.0)
-        obj.data.update()
-
-    bpy.context.view_layer.update()
 
 
 # 1. Suelos modulares (2.0m x 2.0m x 0.1m, pivote en Z=0.0)
@@ -133,7 +87,7 @@ def generate_floor(filename: str, mat_name: str, prefix: str):
         size=1.0, location=(0.0, 0.0, 0.05), scale=(2.0, 2.0, 0.1)
     )
     col = bpy.context.active_object
-    col.name = f"{prefix}-col"
+    col.name = f"{prefix}-colonly"
     bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
 
     export_glb(filename)
@@ -159,7 +113,7 @@ def generate_wall(filename: str):
         size=1.0, location=(0.0, 0.0, 1.5), scale=(2.0, 0.2, 3.0)
     )
     col = bpy.context.active_object
-    col.name = "Wall_Mahogany-col"
+    col.name = "Wall_Mahogany-colonly"
     bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
 
     export_glb(filename)
@@ -204,10 +158,10 @@ def generate_safe_box(filename: str):
         size=1.0, location=(0.0, 0.0, 0.55), scale=(0.90, 0.90, 1.10)
     )
     col = bpy.context.active_object
-    col.name = "SafeBox-col"
+    col.name = "SafeBox-colonly"
     bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
 
-    center_on_aabb(list(bpy.data.objects))
+    center_by_pivot(list(bpy.data.objects), "bottom_center")
     export_glb(filename)
 
 
@@ -250,7 +204,7 @@ def generate_rotary_phone(filename: str):
         size=1.0, location=(0.0, 0.0, 0.13), scale=(0.38, 0.32, 0.26)
     )
     col = bpy.context.active_object
-    col.name = "RotaryPhone-col"
+    col.name = "RotaryPhone-colonly"
     bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
 
     export_glb(filename)
@@ -314,10 +268,10 @@ def generate_time_clock(filename: str):
         size=1.0, location=(0.02, 0.015, 0.30), scale=(0.44, 0.25, 0.60)
     )
     col = bpy.context.active_object
-    col.name = "TimeClock-col"
+    col.name = "TimeClock-colonly"
     bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
 
-    center_on_aabb(list(bpy.data.objects))
+    center_by_pivot(list(bpy.data.objects), "bottom_center")
     export_glb(filename)
 
 
@@ -395,7 +349,7 @@ def generate_escape_car(filename: str):
         size=1.0, location=(0.0, 0.0, 0.60), scale=(2.15, 4.46, 1.20)
     )
     col = bpy.context.active_object
-    col.name = "Car-col"
+    col.name = "Car-colonly"
     bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
 
     export_glb(filename)

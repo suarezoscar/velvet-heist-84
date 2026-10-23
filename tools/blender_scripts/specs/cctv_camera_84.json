@@ -1,0 +1,16 @@
+{
+  "name": "cctv_camera_84",
+  "feat": "FEAT-010",
+  "description": "Cámara de seguridad analógica ochentera para montaje en pared.",
+  "dimensions": [0.180, 0.505, 0.300],
+  "pivot": "back_center",
+  "max_triangles": 2000,
+  "materials": ["BakeliteBlack", "CctvCasing", "CctvLed", "CctvLens", "Steel80s"],
+  "collision": true,
+  "source": {
+    "origin": "procedural",
+    "url": "tools/blender_scripts/gen_museum_assets.py",
+    "license": "propia",
+    "author": "velvet-heist-84"
+  }
+}

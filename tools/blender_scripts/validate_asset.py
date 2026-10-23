@@ -18,7 +18,7 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-# Constantes del validador según FEAT-009
+# Constantes del validador según FEAT-009 y FEAT-010
 DIM_TOL_REL: float = 0.01
 DIM_TOL_MIN: float = 0.001
 PIVOT_Z_TOL: float = 0.002
@@ -29,6 +29,7 @@ ASSET_NAME_RE: str = r"^[a-z0-9_]+$"
 OBJECT_NAME_RE: str = r"^[A-Za-z0-9_]+(-col|-colonly)?$"
 MATERIAL_NAME_RE: str = r"^[A-Za-z0-9_]+$"
 SOURCE_ORIGINS: Tuple[str, ...] = ("procedural", "polyhaven", "mixamo", "otro")
+PIVOT_TYPES: Tuple[str, ...] = ("bottom_center", "top_center", "back_center")
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 LIB_DIR = SCRIPT_DIR / "lib"
@@ -175,8 +176,8 @@ def check_spec_schema(spec: Dict[str, Any]) -> Dict[str, Any]:
         errors.append(f"Campo 'dimensions' debe ser una lista de 3 números > 0: {dims!r}")
 
     pivot = spec.get("pivot")
-    if pivot != "bottom_center":
-        errors.append(f"Campo 'pivot' debe ser 'bottom_center': {pivot!r}")
+    if pivot not in PIVOT_TYPES:
+        errors.append(f"Campo 'pivot' debe ser uno de {PIVOT_TYPES}: {pivot!r}")
 
     max_tri = spec.get("max_triangles")
     if not isinstance(max_tri, int) or isinstance(max_tri, bool) or max_tri <= 0:
@@ -278,45 +279,66 @@ def compute_world_bounds(objects: List[bpy.types.Object]) -> Tuple[mathutils.Vec
     return min_v, max_v
 
 
-def check_pivot_bottom_center(visual_objects: List[bpy.types.Object], spec: Dict[str, Any]) -> Dict[str, Any]:
-    """Criterio 3: Origen y pivote en la base inferior central (Z=0, X=0, Y=0)."""
+def check_pivot_position(visual_objects: List[bpy.types.Object], spec: Dict[str, Any]) -> Dict[str, Any]:
+    """Criterio 3: Posición del pivote según tipo ('bottom_center', 'top_center', 'back_center')."""
     if not visual_objects:
-        return {"name": "pivot_bottom_center", "pass": False, "detail": "No se encontraron mallas visuales para calcular el pivote."}
+        return {"name": "pivot_position", "pass": False, "detail": "No se encontraron mallas visuales para calcular el pivote."}
 
+    pivot = spec.get("pivot", "bottom_center")
     dims = spec.get("dimensions")
     if (
         not isinstance(dims, (list, tuple))
-        or len(dims) < 2
-        or not all(isinstance(x, (int, float)) and not isinstance(x, bool) and x > 0 for x in dims[:2])
+        or len(dims) < 3
+        or not all(isinstance(x, (int, float)) and not isinstance(x, bool) and x > 0 for x in dims[:3])
     ):
-        return {"name": "pivot_bottom_center", "pass": False, "detail": "Campo 'dimensions' ausente o formato inválido en la ficha para calcular tolerancias de centrado."}
+        return {"name": "pivot_position", "pass": False, "detail": "Campo 'dimensions' ausente o formato inválido en la ficha para calcular tolerancias de centrado."}
 
     exp_x = float(dims[0])
     exp_y = float(dims[1])
+    exp_z = float(dims[2])
 
     min_v, max_v = compute_world_bounds(visual_objects)
     center_x = (min_v.x + max_v.x) / 2.0
     center_y = (min_v.y + max_v.y) / 2.0
+    center_z = (min_v.z + max_v.z) / 2.0
 
     errors = []
-    if abs(min_v.z) > PIVOT_Z_TOL:
-        errors.append(f"La base inferior del asset está en Z={min_v.z:.4f}m (esperado Z=0.0m ±{PIVOT_Z_TOL:.4f}m).")
-
     x_tol = max(PIVOT_XY_TOL_REL * exp_x, PIVOT_XY_TOL_MIN)
     y_tol = max(PIVOT_XY_TOL_REL * exp_y, PIVOT_XY_TOL_MIN)
+    z_tol = max(PIVOT_XY_TOL_REL * exp_z, PIVOT_XY_TOL_MIN)
 
-    if abs(center_x) > x_tol:
-        errors.append(f"El centro en X está desplazado a {center_x:.4f}m (esperado 0.0m ±{x_tol:.4f}m).")
-    if abs(center_y) > y_tol:
-        errors.append(f"El centro en Y está desplazado a {center_y:.4f}m (esperado 0.0m ±{y_tol:.4f}m).")
+    if pivot == "bottom_center":
+        if abs(min_v.z) > PIVOT_Z_TOL:
+            errors.append(f"La base inferior del asset está en Z={min_v.z:.4f}m (esperado Z=0.0m ±{PIVOT_Z_TOL:.4f}m).")
+        if abs(center_x) > x_tol:
+            errors.append(f"El centro en X está desplazado a {center_x:.4f}m (esperado 0.0m ±{x_tol:.4f}m).")
+        if abs(center_y) > y_tol:
+            errors.append(f"El centro en Y está desplazado a {center_y:.4f}m (esperado 0.0m ±{y_tol:.4f}m).")
+    elif pivot == "top_center":
+        if abs(max_v.z) > PIVOT_Z_TOL:
+            errors.append(f"La parte superior del asset está en Z={max_v.z:.4f}m (esperado Z=0.0m ±{PIVOT_Z_TOL:.4f}m).")
+        if abs(center_x) > x_tol:
+            errors.append(f"El centro en X está desplazado a {center_x:.4f}m (esperado 0.0m ±{x_tol:.4f}m).")
+        if abs(center_y) > y_tol:
+            errors.append(f"El centro en Y está desplazado a {center_y:.4f}m (esperado 0.0m ±{y_tol:.4f}m).")
+    elif pivot == "back_center":
+        min_dist_y = min(abs(min_v.y), abs(max_v.y))
+        if min_dist_y > PIVOT_Z_TOL:
+            errors.append(f"La cara trasera no está en el plano Y=0 (min(|min_y|, |max_y|) = {min_dist_y:.4f}m > ±{PIVOT_Z_TOL:.4f}m).")
+        if abs(center_x) > x_tol:
+            errors.append(f"El centro en X está desplazado a {center_x:.4f}m (esperado 0.0m ±{x_tol:.4f}m).")
+        if abs(center_z) > z_tol:
+            errors.append(f"El centro en Z está desplazado a {center_z:.4f}m (esperado 0.0m ±{z_tol:.4f}m).")
+    else:
+        errors.append(f"Tipo de pivote desconocido: {pivot!r}")
 
     passed = len(errors) == 0
     detail = (
-        f"Pivote en la base inferior central correcto: Z_min={min_v.z:.4f}m, Centro XY=({center_x:.4f}, {center_y:.4f})m."
+        f"Pivote {pivot} correcto."
         if passed
         else " ; ".join(errors)
     )
-    return {"name": "pivot_bottom_center", "pass": passed, "detail": detail}
+    return {"name": "pivot_position", "pass": passed, "detail": detail}
 
 
 def check_target_dimensions(visual_objects: List[bpy.types.Object], spec: Dict[str, Any]) -> Dict[str, Any]:
@@ -424,19 +446,45 @@ def check_palette_materials(visual_objects: List[bpy.types.Object], spec: Dict[s
     return {"name": "palette_materials", "pass": passed, "detail": detail}
 
 
-def check_no_procedural_nodes(visual_objects: List[bpy.types.Object]) -> Dict[str, Any]:
+def check_no_procedural_nodes(visual_objects: List[bpy.types.Object], spec: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """Sin nodos procedurales (Color Ramp, Ruido, etc.)."""
     errors = []
     checked_mats = set()
+
+    source = spec.get("source") if isinstance(spec, dict) else {}
+    origin = source.get("origin", "procedural") if isinstance(source, dict) else "procedural"
+    is_procedural = origin == "procedural"
+
+    forbidden_procedural = {
+        "ShaderNodeTexNoise", "TEX_NOISE",
+        "ShaderNodeTexVoronoi", "TEX_VORONOI",
+        "ShaderNodeValToRGB", "VALTORGB",
+        "ShaderNodeTexWave", "TEX_WAVE",
+        "ShaderNodeTexMusgrave", "TEX_MUSGRAVE",
+        "ShaderNodeTexMagic", "TEX_MAGIC",
+        "ShaderNodeTexGradient", "TEX_GRADIENT",
+        "ShaderNodeTexChecker", "TEX_CHECKER",
+        "ShaderNodeTexBrick", "TEX_BRICK",
+    }
 
     for obj in visual_objects:
         if obj.type == "MESH" and obj.data:
             for mat in obj.data.materials:
                 if mat and mat not in checked_mats:
                     checked_mats.add(mat)
-                    ok, msg = check_material_procedural_nodes(mat)
-                    if not ok:
-                        errors.append(f"Material '{mat.name}': {msg}")
+                    if is_procedural:
+                        ok, msg = check_material_procedural_nodes(mat)
+                        if not ok:
+                            errors.append(f"Material '{mat.name}': {msg}")
+                    else:
+                        if mat.use_nodes and mat.node_tree:
+                            for node in mat.node_tree.nodes:
+                                n_type = getattr(node, "type", "")
+                                bl_id = getattr(node, "bl_idname", "")
+                                if n_type in forbidden_procedural or bl_id in forbidden_procedural:
+                                    errors.append(
+                                        f"Material '{mat.name}': Usa nodo procedural prohibido: '{bl_id or n_type}' ({node.name})."
+                                    )
 
     passed = len(errors) == 0
     detail = "Todos los materiales usan Principled BSDF limpio sin nodos procedurales." if passed else " ; ".join(errors)
@@ -444,7 +492,19 @@ def check_no_procedural_nodes(visual_objects: List[bpy.types.Object]) -> Dict[st
 
 
 def check_collision_mesh(mesh_objects: List[bpy.types.Object], spec: Dict[str, Any]) -> Dict[str, Any]:
-    """Malla de colisión con sufijo -col si la ficha lo pide."""
+    """Malla de colisión con sufijo -colonly si la ficha lo pide.
+
+    Falla si existe cualquier objeto con sufijo '-col' (visible en Godot).
+    """
+    col_visible = [obj for obj in mesh_objects if obj.name.lower().endswith("-col")]
+    if col_visible:
+        names = ", ".join(obj.name for obj in col_visible)
+        return {
+            "name": "collision_mesh",
+            "pass": False,
+            "detail": f"Objeto '{names}' usa '-col' (visible en Godot); renombra a '-colonly'.",
+        }
+
     requires_collision = spec.get("collision")
     if not isinstance(requires_collision, bool):
         return {
@@ -453,14 +513,14 @@ def check_collision_mesh(mesh_objects: List[bpy.types.Object], spec: Dict[str, A
             "detail": "Campo 'collision' ausente o no booleano en la ficha.",
         }
 
-    col_objects = [obj for obj in mesh_objects if is_collision_object(obj)]
+    col_objects = [obj for obj in mesh_objects if obj.name.lower().endswith("-colonly")]
 
     if requires_collision:
         if not col_objects:
             return {
                 "name": "collision_mesh",
                 "pass": False,
-                "detail": "La ficha requiere colisión pero no se encontró ninguna malla con sufijo '-col' o '-colonly'.",
+                "detail": "La ficha requiere colisión pero no se encontró ninguna malla con sufijo '-colonly'.",
             }
         col_names = ", ".join(obj.name for obj in col_objects)
         return {
@@ -472,7 +532,7 @@ def check_collision_mesh(mesh_objects: List[bpy.types.Object], spec: Dict[str, A
         return {
             "name": "collision_mesh",
             "pass": True,
-            "detail": "La ficha no requiere colisión estática (-col).",
+            "detail": "La ficha no requiere colisión estática (-colonly).",
         }
 
 
@@ -490,11 +550,11 @@ def validate_asset(asset_path: str, spec: Dict[str, Any]) -> Dict[str, Any]:
     checks.append(check_spec_schema(spec))
     checks.append(check_snake_case_names(asset_name, all_objects))
     checks.append(check_applied_transforms(mesh_objects))
-    checks.append(check_pivot_bottom_center(visual_objects, spec))
+    checks.append(check_pivot_position(visual_objects, spec))
     checks.append(check_target_dimensions(visual_objects, spec))
     checks.append(check_triangle_budget(visual_objects, spec))
     checks.append(check_palette_materials(visual_objects, spec))
-    checks.append(check_no_procedural_nodes(visual_objects))
+    checks.append(check_no_procedural_nodes(visual_objects, spec))
     checks.append(check_collision_mesh(mesh_objects, spec))
 
     pass_global = all(c["pass"] for c in checks)

@@ -17,14 +17,14 @@
       "detail": "Escala (1, 1, 1) y rotación (0, 0, 0) aplicadas en todas las mallas."
     },
     {
-      "name": "pivot_bottom_center",
+      "name": "pivot_position",
       "pass": true,
-      "detail": "Pivote en la base inferior central correcto: Z_min=0.0000m, Centro XY=(0.0000, 0.0000)m."
+      "detail": "Pivote bottom_center correcto."
     },
     {
       "name": "target_dimensions",
       "pass": true,
-      "detail": "Dimensiones dentro de tolerancia: (0.1200, 0.1400, 0.1800)m vs esperadas (0.1200, 0.1400, 0.1800)m."
+      "detail": "Dimensiones dentro de tolerancia: (0.1000, 0.1380, 0.1600)m vs esperadas (0.1000, 0.1380, 0.1600)m."
     },
     {
       "name": "triangle_budget",
@@ -44,7 +44,7 @@
     {
       "name": "collision_mesh",
       "pass": true,
-      "detail": "Malla de colisión presente: tripwire_bell-col."
+      "detail": "Malla de colisión presente: tripwire_bell-colonly."
     }
   ],
   "pass": true

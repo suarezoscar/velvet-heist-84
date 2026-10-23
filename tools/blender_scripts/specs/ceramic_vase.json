@@ -1,0 +1,16 @@
+{
+  "name": "ceramic_vase",
+  "feat": "FEAT-010",
+  "description": "Jarrón de cerámica decorativo clásico de 1984.",
+  "dimensions": [0.220, 0.221, 0.309],
+  "pivot": "bottom_center",
+  "max_triangles": 2000,
+  "materials": ["ceramic_vase_02"],
+  "collision": true,
+  "source": {
+    "origin": "polyhaven",
+    "url": "https://polyhaven.com/a/ceramic_vase_02",
+    "license": "CC0",
+    "author": "James Ray Cock"
+  }
+}
