@@ -5,6 +5,7 @@
 class_name EscapeCar3D
 extends Area3D
 
+## Emitida cuando el ladrón cumple las condiciones y escapa en el vehículo
 signal escape_succeeded
 
 const PROMPT_DEPOSIT: String = "Depositar Botin en el Maletero [E]"
@@ -51,5 +52,5 @@ func _execute_escape() -> void:
 	print("[EscapeCar3D] ¡El ladrón ha arrancado el motor y escapa con éxito!")
 	escape_succeeded.emit()
 	if GameManager.has_method("end_match"):
-		GameManager.end_match(2)
+		GameManager.end_match(GameManager.MatchState.THIEF_ESCAPED)
 	NoiseEmit.emit(global_position, 16.0, &"thief", NoiseEmit.MECHANISM, self)

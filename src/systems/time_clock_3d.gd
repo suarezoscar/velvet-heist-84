@@ -4,15 +4,25 @@
 class_name TimeClock3D
 extends Area3D
 
+## Emitida cuando un guardia gira su llave en la ranura
 signal clock_punched(clock_id: int, guard_peer_id: int)
+
+## Emitida cuando el tiempo de ronda expira sin haber fichado
 signal clock_expired(clock_id: int)
 
+## Duración por defecto del ciclo de ronda de patrulla (90s según GSD 3.0)
 const DEFAULT_ROUND_DURATION: float = 90.0
 
+## Identificador del reloj en el mapa
 @export var clock_id: int = 1
+
+## Duración en segundos de cada ciclo de ronda (90s según GSD)
 @export var round_duration: float = DEFAULT_ROUND_DURATION
 
+## Tiempo restante antes de que suene la alarma de infracción
 var time_left: float = DEFAULT_ROUND_DURATION
+
+## Indica si el reloj está en estado de alarma por tiempo vencido
 var is_expired: bool = false
 var _alert_pulse_timer: float = 0.0
 

@@ -5,20 +5,37 @@
 class_name SafeBox3D
 extends Area3D
 
+## Emitida cuando el dial cambia de número. is_near indica si está a +-2 pasos de la combinación
 signal dial_rotated(current_val: int, is_near: bool)
+
+## Emitida cuando se abre la puerta de la caja fuerte con éxito
 signal safe_opened
 
+## Estados de la caja fuerte
 enum SafeState {
+	## Cerrada con pestillo
 	LOCKED,
+	## El ladrón está actualmente manipulando el dial
 	CRACKING,
+	## Desbloqueada y abierta
 	OPENED,
 }
 
+const PROMPT_CRACKING: String = "Dial: [%02d] (Girar: A/D o Flechas | Confirmar: E | Salir: Esc)"
+
+## Combinación mecánica de 3 dígitos (entre 0 y 99)
 @export var combination: Array[int] = [30, 65, 15]
+
+## Escena del botín que se instanciará en su interior al abrirse
 @export var loot_inside_scene: PackedScene = null
 
+## Estado actual de la caja
 var current_state: SafeState = SafeState.LOCKED
+
+## Etapa de la combinación que se está intentando descifrar (0, 1 o 2)
 var current_stage: int = 0
+
+## Posición angular actual del dial (de 00 a 99)
 var current_dial_val: int = 0
 var active_thief: ThiefController3D = null
 var door_pivot: Node3D = null
@@ -42,7 +59,7 @@ func get_interaction_text(_actor: Node3D = null) -> String:
 		SafeState.OPENED:
 			return "Caja Fuerte (Abierta)"
 		SafeState.CRACKING:
-			return "Dial: [%02d] (A/D: Girar | E: Ok | Esc: Salir)" % current_dial_val
+			return PROMPT_CRACKING % current_dial_val
 		_:
 			return "Ganzuar Caja Fuerte [E]"
 
