@@ -210,4 +210,4 @@ func _process_local_strike() -> void:
 
 ## Golpe del guardia local. Los mapas con red lo redirigen al servidor.
 func _perform_strike(guard: GuardController3D) -> void:
-	guard.swing_baton(thief)
+	guard.perform_action(&"strike")

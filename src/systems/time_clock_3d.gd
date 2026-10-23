@@ -28,6 +28,7 @@ var _alert_pulse_timer: float = 0.0
 
 
 func _ready() -> void:
+	add_to_group(&"net_state")
 	collision_layer = 4  # Interactuable
 	collision_mask = 1  # Guardias y entorno
 	monitoring = true
@@ -90,3 +91,19 @@ func interact(actor: Node3D) -> void:
 
 func _emit_alarm_noise(radius: float) -> void:
 	NoiseEmit.emit(global_position, radius, &"guard", NoiseEmit.MECHANISM, self)
+
+
+## Devuelve el snapshot de estado del reloj para red
+func get_net_state() -> Dictionary:
+	return {
+		"time_left": time_left,
+		"expired": is_expired,
+	}
+
+
+## Aplica el snapshot de estado recibido por red
+func apply_net_state(state: Dictionary) -> void:
+	if state.has("time_left"):
+		time_left = float(state["time_left"])
+	if state.has("expired"):
+		is_expired = bool(state["expired"])

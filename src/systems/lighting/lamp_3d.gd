@@ -25,6 +25,7 @@ var _interaction_area: Area3D = null
 
 func _ready() -> void:
 	add_to_group(&"lamps")
+	add_to_group(&"net_state")
 	if rules == null:
 		rules = load(LIGHT_RULES_PATH) as LightRulesProfile
 	bulb = get_node_or_null("Visuals/Bulb") as OmniLight3D
@@ -61,6 +62,23 @@ func set_switched(on: bool) -> void:
 	if is_switched_on == on:
 		return
 	is_switched_on = on
+	_update_bulb()
+
+
+## Devuelve el snapshot de estado de la lámpara para red
+func get_net_state() -> Dictionary:
+	return {
+		"switched_on": is_switched_on,
+		"unscrewed": is_unscrewed,
+	}
+
+
+## Aplica el snapshot de estado recibido por red
+func apply_net_state(state: Dictionary) -> void:
+	if state.has("switched_on"):
+		is_switched_on = bool(state["switched_on"])
+	if state.has("unscrewed"):
+		is_unscrewed = bool(state["unscrewed"])
 	_update_bulb()
 
 
