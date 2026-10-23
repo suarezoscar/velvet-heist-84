@@ -67,7 +67,7 @@ Dimensiones en ejes de Blender (X ancho, Y fondo, Z alto), medidas por Claude el
 | `grandfather_clock` | [0.626, 0.426, 2.191] | bottom_center | 5000 | `["vintage_grandfather_clock_01", "vintage_grandfather_clock_01_glass"]` | true | `vintage_grandfather_clock_01` | Yann Kervran, James Ray Cock |
 | `marble_bust` | [0.272, 0.300, 0.515] | bottom_center | 5000 | `["marble_bust_01"]` | true | `marble_bust_01` | Rico Cilliers |
 | `metal_office_desk` | [2.000, 0.917, 0.788] | bottom_center | 2000 | `["metal_office_desk"]` | true | `metal_office_desk` | Ulan Cabanilla |
-| `picture_frame` | [0.661, 0.089, 0.771] | back_center | 2000 | `["fancy_picture_frame_02"]` | false | `fancy_picture_frame_02` | Rob Tuytel, Rico Cilliers |
+| `picture_frame` | [0.661, 0.092, 0.771] | back_center | 2000 | `["fancy_picture_frame_02"]` | false | `fancy_picture_frame_02` | Rob Tuytel, Rico Cilliers |
 | `security_tv` | [0.400, 0.350, 0.411] | bottom_center | 2000 | `["television_02"]` | true | `television_02` | Benny Weimer |
 | `cctv_camera_84` | [0.180, 0.505, 0.300] | back_center | 2000 | `["BakeliteBlack", "CctvCasing", "CctvLed", "CctvLens", "Steel80s"]` | true | `tools/blender_scripts/gen_museum_assets.py` (procedural, `propia`, `velvet-heist-84`) | — |
 | `museum_display_case` | [0.860, 0.860, 1.510] | bottom_center | 2000 | `["BrassGold", "CarpetWine", "GlassClear", "MahoganyWood"]` | true | `tools/blender_scripts/gen_museum_assets.py` (procedural, `propia`, `velvet-heist-84`) | — |
@@ -96,6 +96,10 @@ Dimensiones en ejes de Blender (X ancho, Y fondo, Z alto), medidas por Claude el
 - `check_pivot_position(visual_objects, spec)` sustituye a `check_pivot_bottom_center`, con nombre `pivot_position` en el JSON. Va en la misma posición de la lista de checks.
 - `is_collision_object` reconoce `-col` y `-colonly`, para seguir excluyéndolos de la malla visual.
 - `check_collision_mesh` falla si hay algún objeto cuyo nombre termina en `-col`, con detalle `usa '-col' (visible en Godot); renombra a '-colonly'`. Después aplica la regla de `collision` de la ficha con `-colonly`.
+
+### `check_no_procedural_nodes` (añadido tras la revisión de PKG-1)
+- En assets con `source.origin != "procedural"` solo se prohíben los nodos de textura procedural (`FORBIDDEN_NODE_TYPES`). Los nodos auxiliares que crea el importador glTF (`ShaderNodeMath`, `ShaderNodeSeparateColor`…) se aceptan.
+- En los procedurales se mantiene la lista blanca de FEAT-009.
 
 ### `validate_all.py`
 - Un `.glb` de primer nivel sin ficha se cuenta como fallo: imprime `FAIL <name>: sin ficha` y entra en el total `N/M`, donde M es el número de fichas más el de `.glb` sin ficha.
@@ -209,6 +213,7 @@ Ninguno.
       - `back_center`: pasa con `max_y = 0` y el centro vertical en 0; falla con la pieza apoyada en Z=0 y centrada en Y;
       - `bottom_center` falla con una pieza colgada (`max_z = 0`);
       - `pivot: "side"` falla `spec_schema`.
+  - `test_external_nodes_*`: un material con `ShaderNodeMath` pasa `no_procedural_nodes` en un asset `polyhaven` y falla en uno `procedural`; `ShaderNodeTexNoise` falla en ambos.
   - `test_asset_import.gd`:
     - `test_assets_match_their_cards` (adaptado en PKG-1): comprueba con una mutación que falla si una ficha `top_center` se valida como `bottom_center` → crit. 9;
     - nuevo `test_collision_meshes_are_invisible`: para cada `.glb` de primer nivel, ninguna `MeshInstance3D` tiene un nombre derivado de una colisión (termina en `-col`, `-colonly` o coincide con el nombre de un nodo `CollisionShape3D` o `StaticBody3D` hermano) → crit. 1.
