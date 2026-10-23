@@ -1,0 +1,16 @@
+{
+  "name": "chandelier",
+  "feat": "FEAT-010",
+  "description": "Lámpara de araña clásica colgante con detalles dorados.",
+  "dimensions": [0.746, 0.816, 0.798],
+  "pivot": "top_center",
+  "max_triangles": 5000,
+  "materials": ["basecolor_classic_chandelier_1", "lamps_classic_chandelier_1"],
+  "collision": false,
+  "source": {
+    "origin": "polyhaven",
+    "url": "https://polyhaven.com/a/Chandelier_01",
+    "license": "CC0",
+    "author": "Kirill Sannikov"
+  }
+}

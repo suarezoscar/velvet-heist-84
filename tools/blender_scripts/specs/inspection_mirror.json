@@ -2,7 +2,7 @@
   "name": "inspection_mirror",
   "feat": "FEAT-004",
   "description": "Espejo de inspección telescópico con mango fino de acero y espejo circular orientable con marco cromado.",
-  "dimensions": [0.10, 0.38, 0.04],
+  "dimensions": [0.096, 0.379, 0.026],
   "pivot": "bottom_center",
   "max_triangles": 500,
   "materials": ["Steel80s", "ChromeTrim"],

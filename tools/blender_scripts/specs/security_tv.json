@@ -1,0 +1,16 @@
+{
+  "name": "security_tv",
+  "feat": "FEAT-010",
+  "description": "Monitor analógico de televisión y seguridad de tubo catódico.",
+  "dimensions": [0.400, 0.350, 0.411],
+  "pivot": "bottom_center",
+  "max_triangles": 2000,
+  "materials": ["television_02"],
+  "collision": true,
+  "source": {
+    "origin": "polyhaven",
+    "url": "https://polyhaven.com/a/television_02",
+    "license": "CC0",
+    "author": "Benny Weimer"
+  }
+}

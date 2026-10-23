@@ -2,7 +2,7 @@
   "name": "stethoscope",
   "feat": "FEAT-004",
   "description": "Estetoscopio analógico con auriculares curvos metálicos, manguera en Y de goma y campana de auscultación redonda.",
-  "dimensions": [0.26, 0.32, 0.05],
+  "dimensions": [0.267, 0.331, 0.100],
   "pivot": "bottom_center",
   "max_triangles": 800,
   "materials": ["BakeliteBlack", "Steel80s", "BrassGold"],

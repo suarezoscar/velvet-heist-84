@@ -1,0 +1,51 @@
+{
+  "asset": "chandelier",
+  "checks": [
+    {
+      "name": "spec_schema",
+      "pass": true,
+      "detail": "Esquema de ficha válido."
+    },
+    {
+      "name": "snake_case_names",
+      "pass": true,
+      "detail": "Todos los nombres de objetos y materiales son válidos."
+    },
+    {
+      "name": "applied_transforms",
+      "pass": true,
+      "detail": "Escala (1, 1, 1) y rotación (0, 0, 0) aplicadas en todas las mallas."
+    },
+    {
+      "name": "pivot_position",
+      "pass": true,
+      "detail": "Pivote top_center correcto."
+    },
+    {
+      "name": "target_dimensions",
+      "pass": true,
+      "detail": "Dimensiones dentro de tolerancia: (0.7465, 0.8167, 0.7983)m vs esperadas (0.7460, 0.8160, 0.7980)m."
+    },
+    {
+      "name": "triangle_budget",
+      "pass": true,
+      "detail": "Triángulos: 4749 <= presupuesto (5000)."
+    },
+    {
+      "name": "palette_materials",
+      "pass": true,
+      "detail": "Materiales válidos (basecolor_classic_chandelier_1, lamps_classic_chandelier_1)."
+    },
+    {
+      "name": "no_procedural_nodes",
+      "pass": true,
+      "detail": "Todos los materiales usan Principled BSDF limpio sin nodos procedurales."
+    },
+    {
+      "name": "collision_mesh",
+      "pass": true,
+      "detail": "La ficha no requiere colisión estática (-colonly)."
+    }
+  ],
+  "pass": true
+}

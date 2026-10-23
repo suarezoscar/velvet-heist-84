@@ -22,6 +22,7 @@ for p in [str(SCRIPT_DIR), str(LIB_DIR)]:
 try:
     import bpy
     from lib.palette import create_pbr_material
+    from lib.blender_utils import center_by_pivot, decimate_to_budget
 except ImportError:
     print("Error: Este script debe ejecutarse dentro de Blender.")
     sys.exit(1)
@@ -131,13 +132,17 @@ def build_cctv_camera():
     bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
     rec_led.data.materials.append(mat_led)
 
-    # 3. Collision shape (-col para Godot)
+    # 3. Collision shape (-colonly para Godot)
     bpy.ops.mesh.primitive_cube_add(
         size=1.0, location=(0.0, 0.24, -0.12), scale=(0.22, 0.48, 0.26)
     )
     col = bpy.context.active_object
-    col.name = "CCTV_Camera-col"
+    col.name = "CCTV_Camera-colonly"
     bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
+
+    objs = list(bpy.data.objects)
+    decimate_to_budget(objs, 2000)
+    center_by_pivot(objs, "back_center")
 
     out_path = os.path.join(OUT_DIR, "cctv_camera_84.glb")
     bpy.ops.export_scene.gltf(
@@ -224,13 +229,17 @@ def build_museum_display_case():
             bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
             corner.data.materials.append(mat_brass)
 
-    # 3. Colisión física del pedestal (-col)
+    # 3. Colisión física del pedestal (-colonly)
     bpy.ops.mesh.primitive_cube_add(
         size=1.0, location=(0.0, 0.0, 0.75), scale=(0.84, 0.84, 1.50)
     )
     col = bpy.context.active_object
-    col.name = "DisplayCase-col"
+    col.name = "DisplayCase-colonly"
     bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
+
+    objs = list(bpy.data.objects)
+    decimate_to_budget(objs, 2000)
+    center_by_pivot(objs, "bottom_center")
 
     out_path = os.path.join(OUT_DIR, "museum_display_case.glb")
     bpy.ops.export_scene.gltf(
@@ -242,6 +251,35 @@ def build_museum_display_case():
     print(f"Exported {out_path} successfully!")
 
 
+GENERATORS = {
+    "cctv_camera_84": build_cctv_camera,
+    "museum_display_case": build_museum_display_case,
+}
+
+
+def main():
+    argv = sys.argv
+    targets = []
+    if "--" in argv:
+        targets = argv[argv.index("--") + 1:]
+
+    normalized_targets = [t[:-4] if t.endswith(".glb") else t for t in targets]
+
+    if normalized_targets:
+        for t in normalized_targets:
+            if t in GENERATORS:
+                print(f"=== Generando {t} ===")
+                GENERATORS[t]()
+            else:
+                print(f"Aviso: Generador desconocido para '{t}'", file=sys.stderr)
+                sys.exit(1)
+    else:
+        print("=== [Blender CLI] Generando assets de museo Velvet '84 ===")
+        for name, gen_fn in GENERATORS.items():
+            print(f"=== Generando {name} ===")
+            gen_fn()
+        print("=== [Blender CLI] Generación completada con éxito ===")
+
+
 if __name__ == "__main__":
-    build_cctv_camera()
-    build_museum_display_case()
+    main()

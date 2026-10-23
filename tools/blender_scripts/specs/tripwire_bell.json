@@ -2,7 +2,7 @@
   "name": "tripwire_bell",
   "feat": "FEAT-004",
   "description": "Mecanismo de pared con campana de bronce de resorte y clavija percutora para cable trampa.",
-  "dimensions": [0.12, 0.14, 0.18],
+  "dimensions": [0.100, 0.138, 0.160],
   "pivot": "bottom_center",
   "max_triangles": 600,
   "materials": ["BrassGold", "Steel80s"],

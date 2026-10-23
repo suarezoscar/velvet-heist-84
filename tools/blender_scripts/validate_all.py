@@ -28,7 +28,7 @@ except ImportError as e:
     sys.exit(1)
 
 
-def parse_arguments() -> Tuple[Optional[Path], Path]:
+def parse_arguments() -> Tuple[Optional[Path], Path, Path]:
     """Parsea los argumentos pasados tras '--'."""
     argv = sys.argv
     user_args = []
@@ -37,6 +37,7 @@ def parse_arguments() -> Tuple[Optional[Path], Path]:
 
     reports_dir = None
     specs_dir = SCRIPT_DIR / "specs"
+    models_dir = WORKSPACE_DIR / "assets" / "models"
 
     i = 0
     while i < len(user_args):
@@ -47,10 +48,13 @@ def parse_arguments() -> Tuple[Optional[Path], Path]:
         elif arg == "--specs-dir" and i + 1 < len(user_args):
             specs_dir = Path(user_args[i + 1]).resolve()
             i += 2
+        elif arg == "--models-dir" and i + 1 < len(user_args):
+            models_dir = Path(user_args[i + 1]).resolve()
+            i += 2
         else:
             i += 1
 
-    return reports_dir, specs_dir
+    return reports_dir, specs_dir, models_dir
 
 
 def main():
@@ -59,13 +63,12 @@ def main():
         print(f"Error: {msg}", file=sys.stderr)
         sys.exit(2)
 
-    reports_dir, specs_dir = parse_arguments()
+    reports_dir, specs_dir, models_dir = parse_arguments()
 
     if not specs_dir.is_dir():
         print(f"Error: El directorio de fichas no existe: {specs_dir}", file=sys.stderr)
         sys.exit(1)
 
-    models_dir = WORKSPACE_DIR / "assets" / "models"
     spec_files = sorted(specs_dir.glob("*.json"))
 
     if reports_dir:
@@ -131,16 +134,26 @@ def main():
             with open(report_path, "w", encoding="utf-8") as rf:
                 json.dump(res, rf, indent=2, ensure_ascii=False)
 
-    total = len(results)
-    passed_count = sum(1 for r in results if r["pass"])
-    print(f"==> {passed_count}/{total} assets en pass")
-
-    # Lista de aviso para modelos GLB de primer nivel sin ficha
+    # Modelos GLB de primer nivel sin ficha se cuentan como fallo
     if models_dir.is_dir():
         first_level_glbs = sorted(p.stem for p in models_dir.glob("*.glb"))
         for glb_name in first_level_glbs:
             if glb_name not in processed_names:
-                print(f"AVISO sin ficha: {glb_name}")
+                res = {
+                    "asset": glb_name,
+                    "checks": [{"name": "spec_schema", "pass": False, "detail": "Archivo GLB de primer nivel sin ficha técnica."}],
+                    "pass": False,
+                }
+                results.append(res)
+                print(f"FAIL {glb_name}: sin ficha")
+                if reports_dir:
+                    report_path = reports_dir / f"{glb_name}_validation.json"
+                    with open(report_path, "w", encoding="utf-8") as rf:
+                        json.dump(res, rf, indent=2, ensure_ascii=False)
+
+    total = len(results)
+    passed_count = sum(1 for r in results if r["pass"])
+    print(f"==> {passed_count}/{total} assets en pass")
 
     if passed_count == total and total > 0:
         sys.exit(0)
