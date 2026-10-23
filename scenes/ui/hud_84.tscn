@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://scenes/ui/hud_84.gd" id="1_cl0mo"]
 [ext_resource type="PackedScene" path="res://scenes/ui/blueprint_map_overlay.tscn" id="2_bmap"]
+[ext_resource type="Script" path="res://src/ui/noise_meter_84.gd" id="3_meter"]
 
 [node name="HUD84" type="CanvasLayer" unique_id=735275076]
 script = ExtResource("1_cl0mo")
@@ -27,6 +28,38 @@ text = "[ ] PIEZA MAESTRA: PENDIENTE"
 [node name="TimerLabel" type="Label" parent="TopBar/HBox" unique_id=981286259]
 layout_mode = 2
 text = "TIEMPO: 10:00"
+
+[node name="ExposurePanel" type="PanelContainer" parent="." unique_id=381928371]
+visible = false
+custom_minimum_size = Vector2(160, 48)
+offset_left = 20.0
+offset_top = 65.0
+offset_right = 180.0
+offset_bottom = 113.0
+
+[node name="VBox" type="VBoxContainer" parent="ExposurePanel" unique_id=381928375]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="HBox" type="HBoxContainer" parent="ExposurePanel/VBox" unique_id=381928372]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="ExposureIcon" type="Label" parent="ExposurePanel/VBox/HBox" unique_id=381928373]
+layout_mode = 2
+text = "◐"
+vertical_alignment = 1
+
+[node name="ExposureLabel" type="Label" parent="ExposurePanel/VBox/HBox" unique_id=381928374]
+layout_mode = 2
+text = "SOMBRA"
+vertical_alignment = 1
+
+[node name="NoiseMeter" type="Control" parent="ExposurePanel/VBox" unique_id=381928376]
+custom_minimum_size = Vector2(120, 14)
+layout_mode = 2
+script = ExtResource("3_meter")
 
 [node name="PromptPanel" type="PanelContainer" parent="." unique_id=735295163]
 custom_minimum_size = Vector2(380, 48)
