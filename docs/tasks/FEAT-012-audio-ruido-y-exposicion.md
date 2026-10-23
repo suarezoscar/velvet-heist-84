@@ -275,9 +275,9 @@ Ninguno: es presentación local. `noise_event_3d` es local; la red autoritativa 
 |---|---|---|---|---|---|---|
 | PKG-1 | integrator | `feat/012-pkg1` | — | integrado | 0 | |
 | PKG-3 | vfx-ui-engineer | `feat/012-pkg3` | — | descartado | 2 | Anillos rechazados por el usuario; PR #40 cerrado. La rama se conserva para el rescate de PKG-5 |
-| PKG-4 | vfx-ui-engineer (lo ejecuta Claude) | `feat/012-pkg4` | — | pendiente | 0 | `agy` no tiene permiso para copiar binarios |
-| PKG-5 | vfx-ui-engineer | `feat/012-pkg5` | PKG-4 | pendiente | 0 | |
-| PKG-2 | gameplay-engineer | `feat/012-pkg2` | PKG-5 | pendiente | 0 | |
+| PKG-4 | vfx-ui-engineer (lo ejecuta Claude) | `feat/012-pkg4` | — | integrado | 0 | `agy` no tiene permiso para copiar binarios |
+| PKG-5 | vfx-ui-engineer | `feat/012-pkg5` | PKG-4 | integrado | 0 | |
+| PKG-2 | gameplay-engineer | `feat/012-pkg2` | PKG-5 | en curso | 0 | |
 | PKG-QA | qa-engineer | `feat/012-pkgqa` | PKG-2 | pendiente | 0 | |
 
 ## Paquetes de ejecución
@@ -410,7 +410,9 @@ Ninguno: es presentación local. `noise_event_3d` es local; la red autoritativa 
   - los invariantes leen los `.tres`;
   - el criterio 1 recorre la tabla de emisores provocando cada ruido de verdad, sin llamar a `NoiseEmit` directamente;
   - los criterios 2 a 6 y 9 montan un `HeistMap3D` mínimo y fijan `rng.seed`;
-  - en el criterio 9, el frustum se controla colocando la cámara del mapa.
+  - en el criterio 9, el frustum se controla colocando la cámara del mapa;
+  - el criterio 13 comprueba también que cada array de `noise_mix.tres` apunta a los `.ogg` de su carpeta en orden de nombre (por `resource_path`);
+  - el criterio 8 comprueba también que `ExposurePanel` es visible con el ladrón local aunque no haya estado de exposición, y oculto con un guardia local.
 - **Montaje**: las lecciones de `_TEMPLATE.md`, con `./tools/ci/import.sh` primero. En headless el audio usa el driver Dummy: se comprueban los nodos y sus propiedades, no el sonido.
 - **Comandos de cierre**: los de PKG-2.
 
