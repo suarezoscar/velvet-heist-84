@@ -61,7 +61,7 @@ func _create_shader() -> Shader:
 		"void fragment() {",
 		"\tfloat fresnel = 1.0 - abs(dot(NORMAL, VIEW));",
 		"\tfloat w = max(fwidth(fresnel), 0.0001);",
-		"\tfloat edge = clamp((fresnel - (1.0 - 2.0 * w)) / w, 0.0, 1.0);",
+		"\tfloat edge = clamp((fresnel - (1.0 - 4.0 * w)) / (2.0 * w), 0.0, 1.0);",
 		"\tALBEDO = outline_color.rgb;",
 		"\tALPHA = mix(base_alpha * 0.35, base_alpha, edge) * fade_alpha * outline_color.a;",
 		"}",
