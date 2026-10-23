@@ -183,4 +183,6 @@ func _perform_strike(guard: GuardController3D) -> void:
 func _on_noise_emitted(pos: Vector3, radius: float, team: StringName) -> void:
 	if radius <= 0.0:
 		return
+	if not PerceptionRules.ring_visible_to(local_player, pos, radius):
+		return
 	SoundWave3D.create_at(self, pos, radius, team)
