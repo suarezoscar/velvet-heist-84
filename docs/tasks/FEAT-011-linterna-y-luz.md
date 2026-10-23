@@ -131,6 +131,10 @@ static func is_point_lit(space: PhysicsDirectSpaceState3D, point: Vector3, lamps
   - guardia: `rescrew_time`, sin ruido.
 - El trabajo termina en `_physics_process` si el `interactor.current_target` del actor sigue siendo esta lámpara durante todo el tiempo; si lo pierde, se cancela.
 - `get_interaction_text(actor)`: `"Desenroscar bombilla"` o `"Enroscar bombilla"`.
+- **Añadido tras la revisión de PKG-1**:
+  - el `InteractionArea` lleva su propio script, `src/systems/lighting/lamp_interaction_area.gd` (`class_name LampInteractionArea extends Area3D`), con `@export var lamp: Lamp3D` y `can_interact`, `interact` y `get_interaction_text` tipados, que delegan en `lamp`; está asignado en `lamp.tscn`, y nunca se compila código desde un texto;
+  - si el perfil no es `unscrewable`, `InteractionArea.collision_layer = 0`, para no tapar otros interactuables;
+  - el acceso a `actor.interactor` se hace con un cast a `ThiefController3D` o `GuardController3D`.
 
 ### `LightSwitch3D` (nuevo)
 - Archivos: `src/systems/lighting/light_switch_3d.gd` y `scenes/entities/light_switch.tscn`.
@@ -138,7 +142,7 @@ static func is_point_lit(space: PhysicsDirectSpaceState3D, point: Vector3, lamps
 - `can_interact` es true para ladrón y guardia.
 - `interact(actor)` empieza un trabajo de `switch_time` con la misma regla de foco. Al terminar:
   - emite `noise_emitted_3d(global_position, switch_noise_radius, actor.team_id)`;
-  - alterna todas las `Lamp3D` del grupo `&"lamps"` con ese `circuit_id`: si alguna estaba encendida, apaga todas; si no, enciende todas.
+  - alterna todas las `Lamp3D` del grupo `&"lamps"` con ese `circuit_id` y `profile.has_switch == true` (añadido tras la revisión: una farola nunca se apaga por interruptor). Si alguna tenía `is_switched_on`, que es el estado del circuito y no `is_lit()`, apaga todas; si no, enciende todas.
 - `get_interaction_text`: `"Interruptor"`.
 
 ### `GuardController3D`
@@ -227,6 +231,8 @@ Ninguno: las lámparas son luces sin modelo. El aspecto (pantalla, flexo) llegar
   src/systems/lighting/lighting_rules.gd.uid
   src/systems/lighting/lamp_3d.gd
   src/systems/lighting/lamp_3d.gd.uid
+  src/systems/lighting/lamp_interaction_area.gd
+  src/systems/lighting/lamp_interaction_area.gd.uid
   src/systems/lighting/light_switch_3d.gd
   src/systems/lighting/light_switch_3d.gd.uid
   scenes/entities/lamp.tscn
