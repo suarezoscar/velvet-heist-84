@@ -13,7 +13,7 @@ Pendiente de la división de `docs/gdd/MASTER_GSD.md`. Reparto propuesto:
 | Documento | Contenido | Estado |
 |---|---|---|
 | `roles.md` | Fantasía y asimetría de ladrón y guardias, condiciones de victoria | por crear |
-| `stealth.md` | Percepción, visibilidad, ruido por superficie, modos de movimiento | aprobado (parte 1; cono de linterna pendiente) |
+| `stealth.md` | Percepción, visibilidad, ruido por superficie, modos de movimiento, linterna, luz y anillos | aprobado (partes 1 y 2) |
 | `characters.md` | Vestuario, silueta y presupuesto de los personajes | aprobado |
 | `gadgets.md` | Maletín del ladrón y cinturón de los guardias | por crear |
 | `interaction.md` | Cajas fuertes, puertas, teléfonos, relojes de fichar, cámaras | por crear |
