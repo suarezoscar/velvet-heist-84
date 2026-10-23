@@ -482,6 +482,7 @@ def main():
                 GENERATORS[t]()
             else:
                 print(f"Aviso: Generador desconocido para '{t}'", file=sys.stderr)
+                sys.exit(1)
     else:
         print("=== [Blender CLI] Generando assets núcleo Velvet '84 ===")
         for name, gen_fn in GENERATORS.items():

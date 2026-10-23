@@ -80,6 +80,10 @@ def render_asset(glb_path: str, out_png: str) -> None:
     if not all_corners:
         return
 
+    for o in bpy.data.objects:
+        if o.type == "MESH" and o not in mesh_objs:
+            o.hide_render = True
+
     min_x = min(v.x for v in all_corners)
     max_x = max(v.x for v in all_corners)
     min_y = min(v.y for v in all_corners)
