@@ -91,9 +91,9 @@ EXIT=0
 if [ "${EXECUTOR}" = "opencode" ]; then
     # stdin cerrado: opencode run espera un mensaje por stdin si no es un terminal
     ( cd "${WT_DIR}" && OPENCODE_CONFIG="${ROOT}/tools/agy/opencode.json" \
-        timeout "${OPENCODE_TIMEOUT}" opencode run --standalone -m "${OPENCODE_MODEL}" \
+        timeout --kill-after=60s "${OPENCODE_TIMEOUT:-60m}" opencode run --standalone -m "${OPENCODE_MODEL}" \
         --format json "${PROMPT}" </dev/null ) >"${LOG}.jsonl" 2>"${LOG}.err" || EXIT=$?
-    python3 "${ROOT}/tools/agy/summarize_opencode.py" "${LOG}.jsonl" "${EXIT}"
+    python3 "${ROOT}/tools/agy/summarize_opencode.py" "${LOG}.jsonl" "${EXIT}" "${LOG}.err"
     exit $?
 fi
 
