@@ -1,6 +1,6 @@
 # FEAT-009 — Validador estricto, fichas y previews
 
-- **Estado**: aprobada (2026-10-23; decisiones 1–4 según la propuesta)
+- **Estado**: hecha (2026-10-23; decisiones 1–4 según la propuesta)
 - **Diseño**: `n/a — técnica`
 - **Revisor**: `reviewer` (Claude)
 - **Rama de integración**: `master`
@@ -158,9 +158,9 @@ Ninguno.
 ## Estado de los paquetes
 | PKG | Agente | Rama | Depende de | Estado | Vueltas | Notas |
 |---|---|---|---|---|---|---|
-| PKG-1 | technical-artist | `feat/009-pkg1` | — | pendiente | 0 | |
-| PKG-2 | integrator | `feat/009-pkg2` | PKG-1 | pendiente | 0 | |
-| PKG-QA | qa-engineer | `feat/009-pkgqa` | PKG-1 | pendiente | 0 | |
+| PKG-1 | technical-artist | `feat/009-pkg1` | — | integrado | 1 | vuelta 1 cortada por un comodín denegado; relanzada con rutas explícitas |
+| PKG-2 | integrator | `feat/009-pkg2` | PKG-1 | integrado | 0 | |
+| PKG-QA | qa-engineer | `feat/009-pkgqa` | PKG-1 | integrado | 1 | el test de minúsculas no mataba su mutación |
 
 ## Paquetes de ejecución
 
@@ -265,6 +265,22 @@ Ninguno.
   - los valores se declaran como constantes del test citando esta spec;
   - `test_character_models_proportions_and_bounds` no cambia.
 - **Comandos de cierre**: `./tools/ci/import.sh` · `./tools/ci/check_scripts.sh` · `./tools/ci/lint.sh` · `python3 tools/ci/check_scope.py` · `./tools/ci/run_tests.sh` · `./tools/ci/run_blender_tests.sh` · `bash tools/ci/qa_validate_all.sh`.
+
+## Cierre (2026-10-23)
+- **`/verify` en `master` (`668ecb8`)**: import 0, check_scripts 0, run_tests 96/96, run_blender_tests 34/34 con `validate_all` 15/15 y `qa_validate_all.sh` 0.
+- **De 97 a 96 tests**: los dos tests de importación se fusionaron en `test_assets_match_their_cards`.
+- **Criterios**:
+  - 1-5: `test_validator.py`. El reviewer probó mutaciones de tolerancias, `PBR_TOL`, `source`, nombres y mayúsculas, y todas fallan;
+  - 6 y 8: `qa_validate_all.sh`;
+  - 7: `reports/` con 15 JSON en `pass`;
+  - 9 y 12: grep vacío;
+  - 10: `test_assets_match_their_cards`;
+  - 11: CI de los PR #22 y #24.
+- **PR**: #21 (PKG-1), #22 (PKG-2) y #24 (PKG-QA).
+- **Hallado después**: con el sufijo `-col`, Godot dibuja la colisión en el juego (el coche y la caja fuerte se ven tapados). Va en FEAT-010.
+- **Deuda anotada**:
+  - `validate_asset.py` (548 líneas) y `test_validator.py` (684) superan el límite de 300; `lint.sh` no revisa Python;
+  - los tests guardan `temp_*.blend` dentro de `tools/blender_scripts/`.
 
 ## Riesgos y decisiones abiertas
 1. **Nombres de objeto.** La regla 02 dice "snake_case" pero pone como ejemplo `SafeBox_Mesh`, y 11 assets usan PascalCase. Lo que de verdad rompe referencias son los espacios y los puntos. Propuesta: permitir `[A-Za-z0-9_]` en objetos y materiales, exigir minúsculas solo en el nombre del asset y corregir el texto de la regla. La alternativa es renombrar los objetos de 11 assets y regenerarlos.
