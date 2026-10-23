@@ -25,9 +25,6 @@
       "git rm *": "allow",
       "git update-index --chmod=+x *": "allow",
       "git commit *": "allow",
-      "git commit* -n*": "deny",
-      "git commit*--no-verify*": "deny",
-      "git diff*--output*": "deny",
       "./tools/ci/import.sh*": "allow",
       "./tools/ci/check_scripts.sh*": "allow",
       "./tools/ci/lint.sh*": "allow",
@@ -55,12 +52,25 @@
       "find *-fprint*": "deny",
       "find *-fls*": "deny",
       "find *-ok*": "deny",
+      "git commit* -n*": "deny",
+      "git commit* -?n*": "deny",
+      "git commit* -??n*": "deny",
+      "git commit*--no-veri*": "deny",
+      "git *--output*": "deny",
       "*..*": "deny",
       "* /*": "deny",
+      "*\t*": "deny",
       "* ~*": "deny",
+      "*=/*": "deny",
+      "*=~*": "deny",
+      "*-?/*": "deny",
+      "*\"/*": "deny",
+      "*'/*": "deny",
       "*>*": "deny",
-      "*$(*": "deny",
-      "*`*": "deny"
+      "*<*": "deny",
+      "*$*": "deny",
+      "*`*": "deny",
+      "*{*": "deny"
     }
   }
 }
