@@ -201,8 +201,8 @@ Ninguno: las lámparas son luces sin modelo. El aspecto (pantalla, flexo) llegar
 ## Estado de los paquetes
 | PKG | Agente | Rama | Depende de | Estado | Vueltas | Notas |
 |---|---|---|---|---|---|---|
-| PKG-1 | gameplay-engineer | `feat/011-pkg1` | — | pendiente | 0 | |
-| PKG-2 | integrator | `feat/011-pkg2` | — | pendiente | 0 | |
+| PKG-1 | gameplay-engineer | `feat/011-pkg1` | — | entregado | 0 | `bloqueado` previsto: el test de FEAT-005 espera la Maglite a 0,9 m; lo adapta en la vuelta 1 |
+| PKG-2 | integrator | `feat/011-pkg2` | — | integrado | 0 | |
 | PKG-QA | qa-engineer | `feat/011-pkgqa` | PKG-1, PKG-2 | pendiente | 0 | |
 
 ## Paquetes de ejecución
@@ -238,10 +238,11 @@ Ninguno: las lámparas son luces sin modelo. El aspecto (pantalla, flexo) llegar
   data/balance/lamp_street.tres  # excepción: valores de stealth.md parte 2
   data/balance/light_rules.tres  # excepción: valores de stealth.md parte 2
   scenes/maps/test_isometric_gym.tscn  # excepción: lámparas de prueba que pide esta FEAT
+  tests/unit/test_stealth_mechanics.gd  # excepción: la altura esperada de la Maglite pasa de 0,9 a `flashlight_height` de perception_guard.tres
   ```
 - **Contratos y valores**: los de esta spec. No inventes números: si falta uno, entrega `bloqueado`.
 - **`guard_player.tscn`**: solo la `transform` de `MagliteSpotLight` (altura 1,4); `spot_range` y `spot_angle` los fija el código.
-- **Tests**: ninguno de aceptación (los escribe PKG-QA). Los tests existentes deben seguir en verde. Si alguno dependía de que el ladrón fuera siempre visible o de `thief_spotted` desde el mapa, entrega `bloqueado` con la salida.
+- **Tests**: ninguno de aceptación (los escribe PKG-QA). Los tests existentes deben seguir en verde. Si alguno dependía de que el ladrón fuera siempre visible o de `thief_spotted` desde el mapa, entrega `bloqueado` con la salida. Excepción: en `test_stealth_mechanics.gd::test_criterio_1_guard_scene_model_and_anchors`, la altura esperada de la Maglite se lee de `perception_guard.tres` (`flashlight_height`) en lugar de 0,9; nada más de ese archivo cambia.
 - **Comandos de cierre**: `./tools/ci/import.sh` · `./tools/ci/check_scripts.sh` · `./tools/ci/lint.sh` · `./tools/ci/check_patterns.sh` · `python3 tools/ci/check_scope.py` · `./tools/ci/run_tests.sh`.
 - **Fuera de alcance**:
   - anillos, HUD y silueta de O2;
