@@ -1,64 +1,214 @@
 ## @file sound_wave_3d.gd
-## Instancia visual 3D para la propagación de ondas de sonido audibles.
-## Dibuja un anillo horizontal expandible visible a través de paredes y oscuridad
+## Instancia visual 3D para la propagación de anillos de ruido "radar de 1984".
+## Dibuja anillos horizontales finos con brillo de fósforo visibles a través de paredes y oscuridad
 ## mediante el shader SDF 'assets/shaders/sound_wave_3d.gdshader'.
 class_name SoundWave3D
 extends MeshInstance3D
 
-## Radio máximo final que alcanzará el anillo en metros
-@export var max_radius: float = 8.0
+const DEFAULT_STYLE_PATH: String = "res://assets/ui/noise_ring_style.tres"
 
-## Tiempo de vida y expansión de la onda en segundos
-@export var wave_duration: float = 0.8
+## Radio final en metros (solo lectura en tiempo de ejecución; = radius)
+var final_radius: float = 0.0
 
-## Color tintado de la onda (oro para ladrón, azul para guardias)
-@export var wave_color: Color = Color(0.3, 0.8, 1.0, 0.9)
+## Radio máximo compatible con código previo
+var max_radius: float = 0.0
+
+## Categoría del ruido (&"step", &"impact", &"mechanism")
+var category: StringName = &"step"
+
+## Papel del anillo respecto al espectador (&"own", &"guard", &"other")
+var role: StringName = &"other"
+
+## Tiempo total de vida en segundos
+var lifetime: float = 1.4
+
+## Tiempo de expansión de 0 al radio final en segundos
+var grow_time: float = 0.4
+
+## Recurso de estilo visual
+var style: NoiseRingStyle = null
+
+## Tiempo restante de vida en segundos
+var remaining_lifetime: float = 0.0
+
+var _final_radius: float = 0.0
+var _current_radius_m: float = 0.0
+var _remaining_lifetime: float = 0.0
+var _total_lifetime: float = 0.0
+var _elapsed_time: float = 0.0
+var _current_fade: float = 1.0
+var _base_alpha: float = 0.45
+var _base_glow_alpha: float = 0.15
 
 var _shader_mat: ShaderMaterial = null
+var _radius_tween: Tween = null
+var _fade_tween: Tween = null
+
 
 func _ready() -> void:
+	if style == null:
+		style = _load_default_style()
 	_setup_mesh_and_material()
-	_animate_expansion()
+	_start_animations()
+
+
+func _load_default_style() -> NoiseRingStyle:
+	return load(DEFAULT_STYLE_PATH) as NoiseRingStyle
+
 
 func _setup_mesh_and_material() -> void:
+	var margin: float = 1.0
+	var safe_radius: float = max(_final_radius, 0.1)
+	var mesh_size: float = (safe_radius * 2.0) + margin
+
 	var quad: QuadMesh = QuadMesh.new()
-	var diameter: float = max_radius * 2.0
-	quad.size = Vector2(diameter, diameter)
+	quad.size = Vector2(mesh_size, mesh_size)
 	quad.orientation = PlaneMesh.FACE_Y
 	mesh = quad
 
 	var base_shader: Shader = load("res://assets/shaders/sound_wave_3d.gdshader") as Shader
 	_shader_mat = ShaderMaterial.new()
 	_shader_mat.shader = base_shader
-	_shader_mat.set_shader_parameter("wave_color", wave_color)
-	_shader_mat.set_shader_parameter("current_radius", 0.0)
-	_shader_mat.set_shader_parameter("fade_alpha", 1.0)
+
+	var ring_color: Color = _resolve_color()
+	var mode: int = _resolve_category_mode()
+
+	_base_alpha = style.alpha if style != null else 0.45
+	_base_glow_alpha = style.glow_alpha if style != null else 0.15
+	var stroke: float = style.stroke_px if style != null else 2.0
+	var glow: float = style.glow_px if style != null else 4.0
+	var gap: float = style.double_gap_px if style != null else 4.0
+	var dashes: int = style.dash_segments if style != null else 24
+
+	_shader_mat.set_shader_parameter("category_mode", mode)
+	_shader_mat.set_shader_parameter("stroke_px", stroke)
+	_shader_mat.set_shader_parameter("glow_px", glow)
+	_shader_mat.set_shader_parameter("color", ring_color)
+	_shader_mat.set_shader_parameter("alpha", _base_alpha)
+	_shader_mat.set_shader_parameter("glow_alpha", _base_glow_alpha)
+	_shader_mat.set_shader_parameter("double_gap_px", gap)
+	_shader_mat.set_shader_parameter("dash_segments", dashes)
+	_shader_mat.set_shader_parameter("current_radius_m", 0.0)
+	_shader_mat.set_shader_parameter("mesh_size", mesh_size)
+
 	material_override = _shader_mat
 
-func _animate_expansion() -> void:
-	var tween: Tween = create_tween().set_parallel(true)
-	tween.tween_method(_set_radius, 0.0, 1.0, wave_duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tween.tween_method(_set_alpha, 1.0, 0.0, wave_duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tween.chain().tween_callback(queue_free)
+
+func _start_animations() -> void:
+	_total_lifetime = lifetime
+	_remaining_lifetime = lifetime
+	remaining_lifetime = lifetime
+	_elapsed_time = 0.0
+	_current_fade = 1.0
+
+	if grow_time > 0.0:
+		_radius_tween = create_tween()
+		var t: MethodTweener = _radius_tween.tween_method(
+			_set_radius, 0.0, _final_radius, grow_time
+		)
+		t.set_trans(Tween.TRANS_QUAD)
+		t.set_ease(Tween.EASE_OUT)
+	else:
+		_set_radius(_final_radius)
+
+	if lifetime > 0.0:
+		_fade_tween = create_tween()
+		var solid_time: float = lifetime * 0.6
+		var fade_time: float = lifetime * 0.4
+		if solid_time > 0.0:
+			_fade_tween.tween_interval(solid_time)
+		_fade_tween.tween_method(_set_fade, 1.0, 0.0, fade_time)
+		_fade_tween.tween_callback(queue_free)
+	else:
+		queue_free()
+
+
+func _process(delta: float) -> void:
+	_elapsed_time += delta
+	_remaining_lifetime = max(0.0, _total_lifetime - _elapsed_time)
+	remaining_lifetime = _remaining_lifetime
+	if _remaining_lifetime <= 0.0 and not is_queued_for_deletion():
+		queue_free()
+
 
 func _set_radius(val: float) -> void:
+	_current_radius_m = val
 	if _shader_mat != null:
-		_shader_mat.set_shader_parameter("current_radius", val)
+		_shader_mat.set_shader_parameter("current_radius_m", val)
 
-func _set_alpha(val: float) -> void:
+
+func _set_fade(val: float) -> void:
+	_current_fade = val
 	if _shader_mat != null:
-		_shader_mat.set_shader_parameter("fade_alpha", val)
+		_shader_mat.set_shader_parameter("alpha", _base_alpha * val)
+		_shader_mat.set_shader_parameter("glow_alpha", _base_glow_alpha * val)
 
-## Factoría estática segura: añade el nodo al árbol ANTES de fijar su global_position
-static func create_at(parent: Node, world_pos: Vector3, radius: float, team: StringName = &"neutral") -> SoundWave3D:
+
+## Acorta la vida restante del anillo (usado al superar max_rings)
+func shorten(remaining: float) -> void:
+	if remaining <= 0.0:
+		queue_free()
+		return
+	if remaining >= _remaining_lifetime:
+		return
+
+	_remaining_lifetime = remaining
+	remaining_lifetime = remaining
+	_total_lifetime = _elapsed_time + remaining
+
+	if _fade_tween != null and _fade_tween.is_valid():
+		_fade_tween.kill()
+
+	_fade_tween = create_tween()
+	_fade_tween.tween_method(_set_fade, _current_fade, 0.0, remaining)
+	_fade_tween.tween_callback(queue_free)
+
+
+func _resolve_category_mode() -> int:
+	match category:
+		&"impact":
+			return 1
+		&"mechanism":
+			return 2
+		_:
+			return 0
+
+
+func _resolve_color() -> Color:
+	if style != null:
+		return style.get_color_for_role(role)
+	match role:
+		&"own":
+			return Color("f2b84b")
+		&"guard":
+			return Color("4fc3f7")
+		_:
+			return Color("b8e6c1")
+
+
+## Factoría estática: añade el nodo al árbol ANTES de fijar su global_position
+static func create_at(
+	parent: Node,
+	pos: Vector3,
+	radius: float,
+	category: StringName,
+	role: StringName,
+	lifetime: float,
+	grow_time: float,
+	style: NoiseRingStyle = null
+) -> SoundWave3D:
 	var wave: SoundWave3D = SoundWave3D.new()
+	wave.final_radius = radius
+	wave._final_radius = radius
 	wave.max_radius = radius
-
-	if team == &"thief":
-		wave.wave_color = Color(0.9, 0.7, 0.2, 0.9) # Tono dorado/ámbar analógico
-	elif team == &"guard":
-		wave.wave_color = Color(0.2, 0.6, 1.0, 0.9) # Azul policía/guardia
+	wave.category = category
+	wave.role = role
+	wave.lifetime = lifetime
+	wave.grow_time = grow_time
+	if style == null:
+		style = wave._load_default_style()
+	wave.style = style
 
 	parent.add_child(wave)
-	wave.global_position = Vector3(world_pos.x, 0.05, world_pos.z)
+	wave.global_position = Vector3(pos.x, 0.05, pos.z)
 	return wave

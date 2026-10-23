@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="NoiseRingStyle" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/vfx/noise_ring_style.gd" id="1_style"]
+
+[resource]
+script = ExtResource("1_style")
+stroke_px = 2.0
+glow_px = 4.0
+alpha = 0.45
+glow_alpha = 0.15
+double_gap_px = 4.0
+dash_segments = 24
+color_own = Color(0.94902, 0.721569, 0.294118, 1)
+color_guard = Color(0.309804, 0.764706, 0.968627, 1)
+color_other = Color(0.721569, 0.901961, 0.756863, 1)

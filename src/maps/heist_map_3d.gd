@@ -198,9 +198,10 @@ func _perform_strike(guard: GuardController3D) -> void:
 	guard.swing_baton(thief)
 
 
-func _on_noise_emitted(pos: Vector3, radius: float, team: StringName) -> void:
+func _on_noise_emitted(pos: Vector3, radius: float, _team: StringName) -> void:
 	if radius <= 0.0:
 		return
 	if not PerceptionRules.ring_visible_to(local_player, pos, radius):
 		return
-	SoundWave3D.create_at(self, pos, radius, team)
+	var ring_style: NoiseRingStyle = load("res://assets/ui/noise_ring_style.tres") as NoiseRingStyle
+	SoundWave3D.create_at(self, pos, radius, &"impact", &"other", 2.0, 0.4, ring_style)
