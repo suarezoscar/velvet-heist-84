@@ -44,3 +44,20 @@ static func ring_visible_to(viewer: PlayerBase3D, origin: Vector3, radius: float
 	if viewer == null or viewer.team_id != &"guard":
 		return true
 	return horizontal_distance(viewer.global_position, origin) <= radius
+
+
+## Sector horizontal: d_h <= range y ángulo en XZ entre axis y (target - origin) <= half_angle_deg
+## (el borde pertenece al cono). Si alguna proyección XZ mide < 0.001, devuelve false.
+static func is_in_flashlight_cone(
+	origin: Vector3, axis: Vector3, target: Vector3, range_m: float, half_angle_deg: float
+) -> bool:
+	var axis_2d: Vector2 = Vector2(axis.x, axis.z)
+	var to_target_3d: Vector3 = target - origin
+	var to_target_2d: Vector2 = Vector2(to_target_3d.x, to_target_3d.z)
+	var d_h: float = to_target_2d.length()
+	if axis_2d.length() < 0.001 or d_h < 0.001:
+		return false
+	if d_h > range_m:
+		return false
+	var angle_deg: float = rad_to_deg(absf(axis_2d.angle_to(to_target_2d)))
+	return angle_deg <= half_angle_deg
