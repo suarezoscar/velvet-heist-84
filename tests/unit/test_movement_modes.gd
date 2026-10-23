@@ -8,7 +8,7 @@ const STEP_NOISE_PATH: String = "res://data/balance/step_noise.tres"
 
 
 func _create_thief() -> ThiefController3D:
-	var thief: ThiefController3D = autofree(ThiefController3D.new())
+	var thief: ThiefController3D = ThiefController3D.new()
 	var col: CollisionShape3D = CollisionShape3D.new()
 	col.name = "CollisionShape3D"
 	thief.add_child(col)
@@ -17,7 +17,7 @@ func _create_thief() -> ThiefController3D:
 
 
 func _create_guard() -> GuardController3D:
-	var guard: GuardController3D = autofree(GuardController3D.new())
+	var guard: GuardController3D = GuardController3D.new()
 	var col: CollisionShape3D = CollisionShape3D.new()
 	col.name = "CollisionShape3D"
 	guard.add_child(col)
@@ -123,12 +123,23 @@ func test_invariant_5_crouch_overrides_gait() -> void:
 	assert_eq(step_noise.crouch_mult, step_noise.sneak_mult, "crouch_mult == sneak_mult")
 
 	var thief: ThiefController3D = _create_thief()
+	thief.set_physics_process(false)
 	thief.set_crouching(true)
 	thief.apply_input({"movement_vector": Vector2(0.0, 1.0)})
 	thief.simulate_movement(1.0 / 60.0)
 
 	var base_spd: float = thief.current_speed
 	var base_rad: float = thief.compute_step_radius()
+	assert_almost_eq(base_spd, thief.movement_profile.speed_for(MovementProfile.Mode.CROUCH), 0.001)
+	assert_almost_eq(
+		base_rad,
+		step_noise.radius_for(
+			MovementProfile.Mode.CROUCH,
+			thief.surface_detector.get_surface_noise_multiplier(),
+			thief.movement_profile.team_noise_mult
+		),
+		0.001
+	)
 
 	thief.apply_input({"movement_vector": Vector2(0.0, 1.0), "is_sneaking": true})
 	thief.simulate_movement(1.0 / 60.0)
@@ -163,53 +174,71 @@ func test_guard_cannot_crouch() -> void:
 
 ## Criterio 11: Espacio libre para levantarse; con techo a 1.3 m se bloquea y emite señal.
 func test_stand_up_needs_headroom() -> void:
-	var thief: ThiefController3D = _create_thief()
-	thief.position = Vector3.ZERO
+	var floor_body := StaticBody3D.new()
+	floor_body.collision_layer = 1
+	floor_body.collision_mask = 0
+	var f_col := CollisionShape3D.new()
+	var f_box := BoxShape3D.new()
+	f_box.size = Vector3(20.0, 0.2, 20.0)
+	f_col.shape = f_box
+	floor_body.add_child(f_col)
+	floor_body.position = Vector3(0.0, -0.1, 0.0)
+	add_child_autofree(floor_body)
 
-	var ceiling: StaticBody3D = autofree(StaticBody3D.new())
+	var thief := _create_thief()
+	thief.set_physics_process(false)
+	assert_true(thief.set_crouching(true))
+
+	var ceiling := StaticBody3D.new()
 	ceiling.collision_layer = 1
 	ceiling.collision_mask = 0
-	var c_col: CollisionShape3D = CollisionShape3D.new()
-	var c_box: BoxShape3D = BoxShape3D.new()
+	var c_col := CollisionShape3D.new()
+	var c_box := BoxShape3D.new()
 	c_box.size = Vector3(4.0, 0.2, 4.0)
 	c_col.shape = c_box
 	ceiling.add_child(c_col)
-	ceiling.position = Vector3(0.0, 1.3, 0.0)
+	ceiling.position = Vector3(0.0, 1.3 + 0.1, 0.0)
 	add_child_autofree(ceiling)
 
 	await wait_physics_frames(2)
-
-	var crouch_ok: bool = thief.set_crouching(true)
-	assert_true(crouch_ok, "El ladron se agacha inicialmente")
-	assert_true(thief.is_crouching, "is_crouching es true")
-
 	watch_signals(thief)
 
-	var stand_blocked: bool = thief.set_crouching(false)
-	assert_false(stand_blocked, "set_crouching(false) con techo devuelve false")
-	assert_true(thief.is_crouching, "is_crouching permanece en true")
-	assert_signal_emitted(thief, "stand_up_blocked")
+	assert_false(thief.set_crouching(false))
+	assert_true(thief.is_crouching)
 	assert_signal_emit_count(thief, "stand_up_blocked", 1)
+	assert_signal_not_emitted(thief, "crouch_changed")
 
-	ceiling.global_position = Vector3(0.0, 100.0, 0.0)
+	ceiling.position = Vector3(0.0, 100.0, 0.0)
 	await wait_physics_frames(2)
 
-	var stand_ok: bool = thief.set_crouching(false)
-	assert_true(stand_ok, "set_crouching(false) sin techo devuelve true")
-	assert_false(thief.is_crouching, "is_crouching pasa a false")
+	assert_true(thief.set_crouching(false))
+	assert_false(thief.is_crouching)
 	assert_signal_emitted_with_parameters(thief, "crouch_changed", [false])
 
 
 ## Criterio 12: Dimensiones de cápsula y aislamiento entre instancias de personaje.
 func test_crouch_capsule_and_isolation() -> void:
-	var thief1: ThiefController3D = _create_thief()
-	var thief2: ThiefController3D = _create_thief()
+	var shared := CapsuleShape3D.new()
 
-	var col1: CollisionShape3D = thief1.collision_shape
-	var col2: CollisionShape3D = thief2.collision_shape
-	var cap1: CapsuleShape3D = col1.shape as CapsuleShape3D
-	var cap2: CapsuleShape3D = col2.shape as CapsuleShape3D
+	var thief1: ThiefController3D = ThiefController3D.new()
+	var col1: CollisionShape3D = CollisionShape3D.new()
+	col1.name = "CollisionShape3D"
+	col1.shape = shared
+	thief1.add_child(col1)
 
+	var thief2: ThiefController3D = ThiefController3D.new()
+	var col2: CollisionShape3D = CollisionShape3D.new()
+	col2.name = "CollisionShape3D"
+	col2.shape = shared
+	thief2.add_child(col2)
+
+	add_child_autofree(thief1)
+	add_child_autofree(thief2)
+
+	thief1.set_physics_process(false)
+	thief2.set_physics_process(false)
+
+	var cap1: CapsuleShape3D = thief1.collision_shape.shape as CapsuleShape3D
 	assert_almost_eq(cap1.height, CrouchCollision.STAND_HEIGHT, 0.001, "Altura de pie")
 	assert_almost_eq(cap1.radius, CrouchCollision.CAPSULE_RADIUS, 0.001, "Radio de pie")
 	assert_almost_eq(col1.transform.origin.y, CrouchCollision.STAND_HEIGHT * 0.5, 0.001)
@@ -219,9 +248,17 @@ func test_crouch_capsule_and_isolation() -> void:
 	assert_almost_eq(cap1.radius, CrouchCollision.CAPSULE_RADIUS, 0.001, "Radio agachado")
 	assert_almost_eq(col1.transform.origin.y, CrouchCollision.CROUCH_HEIGHT * 0.5, 0.001)
 
-	assert_almost_eq(cap2.height, CrouchCollision.STAND_HEIGHT, 0.001, "thief2 conserva alto")
-	assert_almost_eq(col2.transform.origin.y, CrouchCollision.STAND_HEIGHT * 0.5, 0.001)
-	assert_ne(cap1, cap2, "Formas de colisión independientes")
+	assert_almost_eq(
+		(thief2.collision_shape.shape as CapsuleShape3D).height,
+		CrouchCollision.STAND_HEIGHT,
+		0.001,
+		"thief2 conserva alto"
+	)
+	assert_ne(
+		thief1.collision_shape.shape,
+		thief2.collision_shape.shape,
+		"Formas de colisión independientes"
+	)
 
 
 ## Criterio 13: Mapeo de animaciones y poses en CharacterAnimator3D.
