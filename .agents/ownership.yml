@@ -53,6 +53,7 @@ owners:
       - src/maps/**
       - src/generation/**
       - src/telemetry/**
+      - tools/net/**
       - scenes/entities/**
       - core/net_manager.gd
       - tests/unit/**
