@@ -1,0 +1,16 @@
+{
+  "name": "marble_bust",
+  "feat": "FEAT-010",
+  "description": "Busto clásico esculpido en mármol sobre pedestal.",
+  "dimensions": [0.272, 0.300, 0.515],
+  "pivot": "bottom_center",
+  "max_triangles": 5000,
+  "materials": ["marble_bust_01"],
+  "collision": true,
+  "source": {
+    "origin": "polyhaven",
+    "url": "https://polyhaven.com/a/marble_bust_01",
+    "license": "CC0",
+    "author": "Rico Cilliers"
+  }
+}

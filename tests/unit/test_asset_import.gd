@@ -59,7 +59,12 @@ func _compute_visual_aabb(root: Node3D) -> AABB:
 	return combined_aabb
 
 
-func _verify_asset(glb_filename: String, exp_size: Vector3, requires_collision: bool) -> void:
+func _verify_asset(
+	glb_filename: String,
+	exp_size: Vector3,
+	requires_collision: bool,
+	pivot: String = "bottom_center"
+) -> void:
 	var glb_path: String = ASSETS_DIR + glb_filename
 	assert_true(ResourceLoader.exists(glb_path), "Asset %s existe en disco" % glb_filename)
 
@@ -87,31 +92,60 @@ func _verify_asset(glb_filename: String, exp_size: Vector3, requires_collision: 
 	var msg_z: String = "[%s] Fondo Z en ±1%% (%f vs %f)" % [glb_filename, aabb.size.z, exp_size.z]
 	assert_almost_eq(aabb.size.z, exp_size.z, tol_z, msg_z)
 
-	# 2. Comprobación de pivote en la base inferior central
-	# Base inferior: position.y == 0.0 (tolerancia PIVOT_Z_TOL = 0.002m)
-	var msg_base: String = "[%s] Base en Y=0.0 (%f)" % [glb_filename, aabb.position.y]
-	assert_almost_eq(aabb.position.y, 0.0, PIVOT_Z_TOL, msg_base)
-
-	# Centrado en X: position.x + size.x / 2.0 ~= 0.0
+	# 2. Comprobación de pivote según tipo de la ficha
 	var center_x: float = aabb.position.x + aabb.size.x / 2.0
-	var x_tol: float = maxf(exp_size.x * PIVOT_XY_TOL_REL, PIVOT_XY_TOL_MIN)
-	var msg_cx: String = "[%s] Centrado en X ~= 0.0 (%f)" % [glb_filename, center_x]
-	assert_almost_eq(center_x, 0.0, x_tol, msg_cx)
-
-	# Centrado en Z (Y de Blender): position.z + size.z / 2.0 ~= 0.0
+	var center_y: float = aabb.position.y + aabb.size.y / 2.0
 	var center_z: float = aabb.position.z + aabb.size.z / 2.0
+	var x_tol: float = maxf(exp_size.x * PIVOT_XY_TOL_REL, PIVOT_XY_TOL_MIN)
+	var y_tol: float = maxf(exp_size.y * PIVOT_XY_TOL_REL, PIVOT_XY_TOL_MIN)
 	var z_tol: float = maxf(exp_size.z * PIVOT_XY_TOL_REL, PIVOT_XY_TOL_MIN)
-	var msg_cz: String = "[%s] Centrado en Z ~= 0.0 (%f)" % [glb_filename, center_z]
-	assert_almost_eq(center_z, 0.0, z_tol, msg_cz)
+
+	match pivot:
+		"bottom_center":
+			var msg_base: String = "[%s] Base en Y=0.0 (%f)" % [glb_filename, aabb.position.y]
+			assert_almost_eq(aabb.position.y, 0.0, PIVOT_Z_TOL, msg_base)
+
+			var msg_cx: String = "[%s] Centrado en X ~= 0.0 (%f)" % [glb_filename, center_x]
+			assert_almost_eq(center_x, 0.0, x_tol, msg_cx)
+
+			var msg_cz: String = "[%s] Centrado en Z ~= 0.0 (%f)" % [glb_filename, center_z]
+			assert_almost_eq(center_z, 0.0, z_tol, msg_cz)
+
+		"top_center":
+			var max_y: float = aabb.end.y
+			var msg_top: String = "[%s] Maximo Y en 0.0 (%f)" % [glb_filename, max_y]
+			assert_almost_eq(max_y, 0.0, PIVOT_Z_TOL, msg_top)
+
+			var msg_cx: String = "[%s] Centrado en X ~= 0.0 (%f)" % [glb_filename, center_x]
+			assert_almost_eq(center_x, 0.0, x_tol, msg_cx)
+
+			var msg_cz: String = "[%s] Centrado en Z ~= 0.0 (%f)" % [glb_filename, center_z]
+			assert_almost_eq(center_z, 0.0, z_tol, msg_cz)
+
+		"back_center":
+			var msg_cx: String = "[%s] Centrado en X ~= 0.0 (%f)" % [glb_filename, center_x]
+			assert_almost_eq(center_x, 0.0, x_tol, msg_cx)
+
+			var msg_cy: String = (
+				"[%s] Centrado en Y (vertical) ~= 0.0 (%f)" % [glb_filename, center_y]
+			)
+			assert_almost_eq(center_y, 0.0, y_tol, msg_cy)
+
+			var back_dist: float = minf(absf(aabb.position.z), absf(aabb.end.z))
+			var msg_back: String = "[%s] Cara trasera en Z=0.0 (%f)" % [glb_filename, back_dist]
+			assert_lte(back_dist, PIVOT_Z_TOL, msg_back)
+
+		_:
+			fail_test("[%s] Tipo de pivote desconocido: %s" % [glb_filename, pivot])
 
 	# 3. Comprobación de colisión importada si la ficha lo pide
 	var col_shapes: Array[CollisionShape3D] = []
 	_find_collision_shapes(instance, col_shapes)
 	if requires_collision:
-		var msg_col: String = "[%s] CollisionShape3D creado desde -col" % glb_filename
+		var msg_col: String = "[%s] CollisionShape3D creado desde -colonly" % glb_filename
 		assert_gt(col_shapes.size(), 0, msg_col)
 	else:
-		var msg_no_col: String = "[%s] Sin colision estatica (-col)" % glb_filename
+		var msg_no_col: String = "[%s] Sin colision estatica (-colonly)" % glb_filename
 		assert_eq(col_shapes.size(), 0, msg_no_col)
 
 
@@ -158,8 +192,9 @@ func test_assets_match_their_cards() -> void:
 		# (X ancho, Y alto = Z Blender, Z fondo = Y Blender)
 		var exp_size := Vector3(d0, d2, d1)
 		var requires_collision: bool = bool(card.get("collision", false))
+		var pivot: String = String(card.get("pivot", "bottom_center"))
 
-		await _verify_asset(glb_filename, exp_size, requires_collision)
+		await _verify_asset(glb_filename, exp_size, requires_collision, pivot)
 		count += 1
 
 	assert_gte(count, 15, "Se recorrieron al menos 15 fichas de assets")
