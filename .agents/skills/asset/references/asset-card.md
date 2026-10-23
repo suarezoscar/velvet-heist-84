@@ -1,15 +1,15 @@
 # Ficha de asset
 
-Vive en `tools/blender_scripts/specs/<nombre>.json` (enlazada desde `data/asset_specs/`). La lee `validate_asset.py`.
+Vive solo en `tools/blender_scripts/specs/<nombre>.json`. La leen `validate_asset.py`, `validate_all.py` y `tests/unit/test_asset_import.gd`; todos los campos son obligatorios (check `spec_schema`). Ejemplo y tipos: `docs/tasks/FEAT-009-validador-estricto-y-fichas.md`, sección Contratos.
 
 | Campo | Valor |
 |---|---|
 | Nombre (snake_case) | |
 | FEAT | |
 | Dimensiones objetivo (m) | |
-| Pivote | base inferior central |
+| Pivote | `bottom_center` (centro X/Y de la AABB visual, base en Z=0) |
 | Triángulos máximos | |
-| Materiales | paleta Velvet '84 (procedural) o texturas declaradas (externo) |
+| Materiales | lista exacta; procedural: claves de `PALETTE`; externo: nombres de sus materiales |
 | Colisión `-col` | sí / no |
 | `source.origin` | procedural / polyhaven / mixamo / otro |
 | `source.url` | |
