@@ -1,6 +1,6 @@
 # FEAT-011 — Linterna, lámparas y percepción por guardia
 
-- **Estado**: aprobada (2026-10-23; decisiones 1–3 según la propuesta)
+- **Estado**: hecha (2026-10-23; decisiones 1–3 según la propuesta)
 - **Diseño**: `docs/gdd/systems/stealth.md`, parte 2 (aprobada el 2026-10-23): P2.1, P2.2, P2.3 (solo percepción por guardia), O2 (datos) y O4. Invariantes 13 a 21.
 - **Revisor**: `reviewer` (Claude)
 - **Rama de integración**: `master`
@@ -205,9 +205,9 @@ Ninguno: las lámparas son luces sin modelo. El aspecto (pantalla, flexo) llegar
 ## Estado de los paquetes
 | PKG | Agente | Rama | Depende de | Estado | Vueltas | Notas |
 |---|---|---|---|---|---|---|
-| PKG-1 | gameplay-engineer | `feat/011-pkg1` | — | entregado | 0 | `bloqueado` previsto: el test de FEAT-005 espera la Maglite a 0,9 m; lo adapta en la vuelta 1 |
+| PKG-1 | gameplay-engineer | `feat/011-pkg1` | — | integrado | 1 | `bloqueado` previsto: el test de FEAT-005 espera la Maglite a 0,9 m; lo adapta en la vuelta 1 |
 | PKG-2 | integrator | `feat/011-pkg2` | — | integrado | 0 | |
-| PKG-QA | qa-engineer | `feat/011-pkgqa` | PKG-1, PKG-2 | pendiente | 0 | |
+| PKG-QA | qa-engineer | `feat/011-pkgqa` | PKG-1, PKG-2 | integrado | 1 | |
 
 ## Paquetes de ejecución
 
@@ -294,6 +294,29 @@ Ninguno: las lámparas son luces sin modelo. El aspecto (pantalla, flexo) llegar
   - las coberturas son `StaticBody3D` en la capa 1;
   - lámparas: `lamp.tscn` con su perfil.
 - **Comandos de cierre**: los de PKG-1.
+
+## Cierre (2026-10-23)
+- **`/verify` en `master` (`3070c02`)**: import y check_scripts en 0, run_tests 115/115, run_blender_tests 46/46.
+- **Criterios**:
+  - 1 a 15: `test_light_perception.gd`, `test_lamps.gd` y `test_per_guard_perception.gd`;
+  - 16: escena del gimnasio e import en 0;
+  - el usuario confirmó jugando que la linterna funciona con el guardia (F2 y F).
+- **PR**:
+  - #26: PKG-2;
+  - #29: PKG-1, con una vuelta;
+  - #38: PKG-QA, con una vuelta;
+  - #27, #28 y #36: ajustes de spec.
+- **Mutation testing del revisor**: de 17 mutaciones sobreviven 1. Es el `<` en el borde exacto del ángulo, que se acepta por precisión de coma flotante.
+- **Lecciones**:
+  - `set_physics_process(false)` va después de `add_child` (ya en `_TEMPLATE.md`);
+  - un paquete que cambia un contrato adapta los tests existentes que lo comprueban;
+  - en la spec, los títulos de contrato no pueden empezar por `### PKG-N`.
+- **Riesgo aceptado por el usuario**: en red, los guardias de clientes remotos no ven al ladrón hasta el paquete F (red autoritativa).
+- **Pendiente**:
+  - lámparas en el museo y la mansión (con `/level`);
+  - animación de sujetar la linterna (FEAT de personajes);
+  - `test_light_perception.gd` está en 298 líneas, así que los tests nuevos de linterna van en otro archivo;
+  - la interpolación de red está duplicada en `GuardController3D`.
 
 ## Riesgos y decisiones abiertas
 1. **Orientación del guardia.** Hoy mira hacia donde camina y la linterna apunta al cursor, de modo que el haz puede apuntar hacia atrás mientras anda y meterse en su arco ciego. Propuesta: el guardia mira siempre hacia el cursor (postura de apuntar, criterio 15) y el eje del cono es su frente, como pide P2.1. La alternativa es que el cono siga al cursor con independencia del cuerpo, pero entonces el arco ciego deja de estar "detrás de la linterna".
