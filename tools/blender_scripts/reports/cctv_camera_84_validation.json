@@ -34,7 +34,7 @@
     {
       "name": "palette_materials",
       "pass": true,
-      "detail": "Materiales válidos (CctvLens, BakeliteBlack, Steel80s, CctvLed, CctvCasing)."
+      "detail": "Materiales válidos (BakeliteBlack, CctvCasing, CctvLed, CctvLens, Steel80s)."
     },
     {
       "name": "no_procedural_nodes",

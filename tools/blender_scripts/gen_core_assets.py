@@ -24,7 +24,6 @@ for p in [str(SCRIPT_DIR), str(LIB_DIR)]:
 
 try:
     import bpy
-    import mathutils
     from lib.palette import PALETTE, create_pbr_material
     from lib.blender_utils import center_by_pivot
 except ImportError:

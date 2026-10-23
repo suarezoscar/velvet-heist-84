@@ -14,7 +14,6 @@ Uso:
   blender -b --factory-startup --python-exit-code 1 -P tools/blender_scripts/adapt_polyhaven_assets.py -- [<name> ...]
 """
 
-import os
 import shutil
 import sys
 from pathlib import Path
