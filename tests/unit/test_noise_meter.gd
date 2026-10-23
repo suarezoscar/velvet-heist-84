@@ -44,8 +44,8 @@ func test_inv22_meter_rhythm() -> void:
 
 ## Criterio 8: Dinámica del vúmetro y visibilidad según rol local
 func test_meter_dynamics() -> void:
+	var feedback: NoiseFeedbackProfile = load(NOISE_FEEDBACK_PATH) as NoiseFeedbackProfile
 	var map: HeistMap3D = autofree(HeistMap3D.new())
-	map.set_physics_process(false)
 
 	var hud_scene: PackedScene = load(HUD_SCENE_PATH) as PackedScene
 	var hud: HUD84 = hud_scene.instantiate() as HUD84
@@ -67,6 +67,7 @@ func test_meter_dynamics() -> void:
 	map.add_child(guard)
 
 	add_child_autofree(map)
+	map.set_physics_process(false)
 	thief.set_physics_process(false)
 	guard.set_physics_process(false)
 
@@ -88,16 +89,17 @@ func test_meter_dynamics() -> void:
 	assert_eq(meter.lit_segments(), 4, "Radio 3.5 sobre escala 10 enciende 4 segmentos")
 	assert_false(meter.is_over(), "Radio 3.5 no satura")
 
-	# Sigue igual a los meter_hold_time (0.15 s)
-	meter._process(0.15)
+	# Sigue igual a los meter_hold_time
+	meter._process(feedback.meter_hold_time)
 	assert_almost_eq(meter.get_level(), 3.5, 0.01, "Mantiene nivel durante meter_hold_time")
 
-	# A mitad de la caída vale 1.75 +- 0.05 (0.2 s)
-	meter._process(0.2)
-	assert_almost_eq(meter.get_level(), 1.75, 0.05, "A mitad de caída vale 1.75 +- 0.05")
+	# A mitad de la caída vale 3.5 * 0.5 +- 0.05
+	var half_fall: float = feedback.meter_fall_time * 0.5
+	meter._process(half_fall)
+	assert_almost_eq(meter.get_level(), 3.5 * 0.5, 0.05, "A mitad de caída vale 3.5 * 0.5 +- 0.05")
 
-	# Vale 0 tras hold + fall (0.2 s adicionales)
-	meter._process(0.2)
+	# Vale 0 tras hold + fall (la otra mitad de fall)
+	meter._process(half_fall)
 	assert_almost_eq(meter.get_level(), 0.0, 0.01, "Tras hold + fall vale 0")
 	assert_eq(meter.lit_segments(), 0, "Al llegar a 0 no hay segmentos encendidos")
 
