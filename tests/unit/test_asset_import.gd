@@ -1,69 +1,17 @@
 ## @file test_asset_import.gd
-## Verificación de importación de assets 3D en Godot 4.7 (FEAT-001 Criterio 6).
-## Comprueba AABB visual dentro de ±1% y pivote en la base inferior central (Y=0, X=0, Z=0).
+## Verificación de importación de assets 3D en Godot 4.7 (FEAT-001 y FEAT-009).
+## Comprueba AABB visual y pivote en la base inferior central guiado por las fichas.
 extends GutTest
 
 const ASSETS_DIR: String = "res://assets/models/"
+const SPECS_DIR: String = "res://tools/blender_scripts/specs/"
 
-# Estructura de expectativas para los assets clave en coordenadas de Godot:
-# Godot Size: X=ancho, Y=alto (Z de Blender), Z=profundidad (Y de Blender)
-const ASSET_EXPECTATIONS: Dictionary = {
-	"safe_box_84.glb":
-	{
-		"expected_size": Vector3(0.90, 1.10, 0.96),
-		"requires_collision": true,
-	},
-	"time_clock_84.glb":
-	{
-		"expected_size": Vector3(0.44, 0.60, 0.25),
-		"requires_collision": true,
-	},
-	"rotary_phone_84.glb":
-	{
-		"expected_size": Vector3(0.38, 0.26, 0.32),
-		"requires_collision": true,
-	},
-	"wall_mahogany.glb":
-	{
-		"expected_size": Vector3(2.00, 3.00, 0.20),
-		"requires_collision": true,
-	},
-	"floor_carpet.glb":
-	{
-		"expected_size": Vector3(2.00, 0.10, 2.00),
-		"requires_collision": true,
-	},
-	"escape_car_84.glb":
-	{
-		"expected_size": Vector3(2.15, 1.20, 4.46),
-		"requires_collision": true,
-	},
-	"alarm_clock.glb":
-	{
-		"expected_size": Vector3(0.18, 0.22, 0.12),
-		"requires_collision": true,
-	},
-	"wood_wedge.glb":
-	{
-		"expected_size": Vector3(0.25, 0.08, 0.08),
-		"requires_collision": true,
-	},
-	"stethoscope.glb":
-	{
-		"expected_size": Vector3(0.26, 0.05, 0.32),
-		"requires_collision": false,
-	},
-	"inspection_mirror.glb":
-	{
-		"expected_size": Vector3(0.10, 0.04, 0.38),
-		"requires_collision": false,
-	},
-	"tripwire_bell.glb":
-	{
-		"expected_size": Vector3(0.12, 0.18, 0.14),
-		"requires_collision": true,
-	},
-}
+## Tolerancias según FEAT-009 (Reglas del validador)
+const DIM_TOL_REL: float = 0.01
+const DIM_TOL_MIN: float = 0.001
+const PIVOT_Z_TOL: float = 0.002
+const PIVOT_XY_TOL_REL: float = 0.01
+const PIVOT_XY_TOL_MIN: float = 0.005
 
 
 func _find_mesh_instances(curr: Node, out: Array[MeshInstance3D]) -> void:
@@ -111,7 +59,7 @@ func _compute_visual_aabb(root: Node3D) -> AABB:
 	return combined_aabb
 
 
-func _verify_asset(glb_filename: String) -> void:
+func _verify_asset(glb_filename: String, exp_size: Vector3, requires_collision: bool) -> void:
 	var glb_path: String = ASSETS_DIR + glb_filename
 	assert_true(ResourceLoader.exists(glb_path), "Asset %s existe en disco" % glb_filename)
 
@@ -124,13 +72,11 @@ func _verify_asset(glb_filename: String) -> void:
 	await wait_physics_frames(1)
 
 	var aabb: AABB = _compute_visual_aabb(instance)
-	var expected: Dictionary = ASSET_EXPECTATIONS[glb_filename]
-	var exp_size: Vector3 = expected["expected_size"]
 
-	# 1. Comprobación de dimensiones (AABB size) dentro de ±1% (tolerancia min 0.015m)
-	var tol_x: float = maxf(exp_size.x * 0.01, 0.015)
-	var tol_y: float = maxf(exp_size.y * 0.01, 0.015)
-	var tol_z: float = maxf(exp_size.z * 0.01, 0.015)
+	# 1. Comprobación de dimensiones según tolerancias FEAT-009
+	var tol_x: float = maxf(exp_size.x * DIM_TOL_REL, DIM_TOL_MIN)
+	var tol_y: float = maxf(exp_size.y * DIM_TOL_REL, DIM_TOL_MIN)
+	var tol_z: float = maxf(exp_size.z * DIM_TOL_REL, DIM_TOL_MIN)
 
 	var msg_x: String = "[%s] Ancho X en ±1%% (%f vs %f)" % [glb_filename, aabb.size.x, exp_size.x]
 	assert_almost_eq(aabb.size.x, exp_size.x, tol_x, msg_x)
@@ -142,43 +88,81 @@ func _verify_asset(glb_filename: String) -> void:
 	assert_almost_eq(aabb.size.z, exp_size.z, tol_z, msg_z)
 
 	# 2. Comprobación de pivote en la base inferior central
-	# Base inferior: position.y == 0.0 (tolerancia 0.015m)
+	# Base inferior: position.y == 0.0 (tolerancia PIVOT_Z_TOL = 0.002m)
 	var msg_base: String = "[%s] Base en Y=0.0 (%f)" % [glb_filename, aabb.position.y]
-	assert_almost_eq(aabb.position.y, 0.0, 0.015, msg_base)
+	assert_almost_eq(aabb.position.y, 0.0, PIVOT_Z_TOL, msg_base)
 
 	# Centrado en X: position.x + size.x / 2.0 ~= 0.0
 	var center_x: float = aabb.position.x + aabb.size.x / 2.0
+	var x_tol: float = maxf(exp_size.x * PIVOT_XY_TOL_REL, PIVOT_XY_TOL_MIN)
 	var msg_cx: String = "[%s] Centrado en X ~= 0.0 (%f)" % [glb_filename, center_x]
-	assert_almost_eq(center_x, 0.0, 0.035, msg_cx)
+	assert_almost_eq(center_x, 0.0, x_tol, msg_cx)
 
-	# Centrado en Z: position.z + size.z / 2.0 ~= 0.0
+	# Centrado en Z (Y de Blender): position.z + size.z / 2.0 ~= 0.0
 	var center_z: float = aabb.position.z + aabb.size.z / 2.0
+	var z_tol: float = maxf(exp_size.z * PIVOT_XY_TOL_REL, PIVOT_XY_TOL_MIN)
 	var msg_cz: String = "[%s] Centrado en Z ~= 0.0 (%f)" % [glb_filename, center_z]
-	assert_almost_eq(center_z, 0.0, 0.035, msg_cz)
+	assert_almost_eq(center_z, 0.0, z_tol, msg_cz)
 
 	# 3. Comprobación de colisión importada si la ficha lo pide
-	if expected["requires_collision"]:
-		var col_shapes: Array[CollisionShape3D] = []
-		_find_collision_shapes(instance, col_shapes)
+	var col_shapes: Array[CollisionShape3D] = []
+	_find_collision_shapes(instance, col_shapes)
+	if requires_collision:
 		var msg_col: String = "[%s] CollisionShape3D creado desde -col" % glb_filename
 		assert_gt(col_shapes.size(), 0, msg_col)
+	else:
+		var msg_no_col: String = "[%s] Sin colision estatica (-col)" % glb_filename
+		assert_eq(col_shapes.size(), 0, msg_no_col)
 
 
-func test_all_key_assets_import_and_bounds() -> void:
-	for glb_filename: String in ASSET_EXPECTATIONS:
-		await _verify_asset(glb_filename)
+func test_assets_match_their_cards() -> void:
+	var dir: DirAccess = DirAccess.open(SPECS_DIR)
+	assert_not_null(dir, "El directorio de fichas %s existe" % SPECS_DIR)
+	if dir == null:
+		return
 
+	dir.list_dir_begin()
+	var file_name: String = dir.get_next()
+	var spec_files: Array[String] = []
 
-func test_gadgets_assets_import_and_bounds() -> void:
-	var gadgets: Array[String] = [
-		"alarm_clock.glb",
-		"wood_wedge.glb",
-		"stethoscope.glb",
-		"inspection_mirror.glb",
-		"tripwire_bell.glb",
-	]
-	for glb_filename: String in gadgets:
-		await _verify_asset(glb_filename)
+	while file_name != "":
+		if not dir.current_is_dir() and file_name.ends_with(".json"):
+			spec_files.append(file_name)
+		file_name = dir.get_next()
+	dir.list_dir_end()
+
+	spec_files.sort()
+	assert_gte(spec_files.size(), 15, "Existen al menos 15 fichas en %s" % SPECS_DIR)
+
+	var count: int = 0
+	for spec_file: String in spec_files:
+		var file_path: String = SPECS_DIR + spec_file
+		var json_text: String = FileAccess.get_file_as_string(file_path)
+		var parsed: Variant = JSON.parse_string(json_text)
+		assert_not_null(parsed, "Ficha %s parseada con exito" % spec_file)
+		if not (parsed is Dictionary):
+			continue
+
+		var card: Dictionary = parsed as Dictionary
+		var asset_name: String = card.get("name", spec_file.get_basename())
+		var glb_filename: String = asset_name + ".glb"
+		var dims: Array = card.get("dimensions", [])
+		assert_eq(dims.size(), 3, "[%s] Ficha define 3 dimensiones" % spec_file)
+		if dims.size() != 3:
+			continue
+
+		var d0: float = float(dims[0])
+		var d1: float = float(dims[1])
+		var d2: float = float(dims[2])
+		# En Godot el tamaño es Vector3(d[0], d[2], d[1])
+		# (X ancho, Y alto = Z Blender, Z fondo = Y Blender)
+		var exp_size := Vector3(d0, d2, d1)
+		var requires_collision: bool = bool(card.get("collision", false))
+
+		await _verify_asset(glb_filename, exp_size, requires_collision)
+		count += 1
+
+	assert_gte(count, 15, "Se recorrieron al menos 15 fichas de assets")
 
 
 func test_character_models_proportions_and_bounds() -> void:
