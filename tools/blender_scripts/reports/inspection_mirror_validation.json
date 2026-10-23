@@ -2,9 +2,14 @@
   "asset": "inspection_mirror",
   "checks": [
     {
+      "name": "spec_schema",
+      "pass": true,
+      "detail": "Esquema de ficha válido."
+    },
+    {
       "name": "snake_case_names",
       "pass": true,
-      "detail": "Todos los nombres de objetos y materiales son válidos (sin espacios ni puntos)."
+      "detail": "Todos los nombres de objetos y materiales son válidos."
     },
     {
       "name": "applied_transforms",
@@ -14,12 +19,12 @@
     {
       "name": "pivot_bottom_center",
       "pass": true,
-      "detail": "Pivote en la base inferior central correcto: Z_min=0.000m, Centro XY=(0.000, 0.000)m."
+      "detail": "Pivote en la base inferior central correcto: Z_min=0.0000m, Centro XY=(0.0000, 0.0000)m."
     },
     {
       "name": "target_dimensions",
       "pass": true,
-      "detail": "Dimensiones dentro de ±1%: (0.100, 0.380, 0.040)m vs esperadas (0.100, 0.380, 0.040)m."
+      "detail": "Dimensiones dentro de tolerancia: (0.1000, 0.3800, 0.0400)m vs esperadas (0.1000, 0.3800, 0.0400)m."
     },
     {
       "name": "triangle_budget",

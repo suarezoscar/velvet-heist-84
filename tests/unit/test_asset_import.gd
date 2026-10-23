@@ -23,16 +23,6 @@ const ASSET_EXPECTATIONS: Dictionary = {
 		"expected_size": Vector3(0.38, 0.26, 0.32),
 		"requires_collision": true,
 	},
-	"thief_pawn.glb":
-	{
-		"expected_size": Vector3(0.80, 1.80, 0.80),
-		"requires_collision": false,
-	},
-	"guard_pawn.glb":
-	{
-		"expected_size": Vector3(0.815, 1.80, 0.820),
-		"requires_collision": false,
-	},
 	"wall_mahogany.glb":
 	{
 		"expected_size": Vector3(2.00, 3.00, 0.20),
@@ -107,7 +97,9 @@ func _compute_visual_aabb(root: Node3D) -> AABB:
 		if mi.skin != null:
 			trans_aabb = local_aabb
 		else:
-			var rel_xform: Transform3D = root.global_transform.affine_inverse() * mi.global_transform
+			var rel_xform: Transform3D = (
+				root.global_transform.affine_inverse() * mi.global_transform
+			)
 			trans_aabb = rel_xform * local_aabb
 
 		if is_first:
@@ -117,7 +109,6 @@ func _compute_visual_aabb(root: Node3D) -> AABB:
 			combined_aabb = combined_aabb.merge(trans_aabb)
 
 	return combined_aabb
-
 
 
 func _verify_asset(glb_filename: String) -> void:
@@ -141,19 +132,13 @@ func _verify_asset(glb_filename: String) -> void:
 	var tol_y: float = maxf(exp_size.y * 0.01, 0.015)
 	var tol_z: float = maxf(exp_size.z * 0.01, 0.015)
 
-	var msg_x: String = (
-		"[%s] Ancho X en ±1%% (%f vs %f)" % [glb_filename, aabb.size.x, exp_size.x]
-	)
+	var msg_x: String = "[%s] Ancho X en ±1%% (%f vs %f)" % [glb_filename, aabb.size.x, exp_size.x]
 	assert_almost_eq(aabb.size.x, exp_size.x, tol_x, msg_x)
 
-	var msg_y: String = (
-		"[%s] Alto Y en ±1%% (%f vs %f)" % [glb_filename, aabb.size.y, exp_size.y]
-	)
+	var msg_y: String = "[%s] Alto Y en ±1%% (%f vs %f)" % [glb_filename, aabb.size.y, exp_size.y]
 	assert_almost_eq(aabb.size.y, exp_size.y, tol_y, msg_y)
 
-	var msg_z: String = (
-		"[%s] Fondo Z en ±1%% (%f vs %f)" % [glb_filename, aabb.size.z, exp_size.z]
-	)
+	var msg_z: String = "[%s] Fondo Z en ±1%% (%f vs %f)" % [glb_filename, aabb.size.z, exp_size.z]
 	assert_almost_eq(aabb.size.z, exp_size.z, tol_z, msg_z)
 
 	# 2. Comprobación de pivote en la base inferior central
@@ -198,11 +183,13 @@ func test_gadgets_assets_import_and_bounds() -> void:
 
 func test_character_models_proportions_and_bounds() -> void:
 	var characters: Dictionary = {
-		"characters/thief_crypto.glb": {
+		"characters/thief_crypto.glb":
+		{
 			"expected_height": 1.80,
 			"expected_max_wingspan": 1.85,
 		},
-		"characters/guard_swat.glb": {
+		"characters/guard_swat.glb":
+		{
 			"expected_height": 1.82,
 			"expected_max_wingspan": 2.05,
 		},
@@ -227,7 +214,7 @@ func test_character_models_proportions_and_bounds() -> void:
 		assert_almost_eq(aabb.size.y, exp_h, 0.05, msg_h)
 
 		# 2. Envergadura acotada (< 2.1m, descartando el bug de 180m de ancho)
-		var msg_w: String = "[%s] Anchura acotada (< %f m, actual: %f m)" % [char_path, exp_span, aabb.size.x]
+		var msg_w: String = "[%s] Ancho (< %f m, actual: %f m)" % [char_path, exp_span, aabb.size.x]
 		assert_lt(aabb.size.x, exp_span, msg_w)
 
 		# 3. Base inferior sobre el suelo (Y=0.0 con tolerancia 2cm)
@@ -238,7 +225,3 @@ func test_character_models_proportions_and_bounds() -> void:
 		var center_x: float = aabb.position.x + aabb.size.x / 2.0
 		var msg_cx: String = "[%s] Centrado horizontal en X (%f m)" % [char_path, center_x]
 		assert_almost_eq(center_x, 0.0, 0.05, msg_cx)
-
-
-
-

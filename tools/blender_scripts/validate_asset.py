@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""
-tools/blender_scripts/validate_asset.py
-Validador formal y reproducible de assets 3D para Velvet Heist '84 (FEAT-001).
-Comprueba dimensiones, pivote, escalas aplicadas, paleta 'Velvet 84', ausencia de nodos
-procedurales, colisión -col, snake_case y presupuesto de polígonos.
+"""tools/blender_scripts/validate_asset.py.
+
+Validador formal y reproducible de assets 3D para Velvet Heist '84 (FEAT-001 y FEAT-009).
+Comprueba esquema de ficha, nombres, transformaciones, pivote, dimensiones,
+presupuesto de triángulos, paleta 'Velvet 84', ausencia de nodos procedurales y colisión.
 
 Uso:
   blender -b -P tools/blender_scripts/validate_asset.py -- <asset_glb_o_blend> <ficha_json_o_ruta> [--output-json <ruta>]
@@ -18,7 +18,18 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-# Asegurar importación de lib/palette.py
+# Constantes del validador según FEAT-009
+DIM_TOL_REL: float = 0.01
+DIM_TOL_MIN: float = 0.001
+PIVOT_Z_TOL: float = 0.002
+PIVOT_XY_TOL_REL: float = 0.01
+PIVOT_XY_TOL_MIN: float = 0.005
+PBR_TOL: float = 0.01
+ASSET_NAME_RE: str = r"^[a-z0-9_]+$"
+OBJECT_NAME_RE: str = r"^[A-Za-z0-9_]+(-col|-colonly)?$"
+MATERIAL_NAME_RE: str = r"^[A-Za-z0-9_]+$"
+SOURCE_ORIGINS: Tuple[str, ...] = ("procedural", "polyhaven", "mixamo", "otro")
+
 SCRIPT_DIR = Path(__file__).resolve().parent
 LIB_DIR = SCRIPT_DIR / "lib"
 for p in [str(SCRIPT_DIR), str(LIB_DIR)]:
@@ -32,11 +43,10 @@ try:
     import mathutils
     from lib.palette import (
         PALETTE,
+        check_material_against_palette,
         check_material_procedural_nodes,
-        is_material_in_palette,
     )
 except ImportError as e:
-    # Si se corre fuera de blender o falla import
     print(f"Error importando dependencias: {e}", file=sys.stderr)
     sys.exit(1)
 
@@ -89,41 +99,35 @@ def parse_arguments() -> Tuple[str, Dict[str, Any], Optional[str]]:
         asset_path = user_args[0]
         spec_raw = user_args[1]
     elif len(user_args) == 1:
-        # Podría ser blender -b archivo.blend -P validate_asset.py -- spec.json
         if bpy.data.filepath and os.path.exists(bpy.data.filepath):
             asset_path = bpy.data.filepath
             spec_raw = user_args[0]
         else:
-            # Quizás solo pasaron la spec o el asset
             spec_raw = user_args[0]
     else:
-        print("Uso: blender -b -P validate_asset.py -- <asset_glb_o_blend> <ficha_json_o_ruta> [--output-json <ruta>]", file=sys.stderr)
+        print(
+            "Uso: blender -b -P validate_asset.py -- <asset_glb_o_blend> <ficha_json_o_ruta> [--output-json <ruta>]",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
-    # Cargar spec_raw
     if spec_raw.strip().startswith("{"):
         spec_data = json.loads(spec_raw)
     else:
-        # Es una ruta o un nombre de asset
         spec_path = Path(spec_raw)
         if not spec_path.is_file():
-            # Buscar en specs/ o data/asset_specs/
             candidate1 = SCRIPT_DIR / "specs" / f"{spec_raw}.json"
             candidate2 = SCRIPT_DIR / "specs" / spec_raw
-            candidate3 = Path("data/asset_specs") / f"{spec_raw}.json"
             if candidate1.is_file():
                 spec_path = candidate1
             elif candidate2.is_file():
                 spec_path = candidate2
-            elif candidate3.is_file():
-                spec_path = candidate3
             else:
                 raise FileNotFoundError(f"No se pudo encontrar el archivo de ficha: {spec_raw}")
 
         with open(spec_path, "r", encoding="utf-8") as f:
             spec_data = json.load(f)
 
-    # Si asset_path no se definió pero está en spec_data
     if not asset_path and "name" in spec_data:
         asset_candidate = Path("assets/models") / f"{spec_data['name']}.glb"
         if asset_candidate.is_file():
@@ -151,59 +155,98 @@ def load_asset(asset_path: str):
 def is_collision_object(obj: bpy.types.Object) -> bool:
     """Verifica si un objeto es una malla de colisión (sufijo -col o -colonly)."""
     name_lower = obj.name.lower()
-    return name_lower.endswith("-col") or name_lower.endswith("-colonly") or "-col." in name_lower or "-colonly." in name_lower
+    return name_lower.endswith("-col") or name_lower.endswith("-colonly")
+
+
+def check_spec_schema(spec: Dict[str, Any]) -> Dict[str, Any]:
+    """Criterio 1: Validación estricta del esquema de la ficha."""
+    errors = []
+
+    name = spec.get("name")
+    if not isinstance(name, str) or not re.match(ASSET_NAME_RE, name):
+        errors.append(f"Campo 'name' ausente o no cumple {ASSET_NAME_RE}: {name!r}")
+
+    dims = spec.get("dimensions")
+    if (
+        not isinstance(dims, (list, tuple))
+        or len(dims) != 3
+        or not all(isinstance(x, (int, float)) and not isinstance(x, bool) and x > 0 for x in dims)
+    ):
+        errors.append(f"Campo 'dimensions' debe ser una lista de 3 números > 0: {dims!r}")
+
+    pivot = spec.get("pivot")
+    if pivot != "bottom_center":
+        errors.append(f"Campo 'pivot' debe ser 'bottom_center': {pivot!r}")
+
+    max_tri = spec.get("max_triangles")
+    if not isinstance(max_tri, int) or isinstance(max_tri, bool) or max_tri <= 0:
+        errors.append(f"Campo 'max_triangles' debe ser un entero > 0: {max_tri!r}")
+
+    mats = spec.get("materials")
+    if (
+        not isinstance(mats, (list, tuple))
+        or len(mats) == 0
+        or not all(isinstance(x, str) and len(x) > 0 for x in mats)
+    ):
+        errors.append(f"Campo 'materials' debe ser una lista no vacía de strings: {mats!r}")
+
+    col = spec.get("collision")
+    if not isinstance(col, bool):
+        errors.append(f"Campo 'collision' debe ser un booleano: {col!r}")
+
+    source = spec.get("source")
+    if not isinstance(source, dict):
+        errors.append(f"Campo 'source' ausente o no es un diccionario: {source!r}")
+    else:
+        origin = source.get("origin")
+        if origin not in SOURCE_ORIGINS:
+            errors.append(f"Campo 'source.origin' debe ser uno de {SOURCE_ORIGINS}: {origin!r}")
+        for field in ("url", "license", "author"):
+            val = source.get(field)
+            if not isinstance(val, str) or not val.strip():
+                errors.append(f"Campo 'source.{field}' debe ser un string no vacío: {val!r}")
+
+    passed = len(errors) == 0
+    detail = "Esquema de ficha válido." if passed else " ; ".join(errors)
+    return {"name": "spec_schema", "pass": passed, "detail": detail}
 
 
 def check_snake_case_names(asset_name: str, objects: List[bpy.types.Object]) -> Dict[str, Any]:
-    """Criterio 3: Nombres válidos en snake_case, sin espacios ni puntos."""
+    """Criterio 5: Nombres válidos según regexes de FEAT-009."""
     errors = []
 
-    # Validar nombre del asset
-    if not re.match(r"^[a-z0-9_]+$", asset_name):
-        errors.append(f"El nombre del asset '{asset_name}' no es snake_case válido (solo minúsculas, números y guión bajo).")
+    if not re.match(ASSET_NAME_RE, asset_name):
+        errors.append(f"El nombre del asset '{asset_name}' no cumple '{ASSET_NAME_RE}'.")
 
     for obj in objects:
-        clean_name = obj.name
-        # Ignorar sufijos de colisión válidos para el test de snake_case
-        if clean_name.endswith("-col"):
-            clean_name = clean_name[:-4]
-        elif clean_name.endswith("-colonly"):
-            clean_name = clean_name[:-8]
+        if not re.match(OBJECT_NAME_RE, obj.name):
+            errors.append(f"El objeto '{obj.name}' no cumple '{OBJECT_NAME_RE}'.")
 
-        if " " in obj.name:
-            errors.append(f"El objeto '{obj.name}' contiene espacios.")
-        if "." in clean_name:
-            errors.append(f"El objeto '{obj.name}' contiene puntos.")
-
-        # Verificar nombres de materiales asignados
-        if obj.type == "MESH":
+        if obj.type == "MESH" and not is_collision_object(obj) and obj.data:
             for mat in obj.data.materials:
-                if mat:
-                    if " " in mat.name:
-                        errors.append(f"El material '{mat.name}' contiene espacios.")
-                    if "." in mat.name:
-                        errors.append(f"El material '{mat.name}' contiene puntos (ej. sufijos duplicados .001).")
+                if mat and not re.match(MATERIAL_NAME_RE, mat.name):
+                    errors.append(f"El material '{mat.name}' no cumple '{MATERIAL_NAME_RE}'.")
 
     passed = len(errors) == 0
-    detail = "Todos los nombres de objetos y materiales son válidos (sin espacios ni puntos)." if passed else " ; ".join(errors)
+    detail = "Todos los nombres de objetos y materiales son válidos." if passed else " ; ".join(errors)
     return {"name": "snake_case_names", "pass": passed, "detail": detail}
 
 
 def check_applied_transforms(mesh_objects: List[bpy.types.Object]) -> Dict[str, Any]:
-    """Criterio 3: Escala (1, 1, 1) y rotación (0, 0, 0) aplicadas."""
+    """Escala (1, 1, 1) y rotación (0, 0, 0) aplicadas."""
     errors = []
     tol = 1e-3
 
     for obj in mesh_objects:
-        # Comprobar escala
         sx, sy, sz = obj.scale
         if abs(sx - 1.0) > tol or abs(sy - 1.0) > tol or abs(sz - 1.0) > tol:
             errors.append(f"Objeto '{obj.name}' escala no aplicada: ({sx:.3f}, {sy:.3f}, {sz:.3f}) != (1, 1, 1)")
 
-        # Comprobar rotación
         rx, ry, rz = obj.rotation_euler
         if abs(rx) > tol or abs(ry) > tol or abs(rz) > tol:
-            errors.append(f"Objeto '{obj.name}' rotación no aplicada: ({math.degrees(rx):.1f}°, {math.degrees(ry):.1f}°, {math.degrees(rz):.1f}°) != (0, 0, 0)")
+            errors.append(
+                f"Objeto '{obj.name}' rotación no aplicada: ({math.degrees(rx):.1f}°, {math.degrees(ry):.1f}°, {math.degrees(rz):.1f}°) != (0, 0, 0)"
+            )
 
     passed = len(errors) == 0
     detail = "Escala (1, 1, 1) y rotación (0, 0, 0) aplicadas en todas las mallas." if passed else " ; ".join(errors)
@@ -240,45 +283,53 @@ def check_pivot_bottom_center(visual_objects: List[bpy.types.Object], spec: Dict
     if not visual_objects:
         return {"name": "pivot_bottom_center", "pass": False, "detail": "No se encontraron mallas visuales para calcular el pivote."}
 
+    dims = spec.get("dimensions")
+    if (
+        not isinstance(dims, (list, tuple))
+        or len(dims) < 2
+        or not all(isinstance(x, (int, float)) and not isinstance(x, bool) and x > 0 for x in dims[:2])
+    ):
+        return {"name": "pivot_bottom_center", "pass": False, "detail": "Campo 'dimensions' ausente o formato inválido en la ficha para calcular tolerancias de centrado."}
+
+    exp_x = float(dims[0])
+    exp_y = float(dims[1])
+
     min_v, max_v = compute_world_bounds(visual_objects)
-    height = max_v.z - min_v.z
     center_x = (min_v.x + max_v.x) / 2.0
     center_y = (min_v.y + max_v.y) / 2.0
 
     errors = []
-    # Tolerancia para Z inferior: base en Z=0.0
-    # Margen máximo de 0.015m o 1% de la altura
-    z_tol = max(0.015, height * 0.01)
-    if abs(min_v.z) > z_tol:
-        errors.append(f"La base inferior del asset está en Z={min_v.z:.3f}m (esperado Z=0.0m ±{z_tol:.3f}m).")
+    if abs(min_v.z) > PIVOT_Z_TOL:
+        errors.append(f"La base inferior del asset está en Z={min_v.z:.4f}m (esperado Z=0.0m ±{PIVOT_Z_TOL:.4f}m).")
 
-    # Tolerancia para centrado en X e Y
-    # Margen de 0.035m para permitir detalles menores o asimetrías de diseño
-    xy_tol = 0.035
-    if abs(center_x) > xy_tol:
-        errors.append(f"El centro en X está desplazado a {center_x:.3f}m (esperado 0.0m ±{xy_tol:.3f}m).")
-    if abs(center_y) > xy_tol:
-        errors.append(f"El centro en Y está desplazado a {center_y:.3f}m (esperado 0.0m ±{xy_tol:.3f}m).")
+    x_tol = max(PIVOT_XY_TOL_REL * exp_x, PIVOT_XY_TOL_MIN)
+    y_tol = max(PIVOT_XY_TOL_REL * exp_y, PIVOT_XY_TOL_MIN)
+
+    if abs(center_x) > x_tol:
+        errors.append(f"El centro en X está desplazado a {center_x:.4f}m (esperado 0.0m ±{x_tol:.4f}m).")
+    if abs(center_y) > y_tol:
+        errors.append(f"El centro en Y está desplazado a {center_y:.4f}m (esperado 0.0m ±{y_tol:.4f}m).")
 
     passed = len(errors) == 0
-    detail = f"Pivote en la base inferior central correcto: Z_min={min_v.z:.3f}m, Centro XY=({center_x:.3f}, {center_y:.3f})m." if passed else " ; ".join(errors)
+    detail = (
+        f"Pivote en la base inferior central correcto: Z_min={min_v.z:.4f}m, Centro XY=({center_x:.4f}, {center_y:.4f})m."
+        if passed
+        else " ; ".join(errors)
+    )
     return {"name": "pivot_bottom_center", "pass": passed, "detail": detail}
 
 
 def check_target_dimensions(visual_objects: List[bpy.types.Object], spec: Dict[str, Any]) -> Dict[str, Any]:
-    """Criterio 3: Dimensiones dentro de ±1% respecto a la ficha."""
-    expected_dim = spec.get("dimensions") or spec.get("target_dimensions")
-    if not expected_dim:
-        return {"name": "target_dimensions", "pass": True, "detail": "Ficha no especifica dimensiones objetivo; omitida."}
+    """Criterio 2: Dimensiones dentro de tolerancia respecto a la ficha."""
+    expected_dim = spec.get("dimensions")
+    if (
+        not isinstance(expected_dim, (list, tuple))
+        or len(expected_dim) < 3
+        or not all(isinstance(x, (int, float)) and not isinstance(x, bool) and x > 0 for x in expected_dim[:3])
+    ):
+        return {"name": "target_dimensions", "pass": False, "detail": f"Formato inválido o ausente de dimensiones en ficha: {expected_dim}"}
 
-    if isinstance(expected_dim, dict):
-        exp_x = float(expected_dim.get("x", 0))
-        exp_y = float(expected_dim.get("y", 0))
-        exp_z = float(expected_dim.get("z", 0))
-    elif isinstance(expected_dim, (list, tuple)) and len(expected_dim) >= 3:
-        exp_x, exp_y, exp_z = float(expected_dim[0]), float(expected_dim[1]), float(expected_dim[2])
-    else:
-        return {"name": "target_dimensions", "pass": False, "detail": f"Formato inválido de dimensiones en ficha: {expected_dim}"}
+    exp_x, exp_y, exp_z = float(expected_dim[0]), float(expected_dim[1]), float(expected_dim[2])
 
     min_v, max_v = compute_world_bounds(visual_objects)
     actual_x = max_v.x - min_v.x
@@ -289,16 +340,15 @@ def check_target_dimensions(visual_objects: List[bpy.types.Object], spec: Dict[s
     axes = [("X", actual_x, exp_x), ("Y", actual_y, exp_y), ("Z", actual_z, exp_z)]
 
     for axis_name, actual, expected in axes:
-        # Tolerancia del 1% con un mínimo de 0.015m (1.5cm) para dimensiones muy delgadas/pequeñas
-        tol = max(expected * 0.01, 0.015)
+        tol = max(expected * DIM_TOL_REL, DIM_TOL_MIN)
         diff = abs(actual - expected)
         if diff > tol:
             pct = (diff / expected * 100.0) if expected > 0 else 100.0
-            errors.append(f"Eje {axis_name}: medido={actual:.3f}m, esperado={expected:.3f}m (dif={diff:.3f}m, {pct:.1f}% > 1%)")
+            errors.append(f"Eje {axis_name}: medido={actual:.4f}m, esperado={expected:.4f}m (dif={diff:.4f}m, {pct:.2f}% > tol {tol:.4f}m)")
 
     passed = len(errors) == 0
     detail = (
-        f"Dimensiones dentro de ±1%: ({actual_x:.3f}, {actual_y:.3f}, {actual_z:.3f})m vs esperadas ({exp_x:.3f}, {exp_y:.3f}, {exp_z:.3f})m."
+        f"Dimensiones dentro de tolerancia: ({actual_x:.4f}, {actual_y:.4f}, {actual_z:.4f})m vs esperadas ({exp_x:.4f}, {exp_y:.4f}, {exp_z:.4f})m."
         if passed
         else " ; ".join(errors)
     )
@@ -306,16 +356,15 @@ def check_target_dimensions(visual_objects: List[bpy.types.Object], spec: Dict[s
 
 
 def check_triangle_budget(visual_objects: List[bpy.types.Object], spec: Dict[str, Any]) -> Dict[str, Any]:
-    """Criterio 3: Conteo de triángulos <= presupuesto de la ficha."""
-    max_triangles = spec.get("max_triangles") or spec.get("triangles_budget")
-    if max_triangles is None:
-        return {"name": "triangle_budget", "pass": True, "detail": "Ficha no especifica presupuesto de triángulos; omitida."}
+    """Conteo de triángulos <= presupuesto de la ficha."""
+    max_triangles = spec.get("max_triangles")
+    if not isinstance(max_triangles, int) or isinstance(max_triangles, bool) or max_triangles <= 0:
+        return {"name": "triangle_budget", "pass": False, "detail": f"Ficha no especifica max_triangles válido: {max_triangles}"}
 
     total_triangles = 0
     for obj in visual_objects:
         if obj.type == "MESH" and obj.data:
             for poly in obj.data.polygons:
-                # Polígonos de N vértices equivalen a (N - 2) triángulos
                 total_triangles += max(1, len(poly.vertices) - 2)
 
     passed = total_triangles <= max_triangles
@@ -328,8 +377,15 @@ def check_triangle_budget(visual_objects: List[bpy.types.Object], spec: Dict[str
 
 
 def check_palette_materials(visual_objects: List[bpy.types.Object], spec: Dict[str, Any]) -> Dict[str, Any]:
-    """Criterio 3: Materiales dentro de la paleta 'Velvet 84' y de la lista de la ficha."""
+    """Criterio 4: Materiales dentro de la paleta 'Velvet 84' y de la lista de la ficha."""
     allowed_materials = spec.get("materials")
+    if (
+        not isinstance(allowed_materials, (list, tuple))
+        or len(allowed_materials) == 0
+        or not all(isinstance(x, str) and len(x) > 0 for x in allowed_materials)
+    ):
+        return {"name": "palette_materials", "pass": False, "detail": "Campo 'materials' ausente o formato inválido en la ficha."}
+
     errors = []
     materials_found = set()
 
@@ -342,10 +398,22 @@ def check_palette_materials(visual_objects: List[bpy.types.Object], spec: Dict[s
     if not materials_found:
         errors.append("El asset visual no tiene ningún material asignado.")
 
+    source = spec.get("source")
+    origin = source.get("origin") if isinstance(source, dict) else "procedural"
+    is_procedural = origin == "procedural"
+
     for mat in materials_found:
-        ok, msg = is_material_in_palette(mat, allowed_list=allowed_materials)
-        if not ok:
-            errors.append(msg)
+        if mat.name not in allowed_materials:
+            errors.append(f"El material '{mat.name}' no está en la lista 'materials' de la ficha.")
+            continue
+
+        if is_procedural:
+            if mat.name not in PALETTE:
+                errors.append(f"El material '{mat.name}' no es clave exacta de PALETTE en asset procedural.")
+            else:
+                ok, msg = check_material_against_palette(mat, mat.name, tol=PBR_TOL)
+                if not ok:
+                    errors.append(f"Material '{mat.name}': {msg}")
 
     passed = len(errors) == 0
     detail = (
@@ -357,7 +425,7 @@ def check_palette_materials(visual_objects: List[bpy.types.Object], spec: Dict[s
 
 
 def check_no_procedural_nodes(visual_objects: List[bpy.types.Object]) -> Dict[str, Any]:
-    """Criterio 3: Sin nodos procedurales (Color Ramp, Ruido, etc.)."""
+    """Sin nodos procedurales (Color Ramp, Ruido, etc.)."""
     errors = []
     checked_mats = set()
 
@@ -376,8 +444,15 @@ def check_no_procedural_nodes(visual_objects: List[bpy.types.Object]) -> Dict[st
 
 
 def check_collision_mesh(mesh_objects: List[bpy.types.Object], spec: Dict[str, Any]) -> Dict[str, Any]:
-    """Criterio 3: Malla de colisión con sufijo -col si la ficha lo pide."""
-    requires_collision = spec.get("collision", False)
+    """Malla de colisión con sufijo -col si la ficha lo pide."""
+    requires_collision = spec.get("collision")
+    if not isinstance(requires_collision, bool):
+        return {
+            "name": "collision_mesh",
+            "pass": False,
+            "detail": "Campo 'collision' ausente o no booleano en la ficha.",
+        }
+
     col_objects = [obj for obj in mesh_objects if is_collision_object(obj)]
 
     if requires_collision:
@@ -412,6 +487,7 @@ def validate_asset(asset_path: str, spec: Dict[str, Any]) -> Dict[str, Any]:
     visual_objects = [obj for obj in mesh_objects if not is_collision_object(obj)]
 
     checks = []
+    checks.append(check_spec_schema(spec))
     checks.append(check_snake_case_names(asset_name, all_objects))
     checks.append(check_applied_transforms(mesh_objects))
     checks.append(check_pivot_bottom_center(visual_objects, spec))
@@ -462,7 +538,6 @@ def main():
             f.write(json_str)
         print(f"Reporte guardado en: {output_json_path}")
 
-    # Salida con código 0 o 1 según Criterio 4
     if result["pass"]:
         sys.exit(0)
     else:
