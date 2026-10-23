@@ -14,6 +14,15 @@ extends Node
 ## [param source_team]: Equipo originador (&"thief", &"guard", &"neutral").
 signal noise_emitted_3d(world_position: Vector3, radius: float, source_team: StringName)
 
+## Ruido con categoría y emisor; noise_emitted_3d se sigue emitiendo para quien ya lo escucha
+signal noise_event_3d(
+	world_position: Vector3,
+	radius: float,
+	source_team: StringName,
+	category: StringName,
+	emitter: Node
+)
+
 ## Emitida al dar un paso sobre superficies que puedan registrar huellas temporales (ej. talco).
 ## [param world_position]: Posición del pie sobre el plano del suelo.
 ## [param rotation_y]: Orientación angular en radianes para orientar el Decal de la pisada.
