@@ -215,28 +215,12 @@ func perform_action(action: StringName) -> bool:
 
 ## Devuelve el snapshot de estado del actor para replicación de red
 func get_net_actor_state() -> Dictionary:
-	return {
-		"crouching": is_crouching,
-		"look": look_target_position,
-		"pos": global_position,
-		"rot_y": rotation.y,
-		"vel": velocity,
-	}
+	return ActorNetState.read(self)
 
 
 ## Aplica el snapshot de estado recibido por red
 func apply_net_actor_state(state: Dictionary) -> void:
-	if state.has("pos"):
-		global_position = state["pos"] as Vector3
-	if state.has("vel"):
-		velocity = state["vel"] as Vector3
-	if state.has("rot_y"):
-		rotation.y = float(state["rot_y"])
-	if state.has("look"):
-		look_target_position = state["look"] as Vector3
-	if state.has("crouching"):
-		set_crouching(bool(state["crouching"]))
-	is_net_interpolating = false
+	ActorNetState.write(self, state)
 
 
 func _process_local_actions() -> void:

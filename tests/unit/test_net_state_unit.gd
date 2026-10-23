@@ -255,3 +255,7 @@ func test_roundtrip_actor_states() -> void:
 	var sg: Dictionary = g1.get_net_actor_state()
 	g2.apply_net_actor_state(sg)
 	assert_eq(g2.get_net_actor_state(), sg, "Roundtrip GuardController3D idéntico")
+
+	var t1: ThiefController3D = autofree(ThiefController3D.new())
+	add_child_autofree(t1)
+	assert_false(t1.get_net_actor_state().has("stamina"), "El ladrón no replica estamina")
