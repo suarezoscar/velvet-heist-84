@@ -65,7 +65,6 @@ owners:
       - assets/textures/**
       - assets/materials/**
       - assets/previews/**
-      - data/asset_specs/**
 
   vfx-ui-engineer:
     tool: antigravity
