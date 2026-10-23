@@ -15,3 +15,13 @@ if [ "${STATUS}" -ne 0 ]; then
     exit "${STATUS}"
 fi
 echo "==> Tests del validador en verde."
+
+STATUS=0
+blender -b --factory-startup --python-exit-code 1 -P tools/blender_scripts/validate_all.py \
+    || STATUS=$?
+
+if [ "${STATUS}" -ne 0 ]; then
+    echo "==> Error: hay assets que no pasan el validador."
+    exit "${STATUS}"
+fi
+echo "==> Todos los assets con ficha en pass."
