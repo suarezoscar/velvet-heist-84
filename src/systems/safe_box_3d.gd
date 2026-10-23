@@ -42,6 +42,7 @@ var door_pivot: Node3D = null
 
 
 func _ready() -> void:
+	add_to_group(&"net_state")
 	collision_layer = 4
 	collision_mask = 2
 	monitoring = true
@@ -89,25 +90,46 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if event.is_action_pressed("move_right") or event.is_action_pressed("ui_right"):
-		_step_dial(1)
+		step_dial(1)
 	elif event.is_action_pressed("move_left") or event.is_action_pressed("ui_left"):
-		_step_dial(-1)
+		step_dial(-1)
 	elif event.is_action_pressed("ui_cancel"):
-		_cancel_cracking_session()
+		cancel_cracking()
 
 
-## Hace avanzar o retroceder el dial un paso (0 a 99)
-func _step_dial(delta_steps: int) -> void:
-	current_dial_val = (current_dial_val + delta_steps + 100) % 100
+## Hace avanzar o retroceder el dial un paso (+1 o -1), solo en CRACKING
+func step_dial(direction: int) -> void:
+	if current_state != SafeState.CRACKING:
+		return
 
-	var target_num: int = combination[current_stage]
-	var diff: int = absi(current_dial_val - target_num)
-	var is_near: bool = diff <= 2 or diff >= 98
+	var delta_step: int = 1 if direction > 0 else -1
+	current_dial_val = (current_dial_val + delta_step + 100) % 100
+
+	var is_near: bool = false
+	if current_stage < combination.size():
+		var target_num: int = combination[current_stage]
+		var diff: int = absi(current_dial_val - target_num)
+		is_near = diff <= 2 or diff >= 98
 
 	dial_rotated.emit(current_dial_val, is_near)
 
 	if is_near:
 		_emit_acoustic_noise(1.8)
+
+
+## Cancela la sesión de ganzúa y devuelve la caja fuerte al estado bloqueado
+func cancel_cracking() -> void:
+	current_state = SafeState.LOCKED
+	active_thief = null
+	print("[SafeBox3D] Sesión de ganzúa cancelada.")
+
+
+func _step_dial(delta_steps: int) -> void:
+	step_dial(delta_steps)
+
+
+func _cancel_cracking_session() -> void:
+	cancel_cracking()
 
 
 ## Confirma el número actual del dial contra la combinación requerida
@@ -149,14 +171,58 @@ func _spawn_loot_contents() -> void:
 		get_parent().add_child(loot)
 
 
-func _cancel_cracking_session() -> void:
-	current_state = SafeState.LOCKED
-	active_thief = null
-	print("[SafeBox3D] Sesión de ganzúa cancelada por el usuario.")
-
-
 func _emit_acoustic_noise(radius: float) -> void:
 	var emitter_node: Node = self
 	if active_thief != null:
 		emitter_node = active_thief
 	NoiseEmit.emit(global_position, radius, &"thief", NoiseEmit.MECHANISM, emitter_node)
+
+
+## Devuelve el estado público de red (abierta o no)
+func get_net_state() -> Dictionary:
+	return {
+		"opened": current_state == SafeState.OPENED,
+	}
+
+
+## Devuelve el estado privado de ganzúa (solo para el ladrón)
+func get_net_state_private() -> Dictionary:
+	return {
+		"cracking": current_state == SafeState.CRACKING,
+		"dial": current_dial_val,
+		"stage": current_stage,
+	}
+
+
+## Aplica el estado de red público o privado recibido
+func apply_net_state(state: Dictionary) -> void:
+	if state.has("opened"):
+		if bool(state["opened"]):
+			current_state = SafeState.OPENED
+			if door_pivot != null:
+				door_pivot.rotation_degrees.y = -110.0
+		elif current_state == SafeState.OPENED:
+			current_state = SafeState.LOCKED
+			if door_pivot != null:
+				door_pivot.rotation_degrees.y = 0.0
+
+	if state.has("cracking"):
+		if bool(state["cracking"]):
+			current_state = SafeState.CRACKING
+		elif current_state == SafeState.CRACKING:
+			current_state = SafeState.LOCKED
+
+	if state.has("stage"):
+		current_stage = int(state["stage"])
+
+	if state.has("dial"):
+		var new_dial: int = int(state["dial"])
+		var dial_changed: bool = new_dial != current_dial_val
+		current_dial_val = new_dial
+		if dial_changed:
+			var is_near: bool = false
+			if current_stage < combination.size():
+				var target_num: int = combination[current_stage]
+				var diff: int = absi(current_dial_val - target_num)
+				is_near = diff <= 2 or diff >= 98
+			dial_rotated.emit(current_dial_val, is_near)

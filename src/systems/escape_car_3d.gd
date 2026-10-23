@@ -12,8 +12,11 @@ const PROMPT_DEPOSIT: String = "Depositar Botin en el Maletero [E]"
 const PROMPT_ESCAPE: String = "¡ARRANCAR Y ESCAPAR! [E]"
 const PROMPT_LOCKED: String = "Escape bloqueado: Requiere $10.000 y Pieza Maestra"
 
+var is_escaped: bool = false
+
 
 func _ready() -> void:
+	add_to_group(&"net_state")
 	collision_layer = 4
 	collision_mask = 2
 	monitoring = true
@@ -49,8 +52,22 @@ func interact(actor: Node3D) -> void:
 
 
 func _execute_escape() -> void:
+	is_escaped = true
 	print("[EscapeCar3D] ¡El ladrón ha arrancado el motor y escapa con éxito!")
 	escape_succeeded.emit()
 	if GameManager.has_method("end_match"):
 		GameManager.end_match(GameManager.MatchState.THIEF_ESCAPED)
 	NoiseEmit.emit(global_position, 16.0, &"thief", NoiseEmit.MECHANISM, self)
+
+
+## Devuelve el snapshot de estado del coche de fuga para red
+func get_net_state() -> Dictionary:
+	return {
+		"escaped": is_escaped,
+	}
+
+
+## Aplica el snapshot de estado recibido por red
+func apply_net_state(state: Dictionary) -> void:
+	if state.has("escaped"):
+		is_escaped = bool(state["escaped"])

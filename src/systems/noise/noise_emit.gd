@@ -14,5 +14,10 @@ const MECHANISM: StringName = &"mechanism"
 static func emit(
 	pos: Vector3, radius: float, team: StringName, category: StringName, emitter: Node
 ) -> void:
+	if NetManager.is_online():
+		var tree: SceneTree = Engine.get_main_loop() as SceneTree
+		if tree != null and not tree.get_multiplayer().is_server():
+			return
+
 	SignalBus.noise_emitted_3d.emit(pos, radius, team)
 	SignalBus.noise_event_3d.emit(pos, radius, team, category, emitter)

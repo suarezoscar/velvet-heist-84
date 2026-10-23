@@ -92,26 +92,16 @@ func apply_input(input_data: Dictionary) -> void:
 		current_input_dir = input_data["input_dir"] as Vector2
 	elif input_data.has("move_vector"):
 		current_input_dir = input_data["move_vector"] as Vector2
-
-	if input_data.has("is_sprinting"):
-		is_sprinting = bool(input_data["is_sprinting"])
-	elif input_data.has("sprint"):
-		is_sprinting = bool(input_data["sprint"])
-
-	if input_data.has("is_sneaking"):
-		is_sneaking = bool(input_data["is_sneaking"])
-	elif input_data.has("sneak"):
-		is_sneaking = bool(input_data["sneak"])
-
+	is_sprinting = bool(input_data.get("is_sprinting", input_data.get("sprint", is_sprinting)))
+	is_sneaking = bool(input_data.get("is_sneaking", input_data.get("sneak", is_sneaking)))
 	if input_data.has("look_target"):
 		look_target_position = input_data["look_target"] as Vector3
 	elif input_data.has("look_target_position"):
 		look_target_position = input_data["look_target_position"] as Vector3
-
 	if input_data.has("crouching"):
 		set_crouching(bool(input_data["crouching"]))
 	elif input_data.get("crouch", false):
-		set_crouching(not is_crouching)
+		perform_action(&"crouch_toggle")
 
 
 ## Resuelve el modo de movimiento activo: CROUCH > SNEAK > SPRINT > WALK
@@ -174,14 +164,12 @@ func simulate_movement(delta: float) -> void:
 	move_and_slide()
 
 
-## Snapshot de posición y velocidad para red
 func set_net_transform(pos: Vector3, vel: Vector3) -> void:
 	net_target_position = pos
 	net_target_velocity = vel
 	is_net_interpolating = true
 
 
-## Snapshot completo para red (posición, velocidad y agachado)
 func set_net_state(pos: Vector3, vel: Vector3, crouching: bool) -> void:
 	set_net_transform(pos, vel)
 	set_crouching(crouching)
@@ -211,20 +199,49 @@ func update_presentation(delta: float) -> void:
 ## Compatibilidad hacia atrás: combina input, simulación y presentación
 func process_isometric_movement(delta: float, input_dir: Vector2, cam: Camera3D = null) -> void:
 	var target_pos: Vector3 = project_cursor_on_ground(cam)
-	apply_input(
-		{
-			"movement_vector": input_dir,
-			"is_sprinting": is_sprinting,
-			"is_sneaking": is_sneaking,
-			"look_target": target_pos,
-		}
-	)
+	apply_input({"movement_vector": input_dir, "look_target": target_pos})
 	simulate_movement(delta)
 	update_presentation(delta)
 
 
+## Ejecuta una acción discreta sobre el personaje. Devuelve true si la ejecutó
+func perform_action(action: StringName) -> bool:
+	match action:
+		&"crouch_toggle":
+			return set_crouching(not is_crouching)
+		_:
+			return false
+
+
+## Devuelve el snapshot de estado del actor para replicación de red
+func get_net_actor_state() -> Dictionary:
+	return {
+		"crouching": is_crouching,
+		"look": look_target_position,
+		"pos": global_position,
+		"rot_y": rotation.y,
+		"vel": velocity,
+	}
+
+
+## Aplica el snapshot de estado recibido por red
+func apply_net_actor_state(state: Dictionary) -> void:
+	if state.has("pos"):
+		global_position = state["pos"] as Vector3
+	if state.has("vel"):
+		velocity = state["vel"] as Vector3
+	if state.has("rot_y"):
+		rotation.y = float(state["rot_y"])
+	if state.has("look"):
+		look_target_position = state["look"] as Vector3
+	if state.has("crouching"):
+		set_crouching(bool(state["crouching"]))
+	is_net_interpolating = false
+
+
 func _process_local_actions() -> void:
-	pass
+	if InputMap.has_action(&"crouch") and Input.is_action_just_pressed(&"crouch"):
+		perform_action(&"crouch_toggle")
 
 
 func _clear_input() -> void:
@@ -263,10 +280,7 @@ func _apply_friction(delta: float) -> void:
 
 
 func _apply_gravity(delta: float) -> void:
-	if not is_on_floor():
-		velocity.y -= GRAVITY * delta
-	else:
-		velocity.y = 0.0
+	velocity.y = velocity.y - GRAVITY * delta if not is_on_floor() else 0.0
 
 
 func _process_footstep_cadence(delta: float) -> void:

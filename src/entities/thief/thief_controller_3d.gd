@@ -34,6 +34,9 @@ var baton_hits_taken: int = 0
 ## Estado de detección por parte de guardias
 var is_detected_by_guard: bool = false
 
+## Estamina actual del ladrón
+var stamina: float = 100.0
+
 ## Componente modular de interacción
 var interactor: Interactor3D = null
 
@@ -61,7 +64,49 @@ func _physics_process(delta: float) -> void:
 
 
 func _process_local_actions() -> void:
-	_handle_interaction_input()
+	if InputMap.has_action("interact") and Input.is_action_just_pressed("interact"):
+		perform_action(&"interact")
+
+
+## Ejecuta una acción discreta sobre el ladrón (interactuar, dial). Devuelve true si la ejecutó
+func perform_action(action: StringName) -> bool:
+	var result: bool = false
+	match action:
+		&"interact":
+			if interactor != null:
+				result = interactor.execute_interaction(self)
+		&"dial_left":
+			var safe: SafeBox3D = _find_active_safe_box()
+			if safe != null:
+				safe.step_dial(-1)
+				result = true
+		&"dial_right":
+			var safe: SafeBox3D = _find_active_safe_box()
+			if safe != null:
+				safe.step_dial(1)
+				result = true
+		&"dial_cancel":
+			var safe: SafeBox3D = _find_active_safe_box()
+			if safe != null:
+				safe.cancel_cracking()
+				result = true
+		_:
+			result = super.perform_action(action)
+	return result
+
+
+## Devuelve el snapshot de estado del ladrón para red
+func get_net_actor_state() -> Dictionary:
+	var state: Dictionary = super.get_net_actor_state()
+	state["stamina"] = stamina
+	return state
+
+
+## Aplica el snapshot de estado del ladrón recibido por red
+func apply_net_actor_state(state: Dictionary) -> void:
+	super.apply_net_actor_state(state)
+	if state.has("stamina"):
+		stamina = float(state["stamina"])
 
 
 ## Simulación física del ladrón con penalización autoritativa por botín pesado
@@ -111,6 +156,8 @@ func set_stealth_visibility(is_visible_to_guards: bool) -> void:
 func set_visible_to_local_viewer(is_visible: bool) -> void:
 	if visual_root != null:
 		visual_root.visible = is_visible
+	if carry_anchor != null:
+		carry_anchor.visible = is_visible
 
 
 ## Consulta autoritativa: si un equipo concreto puede ver al ladrón
@@ -138,9 +185,13 @@ func _setup_interactor() -> void:
 	add_child(interactor)
 
 
-func _handle_interaction_input() -> void:
-	var interact_pressed: bool = (
-		Input.is_action_just_pressed("interact") if InputMap.has_action("interact") else false
-	)
-	if interact_pressed and interactor != null:
-		interactor.execute_interaction(self)
+func _find_active_safe_box() -> SafeBox3D:
+	if is_inside_tree():
+		for node: Node in get_tree().get_nodes_in_group(&"net_state"):
+			if node is SafeBox3D and (node as SafeBox3D).active_thief == self:
+				return node as SafeBox3D
+	if interactor != null and interactor.current_target is SafeBox3D:
+		var safe: SafeBox3D = interactor.current_target as SafeBox3D
+		if safe.active_thief == self:
+			return safe
+	return null
