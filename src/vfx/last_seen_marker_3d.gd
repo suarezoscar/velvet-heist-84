@@ -7,7 +7,7 @@ extends Node3D
 const CAPSULE_RADIUS: float = 0.4  # Diámetro 0.8 m
 const CAPSULE_HEIGHT: float = 1.8  # Altura 1.8 m
 const BASE_ALPHA: float = 0.35
-const STYLE_PATH: String = "res://assets/ui/noise_ring_style.tres"
+const NOISE_RING_STYLE: NoiseRingStyle = preload("res://assets/ui/noise_ring_style.tres")
 
 ## Duración total de visibilidad del marcador en segundos
 var duration: float = 0.0
@@ -42,9 +42,7 @@ func _setup_mesh_and_material() -> void:
 	_material = ShaderMaterial.new()
 	_material.shader = _create_shader()
 
-	var style: NoiseRingStyle = load(STYLE_PATH) as NoiseRingStyle
-	var color_other: Color = style.color_other if style != null else Color("b8e6c1")
-	_material.set_shader_parameter("outline_color", color_other)
+	_material.set_shader_parameter("outline_color", NOISE_RING_STYLE.color_other)
 	_material.set_shader_parameter("base_alpha", BASE_ALPHA)
 	_material.set_shader_parameter("fade_alpha", 1.0)
 
@@ -62,7 +60,8 @@ func _create_shader() -> Shader:
 		"uniform float fade_alpha : hint_range(0.0, 1.0) = 1.0;",
 		"void fragment() {",
 		"\tfloat fresnel = 1.0 - abs(dot(NORMAL, VIEW));",
-		"\tfloat edge = smoothstep(0.25, 0.65, fresnel);",
+		"\tfloat w = max(fwidth(fresnel), 0.0001);",
+		"\tfloat edge = clamp((fresnel - (1.0 - 2.0 * w)) / w, 0.0, 1.0);",
 		"\tALBEDO = outline_color.rgb;",
 		"\tALPHA = mix(base_alpha * 0.35, base_alpha, edge) * fade_alpha * outline_color.a;",
 		"}",

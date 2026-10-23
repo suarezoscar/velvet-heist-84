@@ -6,7 +6,7 @@
 class_name HUD84
 extends CanvasLayer
 
-const STYLE_PATH: String = "res://assets/ui/noise_ring_style.tres"
+const NOISE_RING_STYLE: NoiseRingStyle = preload("res://assets/ui/noise_ring_style.tres")
 
 ## Referencia al personaje local para leer el objetivo que enfoca actualmente
 var target_player: Node3D = null
@@ -126,11 +126,7 @@ func show_offscreen_noise(world_pos: Vector3, lifetime: float, role: StringName)
 	chevron.world_pos = world_pos
 	chevron.lifetime = lifetime
 	chevron.time_left = lifetime
-	var style: NoiseRingStyle = load(STYLE_PATH) as NoiseRingStyle
-	if style != null:
-		chevron.chevron_color = style.get_color_for_role(role)
-	else:
-		chevron.chevron_color = Color("b8e6c1")
+	chevron.chevron_color = NOISE_RING_STYLE.get_color_for_role(role)
 	add_child(chevron)
 
 

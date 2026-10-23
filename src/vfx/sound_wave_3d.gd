@@ -5,7 +5,8 @@
 class_name SoundWave3D
 extends MeshInstance3D
 
-const DEFAULT_STYLE_PATH: String = "res://assets/ui/noise_ring_style.tres"
+const SHADER: Shader = preload("res://assets/shaders/sound_wave_3d.gdshader")
+const DEFAULT_STYLE: NoiseRingStyle = preload("res://assets/ui/noise_ring_style.tres")
 
 ## Radio final en metros (solo lectura en tiempo de ejecución; = radius)
 var final_radius: float = 0.0
@@ -20,10 +21,10 @@ var category: StringName = &"step"
 var role: StringName = &"other"
 
 ## Tiempo total de vida en segundos
-var lifetime: float = 1.4
+var lifetime: float = 0.0
 
 ## Tiempo de expansión de 0 al radio final en segundos
-var grow_time: float = 0.4
+var grow_time: float = 0.0
 
 ## Recurso de estilo visual
 var style: NoiseRingStyle = null
@@ -47,13 +48,9 @@ var _fade_tween: Tween = null
 
 func _ready() -> void:
 	if style == null:
-		style = _load_default_style()
+		style = DEFAULT_STYLE
 	_setup_mesh_and_material()
 	_start_animations()
-
-
-func _load_default_style() -> NoiseRingStyle:
-	return load(DEFAULT_STYLE_PATH) as NoiseRingStyle
 
 
 func _setup_mesh_and_material() -> void:
@@ -66,19 +63,18 @@ func _setup_mesh_and_material() -> void:
 	quad.orientation = PlaneMesh.FACE_Y
 	mesh = quad
 
-	var base_shader: Shader = load("res://assets/shaders/sound_wave_3d.gdshader") as Shader
 	_shader_mat = ShaderMaterial.new()
-	_shader_mat.shader = base_shader
+	_shader_mat.shader = SHADER
 
 	var ring_color: Color = _resolve_color()
 	var mode: int = _resolve_category_mode()
 
-	_base_alpha = style.alpha if style != null else 0.45
-	_base_glow_alpha = style.glow_alpha if style != null else 0.15
-	var stroke: float = style.stroke_px if style != null else 2.0
-	var glow: float = style.glow_px if style != null else 4.0
-	var gap: float = style.double_gap_px if style != null else 4.0
-	var dashes: int = style.dash_segments if style != null else 24
+	_base_alpha = style.alpha
+	_base_glow_alpha = style.glow_alpha
+	var stroke: float = style.stroke_px
+	var glow: float = style.glow_px
+	var gap: float = style.double_gap_px
+	var dashes: int = style.dash_segments
 
 	_shader_mat.set_shader_parameter("category_mode", mode)
 	_shader_mat.set_shader_parameter("stroke_px", stroke)
@@ -175,15 +171,7 @@ func _resolve_category_mode() -> int:
 
 
 func _resolve_color() -> Color:
-	if style != null:
-		return style.get_color_for_role(role)
-	match role:
-		&"own":
-			return Color("f2b84b")
-		&"guard":
-			return Color("4fc3f7")
-		_:
-			return Color("b8e6c1")
+	return style.get_color_for_role(role)
 
 
 ## Factoría estática: añade el nodo al árbol ANTES de fijar su global_position
@@ -206,7 +194,7 @@ static func create_at(
 	wave.lifetime = lifetime
 	wave.grow_time = grow_time
 	if style == null:
-		style = wave._load_default_style()
+		style = DEFAULT_STYLE
 	wave.style = style
 
 	parent.add_child(wave)

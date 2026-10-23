@@ -18,6 +18,8 @@ const DEBUG_SWITCH_KEYS: Array[Key] = [KEY_F1, KEY_F2, KEY_F3, KEY_F4, KEY_F5]
 ## Sufijos de mallas auxiliares de colisión importadas desde Blender que no deben verse
 const COLLISION_HELPER_SUFFIXES: Array[String] = ["-col", "-colonly"]
 
+const NOISE_RING_STYLE: NoiseRingStyle = preload("res://assets/ui/noise_ring_style.tres")
+
 var camera: Camera3D = null
 var hud: HUD84 = null
 var thief: ThiefController3D = null
@@ -203,5 +205,6 @@ func _on_noise_emitted(pos: Vector3, radius: float, _team: StringName) -> void:
 		return
 	if not PerceptionRules.ring_visible_to(local_player, pos, radius):
 		return
-	var ring_style: NoiseRingStyle = load("res://assets/ui/noise_ring_style.tres") as NoiseRingStyle
-	SoundWave3D.create_at(self, pos, radius, &"impact", &"other", 2.0, 0.4, ring_style)
+	# Provisional hasta PKG-2: ring_lifetime_event (2.0) y ring_grow_time (0.4)
+	# de data/balance/noise_rings.tres
+	SoundWave3D.create_at(self, pos, radius, &"impact", &"other", 2.0, 0.4, NOISE_RING_STYLE)
