@@ -35,6 +35,9 @@
       "./tools/ci/qa_scan_godot_log.sh*": "allow",
       "./tools/ci/qa_validate_all.sh*": "allow",
       "python3 tools/ci/check_scope.py*": "allow",
+      "./tools/net/run_server.sh*": "allow",
+      "timeout ?? ./tools/net/run_server.sh*": "allow",
+      "timeout ?? godot --headless --path . -- --server*": "allow",
       "gdlint *": "allow",
       "gdformat *": "allow",
       "pwd": "allow",
@@ -70,7 +73,10 @@
       "*<*": "deny",
       "*$*": "deny",
       "*`*": "deny",
-      "*{*": "deny"
+      "*{*": "deny",
+      "*;*": "deny",
+      "*&*": "deny",
+      "*|*": "deny"
     }
   }
 }
