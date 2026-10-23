@@ -99,7 +99,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 ## Hace avanzar o retroceder el dial un paso (+1 o -1), solo en CRACKING
 func step_dial(direction: int) -> void:
-	if current_state != SafeState.CRACKING:
+	if current_state != SafeState.CRACKING or direction == 0:
 		return
 
 	var delta_step: int = 1 if direction > 0 else -1
@@ -122,14 +122,6 @@ func cancel_cracking() -> void:
 	current_state = SafeState.LOCKED
 	active_thief = null
 	print("[SafeBox3D] Sesión de ganzúa cancelada.")
-
-
-func _step_dial(delta_steps: int) -> void:
-	step_dial(delta_steps)
-
-
-func _cancel_cracking_session() -> void:
-	cancel_cracking()
 
 
 ## Confirma el número actual del dial contra la combinación requerida

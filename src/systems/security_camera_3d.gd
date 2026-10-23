@@ -61,10 +61,9 @@ func get_net_state() -> Dictionary:
 ## Aplica el snapshot de estado recibido por red
 func apply_net_state(state: Dictionary) -> void:
 	if state.has("rot_y"):
-		var rot: float = float(state["rot_y"])
-		rotation.y = rot
-		if mount != null and mount != self:
-			mount.rotation.y = rot
+		# Solo el barrido local: la raíz conserva la orientación que trae la escena
+		var target: Node3D = mount if mount != null else self
+		target.rotation.y = float(state["rot_y"])
 	if state.has("alert"):
 		is_alert_active = bool(state["alert"])
 		_set_cone_alert(is_alert_active)
