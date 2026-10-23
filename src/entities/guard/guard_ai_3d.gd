@@ -11,7 +11,7 @@ enum AIState { IDLE, PATROL, INVESTIGATE, CHASE }
 ## Distancia horizontal (m) a la que un waypoint de ronda se da por alcanzado
 const WAYPOINT_REACHED_DISTANCE: float = 0.8
 ## Distancia horizontal (m) a la que el punto investigado se da por alcanzado
-const INVESTIGATE_REACHED_DISTANCE: float = 1.0 - 0.1
+const INVESTIGATE_REACHED_DISTANCE: float = 0.9
 ## Segundos que el guardia inspecciona un ruido antes de volver a la ronda
 const NOISE_INVESTIGATE_TIME: float = 5.0
 ## Segundos que inspecciona la última posición avistada del ladrón
