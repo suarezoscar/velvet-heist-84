@@ -148,7 +148,7 @@ Las rutas de teclado actuales (`_process_local_actions`, `HeistMap3D._process_lo
   - `func apply_net_actor_state(state: Dictionary) -> void`, que asigna `global_position`, `velocity`, `rotation.y` y `look_target_position` (si viene `look`) y llama a `set_crouching(crouching)`;
   - `is_net_interpolating` queda en false.
 - `GuardController3D` añade `flashlight: bool`, `stamina: float`, `perceiving: bool`, `last_seen_pos: Vector3` y `last_seen_left: float`. Al aplicar `flashlight`, usa `func apply_flashlight_state(on: bool)`, que cambia la luz sin emitir ruido.
-- `ThiefController3D` añade `stamina: float`. Su `set_visible_to_local_viewer` oculta también `carry_anchor`, para que el botín cargado no delate al ladrón.
+- `ThiefController3D` no añade claves: el ladrón no tiene estamina. Su `set_visible_to_local_viewer` oculta también `carry_anchor`, para que el botín cargado no delate al ladrón.
 
 **`NoiseEmit.emit`** no hace nada si `NetManager.is_online()` y no `multiplayer.is_server()`. Lo comprueba con `Engine.get_main_loop()`.
 
@@ -259,6 +259,10 @@ func _client_noise(pos: Vector3, radius: float, team: StringName, category: Stri
 7. **`_client_game_state`**: `GameManager.apply_net_state(state)`.
 8. **`_client_noise`**: `audio.handle_noise(pos, radius, team, category, actor_for_role(emitter_role) o null, surface_mult)`.
 
+**Botín que desaparece o aparece en el servidor**:
+- `_collect_light_loot` y `deposit_into_trunk` hacen `queue_free()` en el servidor. `NetSession` (servidor) guarda la ruta de cada nodo del grupo `&"net_state"` y, cuando uno sale del árbol (`tree_exiting`), envía en el siguiente `_client_world_state` la clave de su ruta con el valor `{"removed": true}`. El cliente hace `queue_free()` de ese nodo.
+- El botín que crea `SafeBox3D._spawn_loot_contents` solo existe en el servidor. Al abrirse la caja fuerte, el estado público de `SafeBox3D` incluye `opened: true`, y el cliente ejecuta el mismo `_spawn_loot_contents` en `apply_net_state` cuando `opened` pasa de false a true. Esto crea nodos con los mismos nombres y rutas, siempre que `_spawn_loot_contents` les dé un nombre fijo. Si hoy no se lo da, PKG-3 le asigna `name = "SafeLoot_%d" % i`.
+
 **`NetManager`** (`core/net_manager.gd`):
 - `AVAILABLE_ROLES = NetConfig.ROLES`; `ROLE_GUARD_3` se mantiene como constante, pero `_assign_role_internal` rechaza cualquier rol fuera de `AVAILABLE_ROLES`;
 - `start_host` devuelve `ERR_UNAVAILABLE` sin crear nada (host fuera del PoC);
@@ -333,10 +337,12 @@ Toda la FEAT. Autoridad: servidor (peer 1) sobre todo. Frecuencias y destinatari
   src/maps/noise_audio_presenter.gd
   src/maps/heist_map_3d.gd
   tests/unit/test_net_state_unit.gd
+  src/entities/components/actor_net_state.gd
+  src/entities/components/actor_net_state.gd.uid
   tests/unit/test_net_state_unit.gd.uid
   ```
 - **Contratos**: "Contrato de PKG-2".
-- **Restricción**: si `player_base_3d.gd` supera 300 líneas, saca `get_net_actor_state` y `apply_net_actor_state` a `src/entities/components/actor_net_state.gd` (`class_name ActorNetState extends RefCounted`, con `static func read(actor) -> Dictionary` y `static func write(actor, state) -> void`), añadido a `allowed` en la entrega con su `.uid`. Este es el único archivo extra permitido.
+- **`ActorNetState`** (`src/entities/components/actor_net_state.gd`, `class_name ActorNetState extends RefCounted`): contiene la lógica de `get_net_actor_state` y `apply_net_actor_state` con `static func read(actor: PlayerBase3D) -> Dictionary` y `static func write(actor: PlayerBase3D, state: Dictionary) -> void`. Los métodos de los actores son envoltorios de una línea, para dejar margen bajo las 300 líneas a PKG-3.
 - **Rutas `/root/`**: `check_patterns.sh` revisa el archivo entero. Si un archivo que tocas ya tiene `get_node_or_null("/root/<Autoload>")` (por ejemplo `security_camera_3d.gd:106` o `main_menu.gd:121`), sustitúyelo por el nombre del autoload (`SignalBus`, `NetManager`).
 - **Tests**: unitarios de `perform_action` (las 7 acciones) y de `step_dial` y `cancel_cracking`, en `test_net_state_unit.gd`.
 - **Comandos de cierre**: los de PKG-1.
@@ -362,6 +368,7 @@ Toda la FEAT. Autoridad: servidor (peer 1) sobre todo. Frecuencias y destinatari
   src/network/net_test_hooks.gd.uid
   core/net_manager.gd
   src/maps/heist_map_3d.gd
+  src/systems/safe_box_3d.gd  # excepción: nombre fijo del botín creado y creación en el cliente al abrirse
   scenes/maps/museum_velvet_84.gd  # excepción: quitar la red antigua del mapa (la FEAT lo pide)
   tools/net/run_server.sh
   tests/unit/test_multiplayer_lobby.gd  # excepción: adaptar a roles limitados y a la ausencia de host
