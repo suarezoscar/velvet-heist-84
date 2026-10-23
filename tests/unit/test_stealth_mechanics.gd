@@ -64,7 +64,15 @@ func test_criterio_1_guard_scene_model_and_anchors() -> void:
 	# Comprobar MagliteSpotLight a la altura del pecho, delante del cuerpo (-Z)
 	var maglite: SpotLight3D = guard.maglite_light
 	assert_not_null(maglite, "MagliteSpotLight asignada en guard_player")
-	assert_almost_eq(maglite.position.y, 0.90, 0.05, "Altura Y de Maglite aprox 0.90m")
+	var perception: PerceptionProfile = (
+		load("res://data/balance/perception_guard.tres") as PerceptionProfile
+	)
+	assert_almost_eq(
+		maglite.position.y,
+		perception.flashlight_height,
+		0.05,
+		"Altura Y de Maglite segun perception_guard.tres"
+	)
 	assert_almost_eq(maglite.position.z, -0.40, 0.05, "Maglite delante (-Z) aprox 0.40m")
 
 
