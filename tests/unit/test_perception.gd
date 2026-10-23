@@ -52,6 +52,10 @@ func _count_sound_waves(parent: Node) -> int:
 	return count
 
 
+func after_each() -> void:
+	GameManager.current_state = GameManager.MatchState.LOBBY
+
+
 ## Criterio 1: perception_guard.tres cumple invariantes 7, 8 y 9
 func test_profile_invariants() -> void:
 	var profile: PerceptionProfile = load(PROFILE_PATH) as PerceptionProfile
@@ -123,10 +127,11 @@ func test_rear_blind_arc() -> void:
 
 ## Criterio 5: Cobertura baja de 1.0m oculta al ladrón agachado pero no de pie
 func test_low_cover_hides_crouched_only() -> void:
+	var cover_z: float = -1.0
+	var cover_depth: float = 0.2
 	var guard: GuardController3D = _create_guard()
-	var profile: PerceptionProfile = guard.perception
-	var thief: ThiefController3D = _create_thief(Vector3(0.0, 0.0, -profile.stand_points[1]))
-	_create_obstacle(Vector3(0.0, 0.5, -1.0), Vector3(2.0, 1.0, 0.2))
+	var thief: ThiefController3D = _create_thief(Vector3(0.0, 0.0, cover_z - cover_depth))
+	_create_obstacle(Vector3(0.0, 0.5, cover_z), Vector3(2.0, 1.0, cover_depth))
 	await wait_physics_frames(2)
 	assert_true(guard.check_detection_on_thief(thief), "De pie se detecta sobre cobertura baja")
 
@@ -143,7 +148,7 @@ func test_full_wall_blocks_proximity() -> void:
 	var profile: PerceptionProfile = guard.perception
 	var thief_z: float = -(profile.proximity_radius * 0.5)
 	var thief: ThiefController3D = _create_thief(Vector3(0.0, 0.0, thief_z))
-	_create_obstacle(Vector3(0.0, 1.5, thief_z * 0.5), Vector3(2.0, 3.0, 0.2))
+	_create_obstacle(Vector3(0.0, 3.0 * 0.5, thief_z * 0.5), Vector3(2.0, 3.0, 0.2))
 	await wait_physics_frames(2)
 	assert_false(guard.check_detection_on_thief(thief), "Muro de 3m bloquea la proximidad")
 
@@ -188,7 +193,7 @@ func test_melee_range_edge() -> void:
 	assert_true(guard.validate_melee_hit(thief), "Porra acierta con 0.5m de desnivel")
 
 	thief.position = Vector3(0.0, 0.0, hit_z)
-	_create_obstacle(Vector3(0.0, 1.5, hit_z * 0.5), Vector3(2.0, 3.0, 0.2))
+	_create_obstacle(Vector3(0.0, 3.0 * 0.5, hit_z * 0.5), Vector3(2.0, 3.0, 0.2))
 	await wait_physics_frames(2)
 	assert_false(guard.validate_melee_hit(thief), "Porra bloqueada por muro intermedio")
 
@@ -200,12 +205,12 @@ func test_ai_hears_exactly_the_ring() -> void:
 	guard.add_child(ai)
 
 	var ring_radius: float = 4.0
-	SignalBus.noise_emitted_3d.emit(Vector3(0.0, 0.0, -(ring_radius + 0.01)), ring_radius, &"thief")
+	SignalBus.noise_emitted_3d.emit(Vector3(0.0, 0.5, -(ring_radius + 0.01)), ring_radius, &"thief")
 	assert_eq(
 		ai.current_state, GuardAI3D.AIState.PATROL, "Ruido a R + 0.01m no altera estado de patrulla"
 	)
 
-	SignalBus.noise_emitted_3d.emit(Vector3(0.0, 0.0, -(ring_radius - 0.01)), ring_radius, &"thief")
+	SignalBus.noise_emitted_3d.emit(Vector3(0.0, 0.5, -(ring_radius - 0.01)), ring_radius, &"thief")
 	assert_eq(
 		ai.current_state,
 		GuardAI3D.AIState.INVESTIGATE,
@@ -259,5 +264,3 @@ func test_map_filters_rings_for_local_guard() -> void:
 
 	SignalBus.noise_emitted_3d.emit(Vector3(0.0, 0.0, -(ring_radius - 1.0)), ring_radius, &"thief")
 	assert_eq(_count_sound_waves(map), 1, "Crea SoundWave3D si está dentro de alcance")
-
-	GameManager.current_state = GameManager.MatchState.LOBBY
