@@ -13,7 +13,6 @@ func after_each() -> void:
 ## Criterio 10: O1: Exposición del ladrón (beam > lit > shadow) y &"" para otros
 func test_thief_exposure() -> void:
 	var map: HeistMap3D = autofree(HeistMap3D.new())
-	map.set_physics_process(false)
 
 	var hud_scene: PackedScene = load(HUD_SCENE_PATH) as PackedScene
 	var hud: HUD84 = hud_scene.instantiate() as HUD84
@@ -45,6 +44,7 @@ func test_thief_exposure() -> void:
 	map.add_child(lamp)
 
 	add_child_autofree(map)
+	map.set_physics_process(false)
 	thief.set_physics_process(false)
 	guard.set_physics_process(false)
 	guard.set_flashlight(false)
@@ -87,7 +87,6 @@ func test_thief_exposure() -> void:
 ## Criterio 11: O2: Silueta de última posición vista del ladrón para el guardia local
 func test_last_seen_marker() -> void:
 	var map: HeistMap3D = autofree(HeistMap3D.new())
-	map.set_physics_process(false)
 
 	var hud_scene: PackedScene = load(HUD_SCENE_PATH) as PackedScene
 	var hud: HUD84 = hud_scene.instantiate() as HUD84
@@ -109,42 +108,53 @@ func test_last_seen_marker() -> void:
 	map.add_child(guard)
 
 	add_child_autofree(map)
+	map.set_physics_process(false)
 	thief.set_physics_process(false)
 	guard.set_physics_process(false)
 
 	map.set_local_player(guard)
-	var marker: LastSeenMarker3D = map.local_view_presenter._last_seen_marker
+	var presenter: LocalViewPresenter = map.local_view_presenter
+	var marker: LastSeenMarker3D = presenter._last_seen_marker
 	assert_not_null(marker, "LastSeenMarker3D debe estar instanciado en el presentador")
 
-	# 1. Guardia percibiendo al ladrón: el marcador aún no se muestra
-	guard.is_perceiving_thief = true
-	map.local_view_presenter._physics_process(0.0)
+	var perception: PerceptionProfile = (
+		load("res://data/balance/perception_guard.tres") as PerceptionProfile
+	)
+	assert_not_null(perception, "perception_guard.tres debe cargarse")
+	guard.perception = perception
+	var dt: float = 0.016
+
+	# 1. Coloca al ladrón dentro de proximity_radius del guardia sin solapar cápsulas
+	thief.global_position = Vector3(0.0, 0.0, -1.0)
+	guard.update_perception(thief, [], dt)
+	presenter._physics_process(dt)
+	assert_true(guard.is_perceiving_thief, "Guardia debe percibir al ladrón")
 	assert_false(marker.visible, "Mientras percibe al ladrón, el marcador no es visible")
 
-	# 2. Guardia deja de percibir: aparece silueta en last_seen_position
-	guard.is_perceiving_thief = false
-	var last_pos: Vector3 = Vector3(12.0, 0.0, -5.0)
-	guard.last_seen_position = last_pos
-	guard.last_seen_time_left = 3.0
-	map.local_view_presenter._physics_process(0.0)
-
+	# 2. Aleja al ladrón fuera de radio, cono y luz -> silueta visible en última posición
+	var last_pos: Vector3 = thief.global_position
+	thief.global_position = Vector3(50.0, 0.0, 50.0)
+	guard.update_perception(thief, [], dt)
+	presenter._physics_process(dt)
+	assert_false(guard.is_perceiving_thief, "Guardia deja de percibir al ladrón")
 	assert_true(marker.visible, "Al perder visibilidad debe aparecer la silueta")
-	assert_almost_eq(marker.global_position.x, last_pos.x, 0.01, "Posición X del marcador correcta")
-	assert_almost_eq(marker.global_position.z, last_pos.z, 0.01, "Posición Z del marcador correcta")
+	assert_almost_eq(marker.global_position.x, last_pos.x, 0.01, "Posición X de silueta correcta")
+	assert_almost_eq(marker.global_position.z, last_pos.z, 0.01, "Posición Z de silueta correcta")
 
-	# 3. Cuando last_seen_time_left llega a 0, desaparece
-	guard.last_seen_time_left = 0.0
-	map.local_view_presenter._physics_process(0.0)
+	# 3. Tras last_seen_linger + 0.01 s, la silueta desaparece
+	guard.update_perception(thief, [], perception.last_seen_linger + 0.01)
+	presenter._physics_process(dt)
 	assert_false(marker.visible, "Cuando el tiempo de última posición expira, desaparece")
 
 	# 4. Cambiar el jugador local oculta el marcador inmediatamente
-	guard.is_perceiving_thief = true
-	map.local_view_presenter._physics_process(0.0)
-	guard.is_perceiving_thief = false
-	guard.last_seen_time_left = 3.0
-	map.local_view_presenter._physics_process(0.0)
+	thief.global_position = Vector3(0.0, 0.0, -1.0)
+	guard.update_perception(thief, [], dt)
+	presenter._physics_process(dt)
+	thief.global_position = Vector3(50.0, 0.0, 50.0)
+	guard.update_perception(thief, [], dt)
+	presenter._physics_process(dt)
 	assert_true(marker.visible, "Marcador visible de nuevo")
 
 	map.set_local_player(thief)
-	map.local_view_presenter._physics_process(0.0)
+	presenter._physics_process(dt)
 	assert_false(marker.visible, "Cambiar de jugador local oculta la silueta")
