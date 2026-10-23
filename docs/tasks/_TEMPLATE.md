@@ -59,5 +59,6 @@ Uno por agente y rama. Los redacta Claude para que el ejecutor no tome decisione
   ```
 - **Tests obligatorios**: `tests/...::test_nombre` → criterio que cubre. Uno por criterio como mínimo, derivados de los contratos.
 - **Comandos de cierre**: los de PKG-1, empezando siempre por `./tools/ci/import.sh` (cada paquete trabaja en un worktree nuevo sin `.godot/`).
+- **Montaje de tests con física**: `position` antes de `add_child_autofree`; personajes al árbol antes de usar sus perfiles; `set_physics_process(false)` si el test simula a mano; ninguna pieza de escenario solapada con una cápsula.
 
 ## Riesgos y decisiones abiertas
