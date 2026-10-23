@@ -141,7 +141,7 @@ Ninguno.
 ## Estado de los paquetes
 | PKG | Agente | Rama | Depende de | Estado | Vueltas | Notas |
 |---|---|---|---|---|---|---|
-| PKG-1 | technical-artist | `feat/010-pkg1` | FEAT-009 PKG-1 y PKG-2 | entregado | 0 | `bloqueado` previsto por tests antiguos; los adapta en la vuelta 1 |
+| PKG-1 | technical-artist | `feat/010-pkg1` | FEAT-009 PKG-1 y PKG-2 | en curso | 1 | `bloqueado` previsto por tests antiguos; los adapta en la vuelta 1 |
 | PKG-QA | qa-engineer | `feat/010-pkgqa` | PKG-1 | pendiente | 0 | |
 
 ## Paquetes de ejecución
