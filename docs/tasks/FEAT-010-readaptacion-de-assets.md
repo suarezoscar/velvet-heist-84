@@ -1,6 +1,6 @@
 # FEAT-010 — Readaptación de assets: fichas para todos, colisión invisible y gadgets sin deformar
 
-- **Estado**: aprobada (2026-10-23)
+- **Estado**: hecha (2026-10-23)
 - **Diseño**: `n/a — técnica`. Decisiones del usuario del 2026-10-23:
   - pivotes por tipo;
   - presupuestos de 2.000 y 5.000 triángulos;
@@ -141,8 +141,8 @@ Ninguno.
 ## Estado de los paquetes
 | PKG | Agente | Rama | Depende de | Estado | Vueltas | Notas |
 |---|---|---|---|---|---|---|
-| PKG-1 | technical-artist | `feat/010-pkg1` | FEAT-009 PKG-1 y PKG-2 | en curso | 1 | `bloqueado` previsto por tests antiguos; los adapta en la vuelta 1 |
-| PKG-QA | qa-engineer | `feat/010-pkgqa` | PKG-1 | pendiente | 0 | |
+| PKG-1 | technical-artist | `feat/010-pkg1` | FEAT-009 PKG-1 y PKG-2 | integrado | 1 | `bloqueado` previsto por tests antiguos; los adaptó en la vuelta 1 |
+| PKG-QA | qa-engineer | `feat/010-pkgqa` | PKG-1 | integrado | 0 | |
 
 ## Paquetes de ejecución
 
@@ -221,6 +221,31 @@ Ninguno.
       Antes de darlo por bueno, comprueba que fallaría contra un `.glb` con `-col`: usa `assets/models/raw/polyhaven/ceramic_vase.glb`, que conserva `ceramic_vase_02-col`, cargándolo por ruta con `GLTFDocument`, porque `.gdignore` impide importarlo. Ese caso va como test propio, `test_collision_check_detects_visible_col`.
   - `qa_validate_all.sh` → crit. 5: añade un paso que cree un directorio temporal con los `.glb` de las fichas más una copia de `wood_wedge.glb` llamada `orphan_asset.glb`, ejecute `validate_all.py -- --models-dir <temporal>` y espere 1 y la línea `FAIL orphan_asset: sin ficha`.
 - **Comandos de cierre**: los de PKG-1, más `bash tools/ci/qa_validate_all.sh`.
+
+## Cierre (2026-10-23)
+- **`/verify` en `master` (`413c37d`)**:
+  - import y check_scripts: 0;
+  - run_tests: 98/98;
+  - run_blender_tests: 46/46, con `validate_all` 24/24;
+  - `qa_validate_all.sh`: 0.
+- **Criterios**:
+  - 1: `test_collision_meshes_are_invisible` y `test_collision_check_detects_visible_col`;
+  - 2, 3 y regla de nodos: `test_validator.py`;
+  - 4 y 7: `reports/` con 24 JSON; reducción repetible, comprobada por el revisor;
+  - 5: `qa_validate_all.sh`, paso 4;
+  - 6 y 8: revisión;
+  - 9: `test_assets_match_their_cards`, con mutación en memoria;
+  - 10 y 11: previews e import en 0.
+- **Mutation testing del revisor**: 6 mutaciones, todas detectadas.
+- **PR**: #30 (PKG-1, una vuelta) y #31 (PKG-QA).
+- **Lección de spec**: PKG-1 cambiaba un contrato que comprobaban tests existentes. Esos tests tienen que adaptarse en el mismo paquete, porque `check_scope` no admite ramas que mezclen paquetes. Se corrigió a mitad de FEAT con los PR #27 y #28.
+- **Pendiente**:
+  - **`stethoscope`**: la geometría del generador está rota (tubos sueltos y auriculares flotando), y ya lo estaba antes de esta FEAT. Necesita una spec nueva.
+  - **Mapas**: quitar el parche `_hide_collision_helpers` y los nombres ocultos a mano.
+  - **Sugerencias del revisor para `test_asset_import.gd`**:
+    - contar los casos `top_center` en la mutación del criterio 9;
+    - comprobar el nombre exacto en `test_collision_check_detects_visible_col`;
+    - volver a mostrar los valores medidos en los mensajes.
 
 ## Riesgos y decisiones abiertas
 - **Escalas del generador en `museum_level_builder_3d.gd`.** El reloj de pie se instancia a 0,85 y el cuadro a 0,9. Con el reloj sin la esfera de 2 m, el tamaño visible no cambia (la esfera no tenía material). Revisarlas jugando no entra en esta FEAT.
