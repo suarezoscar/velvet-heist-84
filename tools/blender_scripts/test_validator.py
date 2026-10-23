@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 """
 tools/blender_scripts/test_validator.py
-Suite de tests unitarios y de aceptación para validate_asset.py (FEAT-009 PKG-QA).
-Demuestra empíricamente el cumplimiento de los criterios 1 a 5 de la FEAT-009:
-- Criterio 1: test_spec_schema_* (esquema estricto de ficha y source)
-- Criterio 2: test_dimensions_tolerance_* (tolerancias relativas y absolutas)
-- Criterio 3: test_pivot_tolerance_* (base en Z=0 y centrado XY)
-- Criterio 4: test_palette_* (materiales en ficha y paleta PBR Velvet '84)
-- Criterio 5: test_names_* (nombres de objeto y materiales)
+Suite de tests unitarios y de aceptación para validate_asset.py (FEAT-009 y FEAT-010 PKG-QA).
+Demuestra empíricamente el cumplimiento de los criterios:
+- FEAT-009 Criterio 1: test_spec_schema_* (esquema estricto de ficha y source)
+- FEAT-009 Criterio 2: test_dimensions_tolerance_* (tolerancias relativas y absolutas)
+- FEAT-009 Criterio 3: test_pivot_tolerance_* (base en Z=0 y centrado XY)
+- FEAT-009 Criterio 4: test_palette_* (materiales en ficha y paleta PBR Velvet '84)
+- FEAT-009 Criterio 5: test_names_* (nombres de objeto y materiales)
+- FEAT-010 Criterio 2: test_collision_suffix_* (-col vs -colonly)
+- FEAT-010 Criterio 3: test_pivot_types_* (tipos bottom_center, top_center, back_center)
+- FEAT-010 Contrato: test_external_nodes_* (nodos externos en polyhaven vs procedural)
 Más tests de regresión para las reglas existentes de Blender.
 """
 
@@ -267,6 +270,95 @@ def run_test_suite():
     test_pivot_tolerance_base_pass()
     test_pivot_tolerance_x_fail()
     test_pivot_tolerance_x_pass()
+
+    # -------------------------------------------------------------------------
+    # FEAT-010 Criterio 3: test_pivot_types_* sobre una pieza de 0,25 m
+    # -------------------------------------------------------------------------
+    print("\n>>> FEAT-010 CRITERIO 3: Tipos de pivote (test_pivot_types_*)")
+
+    spec_piv_top = make_valid_spec(name="piv_top", dimensions=[0.25, 0.25, 0.25], pivot="top_center")
+    spec_piv_back = make_valid_spec(name="piv_back", dimensions=[0.25, 0.25, 0.25], pivot="back_center")
+    spec_piv_bot = make_valid_spec(name="piv_bot", dimensions=[0.25, 0.25, 0.25], pivot="bottom_center")
+
+    def setup_cube_top_center():
+        # Pieza colgada: centro XY en 0, max_z = 0 (Z de -0.25 a 0.0)
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.0, 0.0, -0.125), scale=(0.25, 0.25, 0.25))
+        bpy.ops.object.transform_apply(scale=True, location=True, rotation=False)
+        obj = bpy.context.active_object
+        obj.name = "top_cube"
+        obj.data.materials.append(create_pbr_material("Steel80s", "Steel80s"))
+
+    def setup_cube_supported_z0():
+        # Pieza apoyada en Z=0 y centrada en XY: min_z = 0.0, max_z = 0.25 (Z de 0 a 0.25)
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.0, 0.0, 0.125), scale=(0.25, 0.25, 0.25))
+        bpy.ops.object.transform_apply(scale=True, location=True, rotation=False)
+        obj = bpy.context.active_object
+        obj.name = "bot_cube"
+        obj.data.materials.append(create_pbr_material("Steel80s", "Steel80s"))
+
+    def setup_cube_back_center():
+        # Pieza en pared: centro X=0, centro vertical Z=0, max_y = 0 (Y de -0.25 a 0.0)
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0.0, -0.125, 0.0), scale=(0.25, 0.25, 0.25))
+        bpy.ops.object.transform_apply(scale=True, location=True, rotation=False)
+        obj = bpy.context.active_object
+        obj.name = "back_cube"
+        obj.data.materials.append(create_pbr_material("Steel80s", "Steel80s"))
+
+    def test_pivot_types_top_center_pass():
+        assert_check_passes(
+            "pivot_position",
+            "test_pivot_types_top_center_pass: top_center pasa con max_z = 0",
+            setup_cube_top_center,
+            spec_piv_top,
+        )
+
+    def test_pivot_types_top_center_fail_supported():
+        assert_check_fails(
+            "pivot_position",
+            "test_pivot_types_top_center_fail_supported: top_center falla con pieza apoyada en Z=0",
+            setup_cube_supported_z0,
+            spec_piv_top,
+        )
+
+    def test_pivot_types_back_center_pass():
+        assert_check_passes(
+            "pivot_position",
+            "test_pivot_types_back_center_pass: back_center pasa con max_y = 0 y centro Z en 0",
+            setup_cube_back_center,
+            spec_piv_back,
+        )
+
+    def test_pivot_types_back_center_fail_supported():
+        assert_check_fails(
+            "pivot_position",
+            "test_pivot_types_back_center_fail_supported: back_center falla con pieza apoyada en Z=0 y centrada en Y",
+            setup_cube_supported_z0,
+            spec_piv_back,
+        )
+
+    def test_pivot_types_bottom_center_fail_hanging():
+        assert_check_fails(
+            "pivot_position",
+            "test_pivot_types_bottom_center_fail_hanging: bottom_center falla con pieza colgada (max_z = 0)",
+            setup_cube_top_center,
+            spec_piv_bot,
+        )
+
+    def test_pivot_types_unknown_schema_fail():
+        spec_side = make_valid_spec(name="piv_side", pivot="side")
+        assert_check_fails(
+            "spec_schema",
+            "test_pivot_types_unknown_schema_fail: pivot='side' falla spec_schema",
+            setup_cube_supported_z0,
+            spec_side,
+        )
+
+    test_pivot_types_top_center_pass()
+    test_pivot_types_top_center_fail_supported()
+    test_pivot_types_back_center_pass()
+    test_pivot_types_back_center_fail_supported()
+    test_pivot_types_bottom_center_fail_hanging()
+    test_pivot_types_unknown_schema_fail()
 
     # =========================================================================
     # Criterio 4: test_palette_*
@@ -567,6 +659,130 @@ def run_test_suite():
 
     spec_col = make_valid_spec(name="broken_collision", collision=True)
     assert_check_fails("collision_mesh", "Rechazar ausencia de malla de colisión '-colonly' requerida", setup_missing_collision, spec_col)
+
+    # =========================================================================
+    # FEAT-010 Criterio 2: test_collision_suffix_*
+    # =========================================================================
+    print("\n>>> FEAT-010 CRITERIO 2: Sufijo de colisión (test_collision_suffix_*)")
+
+    spec_col_suffix = make_valid_spec(name="col_suffix_test", collision=True)
+
+    def setup_collision_col():
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0.5))
+        vis = bpy.context.active_object
+        vis.name = "Box"
+        bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
+        vis.data.materials.append(create_pbr_material("Steel80s", "Steel80s"))
+
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0.5))
+        col = bpy.context.active_object
+        col.name = "Box-col"
+        bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
+
+    def setup_collision_colonly():
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0.5))
+        vis = bpy.context.active_object
+        vis.name = "Box"
+        bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
+        vis.data.materials.append(create_pbr_material("Steel80s", "Steel80s"))
+
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0.5))
+        col = bpy.context.active_object
+        col.name = "Box-colonly"
+        bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
+
+    def test_collision_suffix_col_fail():
+        assert_check_fails(
+            "collision_mesh",
+            "test_collision_suffix_col_fail: Falla con objeto 'Box-col'",
+            setup_collision_col,
+            spec_col_suffix,
+        )
+
+    def test_collision_suffix_colonly_pass():
+        assert_check_passes(
+            "collision_mesh",
+            "test_collision_suffix_colonly_pass: Pasa con objeto 'Box-colonly'",
+            setup_collision_colonly,
+            spec_col_suffix,
+        )
+
+    test_collision_suffix_col_fail()
+    test_collision_suffix_colonly_pass()
+
+    # =========================================================================
+    # FEAT-010 Contrato: test_external_nodes_*
+    # =========================================================================
+    print("\n>>> FEAT-010 CONTRATO: Nodos de sombreado según origen (test_external_nodes_*)")
+
+    spec_poly_math = make_valid_spec(
+        name="poly_math",
+        materials=["Steel80s"],
+        source={"origin": "polyhaven", "url": "https://polyhaven.com/a/test", "license": "CC0", "author": "ph"},
+    )
+    spec_proc_math = make_valid_spec(name="proc_math", materials=["Steel80s"], source=VALID_SOURCE)
+
+    spec_poly_noise = make_valid_spec(
+        name="poly_noise",
+        materials=["Steel80s"],
+        source={"origin": "polyhaven", "url": "https://polyhaven.com/a/test", "license": "CC0", "author": "ph"},
+    )
+    spec_proc_noise = make_valid_spec(name="proc_noise", materials=["Steel80s"], source=VALID_SOURCE)
+
+    def setup_node_math():
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0.5))
+        obj = bpy.context.active_object
+        obj.name = "math_mesh"
+        bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
+        mat = create_pbr_material("Steel80s", "Steel80s")
+        mat.node_tree.nodes.new("ShaderNodeMath")
+        obj.data.materials.append(mat)
+
+    def setup_node_noise():
+        bpy.ops.mesh.primitive_cube_add(size=1.0, location=(0, 0, 0.5))
+        obj = bpy.context.active_object
+        obj.name = "noise_mesh"
+        bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
+        mat = create_pbr_material("Steel80s", "Steel80s")
+        mat.node_tree.nodes.new("ShaderNodeTexNoise")
+        obj.data.materials.append(mat)
+
+    def test_external_nodes_math_polyhaven_pass():
+        assert_check_passes(
+            "no_procedural_nodes",
+            "test_external_nodes_math_polyhaven_pass: ShaderNodeMath pasa en asset polyhaven",
+            setup_node_math,
+            spec_poly_math,
+        )
+
+    def test_external_nodes_math_procedural_fail():
+        assert_check_fails(
+            "no_procedural_nodes",
+            "test_external_nodes_math_procedural_fail: ShaderNodeMath falla en asset procedural",
+            setup_node_math,
+            spec_proc_math,
+        )
+
+    def test_external_nodes_noise_polyhaven_fail():
+        assert_check_fails(
+            "no_procedural_nodes",
+            "test_external_nodes_noise_polyhaven_fail: ShaderNodeTexNoise falla en asset polyhaven",
+            setup_node_noise,
+            spec_poly_noise,
+        )
+
+    def test_external_nodes_noise_procedural_fail():
+        assert_check_fails(
+            "no_procedural_nodes",
+            "test_external_nodes_noise_procedural_fail: ShaderNodeTexNoise falla en asset procedural",
+            setup_node_noise,
+            spec_proc_noise,
+        )
+
+    test_external_nodes_math_polyhaven_pass()
+    test_external_nodes_math_procedural_fail()
+    test_external_nodes_noise_polyhaven_fail()
+    test_external_nodes_noise_procedural_fail()
 
     # Comprobación de versión de Blender
     def test_blender_version_mismatch():
