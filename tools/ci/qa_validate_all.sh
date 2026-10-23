@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # tools/ci/qa_validate_all.sh
-# Verificación de aceptación para FEAT-009 (Criterios 6 y 8).
+# Verificación de aceptación para FEAT-009 y FEAT-010 (Criterios 4, 5, 6 y 8).
 # 1. validate_all.py sobre el repo y espera 0.
 # 2. validate_all.py con ficha adicional sin .glb en directorio temporal y espera 1.
 # 3. Comprobación con Blender de cobertura >= 2% en las previews de todas las fichas.
+# 4. validate_all.py con .glb sin ficha técnica y espera 1 ('FAIL orphan_asset: sin ficha').
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -96,8 +97,8 @@ for spec_file in sorted(specs_dir.glob("*.json")):
         )
         failed = True
 
-if count < 15:
-    print(f"ERROR: Se esperaba comprobar al menos 15 previews, pero se encontraron {count}", file=sys.stderr)
+if count < 24:
+    print(f"ERROR: Se esperaba comprobar al menos 24 previews, pero se encontraron {count}", file=sys.stderr)
     failed = True
 
 if failed:
@@ -109,4 +110,27 @@ EOF
 
 blender -b --factory-startup --python-exit-code 1 -P "${CHECK_SCRIPT}"
 echo "==> Paso 3 superado: todas las previews cumplen la cobertura mínima del 2%."
+
+echo "=== [QA] Paso 4: Ejecutar validate_all.py ante .glb de primer nivel sin ficha (Criterio 5) ==="
+TMP_MODELS_DIR="${TMP_SPECS_DIR}/models"
+mkdir -p "${TMP_MODELS_DIR}"
+cp assets/models/*.glb "${TMP_MODELS_DIR}/"
+cp assets/models/wood_wedge.glb "${TMP_MODELS_DIR}/orphan_asset.glb"
+
+ORPHAN_LOG="${TMP_SPECS_DIR}/validate_orphan.log"
+STATUS_ORPHAN=0
+blender -b --factory-startup --python-exit-code 1 -P tools/blender_scripts/validate_all.py -- --models-dir "${TMP_MODELS_DIR}" > "${ORPHAN_LOG}" 2>&1 || STATUS_ORPHAN=$?
+cat "${ORPHAN_LOG}"
+
+if [ "${STATUS_ORPHAN}" -ne 1 ]; then
+    echo "==> Error: se esperaba código 1 pero se obtuvo ${STATUS_ORPHAN}."
+    exit 1
+fi
+
+if ! grep -q "FAIL orphan_asset: sin ficha" "${ORPHAN_LOG}"; then
+    echo "==> Error: la salida de validate_all.py no contiene 'FAIL orphan_asset: sin ficha'."
+    exit 1
+fi
+
+echo "==> Paso 4 superado: validate_all.py devolvió código 1 y contiene 'FAIL orphan_asset: sin ficha'."
 echo "=== [QA] qa_validate_all.sh completado con éxito. ==="
