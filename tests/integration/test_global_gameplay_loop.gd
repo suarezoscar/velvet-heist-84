@@ -2,6 +2,8 @@
 ## Suite de pruebas globales de integración y auditoría de Velvet Heist '84.
 ## Audita integridad de mapa (museum_velvet_84.tscn), ciclos de victoria y derrota,
 ## alarma de ronda (90s), red autoritativa, fugas de memoria y benchmark headless.
+## La suite ya superaba las 300 líneas en master y PKG-3 solo adapta test_06.
+# gdlint: disable=max-file-lines
 extends GutTest
 
 ## Espejo tipado de GameManager.MatchState para verificaciones asertivas
@@ -11,10 +13,10 @@ const MAP_SCENE_PATH: String = "res://scenes/maps/museum_velvet_84.tscn"
 
 
 func before_each() -> void:
-	var net_mgr: NetManagerNode = get_node_or_null("/root/NetManager")
+	var net_mgr: NetManagerNode = NetManager
 	if net_mgr != null and multiplayer.multiplayer_peer != null:
 		net_mgr.disconnect_network()
-	var gm: Node = get_node_or_null("/root/GameManager")
+	var gm: Node = GameManager
 	if gm != null:
 		gm.set("current_state", GameState.LOBBY)
 		gm.set("current_loot_value", 0)
@@ -23,10 +25,10 @@ func before_each() -> void:
 
 
 func after_each() -> void:
-	var net_mgr: NetManagerNode = get_node_or_null("/root/NetManager")
+	var net_mgr: NetManagerNode = NetManager
 	if net_mgr != null and multiplayer.multiplayer_peer != null:
 		net_mgr.disconnect_network()
-	var gm: Node = get_node_or_null("/root/GameManager")
+	var gm: Node = GameManager
 	if gm != null:
 		gm.set("current_state", GameState.LOBBY)
 		gm.set("current_loot_value", 0)
@@ -107,7 +109,7 @@ func test_01_map_integrity_and_actors_configuration() -> void:
 
 
 func test_02_victory_cycle_infiltration_loot_escape() -> void:
-	var gm: Node = get_node_or_null("/root/GameManager")
+	var gm: Node = GameManager
 	assert_not_null(gm, "GameManager debe existir")
 
 	var map_scene: PackedScene = load(MAP_SCENE_PATH)
@@ -142,7 +144,7 @@ func test_02_victory_cycle_infiltration_loot_escape() -> void:
 	assert_not_null(masterpiece, "Pieza Maestra encontrada en el mapa")
 
 	# Sumar botín adicional para alcanzar los $10.000 requeridos junto a la obra
-	var bus: Node = get_node_or_null("/root/SignalBus")
+	var bus: Node = SignalBus
 	bus.emit_signal("loot_stolen", 5000, false)
 	assert_gte(gm.get("current_loot_value"), 10000, "Cuota monetaria alcanzada")
 	assert_false(gm.call("can_thief_escape"), "Aún no puede escapar: falta Pieza Maestra asegurada")
@@ -198,7 +200,7 @@ func test_02_victory_cycle_infiltration_loot_escape() -> void:
 
 
 func test_03_defeat_cycle_by_guard_neutralization() -> void:
-	var gm: Node = get_node_or_null("/root/GameManager")
+	var gm: Node = GameManager
 	var map_scene: PackedScene = load(MAP_SCENE_PATH)
 	var map: Node3D = autofree(map_scene.instantiate())
 	add_child_autofree(map)
@@ -245,8 +247,8 @@ func test_03_defeat_cycle_by_guard_neutralization() -> void:
 
 
 func test_04_alarm_cycle_time_clock_90s() -> void:
-	var gm: Node = get_node_or_null("/root/GameManager")
-	var bus: Node = get_node_or_null("/root/SignalBus")
+	var gm: Node = GameManager
+	var bus: Node = SignalBus
 	var map_scene: PackedScene = load(MAP_SCENE_PATH)
 	var map: Node3D = autofree(map_scene.instantiate())
 	add_child_autofree(map)
@@ -286,7 +288,7 @@ func test_04_alarm_cycle_time_clock_90s() -> void:
 
 
 func test_05_defeat_cycle_by_time_expiration() -> void:
-	var gm: Node = get_node_or_null("/root/GameManager")
+	var gm: Node = GameManager
 	var map_scene: PackedScene = load(MAP_SCENE_PATH)
 	var map: Node3D = autofree(map_scene.instantiate())
 	add_child_autofree(map)
@@ -311,16 +313,17 @@ func test_05_defeat_cycle_by_time_expiration() -> void:
 
 
 # ------------------------------------------------------------------------------
-# Test 6: Integración Multijugador en el Mapa (Autoridades e Input)
+# Test 6: Integración Multijugador en el Mapa (servidor autoritativo)
 # ------------------------------------------------------------------------------
 
 
 func test_06_multiplayer_integration_on_map() -> void:
-	var net_mgr: NetManagerNode = get_node_or_null("/root/NetManager")
+	var net_mgr: NetManagerNode = NetManager
 	assert_not_null(net_mgr, "NetManager presente")
 
-	var err: Error = net_mgr.start_host(7777, 4)
-	assert_eq(err, OK)
+	var err: Error = net_mgr.start_dedicated_server(7777)
+	assert_eq(err, OK, "Servidor dedicado iniciado")
+	net_mgr.register_player(4, "Ladron", NetManagerNode.ROLE_THIEF)
 	net_mgr.register_player(2, "Guardia1", NetManagerNode.ROLE_GUARD_1)
 	net_mgr.register_player(3, "Guardia2", NetManagerNode.ROLE_GUARD_2)
 
@@ -329,35 +332,18 @@ func test_06_multiplayer_integration_on_map() -> void:
 	add_child_autofree(map)
 	await wait_physics_frames(2)
 
-	# 1. Comprobar asignación de autoridades de red en museum_velvet_84.gd
-	assert_eq(map.thief.get_multiplayer_authority(), 1, "Thief asignado a peer 1")
-	assert_eq(map.guard_1.get_multiplayer_authority(), 2, "Guard 1 asignado a peer 2")
-	assert_eq(map.guard_2.get_multiplayer_authority(), 3, "Guard 2 asignado a peer 3")
+	# Todos los actores pertenecen al servidor (peer 1) y este los simula
+	assert_eq(map.thief.get_multiplayer_authority(), 1, "Thief con autoridad del servidor")
+	assert_eq(map.guard_1.get_multiplayer_authority(), 1, "Guard 1 con autoridad del servidor")
+	assert_eq(map.guard_2.get_multiplayer_authority(), 1, "Guard 2 con autoridad del servidor")
 
-	assert_true(map.thief.is_multiplayer_authority(), "Host posee autoridad sobre Thief")
-	assert_false(map.guard_1.is_multiplayer_authority(), "Host NO tiene autoridad sobre Guard 1")
-	assert_false(map.guard_2.is_multiplayer_authority(), "Host NO tiene autoridad sobre Guard 2")
+	assert_true(map.thief.is_multiplayer_authority(), "El servidor simula al Thief")
+	assert_true(map.guard_1.is_multiplayer_authority(), "El servidor simula al Guard 1")
+	assert_true(map.guard_2.is_multiplayer_authority(), "El servidor simula al Guard 2")
 
-	assert_false(map.guard_1.is_ai_controlled, "Guard 1 controlado por humano")
-	assert_false(map.guard_2.is_ai_controlled, "Guard 2 controlado por humano")
-
-	# 2. Comprobar que un peer cliente solo procesa input sobre su entidad
-	var initial_input: Vector2 = map.guard_1.current_input_dir
-	map.guard_1._physics_process(0.016)
-	assert_eq(
-		map.guard_1.current_input_dir, initial_input, "Guard 1 no procesa input local del host"
-	)
-
-	# 3. Comprobar recepción de replicación y activación de interpolación en entidad no-autoritativa
-	var sync_pos: Vector3 = Vector3(6.0, 0.0, 2.0)
-	var sync_vel: Vector3 = Vector3(1.5, 0.0, 0.0)
-	map.guard_1.set_net_transform(sync_pos, sync_vel)
-
-	assert_true(
-		map.guard_1.is_net_interpolating, "Bandera is_net_interpolating activada en Guard 1"
-	)
-	assert_eq(map.guard_1.net_target_position, sync_pos, "Posición objetivo fijada")
-	assert_eq(map.guard_1.net_target_velocity, sync_vel, "Velocidad objetivo fijada")
+	assert_false(map.guard_1.is_ai_controlled, "Guard 1 ocupado por humano: sin IA")
+	assert_false(map.guard_2.is_ai_controlled, "Guard 2 ocupado por humano: sin IA")
+	assert_null(map.local_player, "El servidor dedicado no controla a ningún actor")
 
 	net_mgr.disconnect_network()
 
