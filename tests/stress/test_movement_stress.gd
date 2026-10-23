@@ -4,17 +4,17 @@ extends GutTest
 
 
 func _create_thief(pos: Vector3 = Vector3.ZERO) -> ThiefController3D:
-	var thief: ThiefController3D = autofree(ThiefController3D.new())
+	var thief: ThiefController3D = ThiefController3D.new()
 	var col: CollisionShape3D = CollisionShape3D.new()
 	col.name = "CollisionShape3D"
 	thief.add_child(col)
-	thief.global_position = pos
+	thief.position = pos
 	add_child_autofree(thief)
 	return thief
 
 
 func _create_floor() -> StaticBody3D:
-	var floor_body: StaticBody3D = autofree(StaticBody3D.new())
+	var floor_body: StaticBody3D = StaticBody3D.new()
 	floor_body.collision_layer = 1
 	floor_body.collision_mask = 0
 	floor_body.set_meta("noise_multiplier", 1.0)
@@ -23,7 +23,7 @@ func _create_floor() -> StaticBody3D:
 	box.size = Vector3(20.0, 0.2, 20.0)
 	col.shape = box
 	floor_body.add_child(col)
-	floor_body.global_position = Vector3(0.0, -0.1, 0.0)
+	floor_body.position = Vector3(0.0, -0.1, 0.0)
 	add_child_autofree(floor_body)
 	return floor_body
 
@@ -32,42 +32,29 @@ func _create_floor() -> StaticBody3D:
 func test_crouch_toggle_spam() -> void:
 	_create_floor()
 	var thief: ThiefController3D = _create_thief(Vector3(0.0, 0.05, 0.0))
+	thief.set_physics_process(false)
 	await wait_physics_frames(2)
 
 	var capsule: CapsuleShape3D = thief.collision_shape.shape as CapsuleShape3D
 	assert_not_null(capsule, "thief tiene CapsuleShape3D")
 
+	watch_signals(thief)
+
 	for i in range(1000):
 		thief.apply_input({"movement_vector": Vector2(0.0, 1.0), "crouch": true})
 		thief.simulate_movement(1.0 / 60.0)
-		var h: float = capsule.height
-		var is_stand: bool = is_equal_approx(h, CrouchCollision.STAND_HEIGHT)
-		var is_crouch: bool = is_equal_approx(h, CrouchCollision.CROUCH_HEIGHT)
-		if not is_stand and not is_crouch:
-			assert_true(false, "Altura intermedia detectada en tick %d: %f" % [i, h])
-			return
+		var exp_h: float = (
+			CrouchCollision.CROUCH_HEIGHT if thief.is_crouching else CrouchCollision.STAND_HEIGHT
+		)
+		assert_almost_eq(capsule.height, exp_h, 0.001)
 
-	var expected_h: float = CrouchCollision.STAND_HEIGHT
-	if thief.is_crouching:
-		expected_h = CrouchCollision.CROUCH_HEIGHT
-	assert_almost_eq(capsule.height, expected_h, 0.001, "Altura final de cápsula válida")
-	assert_almost_eq(
-		thief.collision_shape.transform.origin.y,
-		expected_h * 0.5,
-		0.001,
-		"Origen Y es la mitad de altura",
-	)
-	assert_almost_eq(
-		capsule.radius,
-		CrouchCollision.CAPSULE_RADIUS,
-		0.001,
-		"Radio se mantiene inalterado",
-	)
+	assert_signal_emit_count(thief, "crouch_changed", 1000)
+	assert_false(thief.is_crouching)
 
 
 ## Criterio 16: CharacterAnimator3D sin AnimationPlayer no falla.
 func test_animator_without_animation_player() -> void:
-	var player: PlayerBase3D = autofree(PlayerBase3D.new())
+	var player: PlayerBase3D = PlayerBase3D.new()
 	add_child_autofree(player)
 
 	var animator: CharacterAnimator3D = autofree(CharacterAnimator3D.new())

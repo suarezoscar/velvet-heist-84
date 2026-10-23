@@ -11,7 +11,7 @@ const PARQUET_PATH: String = "res://data/balance/surface_wood_parquet.tres"
 
 
 func _create_thief(pos: Vector3 = Vector3.ZERO) -> ThiefController3D:
-	var thief: ThiefController3D = autofree(ThiefController3D.new())
+	var thief: ThiefController3D = ThiefController3D.new()
 	var col: CollisionShape3D = CollisionShape3D.new()
 	col.name = "CollisionShape3D"
 	thief.add_child(col)
@@ -20,8 +20,18 @@ func _create_thief(pos: Vector3 = Vector3.ZERO) -> ThiefController3D:
 	return thief
 
 
+func _create_guard(pos: Vector3 = Vector3.ZERO) -> GuardController3D:
+	var guard: GuardController3D = GuardController3D.new()
+	var col: CollisionShape3D = CollisionShape3D.new()
+	col.name = "CollisionShape3D"
+	guard.add_child(col)
+	guard.position = pos
+	add_child_autofree(guard)
+	return guard
+
+
 func _create_floor(noise_multiplier: float = 1.0) -> StaticBody3D:
-	var floor_body: StaticBody3D = autofree(StaticBody3D.new())
+	var floor_body: StaticBody3D = StaticBody3D.new()
 	floor_body.collision_layer = 1
 	floor_body.collision_mask = 0
 	floor_body.set_meta("noise_multiplier", noise_multiplier)
@@ -69,6 +79,7 @@ func test_invariant_3_never_silent() -> void:
 func test_standing_still_emits_nothing() -> void:
 	_create_floor(1.0)
 	var thief: ThiefController3D = _create_thief(Vector3(0.0, 0.05, 0.0))
+	thief.set_physics_process(false)
 	await wait_physics_frames(2)
 
 	watch_signals(SignalBus)
@@ -134,6 +145,7 @@ func test_real_step_on_each_surface() -> void:
 	var step_noise: StepNoiseProfile = load(STEP_NOISE_PATH) as StepNoiseProfile
 	var floor_body: StaticBody3D = _create_floor(1.0)
 	var thief: ThiefController3D = _create_thief(Vector3(0.0, 0.05, 0.0))
+	thief.set_physics_process(false)
 	await wait_physics_frames(2)
 
 	var surfaces: Array[SurfaceAcousticData] = [
@@ -167,3 +179,35 @@ func test_real_step_on_each_surface() -> void:
 		var exp_rad: float = step_noise.radius_for(t_mode, surf.noise_multiplier, t_noise)
 		assert_gt(rec[0], 0.0, "Paso emitido en %s" % surf.surface_id)
 		assert_almost_eq(rec[0], exp_rad, 0.001, "Radio coincide en %s" % surf.surface_id)
+
+
+## Criterio 7: Un paso real de guardia incluye el multiplicador de botas del equipo.
+func test_real_guard_step_includes_boots() -> void:
+	var step_noise: StepNoiseProfile = load(STEP_NOISE_PATH) as StepNoiseProfile
+	var marble: SurfaceAcousticData = load(MARBLE_PATH) as SurfaceAcousticData
+	var floor_body: StaticBody3D = _create_floor(marble.noise_multiplier)
+	var guard: GuardController3D = _create_guard(Vector3(0.0, 0.05, 0.0))
+	guard.set_physics_process(false)
+	await wait_physics_frames(2)
+
+	guard.apply_input({"movement_vector": Vector2(0.0, 1.0)})
+	var rec: Array[float] = [-1.0]
+	var on_noise: Callable = func(_pos: Vector3, radius: float, _team: StringName) -> void:
+		rec[0] = radius
+
+	SignalBus.noise_emitted_3d.connect(on_noise)
+
+	for tick: int in range(60):
+		guard.simulate_movement(1.0 / 60.0)
+		if tick % 10 == 0:
+			await wait_physics_frames(1)
+		if rec[0] >= 0.0:
+			break
+
+	SignalBus.noise_emitted_3d.disconnect(on_noise)
+
+	var g_mode: MovementProfile.Mode = guard.get_move_mode()
+	var g_noise: float = guard.movement_profile.team_noise_mult
+	var exp_rad: float = step_noise.radius_for(g_mode, marble.noise_multiplier, g_noise)
+	assert_gt(rec[0], 0.0, "Paso de guardia emitido en mármol")
+	assert_almost_eq(rec[0], exp_rad, 0.001, "Radio de paso de guardia coincide con botas")
