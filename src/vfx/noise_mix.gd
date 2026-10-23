@@ -1,0 +1,47 @@
+## @file noise_mix.gd
+## Recurso de mezcla de audio para ruidos y pasos.
+## Proporciona las familias de muestras de audio y las ganancias base por categoría.
+class_name NoiseMix
+extends Resource
+
+@export var step_db: float = -14.0
+@export var impact_db: float = -6.0
+@export var mechanism_db: float = -10.0
+@export var soft_surface_max: float = 0.7
+@export var hard_surface_min: float = 1.3
+@export var step_soft: Array[AudioStream] = []
+@export var step_wood: Array[AudioStream] = []
+@export var step_hard: Array[AudioStream] = []
+@export var impact: Array[AudioStream] = []
+@export var mechanism: Array[AudioStream] = []
+
+
+## dB base de la categoría; 0.0 si la categoría no existe
+func category_db(category: StringName) -> float:
+	match category:
+		&"step":
+			return step_db
+		&"impact":
+			return impact_db
+		&"mechanism":
+			return mechanism_db
+		_:
+			return 0.0
+
+
+## Familia de muestras: step según surface_mult y los umbrales; impact; mechanism; [] si no existe
+func streams_for(category: StringName, surface_mult: float) -> Array[AudioStream]:
+	match category:
+		&"step":
+			if surface_mult <= soft_surface_max:
+				return step_soft
+			if surface_mult >= hard_surface_min:
+				return step_hard
+			return step_wood
+		&"impact":
+			return impact
+		&"mechanism":
+			return mechanism
+		_:
+			var empty: Array[AudioStream] = []
+			return empty
