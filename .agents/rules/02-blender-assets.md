@@ -19,12 +19,13 @@ Un asset sin `source` completo no está hecho.
 ## Medidas y estructura
 - 1 unidad en Blender = 1 m en Godot.
 - Referencias: muro modular 2.0 × 3.0 × 0.2 m; hueco de puerta 1.2 × 2.2 m; personaje cápsula 0.8 m de diámetro × 1.8 m.
-- Pivote en la base inferior central: el centro X/Y de la AABB de las mallas visuales en el origen y su mínimo Z en 0. Aplicar escala y rotación (Ctrl+A) antes de exportar.
+- Pivote según el campo `pivot` de la ficha: `bottom_center` (por defecto: centro X/Y de la AABB visual en el origen y mínimo Z en 0), `top_center` (objetos colgados: centro X/Y y máximo Z en 0) o `back_center` (objetos de pared: centro X y Z en el origen y la cara trasera en el plano Y=0). Aplicar escala y rotación (Ctrl+A) antes de exportar.
 - Tolerancias del validador: dimensiones ±1 % (mínimo 1 mm), base ±2 mm, centro X/Y ±1 % de la dimensión (mínimo 5 mm).
 - Las medidas se consiguen modelando, nunca escalando la malla de forma no uniforme después.
-- Colisión estática: malla simple con sufijo `-col` junto a la visual (por ejemplo `SafeBox_Mesh` y `SafeBox-col`). Godot crea el `StaticBody3D` al importar.
+- Colisión estática: malla simple con sufijo `-colonly` junto a la visual (por ejemplo `SafeBox_Mesh` y `SafeBox-colonly`). Godot crea el `StaticBody3D` al importar y no la dibuja; con `-col` la malla se ve en el juego y el validador lo rechaza.
 - Nombre del asset (archivo `.glb` y `name` de la ficha) en snake_case en minúsculas. Objetos y materiales: solo letras, números y guiones bajos (se admite PascalCase), más el sufijo `-col`/`-colonly` en la colisión; los espacios y puntos se transforman al exportar y rompen referencias.
-- Presupuesto de triángulos: lo fija la spec de cada asset. Valores iniciales: props ≤ 2.000 y personajes ≤ 5.000.
+- Presupuesto de triángulos: lo fija la ficha de cada asset. Props ≤ 2.000; piezas protagonistas ≤ 5.000; personajes, según `docs/gdd/systems/characters.md`. Un modelo externo que se pasa se reduce con Decimate (`COLLAPSE`).
+- Los modelos externos parten de una copia intacta en `assets/models/raw/<origen>/` (con `.gdignore`); el script de adaptación nunca la sobrescribe.
 
 ## Materiales y geometría
 - Solo Principled BSDF con valores planos o texturas de imagen: los nodos procedurales (Color Ramp, ruido, etc.) se pierden al exportar a glTF.
