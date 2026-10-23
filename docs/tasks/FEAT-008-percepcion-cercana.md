@@ -1,6 +1,6 @@
 # FEAT-008 — Percepción cercana, porra y anillos por alcance
 
-- **Estado**: aprobada
+- **Estado**: hecha (2026-10-23)
 - **Diseño**: `docs/gdd/systems/stealth.md` (aprobado, parte 1): secciones "Quién ve qué anillo", "Percepción cercana (proximidad) y puntos de visibilidad", "Porra", "Números" e invariantes 7, 8, 9, 11 y 12
 - **Revisor**: `reviewer` (Claude)
 - **Rama de integración**: `master`
@@ -141,8 +141,8 @@ Ninguno.
 ## Estado de los paquetes
 | PKG | Agente | Rama | Depende de | Estado | Vueltas | Notas |
 |---|---|---|---|---|---|---|
-| PKG-1 | gameplay-engineer | `feat/008-pkg1` | FEAT-007 integrada | pendiente | 0 | |
-| PKG-QA | qa-engineer | `feat/008-pkgqa` | PKG-1 | pendiente | 0 | |
+| PKG-1 | gameplay-engineer | `feat/008-pkg1` | FEAT-007 integrada | integrado | 1 | Vuelta 1: deshacer tres cambios no pedidos (grep de la spec demasiado amplio, corregido en PR #14); PR #15 |
+| PKG-QA | qa-engineer | `feat/008-pkgqa` | PKG-1 | integrado | 1 | Vuelta 1: geometría fija y oído en horizontal; PR #18 |
 
 ## Paquetes de ejecución
 
@@ -206,6 +206,14 @@ Ninguno.
   - `test_ring_visibility_rule` (10)
   - `test_map_filters_rings_for_local_guard` (11)
 - **Comandos de cierre**: `./tools/ci/import.sh` (obligatorio primero: el worktree es nuevo y sin `.godot/`) · `./tools/ci/run_tests.sh` · `./tools/ci/lint.sh` · `./tools/ci/check_patterns.sh` · `python3 tools/ci/check_scope.py`
+
+## Cierre (2026-10-23)
+- `/verify` en `master` (`7ac9bb7`): import 0, check_scripts 0, run_tests 97/97; grep del criterio 12 sin resultados.
+- Criterios 1-11: `tests/unit/test_perception.gd`. El reviewer probó 11 mutaciones y los tests detectan 9.
+- Huecos aceptados:
+  - el borde exacto del arco ciego: `is_in_rear_blind_arc` da `true` justo en el borde por la precisión float32; hace falta un épsilon y su test, en una FEAT futura;
+  - `ai_hearing_factor` ignorado no se detecta mientras valga 1,0.
+- Pendiente de validar jugando: la espalda del guardia humano cuando apunta con el ratón a un lado, y las coberturas bajas en el nivel (con `/level`).
 
 ## Riesgos y decisiones abiertas
 - **El frente del guardia es su orientación (`rotation.y`)**, que `update_presentation` gira hacia donde camina o, parado, hacia el cursor. Un guardia humano que mira con el ratón hacia un lado deja la espalda donde no mira. Es lo que pide el diseño. Se valida jugando antes del cierre.

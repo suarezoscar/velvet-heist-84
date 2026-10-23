@@ -149,7 +149,7 @@ Comprueban relaciones leyendo los `.tres`, no valores literales.
 
 ## Estado
 - **Modos de movimiento y ruido de pasos**: implementados en FEAT-007 (hecha, 2026-10-23). Están en `MovementProfile`, `StepNoiseProfile` y `data/balance/movement_*.tres` y `step_noise.tres`, con tests de los invariantes 1-6 y 10.
-- **Percepción cercana, porra, oído de la IA y anillos por alcance**: en FEAT-008 (código integrado, tests de aceptación en curso), con `PerceptionProfile`, `PerceptionRules` y `perception_guard.tres`. Invariantes 7, 8, 9, 11 y 12.
+- **Percepción cercana, porra, oído de la IA y anillos por alcance**: implementados en FEAT-008 (hecha, 2026-10-23). Están en `PerceptionProfile`, `PerceptionRules` y `perception_guard.tres`, con tests de los invariantes 7, 8, 9, 11 y 12. Pendiente: un épsilon en el borde exacto del arco ciego.
 - **Superficies por tipo en el museo**: pendiente; el museo sigue con 9 multiplicadores sueltos (`src/generation/floorplan_blueprint.gd`). Va con `/level`.
 - **Indicador de modo en el HUD**: pendiente; `PlayerBase3D` ya emite `crouch_changed` y `stand_up_blocked`.
 - **Red**: el modo y la detección no se replican; va con la red autoritativa.
