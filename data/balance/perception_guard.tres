@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="PerceptionProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/entities/components/perception_profile.gd" id="1_profile"]
+
+[resource]
+script = ExtResource("1_profile")
+proximity_radius = 1.8
+rear_blind_arc_deg = 120.0
+stand_points = PackedFloat32Array(1.6, 1.2)
+crouch_points = PackedFloat32Array(0.9, 0.6)
+melee_range = 1.5
+ai_hearing_factor = 1.0
+eye_height = 1.5
+torso_height = 1.0

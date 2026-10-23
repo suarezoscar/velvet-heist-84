@@ -16,8 +16,6 @@ const INVESTIGATE_REACHED_DISTANCE: float = 0.9
 const NOISE_INVESTIGATE_TIME: float = 5.0
 ## Segundos que inspecciona la última posición avistada del ladrón
 const SPOTTED_INVESTIGATE_TIME: float = 6.0
-## Factor sobre el radio del ruido dentro del cual el guardia lo oye
-const HEARING_RADIUS_FACTOR: float = 1.5
 
 ## Rutas de patrulla configurables
 @export var patrol_waypoints: Array[Vector3] = []
@@ -108,7 +106,10 @@ func _process_chase() -> void:
 	if _thief == null:
 		current_state = AIState.PATROL
 		return
-	if _flat_distance(_thief.global_position, _guard.global_position) <= _guard.melee_range:
+	if (
+		_flat_distance(_thief.global_position, _guard.global_position)
+		<= _guard.perception.melee_range
+	):
 		_guard.apply_world_move(Vector3.ZERO)
 		_guard.look_target_position = _thief.global_position
 		_guard.swing_baton(_thief)
@@ -135,7 +136,10 @@ func _flat_distance(a: Vector3, b: Vector3) -> float:
 func _on_noise_emitted(pos: Vector3, radius: float, source_team: StringName) -> void:
 	if source_team != &"thief" or _guard == null or radius <= 0.0:
 		return
-	if _guard.global_position.distance_to(pos) <= radius * HEARING_RADIUS_FACTOR:
+	if (
+		PerceptionRules.horizontal_distance(_guard.global_position, pos)
+		<= radius * _guard.perception.ai_hearing_factor
+	):
 		investigation_point = pos
 		_investigate_timer = NOISE_INVESTIGATE_TIME
 		current_state = AIState.INVESTIGATE

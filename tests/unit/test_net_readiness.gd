@@ -161,7 +161,7 @@ func test_presentation_decoupling_does_not_mutate_physics() -> void:
 
 func test_authoritative_thief_visibility_within_proximity() -> void:
 	var guard: GuardController3D = _create_guard(Vector3.ZERO)
-	var thief: ThiefController3D = _create_thief(Vector3(0.0, 0.6, 1.2))
+	var thief: ThiefController3D = _create_thief(Vector3(0.0, 0.6, -1.2))
 	await wait_physics_frames(2)
 
 	# El servidor calcula la detección por proximidad
@@ -176,8 +176,8 @@ func test_authoritative_thief_visibility_within_proximity() -> void:
 
 func test_authoritative_thief_hidden_behind_wall() -> void:
 	var guard: GuardController3D = _create_guard(Vector3.ZERO)
-	var thief: ThiefController3D = _create_thief(Vector3(0.0, 0.6, 1.4))
-	_create_obstacle_wall(Vector3(0.0, 1.5, 0.7))
+	var thief: ThiefController3D = _create_thief(Vector3(0.0, 0.6, -1.4))
+	_create_obstacle_wall(Vector3(0.0, 1.5, -0.7))
 	await wait_physics_frames(2)
 
 	# El servidor evalúa oclusión por muro

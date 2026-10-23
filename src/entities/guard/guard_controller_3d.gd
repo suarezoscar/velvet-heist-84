@@ -7,6 +7,9 @@ extends PlayerBase3D
 ## Ruta del perfil de movimiento del guardia
 const MOVEMENT_PROFILE_PATH: String = "res://data/balance/movement_guard.tres"
 
+## Ruta del perfil de percepción del guardia
+const PERCEPTION_PROFILE_PATH: String = "res://data/balance/perception_guard.tres"
+
 ## Cooldown entre impactos de porra en segundos
 const BATON_COOLDOWN_TIME: float = 0.75
 
@@ -17,8 +20,8 @@ const CAPTURE_NOISE_RADIUS: float = 8.0
 ## Linterna Maglite asignada al personaje
 @export var maglite_light: SpotLight3D
 
-## Alcance del golpe cuerpo a cuerpo con la porra en metros
-@export var melee_range: float = 1.6
+## Perfil de percepción del guardia
+@export var perception: PerceptionProfile
 
 ## Identificador y modo de control de este guardia
 @export var is_ai_controlled: bool = false
@@ -43,6 +46,8 @@ var focused_interactive: Node3D:
 func _ready() -> void:
 	if movement_profile == null:
 		movement_profile = load(MOVEMENT_PROFILE_PATH)
+	if perception == null:
+		perception = load(PERCEPTION_PROFILE_PATH)
 	super._ready()
 	team_id = &"guard"
 	add_to_group(&"guards")
@@ -91,33 +96,44 @@ func _update_maglite_orientation() -> void:
 
 
 ## Evalúa si el ladrón es detectable según:
-## 1. Proximidad inmediata (1.8m sin obstáculos)
+## 1. Proximidad inmediata y línea de visión (sin estar en arco ciego trasero)
 ## 2. Cono de la linterna Maglite (ángulo y distancia sin oclusión de muros)
 func check_detection_on_thief(thief: ThiefController3D) -> bool:
 	if thief == null:
 		return false
+	if perception == null:
+		perception = load(PERCEPTION_PROFILE_PATH)
 
 	var space_state: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
-	var thief_torso: Vector3 = thief.global_position + Vector3(0.0, 0.9, 0.0)
-	var guard_eyes: Vector3 = global_position + Vector3(0.0, 1.5, 0.0)
+	var eyes: Vector3 = global_position + Vector3(0.0, perception.eye_height, 0.0)
+	var forward: Vector3 = -global_transform.basis.z
+	var points: Array[Vector3] = PerceptionRules.visibility_points(thief, perception)
 
-	# 1. Chequeo por radio de proximidad inmediata (1.8m)
-	if guard_eyes.distance_to(thief_torso) <= 1.8:
-		if _has_line_of_sight(space_state, guard_eyes, thief_torso):
-			return true
+	# 1. Chequeo por radio de proximidad inmediata y arco ciego
+	if (
+		PerceptionRules.horizontal_distance(global_position, thief.global_position)
+		<= perception.proximity_radius
+	):
+		if not PerceptionRules.is_in_rear_blind_arc(
+			global_position, forward, thief.global_position, perception.rear_blind_arc_deg
+		):
+			for pt: Vector3 in points:
+				if _has_line_of_sight(space_state, eyes, pt):
+					return true
 
 	# 2. Chequeo dentro del cono de la linterna Maglite
 	if maglite_light != null and maglite_light.visible:
 		var light_origin: Vector3 = maglite_light.global_position
 		var light_forward: Vector3 = -maglite_light.global_transform.basis.z.normalized()
-		var dir_to_thief: Vector3 = (thief_torso - light_origin).normalized()
 		var spot_range: float = maglite_light.spot_range
 		var spot_half_angle: float = deg_to_rad(maglite_light.spot_angle)
 
-		if light_origin.distance_to(thief_torso) <= spot_range:
-			if light_forward.angle_to(dir_to_thief) <= spot_half_angle:
-				if _has_line_of_sight(space_state, light_origin, thief_torso):
-					return true
+		for pt: Vector3 in points:
+			var dir_to_point: Vector3 = (pt - light_origin).normalized()
+			if light_origin.distance_to(pt) <= spot_range:
+				if light_forward.angle_to(dir_to_point) <= spot_half_angle:
+					if _has_line_of_sight(space_state, light_origin, pt):
+						return true
 
 	return false
 
@@ -126,13 +142,20 @@ func check_detection_on_thief(thief: ThiefController3D) -> bool:
 func validate_melee_hit(target_thief: ThiefController3D) -> bool:
 	if target_thief == null:
 		return false
-	if global_position.distance_to(target_thief.global_position) > melee_range:
+	if perception == null:
+		perception = load(PERCEPTION_PROFILE_PATH)
+	if (
+		PerceptionRules.horizontal_distance(global_position, target_thief.global_position)
+		> perception.melee_range
+	):
 		return false
 	if is_inside_tree() and get_world_3d() != null:
 		var space_state: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
 		if space_state != null:
-			var guard_torso: Vector3 = global_position + Vector3(0.0, 1.0, 0.0)
-			var thief_torso: Vector3 = target_thief.global_position + Vector3(0.0, 1.0, 0.0)
+			var guard_torso: Vector3 = global_position + Vector3(0.0, perception.torso_height, 0.0)
+			var thief_torso: Vector3 = (
+				target_thief.global_position + Vector3(0.0, perception.torso_height, 0.0)
+			)
 			if not _has_line_of_sight(space_state, guard_torso, thief_torso):
 				return false
 	return true
