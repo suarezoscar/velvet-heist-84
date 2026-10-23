@@ -20,10 +20,13 @@ extends Area3D
 @export var prompt_message: String = "Recoger Botín"
 
 var is_collected: bool = false
+var is_deposited: bool = false
 var holder_thief: Node3D = null
+var _holder_cached_path: String = ""
 
 
 func _ready() -> void:
+	add_to_group(&"net_state")
 	collision_layer = 4  # Interactuable
 	collision_mask = 2  # Ladrón
 	monitoring = true
@@ -90,6 +93,8 @@ func _attach_to_thief_hands(thief: ThiefController3D) -> void:
 
 ## Deposita el botín pesado en el maletero del coche de fuga
 func deposit_into_trunk(car_position: Vector3) -> void:
+	is_deposited = true
+	is_collected = true
 	print("[LootItem3D] Objeto pesado '%s' depositado en el maletero del coche." % loot_name)
 	SignalBus.loot_stolen.emit(loot_value, is_masterpiece)
 	NoiseEmit.emit(car_position, 3.5, &"thief", NoiseEmit.IMPACT, holder_thief)
@@ -99,3 +104,58 @@ func deposit_into_trunk(car_position: Vector3) -> void:
 		thief.drop_heavy_loot()
 
 	queue_free()
+
+
+## Devuelve el snapshot de estado del botín para red
+func get_net_state() -> Dictionary:
+	var holder_path: String = ""
+	if holder_thief != null:
+		if get_tree() != null and get_tree().current_scene != null:
+			holder_path = String(get_tree().current_scene.get_path_to(holder_thief))
+		elif not _holder_cached_path.is_empty():
+			holder_path = _holder_cached_path
+		else:
+			holder_path = String(holder_thief.get_path())
+	else:
+		holder_path = _holder_cached_path
+
+	return {
+		"collected": is_collected,
+		"holder": holder_path,
+		"deposited": is_deposited,
+	}
+
+
+## Aplica el snapshot de estado recibido por red
+func apply_net_state(state: Dictionary) -> void:
+	is_collected = bool(state.get("collected", false))
+	is_deposited = bool(state.get("deposited", false))
+	var holder_path: String = String(state.get("holder", ""))
+	_holder_cached_path = holder_path
+
+	if (is_collected and holder_path.is_empty()) or is_deposited:
+		visible = false
+		monitoring = false
+		monitorable = false
+		if holder_thief != null and holder_thief is ThiefController3D:
+			(holder_thief as ThiefController3D).drop_heavy_loot()
+			holder_thief = null
+	elif not holder_path.is_empty():
+		visible = true
+		var target_node: Node = null
+		if get_tree() != null and get_tree().current_scene != null:
+			target_node = get_tree().current_scene.get_node_or_null(NodePath(holder_path))
+		if target_node is ThiefController3D:
+			var thief: ThiefController3D = target_node as ThiefController3D
+			holder_thief = thief
+			thief.carry_heavy_loot(self)
+			monitoring = false
+			monitorable = false
+			if thief.carry_anchor != null and get_parent() != thief.carry_anchor:
+				reparent(thief.carry_anchor)
+				position = Vector3.ZERO
+				rotation = Vector3.ZERO
+	else:
+		visible = true
+		monitoring = true
+		monitorable = true

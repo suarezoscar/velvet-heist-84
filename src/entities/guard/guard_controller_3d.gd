@@ -61,10 +61,10 @@ var _senses: GuardSenses = GuardSenses.new()
 
 
 func _ready() -> void:
-	if movement_profile == null:
-		movement_profile = load(MOVEMENT_PROFILE_PATH)
-	if perception == null:
-		perception = load(PERCEPTION_PROFILE_PATH)
+	movement_profile = (
+		movement_profile if movement_profile != null else load(MOVEMENT_PROFILE_PATH)
+	)
+	perception = perception if perception != null else load(PERCEPTION_PROFILE_PATH)
 	super._ready()
 	team_id = &"guard"
 	add_to_group(&"guards")
@@ -86,12 +86,42 @@ func _physics_process(delta: float) -> void:
 
 
 func _process_local_actions() -> void:
-	_handle_interaction_input()
+	if InputMap.has_action("interact") and Input.is_action_just_pressed("interact"):
+		perform_action(&"interact")
 	if (
 		InputMap.has_action("toggle_flashlight")
 		and Input.is_action_just_pressed("toggle_flashlight")
 	):
-		set_flashlight(not flashlight_on)
+		perform_action(&"toggle_flashlight")
+
+
+## Cambia el estado de la linterna sin emitir ruido (para sincronización de red)
+func apply_flashlight_state(on: bool) -> void:
+	if flashlight_on == on:
+		return
+	flashlight_on = on
+	if maglite_light != null:
+		maglite_light.visible = on
+
+
+## Ejecuta una acción discreta sobre el guardia. Devuelve true si la ejecutó
+func perform_action(action: StringName) -> bool:
+	var result: bool = false
+	match action:
+		&"interact":
+			if interactor != null:
+				result = interactor.execute_interaction(self)
+		&"toggle_flashlight":
+			set_flashlight(not flashlight_on)
+			result = true
+		&"strike":
+			var target_thief: ThiefController3D = null
+			if is_inside_tree():
+				target_thief = get_tree().get_first_node_in_group(&"thief") as ThiefController3D
+			result = swing_baton(target_thief)
+		_:
+			result = super.perform_action(action)
+	return result
 
 
 ## Enciende o apaga la linterna Maglite emitiendo ruido sonoro
@@ -133,11 +163,7 @@ func update_presentation(delta: float) -> void:
 		velocity = net_target_velocity
 
 	var to_target: Vector3 = (look_target_position - global_position).slide(Vector3.UP)
-	var face_dir: Vector3
-	if to_target.length() >= 0.1:
-		face_dir = to_target
-	else:
-		face_dir = velocity.slide(Vector3.UP)
+	var face_dir: Vector3 = to_target if to_target.length() >= 0.1 else velocity.slide(Vector3.UP)
 
 	if face_dir.length_squared() > 0.01:
 		rotation.y = lerp_angle(rotation.y, atan2(-face_dir.x, -face_dir.z), 0.25)
@@ -164,9 +190,7 @@ func check_detection_on_thief(thief: ThiefController3D) -> bool:
 		return false
 	var lamps: Array[Lamp3D] = []
 	if is_inside_tree():
-		for node: Node in get_tree().get_nodes_in_group(&"lamps"):
-			if node is Lamp3D:
-				lamps.append(node as Lamp3D)
+		lamps.assign(get_tree().get_nodes_in_group(&"lamps"))
 	return _senses.detects(self, thief, lamps) != &""
 
 
@@ -174,9 +198,7 @@ func check_detection_on_thief(thief: ThiefController3D) -> bool:
 func update_perception(thief: ThiefController3D, lamps: Array[Lamp3D], delta: float) -> void:
 	if perception == null:
 		perception = load(PERCEPTION_PROFILE_PATH) as PerceptionProfile
-	var detects_thief: bool = false
-	if thief != null:
-		detects_thief = _senses.detects(self, thief, lamps) != &""
+	var detects_thief: bool = thief != null and _senses.detects(self, thief, lamps) != &""
 
 	if detects_thief:
 		is_perceiving_thief = true
@@ -195,19 +217,18 @@ func validate_melee_hit(target_thief: ThiefController3D) -> bool:
 		return false
 	if perception == null:
 		perception = load(PERCEPTION_PROFILE_PATH)
-	if (
-		PerceptionRules.horizontal_distance(global_position, target_thief.global_position)
-		> perception.melee_range
-	):
+	var dist: float = PerceptionRules.horizontal_distance(
+		global_position, target_thief.global_position
+	)
+	if dist > perception.melee_range:
 		return false
 	if is_inside_tree() and get_world_3d() != null:
 		var space_state: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
 		if space_state != null:
-			var guard_torso: Vector3 = global_position + Vector3(0.0, perception.torso_height, 0.0)
-			var thief_torso: Vector3 = (
-				target_thief.global_position + Vector3(0.0, perception.torso_height, 0.0)
-			)
-			if not _has_line_of_sight(space_state, guard_torso, thief_torso):
+			var offset: Vector3 = Vector3(0.0, perception.torso_height, 0.0)
+			var from_pos: Vector3 = global_position + offset
+			var to_pos: Vector3 = target_thief.global_position + offset
+			if not _has_line_of_sight(space_state, from_pos, to_pos):
 				return false
 	return true
 
@@ -238,10 +259,9 @@ func swing_baton(target_thief: ThiefController3D = null) -> bool:
 
 
 func _capture_thief() -> void:
+	SignalBus.thief_captured.emit(get_multiplayer_authority())
 	if perception == null:
 		perception = load(PERCEPTION_PROFILE_PATH) as PerceptionProfile
-	var p_id: int = get_multiplayer_authority()
-	SignalBus.thief_captured.emit(p_id)
 	NoiseEmit.emit(
 		global_position, perception.capture_noise_radius, &"guard", NoiseEmit.IMPACT, self
 	)
@@ -250,23 +270,10 @@ func _capture_thief() -> void:
 func _process_stamina_and_sprint(delta: float, input_dir: Vector2) -> void:
 	if is_sprinting and (stamina <= 5.0 or input_dir.length_squared() <= 0.01):
 		is_sprinting = false
-
-	if is_sprinting:
-		stamina = maxf(0.0, stamina - stamina_drain_rate * delta)
-	else:
-		stamina = minf(max_stamina, stamina + stamina_recovery_rate * delta)
-
-
-func _handle_interaction_input() -> void:
-	var interact_pressed: bool = (
-		Input.is_action_just_pressed("interact") if InputMap.has_action("interact") else false
-	)
-	if interact_pressed and interactor != null:
-		interactor.execute_interaction(self)
+	var rate: float = -stamina_drain_rate if is_sprinting else stamina_recovery_rate
+	stamina = clampf(stamina + rate * delta, 0.0, max_stamina)
 
 
 func _has_line_of_sight(space_state: PhysicsDirectSpaceState3D, from: Vector3, to: Vector3) -> bool:
-	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(from, to)
-	query.collision_mask = 1  # Solo colisiona con el entorno
-	var result: Dictionary = space_state.intersect_ray(query)
-	return result.is_empty()
+	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(from, to, 1)
+	return space_state.intersect_ray(query).is_empty()

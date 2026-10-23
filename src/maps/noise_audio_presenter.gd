@@ -61,6 +61,23 @@ func _physics_process(_delta: float) -> void:
 func _on_noise_event_3d(
 	pos: Vector3, radius: float, source_team: StringName, category: StringName, emitter: Node
 ) -> void:
+	var surface_mult: float = 1.0
+	if emitter is PlayerBase3D:
+		var p_base: PlayerBase3D = emitter as PlayerBase3D
+		if p_base.surface_detector != null:
+			surface_mult = p_base.surface_detector.get_surface_noise_multiplier()
+	handle_noise(pos, radius, source_team, category, emitter, surface_mult)
+
+
+## Procesa la audición, atenuación y vúmetro de un evento acústico para el jugador local
+func handle_noise(
+	pos: Vector3,
+	radius: float,
+	team: StringName,
+	category: StringName,
+	emitter: Node,
+	surface_mult: float
+) -> void:
 	if radius <= 0.0 or _map == null:
 		return
 
@@ -68,17 +85,11 @@ func _on_noise_event_3d(
 	if local == null:
 		return
 
-	if local == _map.thief and source_team == &"thief":
+	if local == _map.thief and team == &"thief":
 		if _map.hud != null and _map.hud.get_noise_meter() != null:
 			_map.hud.get_noise_meter().push(radius)
 
-	var m: float = 1.0
-	if emitter is PlayerBase3D:
-		var p_base: PlayerBase3D = emitter as PlayerBase3D
-		if p_base.surface_detector != null:
-			m = p_base.surface_detector.get_surface_noise_multiplier()
-
-	var streams: Array[AudioStream] = _mix.streams_for(category, m)
+	var streams: Array[AudioStream] = _mix.streams_for(category, surface_mult)
 
 	var player: Node = null
 
@@ -93,7 +104,7 @@ func _on_noise_event_3d(
 			player = player_2d
 	else:
 		if not PerceptionRules.noise_reaches(
-			local, pos, radius, source_team, _feedback.thief_hearing_mult
+			local, pos, radius, team, _feedback.thief_hearing_mult
 		):
 			return
 
@@ -104,7 +115,7 @@ func _on_noise_event_3d(
 
 			var d: float = PerceptionRules.horizontal_distance(local.global_position, pos)
 			var r_ef: float = PerceptionRules.effective_radius(
-				local, radius, source_team, _feedback.thief_hearing_mult
+				local, radius, team, _feedback.thief_hearing_mult
 			)
 			var g: float = NoiseAudioRules.gain(d, r_ef, _feedback.audio_edge_floor)
 			player_3d.volume_db = _mix.category_db(category) + linear_to_db(g)
@@ -113,7 +124,7 @@ func _on_noise_event_3d(
 		if category != &"step":
 			if _map.camera != null and not _map.camera.is_position_in_frustum(pos):
 				var role: StringName = &"other"
-				if local == _map.thief and source_team == &"guard":
+				if local == _map.thief and team == &"guard":
 					role = &"guard"
 				if _map.hud != null:
 					_map.hud.show_offscreen_noise(pos, _feedback.offscreen_marker_time, role)
