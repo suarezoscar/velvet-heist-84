@@ -16,7 +16,8 @@ Pendiente de la división de `docs/gdd/MASTER_GSD.md`. Reparto propuesto:
 | `stealth.md` | Percepción, visibilidad, ruido por superficie, modos de movimiento, linterna, luz y percepción del ruido (audio, vúmetro; sin anillos desde 2026-10-23) | aprobado (partes 1 y 2) |
 | `characters.md` | Vestuario, silueta y presupuesto de los personajes | aprobado |
 | `gadgets.md` | Maletín del ladrón y cinturón de los guardias | por crear |
-| `interaction.md` | Relojes de fichar (con hoja de faltas y final por tiempo) y monitores CCTV; después cajas fuertes, puertas, teléfonos | propuesto (parte 1, 2026-10-24) |
+| `interaction.md` | Relojes de fichar (con hoja de faltas y final por tiempo) y monitores CCTV; después cajas fuertes, puertas, teléfonos | aprobado (parte 1, 2026-10-24; implementado en FEAT-016 y FEAT-017) |
+| `vision.md` | Zona visible de cada jugador y niebla de guerra en la vista cenital; filtro de red del ladrón | propuesto (2026-10-24) |
 | `loot.md` | Botín ligero y pesado, cuota, Pieza Maestra | por crear |
 | `match.md` | Flujo de partida, tiempo, equipamiento en el lobby | por crear |
 | `disguise.md` | Disfraz de guardia del ladrón | por diseñar (primera propuesta de `/design`) |
