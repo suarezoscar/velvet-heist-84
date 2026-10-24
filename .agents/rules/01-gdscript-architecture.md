@@ -13,7 +13,7 @@ description: "Aplicar al escribir o revisar GDScript, escenas .tscn, señales, c
 
 ## Desacoplamiento
 - Entre módulos se comunica por `SignalBus` o por `@export` (inyección), con rutas relativas cortas dentro de la propia escena. `get_parent().get_parent()` y las rutas `/root/...` quedan fuera (CI las busca con `tools/ci/check_patterns.sh`).
-- Las señales nuevas las añade `integrator` a `core/signal_bus.gd`, tal como las dicta la spec, siempre tipadas.
+- Las señales nuevas se añaden a `core/signal_bus.gd` cuando la FEAT lo dice, siempre tipadas.
 - Los sistemas del mundo (cajas fuertes, relojes, puertas, teléfonos) implementan `can_interact() -> bool`, `get_interaction_text() -> String` e `interact(actor: PlayerBase3D) -> void`.
 - La UI solo escucha señales. Las entidades no tocan nodos de UI.
 
