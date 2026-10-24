@@ -30,6 +30,9 @@ var thief: ThiefController3D = null
 var guards: Array[GuardController3D] = []
 var noise_audio_presenter: NoiseAudioPresenter = null
 var local_view_presenter: LocalViewPresenter = null
+## Niebla de guerra y memoria del botín del jugador local (vision.md); null en el servidor
+var fog: FogOfWar3D = null
+var fog_memory: FogMemory = null
 
 ## Personaje controlado por esta máquina (null en un servidor dedicado)
 var local_player: PlayerBase3D = null
@@ -44,6 +47,7 @@ func _ready() -> void:
 		camera.set_cull_mask_value(ThiefController3D.CCTV_ONLY_LAYER, false)
 	hud = get_node_or_null("HUD84") as HUD84
 	_collect_actors()
+	_setup_fog()
 	for guard: GuardController3D in guards:
 		_ai_defaults[guard] = guard.is_ai_controlled
 	_hide_collision_helpers(self)
@@ -79,6 +83,8 @@ func get_actors() -> Array[PlayerBase3D]:
 ## Fija el personaje controlado por esta máquina y libera a los demás del teclado.
 func set_local_player(player: PlayerBase3D) -> void:
 	local_player = player
+	if fog != null:
+		fog.viewer = player
 	for actor: PlayerBase3D in get_actors():
 		actor.is_locally_controlled = actor == player
 		if actor is GuardController3D and actor == player:
@@ -197,6 +203,34 @@ func _process_guards_perception(delta: float) -> void:
 			any_spotted = true
 	thief.set_stealth_visibility(any_spotted)
 	_update_thief_local_visibility()
+	_update_guards_local_visibility()
+
+
+## Sin red, el ladrón local solo ve a los guardias de su vista; del resto, si llevan la linterna
+## encendida, solo el haz (vision.md R3). Los guardias se ven siempre entre sí
+func _update_guards_local_visibility() -> void:
+	var viewer: ThiefController3D = local_player as ThiefController3D
+	var lamps: Array[Lamp3D] = []
+	if viewer != null:
+		lamps = VisionLogic.lamps_in(self)
+	for guard: GuardController3D in guards:
+		var full: bool = (
+			viewer == null
+			or GameManager.is_match_over()
+			or VisionLogic.thief_sees_guard(viewer, guard, lamps)
+		)
+		guard.set_body_visible(full)
+
+
+func _setup_fog() -> void:
+	if camera == null or NetManager.is_dedicated_server:
+		return
+	fog = FogOfWar3D.new()
+	camera.add_child(fog)
+	fog_memory = FogMemory.new()
+	fog_memory.name = "FogMemory"
+	fog_memory.fog = fog
+	add_child(fog_memory)
 
 
 func _update_thief_local_visibility() -> void:
