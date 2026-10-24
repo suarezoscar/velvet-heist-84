@@ -7,8 +7,6 @@ extends Control
 ## Se emite al pulsar "Volver" (ya desconectado) para que el menú cambie de vista.
 signal back_requested
 
-const HELP_TEXT: String = "Arranca el servidor con tools/net/run_server.sh en un PC de la red"
-const HELP_TAIL: String = " y únete con su IP (puerto UDP 7777; ábrelo en su cortafuegos)"
 const COLOR_AMBER: Color = Color(1.0, 0.85, 0.35, 1.0)
 const COLOR_CYAN: Color = Color(0.35, 0.9, 0.85, 1.0)
 const COLOR_GREEN: Color = Color(0.4, 0.95, 0.5, 1.0)
@@ -35,7 +33,7 @@ const COLOR_TEXT: Color = Color(0.9, 0.95, 1.0, 1.0)
 
 func _ready() -> void:
 	host_btn.visible = false  # start_host devuelve ERR_UNAVAILABLE: solo servidor dedicado
-	conn_log_lbl.text = HELP_TEXT + HELP_TAIL
+	LobbyStyle84.apply(self)
 	join_btn.pressed.connect(_on_join_pressed)
 	disconnect_btn.pressed.connect(_on_disconnect_pressed)
 	lobby_back_btn.pressed.connect(_on_back_pressed)
@@ -47,6 +45,7 @@ func _ready() -> void:
 	NetManager.connection_failed.connect(_on_connection_failed)
 	NetManager.server_disconnected.connect(_on_server_disconnected)
 	NetManager.player_list_updated.connect(refresh)
+	refresh()
 
 
 ## Vuelve a pintar la vista con el estado actual de NetManager.
@@ -54,27 +53,26 @@ func refresh() -> void:
 	if not is_inside_tree():
 		return
 	var online: bool = NetManager.is_online()
-	lobby_title_lbl.text = "SALA DE TRANSMISIÓN ANALÓGICA — FRECUENCIA %d" % _get_port_input()
 	join_btn.disabled = online
 	disconnect_btn.disabled = not online
 	ip_edit.editable = not online
 	port_edit.editable = not online
 	if not online:
-		lobby_status_lbl.text = "ESTADO: DESCONECTADO"
+		lobby_status_lbl.text = "Sin conectar"
 		lobby_status_lbl.modulate = COLOR_DIM
 	else:
-		lobby_status_lbl.text = "ESTADO: CONECTADO COMO CLIENTE"
+		lobby_status_lbl.text = "Conectado al servidor"
 		lobby_status_lbl.modulate = COLOR_CYAN
 	start_match_btn.disabled = _get_role_occupant(NetManagerNode.ROLE_THIEF) == 0
 
 	var local_role: StringName = NetManager.get_local_role()
 	if local_role == &"":
-		current_role_lbl.text = "TU FRECUENCIA ASIGNADA: NINGUNA"
+		current_role_lbl.text = "Tu bando: ninguno"
 		current_role_lbl.modulate = COLOR_DIM
 	else:
-		current_role_lbl.text = "TU FRECUENCIA ASIGNADA: %s" % _format_role_name(local_role)
+		current_role_lbl.text = "Tu bando: %s" % _format_role_name(local_role)
 		current_role_lbl.modulate = COLOR_GREEN
-	_update_role_button(role_thief_btn, NetManagerNode.ROLE_THIEF, "INFILTRADO (LADRÓN)")
+	_update_role_button(role_thief_btn, NetManagerNode.ROLE_THIEF, "LADRÓN")
 	_update_role_button(role_guard1_btn, NetManagerNode.ROLE_GUARD_1, "GUARDIA 1")
 	_update_role_button(role_guard2_btn, NetManagerNode.ROLE_GUARD_2, "GUARDIA 2")
 	_populate_players_list()
@@ -85,27 +83,27 @@ func _on_join_pressed() -> void:
 	if ip.is_empty():
 		ip = "127.0.0.1"
 	var port: int = _get_port_input()
-	conn_log_lbl.text = "SINTONIZANDO REPETIDOR EN %s:%d..." % [ip, port]
+	conn_log_lbl.text = "Conectando con %s:%d…" % [ip, port]
 	var err: Error = NetManager.join_server(ip, port)
 	if err != OK:
-		conn_log_lbl.text = "ERROR AL CONECTAR A %s:%d: %s" % [ip, port, error_string(err)]
+		conn_log_lbl.text = "No se pudo conectar con %s:%d: %s" % [ip, port, error_string(err)]
 	refresh()
 
 
 func _on_disconnect_pressed() -> void:
 	NetManager.disconnect_network()
-	conn_log_lbl.text = "DESCONECTADO DE LA FRECUENCIA DE RADIO."
+	conn_log_lbl.text = "Desconectado."
 	refresh()
 
 
 func _on_role_btn_pressed(role: StringName) -> void:
 	if not NetManager.request_role(role):
-		conn_log_lbl.text = "ROL %s NO DISPONIBLE O RECHAZADO POR CENTRAL." % role
+		conn_log_lbl.text = "Ese bando ya está ocupado."
 	refresh()
 
 
 func _on_start_match_pressed() -> void:
-	conn_log_lbl.text = "LANZANDO OPERACIÓN MULTIJUGADOR..."
+	conn_log_lbl.text = "Empezando la partida…"
 	NetManager.request_start()
 
 
@@ -115,17 +113,17 @@ func _on_back_pressed() -> void:
 
 
 func _on_connection_succeeded() -> void:
-	conn_log_lbl.text = "SINTONIZADO A FRECUENCIA CON ÉXITO."
+	conn_log_lbl.text = "Conectado. Elige bando."
 	refresh()
 
 
 func _on_connection_failed() -> void:
-	conn_log_lbl.text = "FALLO AL SINTONIZAR FRECUENCIA CON EL SERVIDOR."
+	conn_log_lbl.text = "No se pudo conectar con el servidor."
 	refresh()
 
 
 func _on_server_disconnected() -> void:
-	conn_log_lbl.text = "SEÑAL PERDIDA: DESCONECTADO DEL SERVIDOR."
+	conn_log_lbl.text = "Se perdió la conexión con el servidor."
 	refresh()
 
 
@@ -140,18 +138,18 @@ func _get_role_occupant(role: StringName) -> int:
 
 func _update_role_button(btn: Button, role: StringName, role_label: String) -> void:
 	if NetManager.get_local_role() == role:
-		btn.text = "✔  %s  [TU ROL ACTUAL]" % role_label
+		btn.text = "✔  %s  ·  TÚ" % role_label
 		btn.modulate = COLOR_GREEN
 		btn.disabled = false
 	elif NetManager.is_role_available(role):
-		btn.text = "○  %s  [DISPONIBLE]" % role_label
+		btn.text = "○  %s  ·  LIBRE" % role_label
 		btn.modulate = COLOR_TEXT
 		btn.disabled = false
 	else:
 		var pid: int = _get_role_occupant(role)
 		var info: Dictionary = NetManager.get_connected_players().get(pid, {})
-		var occupant: String = info.get("name", "Agente_%d" % pid) if pid != 0 else "OTRO AGENTE"
-		btn.text = "✕  %s  [OCUPADO: %s]" % [role_label, occupant]
+		var occupant: String = info.get("name", "Agente_%d" % pid) if pid != 0 else "otro jugador"
+		btn.text = "✕  %s  ·  %s" % [role_label, occupant]
 		btn.modulate = COLOR_RED
 		btn.disabled = true
 
@@ -163,7 +161,7 @@ func _populate_players_list() -> void:
 	var players: Dictionary = NetManager.get_connected_players()
 	if players.is_empty():
 		var empty_lbl: Label = Label.new()
-		empty_lbl.text = "[ SIN EMISIONES DETECTADAS — FRECUENCIA EN ESPERA ]"
+		empty_lbl.text = "Nadie conectado todavía"
 		empty_lbl.modulate = COLOR_DIM
 		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		players_box.add_child(empty_lbl)
@@ -211,13 +209,13 @@ func _build_player_row(pid: int, info: Dictionary, is_me: bool) -> PanelContaine
 func _format_role_name(role: StringName) -> String:
 	match role:
 		NetManagerNode.ROLE_THIEF:
-			return "INFILTRADO (LADRÓN)"
+			return "LADRÓN"
 		NetManagerNode.ROLE_GUARD_1:
 			return "GUARDIA 1"
 		NetManagerNode.ROLE_GUARD_2:
 			return "GUARDIA 2"
 		_:
-			return "SIN ROL ASIGNADO"
+			return "SIN BANDO"
 
 
 func _get_port_input() -> int:

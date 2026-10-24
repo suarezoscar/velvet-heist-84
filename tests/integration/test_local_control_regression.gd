@@ -1,5 +1,5 @@
 ## @file test_local_control_regression.gd
-## Regresión de control local y presentación de personajes en los tres mapas jugables.
+## Regresión de control local y presentación de personajes en los mapas jugables.
 ## Cubre los fallos de la auditoría previa a Gemini: WASD movía a varios personajes a la vez
 ## (OfflineMultiplayerPeer da autoridad sobre todo), la IA flotaba sin gravedad y no
 ## encontraba al ladrón, los modelos de Mixamo miraban hacia atrás y las animaciones no
@@ -8,7 +8,7 @@
 ## GUT 9.6.1 de forma intermitente.
 extends GutTest
 
-const GYM_PATH: String = "res://scenes/maps/test_isometric_gym.tscn"
+const MUSEUM_V2_PATH: String = "res://scenes/maps/museum_v2.tscn"
 const MANSION_PATH: String = "res://scenes/maps/mansion_belmonte.tscn"
 const MUSEUM_PATH: String = "res://scenes/maps/museum_velvet_84.tscn"
 const LAYER_CHARACTERS: int = 2
@@ -71,8 +71,8 @@ func _check_map(path: String) -> void:
 			assert_lt(moved, STILL_TOLERANCE, "%s NO se mueve con WASD" % actor.name)
 
 
-func test_gym_local_control_and_physics() -> void:
-	await _check_map(GYM_PATH)
+func test_museum_v2_local_control_and_physics() -> void:
+	await _check_map(MUSEUM_V2_PATH)
 
 
 func test_mansion_local_control_and_physics() -> void:
@@ -84,7 +84,7 @@ func test_museum_local_control_and_physics() -> void:
 
 
 func test_debug_switch_transfers_control() -> void:
-	var map: HeistMap3D = await _load_map(GYM_PATH)
+	var map: HeistMap3D = await _load_map(MUSEUM_V2_PATH)
 	var guard: GuardController3D = map.guards[0]
 	map.set_local_player(guard)
 	assert_true(guard.is_locally_controlled, "El guardia pasa a ser el jugador local")
@@ -114,7 +114,7 @@ func test_museum_ai_guard_finds_thief_and_patrols_on_floor() -> void:
 
 
 func test_model_faces_body_forward_and_body_faces_movement() -> void:
-	var map: HeistMap3D = await _load_map(GYM_PATH)
+	var map: HeistMap3D = await _load_map(MUSEUM_V2_PATH)
 	var thief: ThiefController3D = map.thief
 	# Los modelos Mixamo miran a +Z; VisualRoot los gira para alinearlos con -Z (frente Godot)
 	var model_forward: Vector3 = thief.visual_root.global_basis.z
