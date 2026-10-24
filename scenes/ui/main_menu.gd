@@ -1,181 +1,178 @@
 ## @file main_menu.gd
-## Menú principal de inicio para 'Velvet Heist 84'.
-## Controla la navegación del título, selección interactiva de mapas/escenarios,
-## previsualización de fichas de misión; el lobby online vive en LobbyView.
+## Menú principal de Velvet Heist '84 (FEAT-018): fondo nocturno con zoom lento, logo de neón,
+## entradas Un jugador, Multijugador, Opciones y Salir, y el crédito del autor. Un jugador y
+## Opciones se abren como paneles a la derecha; Multijugador abre el lobby (LobbyView).
 class_name MainMenu
 extends Control
 
-## Datos de escenarios disponibles para la campaña / selección offline
-const SCENARIOS: Array[Dictionary] = [
-	{
-		"id": "museum",
-		"title": "MUSEO METROPOLITANO '84",
-		"subtitle": "Operación Asimétrica (1 Ladrón vs 2 Guardias)",
-		"desc":
-		(
-			"Infiltra las galerías de arte, evade las cámaras CCTV en tiempo real "
-			+ "y burla a los dos guardias para saquear la cámara acorazada."
-		),
-		"scene_path": "res://scenes/maps/museum_v2.tscn",
-		"thumb": "res://assets/ui/thumb_museum.png",
-		"difficulty": "ALTA • CCTV EN DIRECTO • 2 GUARDIAS",
-		"badge_color": Color(1.0, 0.35, 0.25)
-	},
-	{
-		"id": "mansion",
-		"title": "VILLA BELMONTE '84",
-		"subtitle": "Infiltración Clásica en Mansión",
-		"desc":
-		(
-			"Residencia de época con suelos de mármol resonante y parqué. "
-			+ "Localiza la caja fuerte de combinación analógica y escapa."
-		),
-		"scene_path": "res://scenes/maps/mansion_belmonte.tscn",
-		"thumb": "res://assets/ui/thumb_mansion.png",
-		"difficulty": "MEDIA • 1 GUARDIA DE RONDA",
-		"badge_color": Color(0.3, 0.75, 1.0)
-	},
-	{
-		"id": "gym",
-		"title": "GIMNASIO ACÚSTICO '84",
-		"subtitle": "Campo de Entrenamiento de Sigilo",
-		"desc":
-		(
-			"Entorno de calibración táctica para experimentar con la propagación "
-			+ "de ondas sonoras en 3D, pisadas según superficie y conos de visión."
-		),
-		"scene_path": "res://scenes/maps/test_isometric_gym.tscn",
-		"thumb": "res://assets/ui/thumb_museum.png",
-		"difficulty": "PRÁCTICA Y MECÁNICAS",
-		"badge_color": Color(0.4, 0.95, 0.5)
-	}
-]
+const BACKDROP_SHADER: Shader = preload("res://assets/shaders/menu_backdrop.gdshader")
+const MARGIN: float = 120.0
+const NAV_TOP: float = 560.0
+const ZOOM_SCALE: float = 1.07
+const ZOOM_TIME: float = 40.0
+const FADE_TIME: float = 0.7
+const PANEL_SHIFT: float = 40.0
+const VERSION_TEXT: String = "PROTOTIPO  v0.1"
+const CREDIT_TEXT: String = "Un juego de Óscar Suárez"
 
-var scenario_thumb_rect: TextureRect = null
-var _selected_idx: int = 0
+var settings: GameSettings = null
+var home: Control = null
+var logo: TitleLogo84 = null
+var nav: MenuNav84 = null
+var hint_label: Label = null
+var credit_label: Label = null
+var single_player: SinglePlayerPanel = null
+var options: OptionsPanel = null
+var _open_panel: Control = null
 
-# --- Nodos de Vistas Principales ---
-@onready var main_view: Control = $MainView
-@onready var scenario_view: Control = $ScenarioView
+@onready var background: TextureRect = $Background
 @onready var lobby_view: LobbyView = $LobbyView
-
-# --- Botones de MainView ---
-@onready var quick_play_btn: Button = $MainView/ButtonsBox/QuickPlayButton
-@onready var select_stage_btn: Button = $MainView/ButtonsBox/SelectStageButton
-@onready var online_btn: Button = $MainView/ButtonsBox/OnlineButton
-@onready var quit_btn: Button = $MainView/ButtonsBox/QuitButton
-
-# --- Controles de ScenarioView ---
-@onready var back_btn: Button = $ScenarioView/BackButton
-@onready var scenario_title_lbl: Label = $ScenarioView/ContentHBox/DetailsPanel/VBox/TitleLabel
-@onready var scenario_sub_lbl: Label = $ScenarioView/ContentHBox/DetailsPanel/VBox/SubLabel
-@onready var scenario_desc_lbl: Label = $ScenarioView/ContentHBox/DetailsPanel/VBox/DescLabel
-@onready var scenario_diff_lbl: Label = $ScenarioView/ContentHBox/DetailsPanel/VBox/DifficultyLabel
-@onready var launch_btn: Button = $ScenarioView/ContentHBox/DetailsPanel/VBox/LaunchButton
-@onready var list_container: VBoxContainer = $ScenarioView/ContentHBox/ListPanel/Scroll/VBox
 
 
 func _ready() -> void:
-	scenario_thumb_rect = get_node("ScenarioView/ContentHBox/DetailsPanel/VBox/ThumbRect")
-	_bind_main_navigation()
-	_bind_scenario_view()
-	lobby_view.back_requested.connect(_show_main_view)
-	_show_main_view()
-	_populate_scenario_list()
-	_select_scenario(0)
+	settings = GameSettings.load_saved()
+	settings.apply()
+	theme = MenuTheme84.build()
+	_build_backdrop()
+	_build_home()
+	_build_panels()
+	lobby_view.back_requested.connect(_show_home)
+	_show_home()
+	_play_intro()
 
 
-func _bind_main_navigation() -> void:
-	quick_play_btn.pressed.connect(_on_quick_play_pressed)
-	select_stage_btn.pressed.connect(_on_select_stage_pressed)
-	online_btn.pressed.connect(_on_online_pressed)
-	quit_btn.pressed.connect(_on_quit_pressed)
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed(&"ui_cancel") and _open_panel != null:
+		_close_panel()
+		get_viewport().set_input_as_handled()
 
 
-func _bind_scenario_view() -> void:
-	back_btn.pressed.connect(_on_back_pressed)
-	launch_btn.pressed.connect(_on_launch_scenario_pressed)
+## Abre una sección del menú: &"single", &"multi", &"options" o &"quit"
+func open_section(id: StringName) -> void:
+	match id:
+		&"single":
+			_open(single_player)
+		&"options":
+			_open(options)
+		&"multi":
+			_close_panel()
+			home.visible = false
+			lobby_view.visible = true
+			lobby_view.refresh()
+		&"quit":
+			get_tree().quit()
 
 
-# --- Navegación de Vistas ---
+func _build_backdrop() -> void:
+	background.resized.connect(func() -> void: background.pivot_offset = background.size * 0.5)
+	background.pivot_offset = background.size * 0.5
+	var overlay: ColorRect = ColorRect.new()
+	overlay.name = "Backdrop"
+	overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var material: ShaderMaterial = ShaderMaterial.new()
+	material.shader = BACKDROP_SHADER
+	overlay.material = material
+	add_child(overlay)
+	move_child(overlay, background.get_index() + 1)
+	var zoom: Tween = create_tween().set_loops()
+	zoom.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	zoom.tween_property(background, "scale", Vector2.ONE * ZOOM_SCALE, ZOOM_TIME)
+	zoom.tween_property(background, "scale", Vector2.ONE, ZOOM_TIME)
 
 
-func _show_main_view() -> void:
-	main_view.visible = true
-	scenario_view.visible = false
+func _build_home() -> void:
+	home = Control.new()
+	home.name = "Home"
+	home.set_anchors_preset(Control.PRESET_FULL_RECT)
+	home.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(home)
+	logo = TitleLogo84.new()
+	logo.position = Vector2(MARGIN, 110.0)
+	home.add_child(logo)
+	nav = MenuNav84.new()
+	nav.position = Vector2(MARGIN, NAV_TOP)
+	home.add_child(nav)
+	nav.add_entry(&"single", "UN JUGADOR", "Eres el ladrón; dos guardias de IA vigilan el museo.")
+	nav.add_entry(
+		&"multi", "MULTIJUGADOR", "Únete a un servidor por IP: 1 ladrón contra 2 guardias."
+	)
+	nav.add_entry(&"options", "OPCIONES", "Pantalla y sonido.")
+	nav.add_entry(&"quit", "SALIR", "Hasta la próxima noche.")
+	nav.entry_chosen.connect(open_section)
+	hint_label = MenuTheme84.label("", MenuTheme84.FONT_BODY, 22, MenuTheme84.DIM)
+	hint_label.position = Vector2(MARGIN + 2.0, NAV_TOP + 4.0 * 68.0 + 18.0)
+	home.add_child(hint_label)
+	nav.set_hint_label(hint_label)
+	var version: Label = MenuTheme84.label(
+		VERSION_TEXT, MenuTheme84.FONT_MONO, 16, Color(MenuTheme84.DIM, 0.7)
+	)
+	version.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
+	version.position += Vector2(MARGIN * 0.5, -36.0)
+	home.add_child(version)
+	credit_label = MenuTheme84.label(
+		CREDIT_TEXT, MenuTheme84.FONT_BODY, 20, Color(MenuTheme84.TEXT, 0.5)
+	)
+	credit_label.name = "Credit"
+	credit_label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	credit_label.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+	credit_label.position += Vector2(-MARGIN * 0.5, -38.0)
+	home.add_child(credit_label)
+
+
+func _build_panels() -> void:
+	single_player = SinglePlayerPanel.new()
+	single_player.name = "SinglePlayerPanel"
+	single_player.start_requested.connect(_load_scene)
+	single_player.back_requested.connect(_close_panel)
+	options = OptionsPanel.new()
+	options.name = "OptionsPanel"
+	options.setup(settings)
+	options.back_requested.connect(_close_panel)
+	for panel: Control in [single_player, options]:
+		panel.visible = false
+		home.add_child(panel)
+
+
+func _open(panel: Control) -> void:
+	if _open_panel == panel:
+		return
+	if _open_panel != null:
+		_open_panel.visible = false
+	_open_panel = panel
+	panel.visible = true
+	panel.reset_size()
+	var target: Vector2 = Vector2(
+		get_viewport_rect().size.x - MARGIN - panel.size.x, NAV_TOP - 260.0
+	)
+	panel.position = target + Vector2(PANEL_SHIFT, 0.0)
+	panel.modulate.a = 0.0
+	var tween: Tween = create_tween().set_parallel(true)
+	tween.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(panel, "position", target, 0.25)
+	tween.tween_property(panel, "modulate:a", 1.0, 0.25)
+
+
+func _close_panel() -> void:
+	if _open_panel != null:
+		_open_panel.visible = false
+	_open_panel = null
+	nav.focus_first()
+
+
+func _show_home() -> void:
 	lobby_view.visible = false
+	home.visible = true
+	nav.focus_first()
 
 
-func _show_scenario_view() -> void:
-	main_view.visible = false
-	scenario_view.visible = true
-	lobby_view.visible = false
-
-
-func _show_lobby_view() -> void:
-	main_view.visible = false
-	scenario_view.visible = false
-	lobby_view.visible = true
-	lobby_view.refresh()
-
-
-# --- Callbacks Menú Principal y Escenarios ---
-
-
-func _on_quick_play_pressed() -> void:
-	_load_scene("res://scenes/maps/museum_v2.tscn")
-
-
-func _on_select_stage_pressed() -> void:
-	_show_scenario_view()
-
-
-func _on_online_pressed() -> void:
-	_show_lobby_view()
-
-
-func _on_quit_pressed() -> void:
-	get_tree().quit()
-
-
-func _on_back_pressed() -> void:
-	_show_main_view()
-
-
-func _on_launch_scenario_pressed() -> void:
-	var data: Dictionary = SCENARIOS[_selected_idx]
-	_load_scene(data["scene_path"])
-
-
-func _populate_scenario_list() -> void:
-	for child in list_container.get_children():
-		list_container.remove_child(child)
-		child.queue_free()
-
-	for i: int in range(SCENARIOS.size()):
-		var data: Dictionary = SCENARIOS[i]
-		var btn: Button = Button.new()
-		btn.text = " [ %d ]  %s" % [i + 1, data["title"]]
-		btn.custom_minimum_size = Vector2(0, 52)
-		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		btn.pressed.connect(_on_scenario_btn_pressed.bind(i))
-		list_container.add_child(btn)
-
-
-func _select_scenario(idx: int) -> void:
-	_selected_idx = clampi(idx, 0, SCENARIOS.size() - 1)
-	var data: Dictionary = SCENARIOS[_selected_idx]
-	scenario_title_lbl.text = data["title"]
-	scenario_sub_lbl.text = data["subtitle"]
-	scenario_desc_lbl.text = data["desc"]
-	scenario_diff_lbl.text = "NIVEL DE ALERTA: " + data["difficulty"]
-	scenario_diff_lbl.modulate = data["badge_color"]
-	if ResourceLoader.exists(data["thumb"]):
-		scenario_thumb_rect.texture = load(data["thumb"])
-
-
-func _on_scenario_btn_pressed(idx: int) -> void:
-	_select_scenario(idx)
+func _play_intro() -> void:
+	home.modulate.a = 0.0
+	logo.position.x = MARGIN - 30.0
+	var tween: Tween = create_tween().set_parallel(true)
+	tween.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(home, "modulate:a", 1.0, FADE_TIME)
+	tween.tween_property(logo, "position:x", MARGIN, FADE_TIME * 1.4)
 
 
 func _load_scene(path: String) -> void:
