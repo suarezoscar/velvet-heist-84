@@ -42,3 +42,6 @@ Van en orden; cada uno se apoya en el anterior.
 - migrar el tablero a GitHub Projects.
 
 Si un aparcado resulta imprescindible para la meta (por ejemplo, si los personajes no se leen sin animación en H4), entra en el PoC con la aprobación del usuario.
+
+## Cambio de método (2026-10-24)
+A petición del usuario, desde el 2026-10-24 todo lo hace Claude: Opus en la sesión principal para lo pesado y subagentes Sonnet para lo rápido. Se retiran agy, opencode, `dispatch.sh`, el control de propiedad por agente (`ownership.yml`, `check_scope.py`), los paquetes cerrados por agente, el paquete QA aparte y los PR solo de documentación. Las FEAT pasan a ser notas cortas y `reviewer` solo revisa los cambios con riesgo. Detalle en `AGENTS.md` y `CLAUDE.md`.
