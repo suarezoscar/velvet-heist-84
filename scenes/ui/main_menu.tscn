@@ -1,6 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scenes/ui/main_menu.gd" id="1_fe2o3"]
+[ext_resource type="Script" path="res://scenes/ui/lobby_view.gd" id="3_lobby"]
 [ext_resource type="Texture2D" path="res://assets/ui/menu_background_84.jpg" id="2_1g8jr"]
 
 [node name="MainMenu" type="Control" unique_id=2065786876]
@@ -191,6 +192,7 @@ visible = false
 anchors_preset = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
+script = ExtResource("3_lobby")
 
 [node name="HeaderBox" type="VBoxContainer" parent="LobbyView" unique_id=1984777702]
 layout_mode = 0
@@ -263,6 +265,7 @@ placeholder_text = "7777"
 layout_mode = 2
 
 [node name="HostButton" type="Button" parent="LobbyView/ColumnsHBox/ConnectionPanel/VBox" unique_id=1984777714]
+visible = false
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 text = "CREAR OPERACIÓN (HOST)"
@@ -282,7 +285,7 @@ text = "DESCONECTAR"
 modulate = Color(0.35, 0.9, 0.85, 0.85)
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
-text = "RECEPTOR DE ONDA CORTA LISTO."
+text = "Arranca el servidor con tools/net/run_server.sh en un PC de la red y únete con su IP (puerto UDP 7777; ábrelo en su cortafuegos)"
 autowrap_mode = 3
 
 [node name="RolesPanel" type="PanelContainer" parent="LobbyView/ColumnsHBox" unique_id=1984777718]
@@ -321,12 +324,6 @@ alignment = 0
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 text = "GUARDIA 2"
-alignment = 0
-
-[node name="RoleGuard3Button" type="Button" parent="LobbyView/ColumnsHBox/RolesPanel/VBox" unique_id=1984777725]
-custom_minimum_size = Vector2(0, 50)
-layout_mode = 2
-text = "GUARDIA 3"
 alignment = 0
 
 [node name="HSeparator" type="HSeparator" parent="LobbyView/ColumnsHBox/RolesPanel/VBox" unique_id=1984777726]

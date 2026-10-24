@@ -39,6 +39,7 @@ var current_stage: int = 0
 var current_dial_val: int = 0
 var active_thief: ThiefController3D = null
 var door_pivot: Node3D = null
+var _loot_spawned: bool = false
 
 
 func _ready() -> void:
@@ -157,10 +158,14 @@ func _unlock_and_open() -> void:
 
 
 func _spawn_loot_contents() -> void:
-	if loot_inside_scene != null:
-		var loot: Node3D = loot_inside_scene.instantiate() as Node3D
-		loot.position = global_position + Vector3(0.0, 0.6, 0.4)
-		get_parent().add_child(loot)
+	if loot_inside_scene == null or _loot_spawned:
+		return
+	_loot_spawned = true
+	var loot: Node3D = loot_inside_scene.instantiate() as Node3D
+	# Nombre fijo para que el servidor y los clientes compartan la misma ruta (FEAT-014)
+	loot.name = "SafeLoot_%d" % 0
+	loot.position = global_position + Vector3(0.0, 0.6, 0.4)
+	get_parent().add_child(loot)
 
 
 func _emit_acoustic_noise(radius: float) -> void:
@@ -188,6 +193,7 @@ func get_net_state_private() -> Dictionary:
 
 ## Aplica el estado de red público o privado recibido
 func apply_net_state(state: Dictionary) -> void:
+	var was_opened: bool = current_state == SafeState.OPENED
 	if state.has("opened"):
 		if bool(state["opened"]):
 			current_state = SafeState.OPENED
@@ -197,6 +203,8 @@ func apply_net_state(state: Dictionary) -> void:
 			current_state = SafeState.LOCKED
 			if door_pivot != null:
 				door_pivot.rotation_degrees.y = 0.0
+	if not was_opened and current_state == SafeState.OPENED:
+		_spawn_loot_contents()
 
 	if state.has("cracking"):
 		if bool(state["cracking"]):
