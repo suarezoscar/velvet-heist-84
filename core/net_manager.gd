@@ -212,10 +212,6 @@ func get_role_for_peer(peer_id: int) -> StringName:
 
 
 ## Alias de get_role_for_peer para llamadas por id
-func get_role_for_peer_id(peer_id: int) -> StringName:
-	return get_role_for_peer(peer_id)
-
-
 @rpc("authority", "call_remote", "reliable")
 func _sync_player_list(players: Dictionary) -> void:
 	connected_players = players
@@ -236,7 +232,7 @@ func request_role(new_role: StringName) -> bool:
 
 @rpc("any_peer", "call_remote", "reliable")
 func _request_role_server(desired_role: StringName) -> void:
-	if not multiplayer.is_server():
+	if not multiplayer.is_server() or _match_in_progress():
 		return
 	var sender_id: int = multiplayer.get_remote_sender_id()
 	_assign_role_internal(sender_id, desired_role)
@@ -268,8 +264,8 @@ func _request_start_server() -> void:
 
 
 func _try_start_match() -> void:
-	if get_peer_id_for_role(ROLE_THIEF) == 0:
-		print("[NetManager] Sin ladrón asignado: no se lanza la partida.")
+	# Sin ladrón no hay partida; con una en curso, nadie puede relanzarla para todos
+	if get_peer_id_for_role(ROLE_THIEF) == 0 or _match_in_progress():
 		return
 	launch_match()
 
@@ -296,3 +292,7 @@ func get_local_role() -> StringName:
 
 func get_connected_players() -> Dictionary:
 	return connected_players
+
+
+func _match_in_progress() -> bool:
+	return GameManager.current_state == GameManager.MatchState.IN_PROGRESS
