@@ -2,7 +2,7 @@
 
 - **Estado**: aprobado (2026-10-24, con las 6 recomendaciones de «Decisiones abiertas»). Parte 1 de `interaction.md`: solo relojes de fichar (R) y monitores CCTV (M). Cajas fuertes, puertas, teléfonos y el panel de pilotos (O3 de `stealth.md`) quedan para partes siguientes.
 - **Origen**: decisiones 3 y 5 de `docs/gdd/levels/museum_v2.md` (aprobadas por el usuario el 2026-10-24); MASTER_GSD §3.0 (relojes de 90 s); roadmap del PoC, cambio a internet con servidor dedicado (`docs/decisions/2026-10-23-roadmap-poc.md`).
-- **Relacionado**: `stealth.md` (P2.2 luz, P2.3 percepción por guardia, P2.4 ruido, filtro de red); `match.md` (por crear: adopta la tabla de final por tiempo de R4); `docs/tasks/FEAT-014-red-minima-lan.md` (filtro del ladrón, `net_state`). Código actual: `src/systems/time_clock_3d.gd`, `security_camera_3d.gd`, `cctv_monitor_3d.gd`, `core/game_manager.gd`.
+- **Relacionado**: `stealth.md` (P2.2 luz, P2.3 percepción por guardia, P2.4 ruido, filtro de red); `match.md` (por crear: adopta la tabla de final por tiempo de R4); `docs/tasks/FEAT-014-red-minima-lan.md` (filtro del ladrón, `net_state`); `vision.md` (las imágenes CCTV no llevan niebla; los pilotos se ven a través de ella). Código actual: `src/systems/time_clock_3d.gd`, `security_camera_3d.gd`, `cctv_monitor_3d.gd`, `core/game_manager.gd`.
 - **Alcance**: PoC, 1 ladrón contra 2 guardias por internet; el servidor dedicado decide todo lo que aquí se describe.
 
 ## Fantasía
