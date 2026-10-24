@@ -16,6 +16,10 @@ const INVESTIGATE_REACHED_DISTANCE: float = 0.9
 const NOISE_INVESTIGATE_TIME: float = 5.0
 ## Segundos que inspecciona la última posición avistada del ladrón
 const SPOTTED_INVESTIGATE_TIME: float = 6.0
+## Distancia horizontal (m) a la que ficha un reloj de ronda al pasar (alcance del interactor)
+const CLOCK_PUNCH_DISTANCE: float = 1.6
+## Segundos que deben haber pasado desde el último fichaje de un reloj para volver a ficharlo
+const CLOCK_PUNCH_MIN_ELAPSED: float = 5.0
 
 ## Rutas de patrulla configurables
 @export var patrol_waypoints: Array[Vector3] = []
@@ -71,6 +75,7 @@ func _physics_process(_delta: float) -> void:
 
 	if _thief != null and _guard.check_detection_on_thief(_thief):
 		current_state = AIState.CHASE
+	_punch_nearby_clocks()
 
 	match current_state:
 		AIState.IDLE:
@@ -81,6 +86,21 @@ func _physics_process(_delta: float) -> void:
 			_process_investigate(_delta)
 		AIState.CHASE:
 			_process_chase()
+
+
+## Ficha los relojes que tiene al alcance (interaction.md R1: la IA debe cubrir su ronda)
+func _punch_nearby_clocks() -> void:
+	for node: Node in get_tree().get_nodes_in_group(&"time_clock"):
+		var clock: TimeClock3D = node as TimeClock3D
+		if clock == null:
+			continue
+		if (
+			clock.round_duration - clock.time_left < CLOCK_PUNCH_MIN_ELAPSED
+			and not clock.is_expired
+		):
+			continue
+		if _flat_distance(clock.global_position, _guard.global_position) < CLOCK_PUNCH_DISTANCE:
+			clock.interact(_guard)
 
 
 func _process_patrol() -> void:

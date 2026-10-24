@@ -1,6 +1,6 @@
 # Interacción: relojes de fichar y monitores CCTV
 
-- **Estado**: propuesto (2026-10-24). Parte 1 de `interaction.md`: solo relojes de fichar (R) y monitores CCTV (M). Cajas fuertes, puertas, teléfonos y el panel de pilotos (O3 de `stealth.md`) quedan para partes siguientes.
+- **Estado**: aprobado (2026-10-24, con las 6 recomendaciones de «Decisiones abiertas»). Parte 1 de `interaction.md`: solo relojes de fichar (R) y monitores CCTV (M). Cajas fuertes, puertas, teléfonos y el panel de pilotos (O3 de `stealth.md`) quedan para partes siguientes.
 - **Origen**: decisiones 3 y 5 de `docs/gdd/levels/museum_v2.md` (aprobadas por el usuario el 2026-10-24); MASTER_GSD §3.0 (relojes de 90 s); roadmap del PoC, cambio a internet con servidor dedicado (`docs/decisions/2026-10-23-roadmap-poc.md`).
 - **Relacionado**: `stealth.md` (P2.2 luz, P2.3 percepción por guardia, P2.4 ruido, filtro de red); `match.md` (por crear: adopta la tabla de final por tiempo de R4); `docs/tasks/FEAT-014-red-minima-lan.md` (filtro del ladrón, `net_state`). Código actual: `src/systems/time_clock_3d.gd`, `security_camera_3d.gd`, `cctv_monitor_3d.gd`, `core/game_manager.gd`.
 - **Alcance**: PoC, 1 ladrón contra 2 guardias por internet; el servidor dedicado decide todo lo que aquí se describe.
@@ -125,10 +125,10 @@ Alcance (9,5 m), FOV (52°) y barrido (65°) siguen siendo datos de cada cámara
 ## Estado
 Implementado hoy: cuenta atrás, fichaje con ruido y campana de vencido (`time_clock_3d.gd`, constantes en el script); cámaras con barrido y detección sin luz; monitores solo en el mundo. Falta todo lo nuevo: faltas, R4, tablilla, filtro de red de los relojes, mirando, imágenes en el HUD, pilotos, condición de luz y M6-M7. Nada está en `.tres` todavía.
 
-## Decisiones abiertas
-1. **► ¿Las faltas son irreversibles?** Recomendación: **sí**. Una ronda rota convierte el final en "capturarlo o perder", que es tensión, no espera. Alternativa: fichar los cuatro relojes en una ventana borra una falta (más perdón, más reglas).
-2. **► ¿El ladrón sabe que la ronda está rota?** Recomendación: **no** en el PoC; lo deduce por las campanas. Alternativa: suena el teléfono de la garita al romperse (lo oye quien esté cerca).
-3. **► Empate sin la Pieza y con la ronda rota.** Recomendación: **empate**, como aprobó el usuario. Alternativa: gana el ladrón si llega a la cuota, aunque no tenga la Pieza.
-4. **► ¿El CCTV necesita luz para ver al ladrón (M5)?** Recomendación: **sí**. Es lo que da al ladrón una respuesta a las cámaras sin gadgets y encaja con P2.2. Cambia la detección actual.
-5. **► ¿Una sola silla (M1)?** Recomendación: **sí**. Dos guardias mirando a la vez dejan la ronda sin nadie.
-6. **► ¿`round_duration` es global o por reloj?** Recomendación: **global** en `time_clock_rules.tres` para el PoC; las excepciones por reloj, más adelante como dato de nivel.
+## Decisiones (aprobadas por el usuario el 2026-10-24)
+1. Las faltas son irreversibles.
+2. El ladrón no sabe que la ronda está rota; lo deduce por las campanas.
+3. Ronda rota y ladrón sin la Pieza al acabar el tiempo: empate.
+4. El CCTV necesita luz para ver al ladrón (M5).
+5. Una sola silla en la garita (M1).
+6. `round_duration` es global (`time_clock_rules.tres`); las excepciones por reloj, más adelante como dato de nivel.

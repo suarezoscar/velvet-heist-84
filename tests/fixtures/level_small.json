@@ -21,7 +21,7 @@
     {"id": "M", "pos": [11, 3], "name": "Cuadro", "value": 5000, "heavy": true, "masterpiece": true}
   ],
   "safe": {"pos": [12, 1], "value": 3000},
-  "clocks": [{"id": 1, "pos": [13.5, 3], "rot_deg": 270, "round": 90}],
+  "clocks": [{"id": 1, "pos": [13.5, 3], "rot_deg": 270}],
   "cameras": [{"id": "CAM-1", "pos": [13.5, 5.5], "yaw_deg": 315}],
   "monitors": [{"camera": "CAM-1", "pos": [9, 1], "rot_deg": 180}],
   "car": {"pos": [2, 8], "rot_deg": 90},
