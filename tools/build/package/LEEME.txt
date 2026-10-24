@@ -1,0 +1,24 @@
+VELVET HEIST '84 - prototipo
+Un juego de Óscar Suárez
+
+JUGAR
+  Linux:   ./VelvetHeist84.x86_64
+  Windows: VelvetHeist84.exe
+  - Un jugador: tú eres el ladrón y la IA lleva a los guardias.
+  - Multijugador: escribe la IP del servidor, pulsa Unirse, elige bando y Empezar partida.
+
+CONTROLES
+  WASD o flechas: mover · ratón: hacia dónde miras · Mayús: correr · C: sigilo
+  Ctrl: agacharse · E: interactuar · M o Tab: plano · F: linterna (guardias)
+  Clic izquierdo: porra (guardias)
+  Caja fuerte: flechas o A/D giran el dial (mantener para girar seguido), E prueba, Esc sale
+
+SER EL ANFITRIÓN (servidor)
+  1. Arranca el servidor en un PC que se quede encendido durante la partida:
+       Linux:   ./servidor.sh          (o ./servidor.sh 7777)
+       Windows: servidor.bat           (o servidor.bat 7777)
+     El servidor no abre ventana; se cierra con Ctrl+C.
+  2. Abre el puerto UDP 7777 en el router hacia ese PC (redirección de puertos) y en su
+     cortafuegos.
+  3. Tus amigos se unen con tu IP pública (búscala en https://ifconfig.me). Tú, desde el mismo
+     PC, con 127.0.0.1; desde otro PC de tu casa, con la IP local del servidor.
