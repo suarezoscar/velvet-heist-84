@@ -7,6 +7,8 @@ extends RefCounted
 
 ## Capa del entorno estático (muros y suelos), la que usan percepción y SurfaceDetector3D
 const LAYER_WORLD_SOLID: int = 1
+## Grupo de muros, tabiques y alféizares: Interactor3D no interactúa a través de ellos
+const WALLS_GROUP: StringName = &"walls"
 const FLOOR_THICKNESS: float = 0.2
 ## Precisión al agrupar bordes en la misma línea (m)
 const LINE_EPSILON: float = 0.01
@@ -216,6 +218,7 @@ static func _add_segment_box(
 		Vector3(length, collision_h, t) if along_x else Vector3(t, collision_h, length)
 	)
 	var body: StaticBody3D = _static_body(node_name)
+	body.add_to_group(WALLS_GROUP)
 	body.position = (start + end) * 0.5
 	_add_box(body, size, Vector3(0.0, collision_h * 0.5, 0.0), color, visual_h)
 	root.add_child(body)
