@@ -211,7 +211,6 @@ func get_role_for_peer(peer_id: int) -> StringName:
 	return NetRoleRegistry.role_for_peer(connected_players, peer_id)
 
 
-## Alias de get_role_for_peer para llamadas por id
 @rpc("authority", "call_remote", "reliable")
 func _sync_player_list(players: Dictionary) -> void:
 	connected_players = players

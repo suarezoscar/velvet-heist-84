@@ -122,6 +122,9 @@ func on_world_state(changes: Dictionary) -> void:
 		if node == null:
 			continue
 		if bool(value.get("removed", false)):
+			_nodes.erase(path)
+			if node is LootItem3D and (node as LootItem3D).holder_thief is ThiefController3D:
+				((node as LootItem3D).holder_thief as ThiefController3D).drop_heavy_loot()
 			node.queue_free()
 			continue
 		node.apply_net_state(value)
@@ -225,9 +228,9 @@ func _merge_world_state(path: String, value: Dictionary) -> void:
 ## Nodo de una ruta del servidor. Se guarda la primera resolución porque un reparent()
 ## local (el botín pesado en brazos del ladrón) cambia la ruta pero no la clave.
 func _resolve(path: String) -> Node:
-	var cached: Node = _nodes.get(path) as Node
-	if cached != null and is_instance_valid(cached):
-		return cached
+	var cached: Variant = _nodes.get(path)
+	if is_instance_valid(cached):
+		return cached as Node
 	var tree: SceneTree = _session.map.get_tree()
 	if tree == null or tree.current_scene == null:
 		return null
