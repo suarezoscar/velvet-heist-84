@@ -272,7 +272,7 @@ func _try_start_match() -> void:
 @rpc("authority", "call_local", "reliable")
 func _start_match_rpc() -> void:
 	match_started.emit()
-	get_tree().change_scene_to_file("res://scenes/maps/museum_velvet_84.tscn")
+	get_tree().change_scene_to_file("res://scenes/maps/museum_v2.tscn")
 
 
 ## Verdadero solo con una sesión ENet real (sin red Godot usa OfflineMultiplayerPeer).

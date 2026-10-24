@@ -16,7 +16,7 @@ const SCENARIOS: Array[Dictionary] = [
 			"Infiltra las galerías de arte, evade las cámaras CCTV en tiempo real "
 			+ "y burla a los dos guardias para saquear la cámara acorazada."
 		),
-		"scene_path": "res://scenes/maps/museum_velvet_84.tscn",
+		"scene_path": "res://scenes/maps/museum_v2.tscn",
 		"thumb": "res://assets/ui/thumb_museum.png",
 		"difficulty": "ALTA • CCTV EN DIRECTO • 2 GUARDIAS",
 		"badge_color": Color(1.0, 0.35, 0.25)
@@ -123,7 +123,7 @@ func _show_lobby_view() -> void:
 
 
 func _on_quick_play_pressed() -> void:
-	_load_scene("res://scenes/maps/museum_velvet_84.tscn")
+	_load_scene("res://scenes/maps/museum_v2.tscn")
 
 
 func _on_select_stage_pressed() -> void:
