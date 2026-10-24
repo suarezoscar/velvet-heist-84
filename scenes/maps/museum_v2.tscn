@@ -1,0 +1,67 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scenes/maps/museum_v2.gd" id="1_map"]
+[ext_resource type="PackedScene" path="res://scenes/entities/thief_player.tscn" id="2_thief"]
+[ext_resource type="Script" path="res://src/entities/thief/thief_controller_3d.gd" id="3_thief_script"]
+[ext_resource type="PackedScene" path="res://scenes/entities/guard_player.tscn" id="4_guard"]
+[ext_resource type="Script" path="res://src/entities/guard/guard_controller_3d.gd" id="5_guard_script"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud_84.tscn" id="6_hud"]
+[ext_resource type="Script" path="res://scenes/ui/hud_84.gd" id="7_hud_script"]
+
+[sub_resource type="Environment" id="Environment_3c8u7"]
+background_mode = 1
+background_color = Color(0.015, 0.02, 0.035, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.12, 0.14, 0.2, 1)
+ambient_light_energy = 0.75
+tonemap_mode = 2
+tonemap_exposure = 1.15
+ssao_enabled = true
+ssao_radius = 1.2
+glow_enabled = true
+glow_intensity = 0.45
+glow_bloom = 0.12
+glow_blend_mode = 2
+fog_enabled = true
+fog_light_color = Color(0.05, 0.08, 0.14, 1)
+fog_density = 0.005
+
+[node name="MuseumV2" type="Node3D"]
+script = ExtResource("1_map")
+
+[node name="IsometricCamera3D" type="Camera3D" parent="."]
+transform = Transform3D(0.70710677, -0.40824434, 0.577353, 0, 0.8165005, 0.5773447, -0.70710677, -0.40824434, 0.577353, 14, 16.5, 14.5)
+current = true
+fov = 38.0
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_3c8u7")
+
+[node name="MoonLight" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.81915206, -0.43938506, 0.36868784, 0, 0.64278764, 0.76604444, -0.57357645, -0.62750685, 0.5265408, 0, 0, 0)
+light_color = Color(0.6, 0.72, 0.95, 1)
+light_energy = 0.45
+shadow_enabled = true
+shadow_bias = 0.04
+shadow_normal_bias = 1.0
+directional_shadow_mode = 0
+directional_shadow_max_distance = 45.0
+
+[node name="ThiefPlayer" type="CharacterBody3D" parent="." node_paths=PackedStringArray("visual_root") instance=ExtResource("2_thief")]
+collision_layer = 2
+script = ExtResource("3_thief_script")
+visual_root = NodePath("VisualRoot")
+
+[node name="GuardPlayer1" type="CharacterBody3D" parent="." node_paths=PackedStringArray("maglite_light") instance=ExtResource("4_guard")]
+collision_layer = 2
+script = ExtResource("5_guard_script")
+maglite_light = NodePath("MagliteSpotLight")
+
+[node name="GuardPlayer2" type="CharacterBody3D" parent="." node_paths=PackedStringArray("maglite_light") instance=ExtResource("4_guard")]
+collision_layer = 2
+script = ExtResource("5_guard_script")
+maglite_light = NodePath("MagliteSpotLight")
+guard_id = 2
+
+[node name="HUD84" type="CanvasLayer" parent="." instance=ExtResource("6_hud")]
+script = ExtResource("7_hud_script")
