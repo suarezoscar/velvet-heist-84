@@ -127,7 +127,8 @@ static func _add_monitor(
 	node.name = "Monitor_%s" % cam_id.replace("-", "_")
 	node.monitor_title = cam_id
 	node.position = data.to_world(monitor["pos"], MONITOR_HEIGHT)
-	node.rotation.y = deg_to_rad(-float(monitor.get("rot_deg", 0.0)))
+	# El modelo muestra la pantalla hacia +Z: girarlo 180° hace que rot_deg sea hacia donde mira
+	node.rotation.y = deg_to_rad(180.0 - float(monitor.get("rot_deg", 0.0)))
 	props.add_child(node)
 	if cameras.has(cam_id):
 		node.bind_camera(cameras[cam_id])

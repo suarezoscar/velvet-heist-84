@@ -250,7 +250,7 @@ func validate_melee_hit(target_thief: ThiefController3D) -> bool:
 			var offset: Vector3 = Vector3(0.0, perception.torso_height, 0.0)
 			var from_pos: Vector3 = global_position + offset
 			var to_pos: Vector3 = target_thief.global_position + offset
-			if not GuardSenses._has_line_of_sight(space_state, from_pos, to_pos):
+			if not GuardSenses.has_line_of_sight(space_state, from_pos, to_pos):
 				return false
 	return true
 

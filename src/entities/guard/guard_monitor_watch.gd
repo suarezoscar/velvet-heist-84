@@ -47,6 +47,8 @@ func tick(guard: GuardController3D, delta: float) -> void:
 		_enter_timer -= delta
 		if _enter_timer <= 0.0:
 			state = State.WATCHING
+			if desk != null:
+				desk.notify_watching(guard)
 
 
 ## Input que llega al guardia: sentado no se mueve y mira a la mesa. Un movimiento lo
