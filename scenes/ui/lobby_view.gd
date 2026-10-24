@@ -8,7 +8,7 @@ extends Control
 signal back_requested
 
 const HELP_TEXT: String = "Arranca el servidor con tools/net/run_server.sh en un PC de la red"
-const HELP_TAIL: String = " y únete con su IP"
+const HELP_TAIL: String = " y únete con su IP (puerto UDP 7777; ábrelo en su cortafuegos)"
 const COLOR_AMBER: Color = Color(1.0, 0.85, 0.35, 1.0)
 const COLOR_CYAN: Color = Color(0.35, 0.9, 0.85, 1.0)
 const COLOR_GREEN: Color = Color(0.4, 0.95, 0.5, 1.0)
