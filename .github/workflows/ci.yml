@@ -9,8 +9,6 @@ on:
 env:
   # Base para "archivos cambiados" (lint, patrones). En PR, la rama destino; en push, master.
   BASE_REF: origin/${{ github.base_ref || 'master' }}
-  # Rama analizada por check_scope.py (en PR, la rama origen).
-  SCOPE_BRANCH: ${{ github.head_ref || github.ref_name }}
 
 jobs:
   verify:
@@ -36,10 +34,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install gdtoolkit==4.5.0
-
-      - name: Package Scope and Ownership
-        run: |
-          python3 tools/ci/check_scope.py
 
       - name: Forbidden Patterns (changed files)
         run: |

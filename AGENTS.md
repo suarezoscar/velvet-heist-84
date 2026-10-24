@@ -4,28 +4,26 @@ Sigilo táctico asimétrico multijugador (1 ladrón contra 2-4 guardias). 3D iso
 - Pilares de diseño: @docs/gdd/pillars.md. Toda mecánica, gadget o nivel se mide contra ellos.
 - Diseño por sistemas: `docs/gdd/systems/` (índice en su `README.md`). `docs/gdd/MASTER_GSD.md` se está dividiendo ahí; ante un conflicto manda `systems/`.
 
-## Flujo de trabajo
-1. **Diseño**: mecánicas, niveles y balance nacen como propuesta de `game-designer` (`/design`, `/level`, `/balance`) y el usuario la aprueba. Las tareas puramente técnicas (refactor, red, CI) empiezan en el paso 2.
-2. **Spec**: Claude Code escribe `docs/tasks/FEAT-XXX-slug.md` con contratos y un paquete de ejecución por agente (`/spec`). El usuario la aprueba.
-3. **Ejecución**: Claude lanza cada paquete en Antigravity (`agy`) en su propio worktree y rama `feat/XXX-pkgN`. El ejecutor sigue `.agents/rules/00-ejecucion-de-paquetes.md`.
-4. **Revisión**: `reviewer` (Claude, contexto limpio) repite las comprobaciones y audita spec, código y tests. Como mucho dos vueltas de corrección; después decide el usuario.
-5. **PR y merge**: Claude publica la rama aprobada, abre el PR contra la rama de integración de la FEAT (por defecto `master`) y lo integra cuando `reviewer` ha aprobado y el CI está en verde. Con el CI en rojo o pendiente no se integra. El usuario puede revisar o integrar él mismo cualquier PR.
+## Flujo de trabajo (desde el 2026-10-24: solo Claude)
+Objetivo actual: el PoC jugable de `docs/decisions/2026-10-23-roadmap-poc.md`. Lo que no acerque a esa meta va al backlog.
+1. **Diseño, solo si cambia reglas**: una mecánica nueva o un cambio de reglas pasa por `game-designer` (`/design`, `/level`, `/balance`) y lo aprueba el usuario. Un bug, un ajuste o algo técnico va directo.
+2. **Nota de FEAT**: `docs/tasks/FEAT-XXX-slug.md` corta (plantilla `_TEMPLATE.md`): objetivo, criterios medibles, riesgos y decisiones abiertas. Se ajusta en la misma rama mientras se trabaja.
+3. **Implementación**: una rama `feat/XXX-slug` (o `fix/`, `chore/`) por FEAT, commits pequeños. Claude implementa; los tests los escribe quien implementa, junto al código.
+4. **Revisión**: `reviewer` (contexto limpio) revisa los cambios con riesgo: red, seguridad, sistemas con reglas, refactors grandes. Lo pequeño se integra solo con el CI en verde.
+5. **PR y merge**: PR contra `master` y merge con el CI en verde (y `reviewer` aprobado si se pidió). El usuario puede revisar o integrar él mismo cualquier PR.
 
-Quien escribe el código no lo revisa ni escribe sus tests de aceptación: esos tests los escribe `qa-engineer` en su propio paquete, a partir de los criterios de la spec.
 Un ajuste de números que no cambia reglas es una `TUNE-XXX` (solo `.tres`, plantilla `docs/tasks/_TUNE_TEMPLATE.md`).
-La cola de trabajo se consulta con `/next`. Ante una duda de diseño o un conflicto con los pilares: parar y preguntar al usuario.
+La cola de trabajo se consulta con `/next` y el tablero del PoC. Ante una duda de diseño o un conflicto con los pilares: parar y preguntar al usuario.
 
-## Agentes
-| Agente | Dónde | Papel |
+## Agentes y modelos
+| Quién | Modelo | Papel |
 |---|---|---|
-| Claude Code | Claude | Planifica, escribe specs, orquesta `agy` y coordina la revisión |
-| `game-designer` | Claude (`.claude/agents/`) | Propone mecánicas, niveles y balance; no escribe código |
-| `reviewer` | Claude (`.claude/agents/`) | Revisión y auditoría independientes |
-| `integrator` | Antigravity | Integra ramas y aplica en `core/` y `project.godot` lo que dicte un paquete |
-| `gameplay-engineer`, `technical-artist`, `vfx-ui-engineer`, `qa-engineer` | Antigravity | Ejecutan paquetes |
+| Sesión principal de Claude Code | Opus | Planifica, implementa lo difícil (red, sistemas, depuración), integra |
+| Subagentes de tareas rápidas | Sonnet | Tests, ajustes pequeños, datos `.tres`, refactors acotados y mecánicos |
+| `game-designer` (`.claude/agents/`) | — | Propone mecánicas, niveles y balance; no escribe código |
+| `reviewer` (`.claude/agents/`) | Opus | Revisión y auditoría independientes de los cambios con riesgo |
 
-Propiedad de carpetas: `.agents/ownership.yml` es la única fuente y CI la comprueba (`tools/ci/check_scope.py`). Si un paquete necesita tocar algo ajeno, la spec lo declara como excepción.
-`scenes/maps/` lo ensambla el usuario; un agente solo lo toca si una FEAT lo pide.
+`scenes/maps/` lo ensambla el usuario; solo se toca si una FEAT lo pide.
 
 ## Versiones y convenciones
 - Godot 4.7.x (la versión exacta se fija en `tools/ci/`). GDScript con tipado estático.
@@ -52,18 +50,18 @@ Los modelos de Mixamo miran a +Z: `VisualRoot` los gira 180° para que el frente
 1. Importación limpia: `./tools/ci/import.sh`.
 2. Scripts que compilan con los autoloads: `./tools/ci/check_scripts.sh`.
 3. Lint y formato de los archivos cambiados, bloqueante (máximo 300 líneas por archivo): `./tools/ci/lint.sh`.
-4. Patrones prohibidos y alcance del paquete: `./tools/ci/check_patterns.sh` y `python3 tools/ci/check_scope.py`.
+4. Patrones prohibidos: `./tools/ci/check_patterns.sh`.
 5. Tests en verde: `./tools/ci/run_tests.sh`.
 6. Assets validados en `pass` y con origen y licencia en su ficha (regla 02).
 7. Cada criterio de la FEAT con su evidencia empírica.
-8. `reviewer` aprueba sin bloqueantes.
+8. `reviewer` aprueba sin bloqueantes, si el cambio tiene riesgo.
 9. Si cambió el diseño, `docs/gdd/systems/` está actualizado.
 
 ## Límites duros
 - Comunicación entre módulos por `SignalBus` o `@export`; sin `get_parent().get_parent()` ni rutas absolutas.
-- `project.godot` y `core/signal_bus.gd` los edita `integrator`, siguiendo un paquete.
+- `project.godot` y `core/signal_bus.gd` se cambian solo cuando la FEAT lo dice, y en su propio commit.
 - La lógica va en `.gd` y `.gdshader`; las `.tscn` se editan a mano solo para cambios triviales.
-- Cada cambio se queda dentro del alcance de su paquete.
+- Cada cambio se queda dentro del alcance de su FEAT; lo demás va al backlog.
 
 ## Reglas por dominio (se cargan según su descripción)
-`.agents/rules/`: 00 ejecución de paquetes · 01 arquitectura GDScript · 02 assets · 03 red · 04 VFX, shaders y UI · 05 verificación.
+`.agents/rules/`: 01 arquitectura GDScript · 02 assets · 03 red · 04 VFX, shaders y UI · 05 verificación.

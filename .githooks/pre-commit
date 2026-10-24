@@ -10,4 +10,3 @@ export STAGED=1
 
 ./tools/ci/lint.sh
 ./tools/ci/check_patterns.sh
-python3 tools/ci/check_scope.py --staged
