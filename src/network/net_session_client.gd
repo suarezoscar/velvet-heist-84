@@ -5,6 +5,7 @@ class_name NetSessionClient
 extends RefCounted
 
 const PRIVATE_SUFFIX: String = "#private"
+const RESEND_READY: float = 0.5
 
 var _session: NetSession = null
 var _tick: int = 0
@@ -14,6 +15,9 @@ var _world_states: Dictionary = {}
 var _server_time: float = 0.0
 var _server_time_local: float = 0.0
 var _has_server_time: bool = false
+var _nodes: Dictionary = {}
+var _server_acked: bool = false
+var _ready_timer: float = 0.0
 
 
 ## Deja el mapa en modo vista: sin IA, sin física de sistemas y listo para recibir
@@ -30,7 +34,8 @@ func setup(session: NetSession) -> void:
 
 
 ## Tick de física del cliente: envía input y acciones discretas del jugador local
-func tick(_delta: float) -> void:
+func tick(delta: float) -> void:
+	_resend_ready(delta)
 	var local: PlayerBase3D = _session.map.local_player
 	if local == null:
 		return
@@ -67,6 +72,7 @@ func present(_delta: float) -> void:
 
 ## Estado propio del jugador local; la mirada se queda en la del cliente
 func on_own_state(state: Dictionary) -> void:
+	_server_acked = true
 	var local: PlayerBase3D = _session.map.local_player
 	if local == null:
 		return
@@ -91,6 +97,10 @@ func on_snapshot(server_time: float, states: Dictionary) -> void:
 			buffer.pop_front()
 		_buffers[role] = buffer
 		_latest[role] = states[key]
+	if not has_thief:
+		# Sin ladrón en el snapshot: al volver a percibirlo no debe deslizarse desde la posición vieja
+		_buffers.erase(&"thief")
+		_latest.erase(&"thief")
 	if _is_local_guard() and _session.map.thief != null:
 		_session.map.thief.set_visible_to_local_viewer(has_thief)
 
@@ -119,6 +129,7 @@ func on_world_state(changes: Dictionary) -> void:
 
 ## Estado de la partida decidido por el servidor
 func on_game_state(state: Dictionary) -> void:
+	_server_acked = true
 	GameManager.apply_net_state(state)
 
 
@@ -197,11 +208,9 @@ func _sample(role: StringName, target: float) -> Dictionary:
 
 func _apply_latest_flags(role: StringName, state: Dictionary) -> void:
 	var latest: Dictionary = _latest.get(role, {})
-	for key: String in ["crouching", "flashlight", "perceiving", "stamina", "last_seen_pos"]:
+	for key: String in ["crouching", "flashlight"]:
 		if latest.has(key):
 			state[key] = latest[key]
-	if latest.has("last_seen_left"):
-		state["last_seen_left"] = latest["last_seen_left"]
 
 
 func _merge_world_state(path: String, value: Dictionary) -> void:
@@ -213,11 +222,30 @@ func _merge_world_state(path: String, value: Dictionary) -> void:
 	_world_states[path] = current
 
 
+## Nodo de una ruta del servidor. Se guarda la primera resolución porque un reparent()
+## local (el botín pesado en brazos del ladrón) cambia la ruta pero no la clave.
 func _resolve(path: String) -> Node:
+	var cached: Node = _nodes.get(path) as Node
+	if cached != null and is_instance_valid(cached):
+		return cached
 	var tree: SceneTree = _session.map.get_tree()
 	if tree == null or tree.current_scene == null:
 		return null
-	return tree.current_scene.get_node_or_null(NodePath(path))
+	var node: Node = tree.current_scene.get_node_or_null(NodePath(path))
+	if node != null:
+		_nodes[path] = node
+	return node
+
+
+## Reenvía "listo" cada RESEND_READY s hasta que el servidor conteste (puede perderse
+## si el cliente carga el mapa antes que el servidor)
+func _resend_ready(delta: float) -> void:
+	if _server_acked:
+		return
+	_ready_timer += delta
+	if _ready_timer >= RESEND_READY:
+		_ready_timer = 0.0
+		_session.send_ready()
 
 
 func _disable_guard_ai(node: Node) -> void:
