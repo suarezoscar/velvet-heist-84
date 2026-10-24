@@ -222,6 +222,22 @@ func _setup_interactor() -> void:
 	add_child(interactor)
 
 
+## Girando el dial de una caja fuerte, las teclas de movimiento solo mueven el dial: el ladrón
+## se queda quieto hasta confirmar la combinación o salir con Esc
+func apply_input(input_data: Dictionary) -> void:
+	if is_cracking_safe():
+		input_data = input_data.duplicate()
+		input_data["movement_vector"] = Vector2.ZERO
+		input_data["is_sprinting"] = false
+	super.apply_input(input_data)
+
+
+## true si está girando el dial de una caja fuerte
+func is_cracking_safe() -> bool:
+	var safe: SafeBox3D = _find_active_safe_box()
+	return safe != null and safe.current_state == SafeBox3D.SafeState.CRACKING
+
+
 func _find_active_safe_box() -> SafeBox3D:
 	if is_inside_tree():
 		for node: Node in get_tree().get_nodes_in_group(&"net_state"):
