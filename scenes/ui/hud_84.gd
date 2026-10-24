@@ -21,6 +21,8 @@ var noise_meter: NoiseMeter84 = null
 var round_sheet: RoundSheet84 = null
 ## Imágenes de las cámaras del guardia que mira los monitores (LocalViewPresenter, M2)
 var cctv_feeds: CCTVFeeds84 = null
+## Panel del dial de la caja fuerte del ladrón local (LocalViewPresenter)
+var safe_dial: SafeDial84 = null
 
 var _exposure_state: StringName = &""
 var _exposure_blink_timer: float = 0.0
@@ -75,6 +77,8 @@ func _ready() -> void:
 	cctv_feeds = CCTVFeeds84.new()
 	cctv_feeds.visible = false
 	add_child(cctv_feeds)
+	safe_dial = SafeDial84.new()
+	add_child(safe_dial)
 
 
 func _process(delta: float) -> void:
@@ -277,7 +281,7 @@ func _update_interaction_tooltip() -> void:
 		var obj: Object = target_player.get("focused_interactive")
 		if obj != null and obj.has_method("get_interaction_text"):
 			prompt_label.text = str(obj.call("get_interaction_text", target_player))
-			prompt_panel.visible = true
+			prompt_panel.visible = not prompt_label.text.is_empty()
 			return
 
 	prompt_panel.visible = false
