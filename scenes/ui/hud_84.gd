@@ -17,6 +17,8 @@ var exposure_icon: Label = null
 var exposure_label: Label = null
 var exposure_row: Control = null
 var noise_meter: NoiseMeter84 = null
+## Tablilla de ronda: solo con un guardia en pantalla (interaction.md R6-R7)
+var round_sheet: RoundSheet84 = null
 
 var _exposure_state: StringName = &""
 var _exposure_blink_timer: float = 0.0
@@ -65,9 +67,13 @@ func _ready() -> void:
 			noise_meter = get_node_or_null("NoiseMeter") as NoiseMeter84
 
 	_update_exposure_panel_visibility()
+	round_sheet = RoundSheet84.new()
+	round_sheet.visible = false
+	add_child(round_sheet)
 
 
 func _process(delta: float) -> void:
+	round_sheet.visible = target_player is GuardController3D
 	_update_header_stats()
 	_update_interaction_tooltip()
 	_update_exposure_blink(delta)
@@ -220,24 +226,40 @@ func _update_header_stats() -> void:
 
 
 func _check_game_over_state() -> void:
-	match int(GameManager.current_state):
-		2:  # MatchState.THIEF_ESCAPED
+	var sheet: String = (
+		"Hoja de ronda: %d faltas de %d toleradas."
+		% [GameManager.round_faults, GameManager.CLOCK_RULES.allowed_misses]
+	)
+	match GameManager.current_state:
+		GameManager.MatchState.THIEF_ESCAPED:
 			_show_game_over_modal(
 				"¡EL LADRÓN HA ESCAPADO!",
 				"El botin de 1984 esta a salvo. ¡Golpe maestro completado!",
 				Color(0.25, 1.0, 0.4)
 			)
-		3:  # MatchState.THIEF_CAPTURED
+		GameManager.MatchState.THIEF_CAPTURED:
 			_show_game_over_modal(
 				"¡EL LADRÓN HA SIDO CAPTURADO!",
 				"La seguridad privada neutralizo la infiltracion.",
 				Color(1.0, 0.25, 0.25)
 			)
-		4:  # MatchState.TIME_EXPIRED
+		GameManager.MatchState.TIME_EXPIRED:
 			_show_game_over_modal(
 				"¡TIEMPO AGOTADO!",
-				"Llego el furgon policial y aseguro el perimetro.",
+				"La ronda estaba al dia y la policia aseguro el perimetro.\n" + sheet,
 				Color(1.0, 0.55, 0.1)
+			)
+		GameManager.MatchState.TIME_EXPIRED_BREACH:
+			_show_game_over_modal(
+				"¡LA RONDA FALLO!",
+				"La central no cubrio a los guardias y la Pieza Maestra se fue.\n" + sheet,
+				Color(0.25, 1.0, 0.4)
+			)
+		GameManager.MatchState.TIME_EXPIRED_DRAW:
+			_show_game_over_modal(
+				"EMPATE",
+				"La ronda fallo, pero el ladron no llevaba la Pieza Maestra.\n" + sheet,
+				Color(0.9, 0.9, 0.9)
 			)
 
 

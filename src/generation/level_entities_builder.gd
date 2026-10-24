@@ -97,7 +97,6 @@ static func _add_clock(data: LevelData, props: Node3D, clock: Dictionary) -> voi
 	var node: TimeClock3D = TimeClock3D.new()
 	node.name = "TimeClock_%02d" % int(clock["id"])
 	node.clock_id = int(clock["id"])
-	node.round_duration = float(clock.get("round", node.round_duration))
 	node.position = data.to_world(clock["pos"])
 	node.rotation.y = deg_to_rad(-float(clock.get("rot_deg", 0.0)))
 	_setup_area(node, Vector3(0.6, 2.0, 0.4), CLOCK_MODEL)

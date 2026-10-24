@@ -5,7 +5,6 @@ class_name NetSessionServer
 extends RefCounted
 
 const NOISE_FEEDBACK: NoiseFeedbackProfile = preload("res://data/balance/noise_feedback.tres")
-const PRIVATE_SUFFIX: String = "#private"
 
 var _session: NetSession = null
 var _hooks: NetTestHooks = null
@@ -18,7 +17,7 @@ var _game_timer: float = 0.0
 var _world_nodes: Dictionary = {}
 var _node_paths: Dictionary = {}
 var _world_states: Dictionary = {}
-var _private_states: Dictionary = {}
+var _private: NetPrivateStates = NetPrivateStates.new()
 var _removed_paths: Dictionary = {}
 var _announced_removals: Dictionary = {}
 var _last_game_state: Dictionary = {}
@@ -102,11 +101,12 @@ func on_client_ready(peer: int) -> void:
 	if not full.is_empty():
 		_session.send_world_state(peer, full)
 		_log_world(peer, full)
-	if _peer_roles[peer] == &"thief":
-		var private_state: Dictionary = _collect_private_states(true)
-		if not private_state.is_empty():
-			_session.send_world_state(peer, private_state)
-			_log_world(peer, private_state)
+	var private_state: Dictionary = NetPrivateStates.for_role(
+		_private.collect(_world_nodes, true), _peer_roles[peer]
+	)
+	if not private_state.is_empty():
+		_session.send_world_state(peer, private_state)
+		_log_world(peer, private_state)
 	var game_state: Dictionary = GameManager.get_net_state()
 	_last_game_state = game_state
 	_game_timer = 0.0
@@ -206,11 +206,16 @@ func _send_world_states() -> void:
 		for peer: int in _ready_peers:
 			_session.send_world_state(peer, changes)
 			_log_world(peer, changes)
-	var private_changes: Dictionary = _collect_private_states(false)
-	var thief_peer: int = NetManager.get_peer_id_for_role(&"thief")
-	if not private_changes.is_empty() and _ready_peers.has(thief_peer):
-		_session.send_world_state(thief_peer, private_changes)
-		_log_world(thief_peer, private_changes)
+	var private_changes: Dictionary = _private.collect(_world_nodes, false)
+	if private_changes.is_empty():
+		return
+	for peer: int in _ready_peers:
+		var mine: Dictionary = NetPrivateStates.for_role(
+			private_changes, NetManager.get_role_for_peer(peer)
+		)
+		if not mine.is_empty():
+			_session.send_world_state(peer, mine)
+			_log_world(peer, mine)
 
 
 func _send_game_state() -> void:
@@ -255,22 +260,8 @@ func _on_node_exiting(node: Node, path: String) -> void:
 	_world_nodes.erase(path)
 	_node_paths.erase(node)
 	_world_states.erase(path)
-	_private_states.erase(path)
+	_private.forget(path)
 	_removed_paths[path] = true
-
-
-func _collect_private_states(full: bool) -> Dictionary:
-	var result: Dictionary = {}
-	for path: String in _world_nodes:
-		var node: Node = _world_nodes[path]
-		if not (node is SafeBox3D):
-			continue
-		var state: Dictionary = (node as SafeBox3D).get_net_state_private()
-		if not full and _private_states.get(path) == state:
-			continue
-		_private_states[path] = state
-		result["%s%s" % [path, PRIVATE_SUFFIX]] = state
-	return result
 
 
 func _on_noise_event(
