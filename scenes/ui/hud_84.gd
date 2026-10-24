@@ -19,6 +19,8 @@ var exposure_row: Control = null
 var noise_meter: NoiseMeter84 = null
 ## Tablilla de ronda: solo con un guardia en pantalla (interaction.md R6-R7)
 var round_sheet: RoundSheet84 = null
+## Imágenes de las cámaras del guardia que mira los monitores (LocalViewPresenter, M2)
+var cctv_feeds: CCTVFeeds84 = null
 
 var _exposure_state: StringName = &""
 var _exposure_blink_timer: float = 0.0
@@ -70,6 +72,9 @@ func _ready() -> void:
 	round_sheet = RoundSheet84.new()
 	round_sheet.visible = false
 	add_child(round_sheet)
+	cctv_feeds = CCTVFeeds84.new()
+	cctv_feeds.visible = false
+	add_child(cctv_feeds)
 
 
 func _process(delta: float) -> void:

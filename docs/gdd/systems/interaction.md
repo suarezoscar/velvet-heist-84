@@ -123,7 +123,10 @@ Alcance (9,5 m), FOV (52°) y barrido (65°) siguen siendo datos de cada cámara
 | Detecciones por cámara con alguien mirando | ¿Las cámaras aportan? | 0 en 5 partidas |
 
 ## Estado
-Implementado hoy: cuenta atrás, fichaje con ruido y campana de vencido (`time_clock_3d.gd`, constantes en el script); cámaras con barrido y detección sin luz; monitores solo en el mundo. Falta todo lo nuevo: faltas, R4, tablilla, filtro de red de los relojes, mirando, imágenes en el HUD, pilotos, condición de luz y M6-M7. Nada está en `.tres` todavía.
+- **Parte R** (FEAT-016, integrada el 2026-10-24): faltas, final por tiempo R4, tablilla del guardia, banderola y filtro de red. Los números están en `time_clock_rules.tres`.
+- **Parte M** (FEAT-017): mesa de la garita, «mirando» con visión apagada, imágenes CRT en el HUD, cámaras que necesitan luz, pilotos y filtro de red `cctv_only`. Los números están en `cctv_rules.tres`.
+- **Precisión del invariante 5 de la parte M**: los pilotos se encienden cuando el guardia ya mira, no mientras se sienta (la silla sí queda reservada).
+- **Pendiente de decidir**: si un guardia sentado puede golpear con la porra. Hoy puede.
 
 ## Decisiones (aprobadas por el usuario el 2026-10-24)
 1. Las faltas son irreversibles.

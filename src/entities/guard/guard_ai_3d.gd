@@ -167,8 +167,11 @@ func _on_noise_emitted(pos: Vector3, radius: float, source_team: StringName) -> 
 		current_state = AIState.INVESTIGATE
 
 
+## Aviso de una cámara: solo cuenta si este guardia está mirando los monitores (M7)
 func _on_thief_spotted(pos: Vector3) -> void:
-	if _guard != null and current_state != AIState.CHASE:
+	if _guard == null or not _guard.is_watching_monitors():
+		return
+	if current_state != AIState.CHASE:
 		investigation_point = pos
 		_investigate_timer = SPOTTED_INVESTIGATE_TIME
 		current_state = AIState.INVESTIGATE

@@ -130,6 +130,8 @@ func _on_peer_disconnected(peer: int) -> void:
 	var role: StringName = _peer_roles.get(peer, &"")
 	_peer_roles.erase(peer)
 	var actor: PlayerBase3D = _session.actor_for_role(role)
+	if actor is GuardController3D:
+		(actor as GuardController3D).stop_watching()
 	if actor != null:
 		actor.apply_input(
 			{"movement_vector": Vector2.ZERO, "is_sprinting": false, "is_sneaking": false}
@@ -155,12 +157,11 @@ func _send_own_states() -> void:
 
 
 func _send_snapshots() -> void:
-	var perceiving: Dictionary = {}
 	var map: HeistMap3D = _session.map
-	for index: int in range(map.guards.size()):
-		var guard_role: StringName = _guard_role(index)
-		if guard_role != &"":
-			perceiving[guard_role] = map.guards[index].is_perceiving_thief
+	var views: Dictionary = NetVisibility.guard_views(map.guards, SecurityCamera3D.any_detects(map))
+	var perceiving: Dictionary = {}
+	for guard_role: StringName in views:
+		perceiving[guard_role] = views[guard_role] != &""
 	for peer: int in _ready_peers:
 		var role: StringName = NetManager.get_role_for_peer(peer)
 		if role == &"":
@@ -173,8 +174,13 @@ func _send_snapshots() -> void:
 			if actor != null:
 				states[visible_role] = _remote_state(actor)
 				sent_roles.append(String(visible_role))
+		var cctv_only: bool = states.has(&"thief") and views.get(role, &"") == &"cctv"
+		if cctv_only:
+			states[&"thief"]["cctv_only"] = true
 		_session.send_snapshot(peer, Time.get_ticks_msec() / 1000.0, states)
-		NetTestHooks.log_event({"event": "sent_snapshot", "peer": peer, "roles": sent_roles})
+		NetTestHooks.log_event(
+			{"event": "sent_snapshot", "peer": peer, "roles": sent_roles, "cctv": cctv_only}
+		)
 
 
 ## Estado de un actor remoto: solo lo físico visible, nunca la percepción ni la estamina
