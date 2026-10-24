@@ -191,6 +191,11 @@ func get_net_state_private() -> Dictionary:
 	}
 
 
+## Audiencia del estado privado (NetPrivateStates)
+func net_private_audience() -> StringName:
+	return &"thief"
+
+
 ## Aplica el estado de red público o privado recibido
 func apply_net_state(state: Dictionary) -> void:
 	var was_opened: bool = current_state == SafeState.OPENED

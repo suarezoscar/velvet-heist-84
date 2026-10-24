@@ -25,7 +25,7 @@ func _create_thief() -> ThiefController3D:
 
 ## Criterio 7: El ciclo de ronda está configurado por defecto a 90 segundos
 func test_time_clock_constants_and_initial_state() -> void:
-	assert_almost_eq(TimeClock3D.DEFAULT_ROUND_DURATION, 90.0, 0.001, "Ronda es 90.0s según GSD")
+	assert_almost_eq(TimeClock3D.RULES.round_duration, 90.0, 0.001, "Ronda es 90.0s según GSD")
 
 	var clock: TimeClock3D = _create_time_clock(1)
 	await wait_physics_frames(1)
@@ -63,10 +63,9 @@ func test_thief_cannot_reset_clock_timer() -> void:
 func test_guard_punch_clock_resets_duration() -> void:
 	var clock: TimeClock3D = _create_time_clock(2)
 	var guard: GuardController3D = _create_guard()
-	var bus: Node = get_node_or_null("/root/SignalBus")
+	var bus: Node = SignalBus
 	watch_signals(clock)
-	if bus != null:
-		watch_signals(bus)
+	watch_signals(bus)
 
 	# Simular que han transcurrido 60 segundos (quedan 30s)
 	clock.time_left = 30.0
@@ -79,10 +78,9 @@ func test_guard_punch_clock_resets_duration() -> void:
 	)
 	assert_false(clock.is_expired, "El estado permanece no vencido")
 	assert_signal_emitted(clock, "clock_punched", "Señal local clock_punched emitida")
-	if bus != null:
-		assert_signal_emitted(
-			bus, "time_clock_punched", "Señal global time_clock_punched emitida en bus"
-		)
+	assert_signal_emitted(
+		bus, "time_clock_punched", "Señal global time_clock_punched emitida en bus"
+	)
 
 
 ## Criterio 7: Cuando transcurren los 90 segundos completos, expira y activa alarma

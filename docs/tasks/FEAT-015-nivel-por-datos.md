@@ -36,7 +36,7 @@ Coordenadas del diseño: x crece hacia el este y z hacia el sur, en metros. Godo
   "switches": [{"id": "SW_C1_P04", "pos": [24, 26.6], "circuit": 1}],
   "loot": [{"id": "L1", "pos": [5, 4], "name": "Escarabajo de oro", "value": 1500, "heavy": false, "masterpiece": false}],
   "safe": {"pos": [46, 12], "value": 3000},
-  "clocks": [{"id": 1, "pos": [36, 24.2], "rot_deg": 0, "round": 90}],
+  "clocks": [{"id": 1, "pos": [36, 24.2], "rot_deg": 0}],
   "cameras": [{"id": "CAM-1", "pos": [31.5, 26.5], "yaw_deg": 225}],
   "monitors": [{"camera": "CAM-1", "pos": [41.5, 25], "rot_deg": 90}],
   "car": {"pos": [3, 40], "rot_deg": 90},

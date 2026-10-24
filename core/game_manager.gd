@@ -15,7 +15,13 @@ enum MatchState {
 	THIEF_CAPTURED,
 	## Victoria de los Guardias: La policía rodeó el recinto al vencer el reloj
 	TIME_EXPIRED,
+	## Victoria del Ladrón: se acaba el tiempo con la ronda fallida y la Pieza Maestra
+	TIME_EXPIRED_BREACH,
+	## Empate: se acaba el tiempo con la ronda fallida y el ladrón sin la Pieza
+	TIME_EXPIRED_DRAW,
 }
+
+const CLOCK_RULES: TimeClockRules = preload("res://data/balance/time_clock_rules.tres")
 
 ## Cuota económica objetivo requerida para que el ladrón pueda escapar (en $)
 @export var quota_target: int = 10000
@@ -34,6 +40,9 @@ var match_timer: float = 0.0
 
 ## Estado activo de la partida
 var current_state: MatchState = MatchState.LOBBY
+
+## Faltas de la hoja de ronda al acabar la partida (durante la partida no se replica)
+var round_faults: int = 0
 
 
 func _ready() -> void:
@@ -56,14 +65,23 @@ func is_simulating() -> bool:
 
 
 ## Devuelve el estado serializable de la partida para replicación por red.
-## {"state": int, "loot": int, "masterpiece": bool, "timer": float}
+## {"state": int, "loot": int, "masterpiece": bool, "timer": float}, más "faults" solo
+## con la partida terminada: durante la partida el ladrón no debe conocerlas (R8).
 func get_net_state() -> Dictionary:
-	return {
+	var state: Dictionary = {
 		"state": int(current_state),
 		"loot": current_loot_value,
 		"masterpiece": has_masterpiece,
 		"timer": match_timer,
 	}
+	if is_match_over():
+		state["faults"] = round_faults
+	return state
+
+
+## true si la partida ya tiene resultado
+func is_match_over() -> bool:
+	return current_state != MatchState.LOBBY and current_state != MatchState.IN_PROGRESS
 
 
 ## Aplica el estado de la partida recibido desde el servidor autoritativo.
@@ -76,6 +94,8 @@ func apply_net_state(state: Dictionary) -> void:
 		has_masterpiece = bool(state["masterpiece"])
 	if state.has("timer"):
 		match_timer = float(state["timer"])
+	if state.has("faults"):
+		round_faults = int(state["faults"])
 
 
 func _physics_process(delta: float) -> void:
@@ -85,7 +105,17 @@ func _physics_process(delta: float) -> void:
 		match_timer -= delta
 		if match_timer <= 0.0:
 			match_timer = 0.0
-			end_match(MatchState.TIME_EXPIRED)
+			end_match(time_expired_state())
+
+
+## R4: resultado al acabar el tiempo según la hoja de ronda y la Pieza Maestra
+func time_expired_state() -> MatchState:
+	var clocks: Array = _clocks()
+	var faults: int = RoundRules.team_faults(clocks)
+	var expired_now: bool = RoundRules.any_expired(clocks, get_physics_process_delta_time())
+	if RoundRules.is_on_time(faults, expired_now, CLOCK_RULES.allowed_misses):
+		return MatchState.TIME_EXPIRED
+	return MatchState.TIME_EXPIRED_BREACH if has_masterpiece else MatchState.TIME_EXPIRED_DRAW
 
 
 ## Inicializa una nueva ronda reiniciando contadores y objetivos
@@ -93,6 +123,9 @@ func start_match() -> void:
 	current_loot_value = 0
 	has_masterpiece = false
 	match_timer = match_duration_seconds
+	round_faults = 0
+	for clock: Node in _clocks():
+		(clock as TimeClock3D).reset_round()
 	current_state = MatchState.IN_PROGRESS
 	print(
 		(
@@ -104,6 +137,7 @@ func start_match() -> void:
 
 ## Finaliza la partida con el estado correspondiente
 func end_match(final_state: MatchState) -> void:
+	round_faults = RoundRules.team_faults(_clocks())
 	current_state = final_state
 	print("[GameManager] Fin de la partida. Estado final: %s" % MatchState.keys()[final_state])
 
@@ -132,3 +166,9 @@ func _on_thief_captured(guard_peer_id: int) -> void:
 ## Comprueba si el ladrón cumple todos los requisitos para poder escapar en el coche
 func can_thief_escape() -> bool:
 	return current_loot_value >= quota_target and has_masterpiece
+
+
+func _clocks() -> Array:
+	if not is_inside_tree():
+		return []
+	return get_tree().get_nodes_in_group(&"time_clock")
