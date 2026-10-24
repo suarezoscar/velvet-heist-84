@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="SafeDialRules" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/systems/safe_dial_rules.gd" id="1_dial"]
+
+[resource]
+script = ExtResource("1_dial")
+repeat_delay = 0.3
+repeat_interval_start = 0.12
+repeat_interval_min = 0.035
+acceleration_time = 1.2
