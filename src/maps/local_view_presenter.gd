@@ -61,6 +61,20 @@ func _physics_process(_delta: float) -> void:
 
 	# 3. Imágenes CCTV del guardia sentado ante los monitores
 	_update_cctv_feeds()
+	# 4. Panel del dial si el ladrón local está abriendo una caja fuerte
+	if _map.hud != null and _map.hud.safe_dial != null:
+		_map.hud.safe_dial.bind(_cracking_safe())
+
+
+## Caja fuerte que el ladrón local está abriendo (en red, la que llega con el estado privado)
+func _cracking_safe() -> SafeBox3D:
+	if not (_map.local_player is ThiefController3D):
+		return null
+	for node: Node in get_tree().get_nodes_in_group(&"net_state"):
+		var safe: SafeBox3D = node as SafeBox3D
+		if safe != null and safe.current_state == SafeBox3D.SafeState.CRACKING:
+			return safe
+	return null
 
 
 func _update_cctv_feeds() -> void:

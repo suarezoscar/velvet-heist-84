@@ -21,8 +21,6 @@ enum SafeState {
 	OPENED,
 }
 
-const PROMPT_CRACKING: String = "Dial: [%02d] (Girar: A/D o Flechas | Confirmar: E | Salir: Esc)"
-
 ## Combinación mecánica de 3 dígitos (entre 0 y 99)
 @export var combination: Array[int] = [30, 65, 15]
 
@@ -40,6 +38,7 @@ var current_dial_val: int = 0
 var active_thief: ThiefController3D = null
 var door_pivot: Node3D = null
 var _loot_spawned: bool = false
+var _dial_repeat: DialRepeat = DialRepeat.new()
 
 
 func _ready() -> void:
@@ -55,15 +54,15 @@ func can_interact(_actor: Node3D = null) -> bool:
 	return current_state != SafeState.OPENED
 
 
-## Devuelve el texto del tooltip para el HUD según el estado del dial
+## Devuelve el texto del tooltip para el HUD; girando el dial no hay (lo enseña SafeDial84)
 func get_interaction_text(_actor: Node3D = null) -> String:
 	match current_state:
 		SafeState.OPENED:
 			return "Caja Fuerte (Abierta)"
 		SafeState.CRACKING:
-			return PROMPT_CRACKING % current_dial_val
+			return ""
 		_:
-			return "Ganzuar Caja Fuerte [E]"
+			return "Abrir caja fuerte [E]"
 
 
 ## Ejecuta la interacción iniciada por el jugador
@@ -86,15 +85,17 @@ func _start_cracking_session(thief: ThiefController3D) -> void:
 	print("[SafeBox3D] Sesión de ganzúa iniciada. Buscando número 1...")
 
 
-func _unhandled_input(event: InputEvent) -> void:
-	if current_state != SafeState.CRACKING:
+## Sin red, el ladrón local gira el dial manteniendo flechas o A/D y sale con Esc. En red lo
+## manda el cliente como acciones (NetSessionClient)
+func _process(delta: float) -> void:
+	if current_state != SafeState.CRACKING or NetManager.is_online():
 		return
-
-	if event.is_action_pressed("move_right") or event.is_action_pressed("ui_right"):
-		step_dial(1)
-	elif event.is_action_pressed("move_left") or event.is_action_pressed("ui_left"):
-		step_dial(-1)
-	elif event.is_action_pressed("ui_cancel"):
+	if active_thief == null or not active_thief.is_locally_controlled:
+		return
+	var step: int = _dial_repeat.update(DialRepeat.left_held(), DialRepeat.right_held(), delta)
+	if step != 0:
+		step_dial(step)
+	if InputMap.has_action(&"ui_cancel") and Input.is_action_just_pressed(&"ui_cancel"):
 		cancel_cracking()
 
 

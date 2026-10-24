@@ -8,6 +8,7 @@ const RESEND_READY: float = 0.5
 
 var _session: NetSession = null
 var _tick: int = 0
+var _dial_repeat: DialRepeat = DialRepeat.new()
 var _buffers: Dictionary = {}
 var _latest: Dictionary = {}
 var _world_states: Dictionary = {}
@@ -46,7 +47,7 @@ func tick(delta: float) -> void:
 	var sprint: bool = bool(input_data.get("is_sprinting", false))
 	var sneak: bool = bool(input_data.get("is_sneaking", false))
 	_session.send_input(_tick, move, sprint, sneak, look)
-	for action: StringName in _polled_actions():
+	for action: StringName in _polled_actions(delta):
 		_session.send_action(action)
 
 
@@ -162,7 +163,7 @@ func on_noise(
 	)
 
 
-func _polled_actions() -> Array[StringName]:
+func _polled_actions(delta: float) -> Array[StringName]:
 	var actions: Array[StringName] = []
 	if _just_pressed(&"interact"):
 		actions.append(&"interact")
@@ -173,9 +174,12 @@ func _polled_actions() -> Array[StringName]:
 	if _just_pressed(&"crouch"):
 		actions.append(&"crouch_toggle")
 	var cracking: bool = _any_safe_cracking()
-	if cracking and (_just_pressed(&"move_left") or _just_pressed(&"ui_left")):
+	var step: int = _dial_repeat.update(
+		cracking and DialRepeat.left_held(), cracking and DialRepeat.right_held(), delta
+	)
+	if step < 0:
 		actions.append(&"dial_left")
-	if cracking and (_just_pressed(&"move_right") or _just_pressed(&"ui_right")):
+	elif step > 0:
 		actions.append(&"dial_right")
 	if cracking and _just_pressed(&"ui_cancel"):
 		actions.append(&"dial_cancel")
