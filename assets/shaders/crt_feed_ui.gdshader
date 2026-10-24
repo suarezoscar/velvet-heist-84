@@ -48,7 +48,7 @@ void fragment() {
 
 	// Viñeteado de bordes de tubo
 	float vignette = uv.x * uv.y * (1.0 - uv.x) * (1.0 - uv.y);
-	vignette = clamp(pow(16.0 * vignette, vignette_power), 0.0, 1.0);
+	vignette = clamp(pow(max(16.0 * vignette, 0.0), vignette_power), 0.0, 1.0);
 	base_tone *= vignette;
 
 	// Tinte rojo suave que pulsa mientras la cámara ve al ladrón

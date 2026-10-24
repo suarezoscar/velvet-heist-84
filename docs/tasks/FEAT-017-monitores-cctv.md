@@ -1,6 +1,6 @@
 # FEAT-017 — Monitores CCTV en la garita
 
-- **Estado**: en curso
+- **Estado**: hecha
 - **Diseño**: `docs/gdd/systems/interaction.md`, parte M (aprobado el 2026-10-24)
 - **Hito del PoC**: H3
 - **Rama**: `feat/017-monitores-cctv`
@@ -35,7 +35,7 @@ Que un guardia pueda sentarse en la garita a mirar las 3 cámaras. A cambio se q
 - `GuardController3D`:
   - `monitor_watch: GuardMonitorWatch` (`start(desk)`), `is_watching_monitors()` y `stop_watching()`;
   - estado propio de red con `"watch"` (0 nada, 1 sentándose, 2 mirando).
-- `ThiefController3D.set_view_mode(mode)`, con `VIEW_HIDDEN`, `VIEW_WORLD` y `VIEW_CCTV`. `VIEW_CCTV` pone las mallas en la capa de render `CCTV_ONLY_LAYER` (20) y quita las sombras. La cámara principal del mapa no incluye esa capa.
+- `ThiefController3D.set_view_mode(mode)`, con `ViewMode.HIDDEN`, `ViewMode.WORLD` y `ViewMode.CCTV`. `CCTV` pone las mallas en la capa de render `CCTV_ONLY_LAYER` (20) y quita las sombras. La cámara principal del mapa no incluye esa capa.
 - `NetVisibility.guard_views(guards, cameras_detect)` → `{rol: &"world" | &"cctv" | &""}`.
 
 | Dato | Autoridad | A quién | Frecuencia |
@@ -55,3 +55,17 @@ Que un guardia pueda sentarse en la garita a mirar las 3 cámaras. A cambio se q
 - Para capturas sin pantalla, las SubViewport de las cámaras solo se redibujan con `RenderingServer.force_draw()`. Sin eso, la imagen se queda congelada y parece que el ladrón no sale.
 
 ## Cierre
+2026-10-24, PR #62. `reviewer` encontró un bloqueante: las cámaras no barrían en los clientes, porque `NetSessionClient` apaga `_physics_process` en `net_state`. Lo corregí siguiendo el giro en `_process` y lo verifiqué en red (el giro varía en ambos clientes). También apliqué estas sugerencias:
+- el botín en manos sigue el modo de vista al cogerlo o soltarlo;
+- los pilotos se encienden solo al estar mirando;
+- la IA levanta al guardia que retoma;
+- la fila de imágenes cabe fuera de 16:9;
+- la linterna propia apunta a la mesa;
+- el NaN del shader;
+- `GuardSenses.has_line_of_sight` pública.
+
+De paso, los monitores del nivel miraban a la pared porque el modelo muestra la pantalla hacia +Z. Tests: 192/192.
+
+Backlog:
+- decidir si sentado se puede usar la porra (pregunta al usuario);
+- test de `on_snapshot` → `ViewMode`, hoy cubierto por la partida en red.

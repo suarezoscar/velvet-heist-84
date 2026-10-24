@@ -103,7 +103,10 @@ func test_pilots_on_only_while_someone_watches() -> void:
 	var guard: GuardController3D = _guard(Vector3(0.0, 0.0, 1.0))
 	for camera: SecurityCamera3D in cameras:
 		assert_false(camera.get_node("CameraMount/RecordingPilot").visible, "Piloto apagado")
-	_sit(guard, desk)
+	desk.interact(guard)
+	for camera: SecurityCamera3D in cameras:
+		assert_false(camera.is_recording, "Sentándose todavía no mira: piloto apagado")
+	guard.monitor_watch.tick(guard, RULES.monitor_enter_time + 0.01)
 	for camera: SecurityCamera3D in cameras:
 		assert_true(camera.is_recording, "Piloto encendido con alguien mirando")
 		assert_true(camera.get_node("CameraMount/RecordingPilot").visible)

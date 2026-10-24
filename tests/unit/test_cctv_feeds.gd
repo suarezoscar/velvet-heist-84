@@ -39,10 +39,17 @@ func _feeds_in_viewport(cameras: Array[SecurityCamera3D], size: Vector2i) -> CCT
 
 
 func _assert_row(feeds: CCTVFeeds84, view: Vector2) -> void:
-	var height: float = RULES.feed_height_frac * view.y
+	var count: int = feeds.panel_count()
+	var max_width: float = (view.x * CCTVFeeds84.MAX_ROW_WIDTH_FRAC - 12.0 * (count - 1)) / count
+	var height: float = minf(RULES.feed_height_frac * view.y, max_width / (4.0 / 3.0))
 	for i: int in feeds.panel_count():
 		var rect: Rect2 = feeds.feed_rect(i)
-		assert_almost_eq(rect.size.y, height, 1.0, "Alto %d = feed_height_frac × alto" % i)
+		assert_almost_eq(
+			rect.size.y,
+			height,
+			1.0,
+			"Alto %d: feed_height_frac × alto, o lo que quepa a lo ancho" % i
+		)
 		assert_almost_eq(rect.size.x / rect.size.y, 4.0 / 3.0, ASPECT_TOLERANCE, "4:3")
 		assert_almost_eq(rect.position.y, 60.0, 0.01, "Borde superior a 60 px")
 	var first: Rect2 = feeds.feed_rect(0)
@@ -87,6 +94,13 @@ func test_known_resolutions() -> void:
 	var feeds_720: CCTVFeeds84 = _feeds_in_viewport(_cameras(), Vector2i(1280, 720))
 	assert_almost_eq(feeds_720.feed_rect(2).size, Vector2(384.0, 288.0), Vector2(1.0, 1.0))
 	_assert_row(feeds_720, Vector2(1280.0, 720.0))
+
+
+func test_row_fits_width_outside_16_9() -> void:
+	var feeds: CCTVFeeds84 = _feeds_in_viewport(_cameras(), Vector2i(1024, 768))
+	_assert_row(feeds, Vector2(1024.0, 768.0))
+	assert_gte(feeds.feed_rect(0).position.x, 0.0, "No se sale por la izquierda")
+	assert_lte(feeds.feed_rect(2).end.x, 1024.0, "Ni por la derecha")
 
 
 func test_relayout_when_viewport_resizes() -> void:

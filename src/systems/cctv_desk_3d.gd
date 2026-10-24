@@ -1,7 +1,8 @@
 ## @file cctv_desk_3d.gd
 ## Mesa de monitores de la garita (interaction.md M1 y M4): un guardia que interactúa
 ## se sienta a mirar las cámaras; solo cabe uno. Mientras está ocupada, las cámaras
-## encienden su piloto de grabación. El servidor decide quién la ocupa.
+## encienden su piloto de grabación (desde que mira, no mientras se sienta). El servidor
+## decide quién la ocupa.
 class_name CCTVDesk3D
 extends Area3D
 
@@ -59,12 +60,19 @@ func interact(actor: Node3D) -> void:
 	guard.monitor_watch.start(self)
 
 
+## El guardia ya mira (tras sentarse): las cámaras encienden su piloto (M4)
+func notify_watching(guard: GuardController3D) -> void:
+	if watcher == guard:
+		_set_recording(true)
+
+
 ## El guardia se levanta (lo llama GuardController3D.stop_watching)
 func release(guard: GuardController3D) -> void:
 	if watcher != guard:
 		return
 	watcher = null
 	_set_occupied(false)
+	_set_recording(false)
 
 
 ## Estado público para red
@@ -80,6 +88,9 @@ func apply_net_state(state: Dictionary) -> void:
 
 func _set_occupied(on: bool) -> void:
 	_occupied = on
+
+
+func _set_recording(on: bool) -> void:
 	if not is_inside_tree() or not GameManager.is_simulating():
 		return
 	for node: Node in get_tree().get_nodes_in_group(&"security_camera"):

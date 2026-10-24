@@ -69,14 +69,16 @@ func present(_delta: float) -> void:
 		actor.apply_net_actor_state(state)
 
 
-## Estado propio del jugador local; la mirada se queda en la del cliente
+## Estado propio del jugador local; la mirada se queda en la del cliente salvo sentado ante
+## los monitores, donde el servidor la fija en la mesa
 func on_own_state(state: Dictionary) -> void:
 	_server_acked = true
 	var local: PlayerBase3D = _session.map.local_player
 	if local == null:
 		return
 	var own_state: Dictionary = state.duplicate()
-	own_state.erase("look")
+	if int(own_state.get("watch", 0)) == 0:
+		own_state.erase("look")
 	local.apply_net_actor_state(own_state)
 
 

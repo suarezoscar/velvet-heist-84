@@ -25,6 +25,9 @@ const CCTV_ONLY_LAYER: int = 20
 ## Nodo raíz visual del personaje (oculto para guardias fuera de visión)
 @export var visual_root: Node3D
 
+## Cómo lo ve el observador local (set_view_mode)
+var view_mode: ViewMode = ViewMode.WORLD
+
 ## Ancla visual en las manos del ladrón para objetos transportados
 var carry_anchor: Node3D = null
 
@@ -151,8 +154,12 @@ func set_visible_to_local_viewer(is_visible: bool) -> void:
 
 ## Cómo lo ve el observador local: oculto, en el mundo o solo en las imágenes CCTV
 ## (interaction.md M6). VIEW_CCTV lo pasa a CCTV_ONLY_LAYER, sin sombra, para que la
-## cámara principal no lo dibuje; se vuelve a aplicar en cada snapshot por el botín que coge.
+## cámara principal no lo dibuje; el botín que coge o suelta se ajusta al entrar o salir
+## de carry_anchor.
 func set_view_mode(mode: ViewMode) -> void:
+	if mode == view_mode:
+		return
+	view_mode = mode
 	set_visible_to_local_viewer(mode != ViewMode.HIDDEN)
 	for root: Node3D in [visual_root, carry_anchor]:
 		if root != null:
@@ -180,6 +187,14 @@ static func _apply_cctv_layer(node: Node, cctv: bool) -> void:
 		_apply_cctv_layer(child, cctv)
 
 
+func _on_carried_entered(node: Node) -> void:
+	_apply_cctv_layer(node, view_mode == ViewMode.CCTV)
+
+
+func _on_carried_exiting(node: Node) -> void:
+	_apply_cctv_layer(node, false)
+
+
 ## Consulta autoritativa: si un equipo concreto puede ver al ladrón
 func is_visible_to_team(team: StringName) -> bool:
 	if team == &"thief":
@@ -196,6 +211,8 @@ func _setup_carry_anchor() -> void:
 		add_child(carry_anchor)
 	else:
 		carry_anchor.position = CARRY_ANCHOR_POSITION
+	carry_anchor.child_entered_tree.connect(_on_carried_entered)
+	carry_anchor.child_exiting_tree.connect(_on_carried_exiting)
 
 
 func _setup_interactor() -> void:

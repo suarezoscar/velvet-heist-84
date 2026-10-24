@@ -159,6 +159,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if index >= 0 and index < actors.size():
 		var previous: GuardController3D = local_player as GuardController3D
 		if previous != null:
+			previous.stop_watching()
 			previous.is_ai_controlled = _ai_defaults.get(previous, false)
 		set_local_player(actors[index])
 		_update_thief_local_visibility()

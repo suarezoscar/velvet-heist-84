@@ -14,6 +14,8 @@ const ASPECT: float = 4.0 / 3.0
 const TOP_MARGIN: float = 60.0
 ## Separación entre imágenes
 const GAP: float = 12.0
+## Ancho máximo de la fila, como fracción del ancho de pantalla (fuera de 16:9 encoge el alto)
+const MAX_ROW_WIDTH_FRAC: float = 0.96
 const FRAME_COLOR: Color = Color(0.22, 0.24, 0.22)
 const FRAME_ALERT_COLOR: Color = Color(1.0, 0.15, 0.1)
 const FRAME_WIDTH: int = 2
@@ -152,7 +154,9 @@ func _layout() -> void:
 	if _feeds.is_empty() or not is_inside_tree():
 		return
 	var view: Vector2 = get_viewport().get_visible_rect().size
-	var feed_size: Vector2 = Vector2(RULES.feed_height_frac * view.y * ASPECT, 0.0)
+	var count: int = _feeds.size()
+	var max_width: float = (view.x * MAX_ROW_WIDTH_FRAC - GAP * (count - 1)) / count
+	var feed_size: Vector2 = Vector2(minf(RULES.feed_height_frac * view.y * ASPECT, max_width), 0.0)
 	feed_size.y = feed_size.x / ASPECT
 	var total: float = feed_size.x * _feeds.size() + GAP * (_feeds.size() - 1)
 	var left: float = (view.x - total) * 0.5

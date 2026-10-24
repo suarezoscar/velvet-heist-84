@@ -64,14 +64,18 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if not is_online:
-		return
-	if not GameManager.is_simulating():
-		_follow_net_rotation(delta)
+	if not is_online or not GameManager.is_simulating():
 		return
 
 	_process_sweep(delta)
 	_process_detection()
+
+
+## Réplica en un cliente: sigue el giro del servidor. Va en _process porque NetSessionClient
+## apaga _physics_process en los nodos del grupo net_state
+func _process(delta: float) -> void:
+	if _has_net_rot:
+		_follow_net_rotation(delta)
 
 
 ## true si alguna cámara del árbol de context detecta ahora al ladrón
@@ -123,8 +127,6 @@ func apply_net_state(state: Dictionary) -> void:
 
 ## Cliente: sigue con suavidad el giro que replica el servidor
 func _follow_net_rotation(delta: float) -> void:
-	if not _has_net_rot:
-		return
 	var target: Node3D = mount if mount != null else self
 	target.rotation.y = lerp_angle(
 		target.rotation.y, _net_rot_y, clampf(NET_ROT_FOLLOW * delta, 0.0, 1.0)
