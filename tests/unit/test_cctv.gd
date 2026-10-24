@@ -86,6 +86,15 @@ func test_interact_and_match_end_exit() -> void:
 	assert_false(desk.is_occupied())
 
 
+func test_strike_while_seated_only_stands_up() -> void:
+	var desk: CCTVDesk3D = _desk()
+	var guard: GuardController3D = _guard(Vector3(0.0, 0.0, 1.0))
+	_sit(guard, desk)
+	guard.perform_action(&"strike")
+	assert_false(guard.monitor_watch.is_active(), "La porra lo levanta")
+	assert_eq(guard.baton_cooldown, 0.0, "Y ese golpe no se da")
+
+
 func test_single_chair() -> void:
 	var desk: CCTVDesk3D = _desk()
 	var first: GuardController3D = _guard(Vector3(0.0, 0.0, 1.0))

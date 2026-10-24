@@ -109,13 +109,14 @@ func apply_flashlight_state(on: bool) -> void:
 
 ## Ejecuta una acción discreta sobre el guardia. Devuelve true si la ejecutó
 func perform_action(action: StringName) -> bool:
+	# Sentado ante los monitores, interact o la porra primero lo levantan (interaction.md M1)
+	if monitor_watch.is_active() and (action == &"interact" or action == &"strike"):
+		stop_watching()
+		return true
 	var result: bool = false
 	match action:
 		&"interact":
-			if monitor_watch.is_active():
-				stop_watching()
-				result = true
-			elif interactor != null:
+			if interactor != null:
 				result = interactor.execute_interaction(self)
 		&"toggle_flashlight":
 			set_flashlight(not flashlight_on)
