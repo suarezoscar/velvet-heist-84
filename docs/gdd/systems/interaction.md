@@ -65,7 +65,7 @@ Rango: 0 a ~4 × (duración de la partida / `T`) = 24 con los valores iniciales 
 # Parte M: mirar los monitores CCTV
 
 ## Reglas
-- **M1 Activación**: en la garita, ante la mesa (alcance del interactor del guardia), `interact` entra en **mirando** tras `monitor_enter_time` (sentarse, girar el selector). Sale al instante con `interact`, cualquier input de movimiento o el fin de partida. Una sola silla: si otro guardia ya mira, la mesa dice "ocupado". El servidor valida la distancia y el estado.
+- **M1 Activación**: en la garita, ante la mesa (alcance del interactor del guardia), `interact` entra en **mirando** tras `monitor_enter_time` (sentarse, girar el selector). Sale al instante con `interact`, cualquier input de movimiento, la porra (que no golpea en ese input) o el fin de partida. Una sola silla: si otro guardia ya mira, la mesa dice "ocupado". El servidor valida la distancia y el estado.
 - **M2 HUD**: las 3 imágenes en fila en la mitad superior, 4:3, de alto `feed_height_frac` de la pantalla (a 1080p, 3 × 576 × 432 px, el 90 % del ancho), con el shader CRT, su rótulo ("CAM-1 VESTÍBULO") y marco rojo si esa cámara detecta. La mitad inferior sigue mostrando el mundo, y la tablilla de ronda sigue visible. Comprobación: a 9,5 m, la imagen cubre ~6,7 m de alto; un ladrón de 1,7 m ocupa ~110 px, legible.
 - **M3 Qué deja de hacer**: no se mueve (moverse es salir) y mira fijo a la mesa, de espaldas a la ventana V1 y a P20. La linterna conserva su estado (sin ruido) y alumbra la mesa: el ladrón la ve. **Visión apagada**: ni linterna ni luz (`lit_sight_range`) le detectan al ladrón. **Siguen**: el oído y la proximidad, con su arco ciego trasero (`stealth.md`).
 - **M4 Rastro (pilar 2)**: mientras alguien mira, las 3 cámaras encienden un **piloto rojo de grabación**, visible en el mundo para quien las tenga en pantalla. Es la contramedida del ladrón: sabe cuándo le miran y cuándo la garita está distraída.
@@ -126,7 +126,6 @@ Alcance (9,5 m), FOV (52°) y barrido (65°) siguen siendo datos de cada cámara
 - **Parte R** (FEAT-016, integrada el 2026-10-24): faltas, final por tiempo R4, tablilla del guardia, banderola y filtro de red. Los números están en `time_clock_rules.tres`.
 - **Parte M** (FEAT-017): mesa de la garita, «mirando» con visión apagada, imágenes CRT en el HUD, cámaras que necesitan luz, pilotos y filtro de red `cctv_only`. Los números están en `cctv_rules.tres`.
 - **Precisión del invariante 5 de la parte M**: los pilotos se encienden cuando el guardia ya mira, no mientras se sienta (la silla sí queda reservada).
-- **Pendiente de decidir**: si un guardia sentado puede golpear con la porra. Hoy puede.
 
 ## Decisiones (aprobadas por el usuario el 2026-10-24)
 1. Las faltas son irreversibles.
@@ -135,3 +134,4 @@ Alcance (9,5 m), FOV (52°) y barrido (65°) siguen siendo datos de cada cámara
 4. El CCTV necesita luz para ver al ladrón (M5).
 5. Una sola silla en la garita (M1).
 6. `round_duration` es global (`time_clock_rules.tres`); las excepciones por reloj, más adelante como dato de nivel.
+7. Un guardia sentado no golpea: la porra primero lo levanta, igual que moverse, y ese golpe no se da. El que mira las pantallas sigue siendo vulnerable a que lo esquiven (pilar 6).
