@@ -14,12 +14,13 @@ static func team_faults(clocks: Array) -> int:
 	return total
 
 
-## true si algún reloj está vencido (o llega a 0 en este tick: borde = vencido)
-static func any_expired(clocks: Array) -> bool:
+## true si algún reloj está vencido o llega a 0 en este tick (borde = vencido); margin es el
+## delta del tick, porque GameManager evalúa antes de que los relojes simulen ese tick
+static func any_expired(clocks: Array, margin: float = 0.0) -> bool:
 	for clock: Node in clocks:
 		if clock is TimeClock3D:
 			var time_clock: TimeClock3D = clock as TimeClock3D
-			if time_clock.is_expired or time_clock.time_left <= 0.0:
+			if time_clock.is_expired or time_clock.time_left <= margin:
 				return true
 	return false
 

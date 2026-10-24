@@ -1,6 +1,6 @@
 # FEAT-016 — Relojes de ronda con consecuencia
 
-- **Estado**: en curso
+- **Estado**: hecha
 - **Diseño**: `docs/gdd/systems/interaction.md`, parte R (aprobado el 2026-10-24)
 - **Hito del PoC**: H3
 - **Rama**: `feat/016-relojes-de-ronda`
@@ -37,3 +37,5 @@ Que fichar los relojes importe: faltas en la hoja de ronda, final por tiempo seg
 - La tablilla se prototipa y se enseña al usuario antes de pulirla.
 
 ## Cierre
+2026-10-24, PR #61. `reviewer` aprobó sin bloqueantes; se aplicaron sus sugerencias de borde en el tick final, tests de campana, banderola y caja fuerte privada, y redondeo de segundos. Partida en red verificada: el ladrón no recibe segundos ni faltas.
+Backlog: las distancias de fichaje de la IA (`CLOCK_PUNCH_*`) a un `.tres` de la IA; un sonido de verdad para el pitido ámbar si no convence; medir en playtest que la vuelta de cada IA dura menos de 90 s (sobre plano: 32 s y 24 s andando).

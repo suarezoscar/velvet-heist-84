@@ -101,7 +101,7 @@ func can_interact(actor: Node3D = null) -> bool:
 func get_interaction_text(_actor: Node3D = null) -> String:
 	if is_expired:
 		return "¡ALARMA DE RONDA ACTIVA! Fichar Reloj [E]"
-	return "Fichar Ronda Mecanica (%ds restantes) [E]" % int(time_left)
+	return "Fichar Ronda Mecanica (%ds restantes) [E]" % int(ceil(time_left))
 
 
 ## Ejecuta el fichaje de llave del guardia: la ventana vuelve a empezar, las faltas se quedan

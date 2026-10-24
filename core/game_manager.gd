@@ -112,7 +112,7 @@ func _physics_process(delta: float) -> void:
 func time_expired_state() -> MatchState:
 	var clocks: Array = _clocks()
 	var faults: int = RoundRules.team_faults(clocks)
-	var expired_now: bool = RoundRules.any_expired(clocks)
+	var expired_now: bool = RoundRules.any_expired(clocks, get_physics_process_delta_time())
 	if RoundRules.is_on_time(faults, expired_now, CLOCK_RULES.allowed_misses):
 		return MatchState.TIME_EXPIRED
 	return MatchState.TIME_EXPIRED_BREACH if has_masterpiece else MatchState.TIME_EXPIRED_DRAW
