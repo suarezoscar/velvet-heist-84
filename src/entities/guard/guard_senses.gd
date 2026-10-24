@@ -34,8 +34,12 @@ func detects(
 		var d_prox: float = PerceptionRules.horizontal_distance(guard_pos, thief_pos)
 		if d_prox <= perception.proximity_radius:
 			for pt: Vector3 in points:
-				if _has_line_of_sight(space_state, eyes, pt):
+				if has_line_of_sight(space_state, eyes, pt):
 					return &"proximity"
+
+	# Mirando los monitores no ve el mundo: solo le quedan la proximidad y el oído (M3)
+	if guard.is_watching_monitors():
+		return &""
 
 	# 2. Cono horizontal de la linterna Maglite
 	if cone_sees(guard, thief):
@@ -47,7 +51,7 @@ func detects(
 		if d_light <= perception.lit_sight_range:
 			for pt: Vector3 in points:
 				if LightingRules.is_point_lit(space_state, pt, lamps):
-					if _has_line_of_sight(space_state, eyes, pt):
+					if has_line_of_sight(space_state, eyes, pt):
 						return &"light"
 
 	return &""
@@ -79,7 +83,7 @@ static func cone_sees(guard: GuardController3D, thief: ThiefController3D) -> boo
 
 	var flash_pos: Vector3 = guard_pos + Vector3(0.0, perception.flashlight_height, 0.0)
 	for pt: Vector3 in points:
-		if _has_line_of_sight(space_state, flash_pos, pt):
+		if has_line_of_sight(space_state, flash_pos, pt):
 			return true
 
 	return false
@@ -110,7 +114,7 @@ static func _is_detection_valid(guard: GuardController3D, thief: ThiefController
 	return world_3d != null and world_3d.direct_space_state != null
 
 
-static func _has_line_of_sight(
+static func has_line_of_sight(
 	space_state: PhysicsDirectSpaceState3D, from: Vector3, to: Vector3
 ) -> bool:
 	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(from, to)

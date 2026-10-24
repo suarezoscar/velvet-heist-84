@@ -22,6 +22,9 @@ const SWITCH_HEIGHT: float = 1.2
 const CAMERA_HEIGHT: float = 2.9
 const CAMERA_PITCH_DEG: float = -15.0
 const MONITOR_HEIGHT: float = 0.8
+## Mesa de monitores (ejes locales: x a lo largo de la mesa, z hacia el guardia)
+const DESK_AREA_SIZE: Vector3 = Vector3(3.6, 1.2, 1.6)
+const DESK_TABLE_SIZE: Vector3 = Vector3(3.6, 0.75, 0.7)
 ## Altura de los actores al aparecer (centro de la cápsula sobre el suelo)
 const ACTOR_HEIGHT: float = 0.35
 ## Capas de interacción que usan los Area3D de sistemas (como en el museo antiguo)
@@ -53,6 +56,8 @@ static func build(data: LevelData, map: Node3D) -> Node3D:
 		cameras[String(cam["id"])] = _add_camera(data, props, cam)
 	for monitor: Dictionary in data.section("monitors"):
 		_add_monitor(data, props, monitor, cameras)
+	if not data.entry("cctv_desk").is_empty():
+		_add_desk(data, props, data.entry("cctv_desk"))
 	if not data.entry("car").is_empty():
 		_add_car(data, props, data.entry("car"))
 	_place_actors(data, map)
@@ -107,6 +112,7 @@ static func _add_camera(data: LevelData, props: Node3D, cam: Dictionary) -> Secu
 	var node: SecurityCamera3D = CAMERA_SCENE.instantiate() as SecurityCamera3D
 	node.name = "Camera_%s" % String(cam["id"]).replace("-", "_")
 	node.camera_id = String(cam["id"])
+	node.camera_label = String(cam.get("label", cam["id"]))
 	node.position = data.to_world(cam["pos"], CAMERA_HEIGHT)
 	node.rotation_degrees = Vector3(CAMERA_PITCH_DEG, -float(cam.get("yaw_deg", 0.0)), 0.0)
 	props.add_child(node)
@@ -121,10 +127,35 @@ static func _add_monitor(
 	node.name = "Monitor_%s" % cam_id.replace("-", "_")
 	node.monitor_title = cam_id
 	node.position = data.to_world(monitor["pos"], MONITOR_HEIGHT)
-	node.rotation.y = deg_to_rad(-float(monitor.get("rot_deg", 0.0)))
+	# El modelo muestra la pantalla hacia +Z: girarlo 180° hace que rot_deg sea hacia donde mira
+	node.rotation.y = deg_to_rad(180.0 - float(monitor.get("rot_deg", 0.0)))
 	props.add_child(node)
 	if cameras.has(cam_id):
 		node.bind_camera(cameras[cam_id])
+
+
+## Mesa de monitores: zona interactuable delante de las pantallas y el tablero que las sostiene
+static func _add_desk(data: LevelData, props: Node3D, desk: Dictionary) -> void:
+	var node: CCTVDesk3D = CCTVDesk3D.new()
+	node.name = "CCTVDesk3D"
+	node.position = data.to_world(desk["pos"])
+	node.rotation.y = deg_to_rad(-float(desk.get("rot_deg", 0.0)))
+	_setup_area(node, DESK_AREA_SIZE, null)
+	var table: StaticBody3D = StaticBody3D.new()
+	table.name = "Table"
+	var shape: BoxShape3D = BoxShape3D.new()
+	shape.size = DESK_TABLE_SIZE
+	var col: CollisionShape3D = CollisionShape3D.new()
+	col.shape = shape
+	table.add_child(col)
+	var mesh_instance: MeshInstance3D = MeshInstance3D.new()
+	var mesh: BoxMesh = BoxMesh.new()
+	mesh.size = DESK_TABLE_SIZE
+	mesh_instance.mesh = mesh
+	table.add_child(mesh_instance)
+	table.position = Vector3(0.0, DESK_TABLE_SIZE.y * 0.5, 0.0)
+	node.add_child(table)
+	props.add_child(node)
 
 
 static func _add_car(data: LevelData, props: Node3D, car: Dictionary) -> void:
@@ -147,6 +178,8 @@ static func _setup_area(area: Area3D, size: Vector3, model: PackedScene) -> void
 	col.shape = shape
 	col.position = Vector3(0.0, size.y * 0.5, 0.0)
 	area.add_child(col)
+	if model == null:
+		return
 	var visual: Node3D = model.instantiate() as Node3D
 	visual.name = "Model"
 	area.add_child(visual)

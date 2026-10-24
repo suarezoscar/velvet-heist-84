@@ -209,10 +209,11 @@
     {"id": 4, "pos": [0.2, 26], "rot_deg": 90}
   ],
   "cameras": [
-    {"id": "CAM-1", "pos": [31.5, 26.5], "yaw_deg": 225},
-    {"id": "CAM-2", "pos": [16.5, 25.5], "yaw_deg": 45},
-    {"id": "CAM-3", "pos": [31.5, 10.5], "yaw_deg": 270}
+    {"id": "CAM-1", "pos": [31.5, 26.5], "yaw_deg": 225, "label": "VESTÍBULO"},
+    {"id": "CAM-2", "pos": [16.5, 25.5], "yaw_deg": 45, "label": "ROTONDA"},
+    {"id": "CAM-3", "pos": [31.5, 10.5], "yaw_deg": 270, "label": "ANTESALA"}
   ],
+  "cctv_desk": {"pos": [41.5, 26.5], "rot_deg": 270},
   "monitors": [
     {"camera": "CAM-1", "pos": [41.5, 25], "rot_deg": 270},
     {"camera": "CAM-2", "pos": [41.5, 26.5], "rot_deg": 270},
