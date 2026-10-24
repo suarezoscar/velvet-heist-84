@@ -88,32 +88,22 @@ func on_snapshot(server_time: float, states: Dictionary) -> void:
 	_server_time = server_time
 	_server_time_local = _now()
 	_has_server_time = true
-	var has_thief: bool = false
-	var thief_cctv_only: bool = false
+	var present: Dictionary = {}
 	for key in states:
 		var role: StringName = StringName(key)
-		if role == &"thief":
-			has_thief = true
-			thief_cctv_only = bool((states[key] as Dictionary).get("cctv_only", false))
+		present[role] = true
 		var buffer: Array = _buffers.get(role, [])
 		buffer.append({"t": server_time, "s": states[key]})
 		while buffer.size() > NetConfig.INTERP_BUFFER:
 			buffer.pop_front()
 		_buffers[role] = buffer
 		_latest[role] = states[key]
-	if not has_thief:
-		# Sin ladrón en el snapshot: al volver a percibirlo no debe deslizarse desde la posición vieja
-		_buffers.erase(&"thief")
-		_latest.erase(&"thief")
-	if _is_local_guard() and _session.map.thief != null:
-		var mode: ThiefController3D.ViewMode = ThiefController3D.ViewMode.HIDDEN
-		if has_thief:
-			mode = (
-				ThiefController3D.ViewMode.CCTV
-				if thief_cctv_only
-				else ThiefController3D.ViewMode.WORLD
-			)
-		_session.map.thief.set_view_mode(mode)
+	for role: StringName in NetConfig.ROLES:
+		if not present.has(role):
+			# Fuera del snapshot: al volver a verlo no debe deslizarse desde la posición vieja
+			_buffers.erase(role)
+			_latest.erase(role)
+	NetViewModes.apply(_session.map, NetManager.get_local_role(), states)
 
 
 ## Cambios del estado del mundo: aplica el nodo o lo elimina si el servidor lo quitó
@@ -270,10 +260,6 @@ func _disable_guard_ai(node: Node) -> void:
 		node.process_mode = Node.PROCESS_MODE_DISABLED
 	for child: Node in node.get_children():
 		_disable_guard_ai(child)
-
-
-func _is_local_guard() -> bool:
-	return String(NetManager.get_local_role()).begins_with("guard")
 
 
 func _now_server() -> float:

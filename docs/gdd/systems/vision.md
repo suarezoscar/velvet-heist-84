@@ -1,6 +1,6 @@
 # Visión y niebla de guerra
 
-- **Estado**: propuesto (2026-10-24)
+- **Estado**: aprobado por el usuario el 2026-10-24, con las 5 recomendaciones de «Decisiones»
 - **Origen**: petición del usuario del 2026-10-24, tras jugar: «Como ladrón veo dónde están los guardias por la vista cenital de la cámara. Quiero una especie de field of view: fuera del campo de visión, una niebla de guerra que impida ver la posición de guardias o ciertos objetos dentro de las salas.»
 - **Relacionado**:
   - `stealth.md`: percepción de los guardias, P2.1 (el ladrón ve todos los haces), P2.2 luz, P2.4 ruido y chevrons, O2 última posición;
@@ -128,9 +128,9 @@ El servidor decide; cada cliente solo recibe lo que su jugador ve.
 | Robos descubiertos al pasar por la sala (D4) | ¿La memoria del botín crea rondas? | Ninguno en 5 partidas |
 
 ## Estado
-Sin implementar. Hoy el ladrón ve a todos los guardias y el filtro de red solo protege al ladrón.
+Sin implementar. Hoy el ladrón ve a todos los guardias y el filtro de red solo protege al ladrón. Se implementa en FEAT-020.
 
-## Decisiones abiertas (usuario)
+## Decisiones (aprobadas por el usuario el 2026-10-24)
 1. **► Opción de visión.** Recomendación: **A**, 360° cortada por muros con radio.
 2. **► ¿Los guardias se ven siempre entre sí, también a través de muros?** Recomendación: **sí**, como silueta. Son compañeros con radio, y sin eso dos humanos se pierden. Los avisos con coste (pings) siguen siendo de P2.3.
 3. **► ¿Un guardia a oscuras y sin linterna solo se ve de cerca (`dark_sight_radius`)?** Recomendación: **sí**. Da a los guardias su propia herramienta de sigilo (pilar 4) y hace que apagar luces tenga precio también para el ladrón.

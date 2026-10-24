@@ -13,14 +13,8 @@ signal target_unfocused
 ## Capa de colisión exclusiva para objetos interactuables en el mapa
 const INTERACTION_LAYER_MASK: int = 4
 
-## Capa del entorno sólido, donde están los muros
-const WORLD_SOLID_MASK: int = 1
-
 ## Altura (m) sobre el personaje a la que se comprueba que ningún muro tapa el objetivo
 const WALL_CHECK_HEIGHT: float = 1.0
-
-## Cuerpos sólidos que puede saltarse la comprobación (muebles) antes de rendirse
-const WALL_CHECK_MAX_HITS: int = 8
 
 ## Alcance máximo de interacción en metros
 @export var reach_distance: float = 1.8
@@ -72,36 +66,15 @@ func _scan_for_interactables() -> void:
 			target_unfocused.emit()
 
 
-## true si un muro (grupo walls) se interpone entre el personaje y el punto del objetivo. El
-## rayo de interacción solo ve la capa 4 y atravesaba paredes. Los muebles (coberturas,
-## pedestales) y los cuerpos del propio objetivo y del personaje no cuentan.
-func _is_behind_wall(target: Node3D, hit_point: Vector3) -> bool:
+## true si un muro del nivel (capa LevelArchitectureBuilder.LAYER_WALLS) se interpone entre el
+## personaje y el punto del objetivo. El rayo de interacción solo ve la capa 4 y atravesaba
+## paredes; los muebles y coberturas no están en esa capa y no bloquean.
+func _is_behind_wall(_target: Node3D, hit_point: Vector3) -> bool:
 	if not is_inside_tree() or get_world_3d() == null:
 		return false
-	var space: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
 	var from: Vector3 = global_position + Vector3(0.0, WALL_CHECK_HEIGHT, 0.0)
 	var to: Vector3 = Vector3(hit_point.x, from.y, hit_point.z)
-	var exclude: Array[RID] = []
-	for owner_node: Node in [target, get_parent()]:
-		if owner_node is CollisionObject3D:
-			exclude.append((owner_node as CollisionObject3D).get_rid())
-		for body: Node in owner_node.find_children("*", "CollisionObject3D", true, false):
-			exclude.append((body as CollisionObject3D).get_rid())
-	for _i: int in range(WALL_CHECK_MAX_HITS):
-		var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(
-			from, to, WORLD_SOLID_MASK, exclude
-		)
-		var hit: Dictionary = space.intersect_ray(query)
-		if hit.is_empty():
-			return false
-		var collider: Object = hit.get("collider")
-		if (
-			collider is Node
-			and (collider as Node).is_in_group(LevelArchitectureBuilder.WALLS_GROUP)
-		):
-			return true
-		exclude.append(hit.get("rid") as RID)
-	return false
+	return not VisionLogic.wall_free(get_world_3d().direct_space_state, from, to)
 
 
 ## Ejecuta la interacción sobre el objetivo actualmente enfocado
