@@ -56,6 +56,9 @@ var focused_interactive: Node3D:
 	get:
 		return interactor.current_target if interactor != null else null
 
+## Estado «mirando monitores» de la garita (interaction.md M1/M3)
+var monitor_watch: GuardMonitorWatch = GuardMonitorWatch.new()
+
 var _flashlight_on: bool = true
 var _senses: GuardSenses = GuardSenses.new()
 
@@ -109,7 +112,10 @@ func perform_action(action: StringName) -> bool:
 	var result: bool = false
 	match action:
 		&"interact":
-			if interactor != null:
+			if monitor_watch.is_active():
+				stop_watching()
+				result = true
+			elif interactor != null:
 				result = interactor.execute_interaction(self)
 		&"toggle_flashlight":
 			set_flashlight(not flashlight_on)
@@ -147,8 +153,24 @@ func simulate_movement(delta: float) -> void:
 	if baton_cooldown > 0.0:
 		baton_cooldown = maxf(0.0, baton_cooldown - delta)
 
+	monitor_watch.tick(self, delta)
 	_process_stamina_and_sprint(delta, current_input_dir)
 	super.simulate_movement(delta)
+
+
+## Sentado ante los monitores no se mueve y mira a la mesa; un movimiento lo levanta
+func apply_input(input_data: Dictionary) -> void:
+	super.apply_input(monitor_watch.filter_input(self, input_data))
+
+
+## true si está sentado mirando los monitores (no mientras se sienta)
+func is_watching_monitors() -> bool:
+	return monitor_watch.state == GuardMonitorWatch.State.WATCHING
+
+
+## Se levanta de los monitores y libera la mesa
+func stop_watching() -> void:
+	monitor_watch.stop(self)
 
 
 ## Actualiza rotación del guardia orientada a su objetivo de apuntado y la linterna
@@ -228,7 +250,7 @@ func validate_melee_hit(target_thief: ThiefController3D) -> bool:
 			var offset: Vector3 = Vector3(0.0, perception.torso_height, 0.0)
 			var from_pos: Vector3 = global_position + offset
 			var to_pos: Vector3 = target_thief.global_position + offset
-			if not _has_line_of_sight(space_state, from_pos, to_pos):
+			if not GuardSenses._has_line_of_sight(space_state, from_pos, to_pos):
 				return false
 	return true
 
@@ -272,8 +294,3 @@ func _process_stamina_and_sprint(delta: float, input_dir: Vector2) -> void:
 		is_sprinting = false
 	var rate: float = -stamina_drain_rate if is_sprinting else stamina_recovery_rate
 	stamina = clampf(stamina + rate * delta, 0.0, max_stamina)
-
-
-func _has_line_of_sight(space_state: PhysicsDirectSpaceState3D, from: Vector3, to: Vector3) -> bool:
-	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(from, to, 1)
-	return space_state.intersect_ray(query).is_empty()

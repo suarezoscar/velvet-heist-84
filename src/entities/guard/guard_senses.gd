@@ -37,6 +37,10 @@ func detects(
 				if _has_line_of_sight(space_state, eyes, pt):
 					return &"proximity"
 
+	# Mirando los monitores no ve el mundo: solo le quedan la proximidad y el oído (M3)
+	if guard.is_watching_monitors():
+		return &""
+
 	# 2. Cono horizontal de la linterna Maglite
 	if cone_sees(guard, thief):
 		return &"cone"

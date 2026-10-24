@@ -1,15 +1,26 @@
 ## @file security_camera_3d.gd
 ## Cámara de videovigilancia CCTV analógica de 1984.
 ## Realiza barridos de paneo motorizados, proyecta su imagen en un SubViewport
-## y detecta visualmente al ladrón mediante cono angular y PhysicsRayQueryParameters3D.
+## y detecta al ladrón con su cono, línea de visión y solo si está iluminado (interaction.md M5).
+## El barrido y la detección los simula el servidor; los clientes siguen el giro replicado.
+## Mientras un guardia mira los monitores, enciende un piloto rojo de grabación (M4).
 class_name SecurityCamera3D
 extends Node3D
 
 signal target_detected(target: Node3D)
 signal target_lost
 
+## Color y tamaño del piloto de grabación
+const PILOT_COLOR: Color = Color(1.0, 0.05, 0.05)
+const PILOT_RADIUS: float = 0.05
+## Velocidad con la que un cliente sigue el giro replicado
+const NET_ROT_FOLLOW: float = 10.0
+
 ## Identificador de la cámara (ej. "CAM-01: Galería")
 @export var camera_id: String = "CAM-01"
+
+## Rótulo de la imagen en el HUD (ej. "VESTÍBULO")
+@export var camera_label: String = ""
 
 ## Control de barrido motorizado
 @export var sweep_enabled: bool = true
@@ -22,10 +33,17 @@ signal target_lost
 @export var is_online: bool = true
 
 var is_alert_active: bool = false
+## Piloto rojo encendido: algún guardia mira los monitores
+var is_recording: bool = false
 var mount: Node3D = self
 var _sweep_time: float = 0.0
 var _base_rotation_y: float = 0.0
 var _thief_ref: Node3D = null
+var _net_rot_y: float = 0.0
+var _has_net_rot: bool = false
+var _pilot: MeshInstance3D = null
+## Colisiones del propio modelo: el rayo de visión sale de dentro y no debe chocar con ellas
+var _own_bodies: Array[RID] = []
 
 @onready var internal_cam: Camera3D = get_node_or_null("SubViewport/InternalCamera3D")
 @onready var cone_light: SpotLight3D = get_node_or_null("CameraMount/SpotLight3D")
@@ -34,19 +52,43 @@ var _thief_ref: Node3D = null
 
 func _ready() -> void:
 	add_to_group(&"net_state")
+	add_to_group(&"security_camera")
 	if has_node("CameraMount"):
 		mount = get_node("CameraMount") as Node3D
 	_base_rotation_y = mount.rotation.y
 	_setup_internal_camera_binding()
 	_find_thief_reference()
+	_build_pilot()
+	for body: Node in find_children("*", "CollisionObject3D", true, false):
+		_own_bodies.append((body as CollisionObject3D).get_rid())
 
 
 func _physics_process(delta: float) -> void:
 	if not is_online:
 		return
+	if not GameManager.is_simulating():
+		_follow_net_rotation(delta)
+		return
 
 	_process_sweep(delta)
 	_process_detection()
+
+
+## true si alguna cámara del árbol de context detecta ahora al ladrón
+static func any_detects(context: Node) -> bool:
+	if context == null or not context.is_inside_tree():
+		return false
+	for node: Node in context.get_tree().get_nodes_in_group(&"security_camera"):
+		if (node as SecurityCamera3D).is_alert_active:
+			return true
+	return false
+
+
+## Enciende o apaga el piloto rojo de grabación
+func set_recording(on: bool) -> void:
+	is_recording = on
+	if _pilot != null:
+		_pilot.visible = on
 
 
 ## Devuelve el snapshot de estado de la cámara para red
@@ -54,7 +96,8 @@ func get_net_state() -> Dictionary:
 	var cur_rot_y: float = mount.rotation.y if mount != null else rotation.y
 	return {
 		"alert": is_alert_active,
-		"rot_y": cur_rot_y,
+		"rot_y": snappedf(cur_rot_y, 0.001),
+		"rec": is_recording,
 	}
 
 
@@ -62,11 +105,30 @@ func get_net_state() -> Dictionary:
 func apply_net_state(state: Dictionary) -> void:
 	if state.has("rot_y"):
 		# Solo el barrido local: la raíz conserva la orientación que trae la escena
-		var target: Node3D = mount if mount != null else self
-		target.rotation.y = float(state["rot_y"])
+		_net_rot_y = float(state["rot_y"])
+		if not _has_net_rot or not is_inside_tree():
+			(mount if mount != null else self).rotation.y = _net_rot_y
+		_has_net_rot = true
 	if state.has("alert"):
+		var was_alert: bool = is_alert_active
 		is_alert_active = bool(state["alert"])
 		_set_cone_alert(is_alert_active)
+		if is_alert_active and not was_alert:
+			target_detected.emit(_thief_ref)
+		elif was_alert and not is_alert_active:
+			target_lost.emit()
+	if state.has("rec"):
+		set_recording(bool(state["rec"]))
+
+
+## Cliente: sigue con suavidad el giro que replica el servidor
+func _follow_net_rotation(delta: float) -> void:
+	if not _has_net_rot:
+		return
+	var target: Node3D = mount if mount != null else self
+	target.rotation.y = lerp_angle(
+		target.rotation.y, _net_rot_y, clampf(NET_ROT_FOLLOW * delta, 0.0, 1.0)
+	)
 
 
 func _setup_internal_camera_binding() -> void:
@@ -130,10 +192,26 @@ func _check_line_of_sight(target: Node3D) -> bool:
 	if space_state == null:
 		return false
 	var q: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(
-		cam_pos, target_center, 1
+		cam_pos, target_center, 1, _own_bodies
 	)
 	var result: Dictionary = space_state.intersect_ray(q)
-	return result.is_empty()
+	return result.is_empty() and _is_target_lit(target)
+
+
+## M5: un CCTV de 1984 no ve a oscuras; el ladrón tiene que estar bajo una lámpara o un haz
+func _is_target_lit(target: Node3D) -> bool:
+	var thief: ThiefController3D = target as ThiefController3D
+	if thief == null:
+		return true
+	var lamps: Array[Lamp3D] = []
+	for node: Node in get_tree().get_nodes_in_group(&"lamps"):
+		if node is Lamp3D:
+			lamps.append(node as Lamp3D)
+	var guards: Array[GuardController3D] = []
+	for node: Node in get_tree().get_nodes_in_group(&"guards"):
+		if node is GuardController3D:
+			guards.append(node as GuardController3D)
+	return ThiefExposure.compute(thief, guards, lamps) != &"shadow"
 
 
 func _notify_detection_to_bus(pos: Vector3) -> void:
@@ -150,3 +228,21 @@ func get_viewport_texture() -> ViewportTexture:
 	if sub_viewport:
 		return sub_viewport.get_texture()
 	return null
+
+
+func _build_pilot() -> void:
+	_pilot = MeshInstance3D.new()
+	_pilot.name = "RecordingPilot"
+	var sphere: SphereMesh = SphereMesh.new()
+	sphere.radius = PILOT_RADIUS
+	sphere.height = PILOT_RADIUS * 2.0
+	var material: StandardMaterial3D = StandardMaterial3D.new()
+	material.albedo_color = PILOT_COLOR
+	material.emission_enabled = true
+	material.emission = PILOT_COLOR
+	material.emission_energy_multiplier = 3.0
+	sphere.material = material
+	_pilot.mesh = sphere
+	_pilot.position = Vector3(0.0, 0.15, 0.0)
+	_pilot.visible = is_recording
+	mount.add_child(_pilot)

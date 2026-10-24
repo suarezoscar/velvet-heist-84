@@ -11,6 +11,8 @@ const COLOR_NORMAL: Color = Color("b8e6c1")
 const BEEP_HZ: float = 2400.0
 const BEEP_SECONDS: float = 0.07
 const BEEP_RATE: int = 22050
+## Borde superior normal, a la derecha bajo la barra superior
+const TOP: float = 65.0
 
 var _rows: VBoxContainer = null
 var _faults_label: Label = null
@@ -26,7 +28,7 @@ func _ready() -> void:
 	set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	offset_left = -230.0
 	offset_right = -20.0
-	offset_top = 65.0
+	offset_top = TOP
 	var box: VBoxContainer = VBoxContainer.new()
 	box.add_theme_constant_override("separation", 2)
 	add_child(box)

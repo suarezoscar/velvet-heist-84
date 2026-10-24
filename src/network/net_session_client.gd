@@ -86,10 +86,12 @@ func on_snapshot(server_time: float, states: Dictionary) -> void:
 	_server_time_local = _now()
 	_has_server_time = true
 	var has_thief: bool = false
+	var thief_cctv_only: bool = false
 	for key in states:
 		var role: StringName = StringName(key)
 		if role == &"thief":
 			has_thief = true
+			thief_cctv_only = bool((states[key] as Dictionary).get("cctv_only", false))
 		var buffer: Array = _buffers.get(role, [])
 		buffer.append({"t": server_time, "s": states[key]})
 		while buffer.size() > NetConfig.INTERP_BUFFER:
@@ -101,7 +103,14 @@ func on_snapshot(server_time: float, states: Dictionary) -> void:
 		_buffers.erase(&"thief")
 		_latest.erase(&"thief")
 	if _is_local_guard() and _session.map.thief != null:
-		_session.map.thief.set_visible_to_local_viewer(has_thief)
+		var mode: ThiefController3D.ViewMode = ThiefController3D.ViewMode.HIDDEN
+		if has_thief:
+			mode = (
+				ThiefController3D.ViewMode.CCTV
+				if thief_cctv_only
+				else ThiefController3D.ViewMode.WORLD
+			)
+		_session.map.thief.set_view_mode(mode)
 
 
 ## Cambios del estado del mundo: aplica el nodo o lo elimina si el servidor lo quitó

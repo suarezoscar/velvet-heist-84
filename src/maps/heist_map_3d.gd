@@ -40,6 +40,8 @@ var _ai_defaults: Dictionary = {}
 
 func _ready() -> void:
 	camera = get_node_or_null("IsometricCamera3D") as Camera3D
+	if camera != null:
+		camera.set_cull_mask_value(ThiefController3D.CCTV_ONLY_LAYER, false)
 	hud = get_node_or_null("HUD84") as HUD84
 	_collect_actors()
 	for guard: GuardController3D in guards:
@@ -199,14 +201,13 @@ func _process_guards_perception(delta: float) -> void:
 func _update_thief_local_visibility() -> void:
 	if thief == null:
 		return
-	var is_visible: bool = (
-		local_player == thief
-		or (
-			local_player is GuardController3D
-			and (local_player as GuardController3D).is_perceiving_thief
-		)
-	)
-	thief.set_visible_to_local_viewer(is_visible)
+	var guard: GuardController3D = local_player as GuardController3D
+	var mode: ThiefController3D.ViewMode = ThiefController3D.ViewMode.HIDDEN
+	if local_player == thief or (guard != null and guard.is_perceiving_thief):
+		mode = ThiefController3D.ViewMode.WORLD
+	elif guard != null and guard.is_watching_monitors() and SecurityCamera3D.any_detects(self):
+		mode = ThiefController3D.ViewMode.CCTV
+	thief.set_view_mode(mode)
 
 
 func _process_local_strike() -> void:
