@@ -213,6 +213,14 @@ func perform_action(action: StringName) -> bool:
 			return false
 
 
+## Cuerpo visible para el jugador local (vision.md): se oculta a quien no lo ve. La linterna
+## de un guardia es otro nodo y sigue a la vista con «beam_only»
+func set_body_visible(on: bool) -> void:
+	var body: Node3D = get_node_or_null("VisualRoot") as Node3D
+	if body != null:
+		body.visible = on
+
+
 ## Devuelve el snapshot de estado del actor para replicación de red
 func get_net_actor_state() -> Dictionary:
 	return ActorNetState.read(self)

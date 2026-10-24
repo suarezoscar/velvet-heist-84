@@ -57,6 +57,8 @@ func _ready() -> void:
 		mount = get_node("CameraMount") as Node3D
 	_base_rotation_y = mount.rotation.y
 	_setup_internal_camera_binding()
+	if internal_cam != null:
+		internal_cam.set_cull_mask_value(FogOfWar3D.FOG_LAYER, false)  # sin niebla en el CCTV
 	_find_thief_reference()
 	_build_pilot()
 	for body: Node in find_children("*", "CollisionObject3D", true, false):

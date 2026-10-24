@@ -27,6 +27,7 @@ var _holder_cached_path: String = ""
 
 func _ready() -> void:
 	add_to_group(&"net_state")
+	add_to_group(&"fog_memory")  # vision.md D4: se recuerda como se vio por última vez
 	collision_layer = 4  # Interactuable
 	collision_mask = 2  # Ladrón
 	monitoring = true
