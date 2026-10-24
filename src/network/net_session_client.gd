@@ -4,7 +4,6 @@
 class_name NetSessionClient
 extends RefCounted
 
-const PRIVATE_SUFFIX: String = "#private"
 const RESEND_READY: float = 0.5
 
 var _session: NetSession = null
@@ -110,12 +109,12 @@ func on_world_state(changes: Dictionary) -> void:
 	for key in changes:
 		var path: String = String(key)
 		var value: Dictionary = changes[key] as Dictionary
-		if path.ends_with(PRIVATE_SUFFIX):
-			var base_path: String = path.trim_suffix(PRIVATE_SUFFIX)
+		if path.ends_with(NetPrivateStates.SUFFIX):
+			var base_path: String = path.trim_suffix(NetPrivateStates.SUFFIX)
 			_merge_world_state(base_path, value)
-			var safe: Node = _resolve(base_path)
-			if safe != null:
-				safe.apply_net_state(value)
+			var private_node: Node = _resolve(base_path)
+			if private_node != null:
+				private_node.apply_net_state(value)
 			continue
 		_merge_world_state(path, value)
 		var node: Node = _resolve(path)

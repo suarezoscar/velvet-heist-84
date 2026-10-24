@@ -203,10 +203,10 @@
   ],
   "safe": {"pos": [46, 12], "value": 3000},
   "clocks": [
-    {"id": 1, "pos": [36, 24.2], "rot_deg": 180, "round": 90},
-    {"id": 2, "pos": [0.2, 6], "rot_deg": 90, "round": 90},
-    {"id": 3, "pos": [47.8, 2], "rot_deg": 270, "round": 90},
-    {"id": 4, "pos": [0.2, 26], "rot_deg": 90, "round": 90}
+    {"id": 1, "pos": [36, 24.2], "rot_deg": 180},
+    {"id": 2, "pos": [0.2, 6], "rot_deg": 90},
+    {"id": 3, "pos": [47.8, 2], "rot_deg": 270},
+    {"id": 4, "pos": [0.2, 26], "rot_deg": 90}
   ],
   "cameras": [
     {"id": "CAM-1", "pos": [31.5, 26.5], "yaw_deg": 225},
