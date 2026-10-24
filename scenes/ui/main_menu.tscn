@@ -138,7 +138,7 @@ text = "ASIGNACIÓN TÁCTICA DE ROLES"
 modulate = Color(0.75, 0.8, 0.85, 0.8)
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
-text = "FRECUENCIA ASIMÉTRICA: 1 LADRÓN VS HASTA 3 GUARDIAS"
+text = "El ladrón contra el equipo de seguridad"
 
 [node name="RoleThiefButton" type="Button" parent="LobbyView/ColumnsHBox/RolesPanel/VBox" unique_id=1984777722]
 custom_minimum_size = Vector2(0, 52)

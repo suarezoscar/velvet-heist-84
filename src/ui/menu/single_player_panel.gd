@@ -12,7 +12,7 @@ signal back_requested
 const MAPS: Array[Dictionary] = [
 	{
 		"title": "MUSEO '84",
-		"tag": "RECOMENDADO  ·  2 GUARDIAS  ·  CCTV",
+		"tag": "RECOMENDADO  ·  CCTV  ·  TRES RUTAS",
 		"desc":
 		"Dos alas, tres rutas y una cámara acorazada. Roba la Pieza Maestra y llega al coche.",
 		"scene": "res://scenes/maps/museum_v2.tscn",
@@ -20,7 +20,7 @@ const MAPS: Array[Dictionary] = [
 	},
 	{
 		"title": "VILLA BELMONTE",
-		"tag": "1 GUARDIA DE RONDA",
+		"tag": "CAJA FUERTE  ·  MÁRMOL Y PARQUÉ",
 		"desc": "Mansión de mármol y parqué con una caja fuerte de combinación.",
 		"scene": "res://scenes/maps/mansion_belmonte.tscn",
 		"thumb": "res://assets/ui/thumb_mansion.png",
@@ -44,7 +44,7 @@ func _ready() -> void:
 	box.add_child(MenuTheme84.label("UN JUGADOR", MenuTheme84.FONT_DISPLAY, 64, MenuTheme84.TEXT))
 	box.add_child(
 		MenuTheme84.label(
-			"Eres el ladrón. Los guardias los lleva la IA.",
+			"Tú eres el ladrón; la IA lleva a los guardias.",
 			MenuTheme84.FONT_BODY,
 			24,
 			MenuTheme84.DIM
