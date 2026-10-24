@@ -2,7 +2,7 @@
 
 > **Estado (2026-10-22): documento en división.** `game-designer` lo está repartiendo en `docs/gdd/systems/` (ver su `README.md`); ante un conflicto manda `systems/`.
 > - Los pilares de `docs/gdd/pillars.md` sustituyen a la regla 1.2 "Cero Alta Tecnología".
-> - Las secciones 5 (arquitectura), 7 (sistema multiagente) y 8 (hoja de ruta) están obsoletas: la fuente es `AGENTS.md`, `.agents/ownership.yml` y `docs/tasks/`.
+> - Las secciones 5 (arquitectura), 7 (sistema multiagente) y 8 (hoja de ruta) están obsoletas: la fuente es `AGENTS.md`, `CLAUDE.md` y `docs/tasks/`.
 
 > **Propósito de este documento:** Este archivo es la Fuente Única de Verdad (SSOT) para el entorno de desarrollo asistido por agentes (**Antigravity**). Contiene el Diseño de Juego (GSD), la Arquitectura Técnica en **Godot Engine 4.3+ (3D Ortográfico/Isométrico)**, el pipeline de generación de modelos 3D mediante **Blender MCP / Headless Python (`bpy`)** y los contratos estrictos entre agentes.
 
