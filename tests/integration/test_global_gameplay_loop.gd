@@ -1,7 +1,6 @@
 ## @file test_global_gameplay_loop.gd
-## Suite de pruebas globales de integración y auditoría de Velvet Heist '84.
-## Audita integridad de mapa (museum_velvet_84.tscn), ciclos de victoria y derrota,
-## alarma de ronda (90s), red autoritativa, fugas de memoria y benchmark headless.
+## Suite global de integración de Velvet Heist '84 (1/2): integridad del mapa museum_velvet_84.tscn
+## y ciclos de victoria y de derrota por porra. La segunda mitad está en test_gameplay_loop_late.gd.
 extends GutTest
 
 ## Espejo tipado de GameManager.MatchState para verificaciones asertivas
@@ -11,10 +10,10 @@ const MAP_SCENE_PATH: String = "res://scenes/maps/museum_velvet_84.tscn"
 
 
 func before_each() -> void:
-	var net_mgr: NetManagerNode = get_node_or_null("/root/NetManager")
+	var net_mgr: NetManagerNode = NetManager
 	if net_mgr != null and multiplayer.multiplayer_peer != null:
 		net_mgr.disconnect_network()
-	var gm: Node = get_node_or_null("/root/GameManager")
+	var gm: Node = GameManager
 	if gm != null:
 		gm.set("current_state", GameState.LOBBY)
 		gm.set("current_loot_value", 0)
@@ -23,10 +22,10 @@ func before_each() -> void:
 
 
 func after_each() -> void:
-	var net_mgr: NetManagerNode = get_node_or_null("/root/NetManager")
+	var net_mgr: NetManagerNode = NetManager
 	if net_mgr != null and multiplayer.multiplayer_peer != null:
 		net_mgr.disconnect_network()
-	var gm: Node = get_node_or_null("/root/GameManager")
+	var gm: Node = GameManager
 	if gm != null:
 		gm.set("current_state", GameState.LOBBY)
 		gm.set("current_loot_value", 0)
@@ -107,7 +106,7 @@ func test_01_map_integrity_and_actors_configuration() -> void:
 
 
 func test_02_victory_cycle_infiltration_loot_escape() -> void:
-	var gm: Node = get_node_or_null("/root/GameManager")
+	var gm: Node = GameManager
 	assert_not_null(gm, "GameManager debe existir")
 
 	var map_scene: PackedScene = load(MAP_SCENE_PATH)
@@ -142,7 +141,7 @@ func test_02_victory_cycle_infiltration_loot_escape() -> void:
 	assert_not_null(masterpiece, "Pieza Maestra encontrada en el mapa")
 
 	# Sumar botín adicional para alcanzar los $10.000 requeridos junto a la obra
-	var bus: Node = get_node_or_null("/root/SignalBus")
+	var bus: Node = SignalBus
 	bus.emit_signal("loot_stolen", 5000, false)
 	assert_gte(gm.get("current_loot_value"), 10000, "Cuota monetaria alcanzada")
 	assert_false(gm.call("can_thief_escape"), "Aún no puede escapar: falta Pieza Maestra asegurada")
@@ -198,7 +197,7 @@ func test_02_victory_cycle_infiltration_loot_escape() -> void:
 
 
 func test_03_defeat_cycle_by_guard_neutralization() -> void:
-	var gm: Node = get_node_or_null("/root/GameManager")
+	var gm: Node = GameManager
 	var map_scene: PackedScene = load(MAP_SCENE_PATH)
 	var map: Node3D = autofree(map_scene.instantiate())
 	add_child_autofree(map)
@@ -237,212 +236,3 @@ func test_03_defeat_cycle_by_guard_neutralization() -> void:
 	map.hud._process(0.016)
 	assert_true(map.hud.game_over_panel.visible, "HUD muestra panel de derrota")
 	assert_true(map.hud.game_over_title.text.contains("CAPTURADO"))
-
-
-# ------------------------------------------------------------------------------
-# Test 4: Ciclo de Alarma por Reloj de Fichar de 90s
-# ------------------------------------------------------------------------------
-
-
-func test_04_alarm_cycle_time_clock_90s() -> void:
-	var gm: Node = get_node_or_null("/root/GameManager")
-	var bus: Node = get_node_or_null("/root/SignalBus")
-	var map_scene: PackedScene = load(MAP_SCENE_PATH)
-	var map: Node3D = autofree(map_scene.instantiate())
-	add_child_autofree(map)
-	await wait_physics_frames(2)
-
-	gm.call("start_match")
-
-	var clock: TimeClock3D = map.get_node("Props/TimeClock_01") as TimeClock3D
-	assert_not_null(clock, "TimeClock_01 presente en mapa")
-	watch_signals(clock)
-	watch_signals(bus)
-
-	assert_almost_eq(clock.round_duration, 90.0, 0.001, "Duración configurada a 90s")
-	assert_almost_eq(clock.time_left, 90.0, 0.5, "Reloj arranca con ~90 segundos")
-	assert_false(clock.is_expired, "Reloj no vencido al inicio")
-
-	# 1. Simular transcurso de los 90s sin fichaje de los guardias
-	clock._update_countdown(90.1)
-	assert_almost_eq(clock.time_left, 0.0, 0.001, "Tiempo de ronda agotado")
-	assert_true(clock.is_expired, "Reloj entra en estado de alarma")
-	assert_signal_emitted(clock, "clock_expired", "Señal clock_expired emitida")
-	assert_true(clock.get_interaction_text().contains("ALARMA"), "Prompt refleja alarma activa")
-
-	# 2. Verificar pulsos acústicos periódicos en SignalBus
-	clock._update_countdown(3.0)
-	assert_signal_emitted(bus, "noise_emitted_3d", "Alarma notificada en SignalBus")
-
-	# 3. Guardia acude y ficha para cancelar la alarma
-	clock.interact(map.guard_1)
-	assert_false(clock.is_expired, "Alarma desactivada tras fichar el guardia")
-	assert_almost_eq(clock.time_left, 90.0, 0.001, "Ciclo de ronda reiniciado a 90 segundos")
-
-
-# ------------------------------------------------------------------------------
-# Test 5: Ciclo de Derrota por Expiración de Tiempo Global (600s)
-# ------------------------------------------------------------------------------
-
-
-func test_05_defeat_cycle_by_time_expiration() -> void:
-	var gm: Node = get_node_or_null("/root/GameManager")
-	var map_scene: PackedScene = load(MAP_SCENE_PATH)
-	var map: Node3D = autofree(map_scene.instantiate())
-	add_child_autofree(map)
-	await wait_physics_frames(2)
-
-	gm.set("match_duration_seconds", 600.0)
-	gm.call("start_match")
-	assert_eq(gm.get("current_state"), GameState.IN_PROGRESS)
-	assert_almost_eq(gm.get("match_timer"), 600.0, 0.001)
-
-	# Simular el agotamiento completo del reloj de 600 segundos
-	gm._physics_process(600.1)
-
-	assert_almost_eq(gm.get("match_timer"), 0.0, 0.001, "Temporizador global clampado a 0")
-	assert_eq(
-		gm.get("current_state"), GameState.TIME_EXPIRED, "Transición autoritativa a TIME_EXPIRED"
-	)
-
-	map.hud._process(0.016)
-	assert_true(map.hud.game_over_panel.visible, "HUD muestra panel de derrota por tiempo")
-	assert_true(map.hud.game_over_title.text.contains("TIEMPO AGOTADO"))
-
-
-# ------------------------------------------------------------------------------
-# Test 6: Integración Multijugador en el Mapa (Autoridades e Input)
-# ------------------------------------------------------------------------------
-
-
-func test_06_multiplayer_integration_on_map() -> void:
-	var net_mgr: NetManagerNode = get_node_or_null("/root/NetManager")
-	assert_not_null(net_mgr, "NetManager presente")
-
-	var err: Error = net_mgr.start_host(7777, 4)
-	assert_eq(err, OK)
-	net_mgr.register_player(2, "Guardia1", NetManagerNode.ROLE_GUARD_1)
-	net_mgr.register_player(3, "Guardia2", NetManagerNode.ROLE_GUARD_2)
-
-	var map_scene: PackedScene = load(MAP_SCENE_PATH)
-	var map: Node3D = autofree(map_scene.instantiate())
-	add_child_autofree(map)
-	await wait_physics_frames(2)
-
-	# 1. Comprobar asignación de autoridades de red en museum_velvet_84.gd
-	assert_eq(map.thief.get_multiplayer_authority(), 1, "Thief asignado a peer 1")
-	assert_eq(map.guard_1.get_multiplayer_authority(), 2, "Guard 1 asignado a peer 2")
-	assert_eq(map.guard_2.get_multiplayer_authority(), 3, "Guard 2 asignado a peer 3")
-
-	assert_true(map.thief.is_multiplayer_authority(), "Host posee autoridad sobre Thief")
-	assert_false(map.guard_1.is_multiplayer_authority(), "Host NO tiene autoridad sobre Guard 1")
-	assert_false(map.guard_2.is_multiplayer_authority(), "Host NO tiene autoridad sobre Guard 2")
-
-	assert_false(map.guard_1.is_ai_controlled, "Guard 1 controlado por humano")
-	assert_false(map.guard_2.is_ai_controlled, "Guard 2 controlado por humano")
-
-	# 2. Comprobar que un peer cliente solo procesa input sobre su entidad
-	var initial_input: Vector2 = map.guard_1.current_input_dir
-	map.guard_1._physics_process(0.016)
-	assert_eq(
-		map.guard_1.current_input_dir, initial_input, "Guard 1 no procesa input local del host"
-	)
-
-	# 3. Comprobar recepción de replicación y activación de interpolación en entidad no-autoritativa
-	var sync_pos: Vector3 = Vector3(6.0, 0.0, 2.0)
-	var sync_vel: Vector3 = Vector3(1.5, 0.0, 0.0)
-	map.guard_1.set_net_transform(sync_pos, sync_vel)
-
-	assert_true(
-		map.guard_1.is_net_interpolating, "Bandera is_net_interpolating activada en Guard 1"
-	)
-	assert_eq(map.guard_1.net_target_position, sync_pos, "Posición objetivo fijada")
-	assert_eq(map.guard_1.net_target_velocity, sync_vel, "Velocidad objetivo fijada")
-
-	net_mgr.disconnect_network()
-
-
-# ------------------------------------------------------------------------------
-# Test 7: Auditoría de Nodos Huérfanos y Fugas de Memoria
-# ------------------------------------------------------------------------------
-
-
-func test_07_orphan_nodes_and_memory_leak_audit() -> void:
-	var map_scene: PackedScene = load(MAP_SCENE_PATH)
-	assert_not_null(map_scene)
-
-	# Estabilizar árbol antes de la medición
-	await wait_physics_frames(2)
-	var orphans_baseline: int = Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT)
-
-	for cycle: int in range(3):
-		var map: Node3D = map_scene.instantiate()
-		add_child(map)
-		await wait_physics_frames(2)
-		remove_child(map)
-		map.queue_free()
-		await wait_physics_frames(2)
-
-	await wait_physics_frames(3)
-	var orphans_after: int = Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT)
-	var delta_orphans: int = orphans_after - orphans_baseline
-
-	print(
-		(
-			"[MemoryAudit] Nodos huérfanos antes=%d, después=%d, delta=%d"
-			% [orphans_baseline, orphans_after, delta_orphans]
-		)
-	)
-	assert_lte(
-		delta_orphans,
-		0,
-		"Sin fugas de nodos persistentes tras liberar el mapa (delta=%d)" % delta_orphans
-	)
-
-
-# ------------------------------------------------------------------------------
-# Test 8: Benchmark de Rendimiento Headless (120 ticks físicos)
-# ------------------------------------------------------------------------------
-
-
-func test_08_headless_performance_benchmark() -> void:
-	var map_scene: PackedScene = load(MAP_SCENE_PATH)
-	var map: Node3D = autofree(map_scene.instantiate())
-	add_child_autofree(map)
-	await wait_physics_frames(5)
-
-	var frame_times: Array[float] = []
-	var total_time_ms: float = 0.0
-	var max_frame_time_ms: float = 0.0
-
-	for i in range(120):
-		var t_start: int = Time.get_ticks_usec()
-		map._physics_process(1.0 / 60.0)
-		if map.thief != null:
-			map.thief._physics_process(1.0 / 60.0)
-		if map.guard_1 != null:
-			map.guard_1._physics_process(1.0 / 60.0)
-		if map.guard_2 != null:
-			map.guard_2._physics_process(1.0 / 60.0)
-		var t_elapsed_ms: float = (Time.get_ticks_usec() - t_start) / 1000.0
-
-		frame_times.append(t_elapsed_ms)
-		total_time_ms += t_elapsed_ms
-		if t_elapsed_ms > max_frame_time_ms:
-			max_frame_time_ms = t_elapsed_ms
-
-		await wait_physics_frames(1)
-
-	var avg_frame_time_ms: float = total_time_ms / float(frame_times.size())
-	print(
-		(
-			"[Benchmark] 120 ticks: Media=%.3fms | Pico Max=%.3fms"
-			% [avg_frame_time_ms, max_frame_time_ms]
-		)
-	)
-
-	# Presupuesto para 60 FPS = 16.66ms. En headless debe ser holgadamente inferior
-	assert_lt(
-		avg_frame_time_ms, 16.66, "Tiempo medio por frame debe ser inferior a 16.66ms (60 FPS)"
-	)
-	assert_lt(max_frame_time_ms, 50.0, "Ningún frame debe superar el umbral de pico de 50ms")
