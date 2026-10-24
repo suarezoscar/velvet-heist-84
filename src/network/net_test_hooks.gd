@@ -11,6 +11,7 @@ const LOG_PREFIX: String = "NETLOG "
 const MOUNT_CAPTURE: String = "capture"
 const MOUNT_FAR_NOISE: String = "far_noise"
 const MOUNT_LOOT: String = "loot"
+const MOUNT_CCTV: String = "cctv"
 
 ## Rayos horizontales que prueba el montaje far_noise antes de rendirse
 const FAR_NOISE_DIRECTIONS: int = 32
@@ -81,6 +82,8 @@ func _apply_mount(mount: String) -> void:
 			_mount_far_noise()
 		MOUNT_LOOT:
 			_mount_loot()
+		MOUNT_CCTV:
+			_mount_cctv()
 		_:
 			print("[NetTestHooks] Montaje desconocido: %s" % mount)
 
@@ -135,6 +138,26 @@ func _mount_loot() -> void:
 	loot.global_position = floor_level + forward * 1.0 + Vector3(0.0, -0.15, 0.0)
 	thief.look_target_position = loot.global_position
 	print("[NetTestHooks] Montaje loot: ladrón a 1.0 m del botín '%s'" % loot.loot_name)
+
+
+## Guardia 1 sentado ante los monitores y ladrón a 4 m delante de CAM-1, bajo su lámpara
+func _mount_cctv() -> void:
+	var thief: ThiefController3D = _thief()
+	var guard: GuardController3D = _first_guard()
+	var tree: SceneTree = _map.get_tree()
+	var desk: CCTVDesk3D = tree.get_first_node_in_group(&"cctv_desk") as CCTVDesk3D
+	var camera: SecurityCamera3D = null
+	for node: Node in tree.get_nodes_in_group(&"security_camera"):
+		if (node as SecurityCamera3D).camera_id == "CAM-1":
+			camera = node as SecurityCamera3D
+	if thief == null or guard == null or desk == null or camera == null:
+		return
+	var desk_front: Vector3 = desk.global_position - desk.global_transform.basis.z
+	guard.global_position = Vector3(desk_front.x, guard.global_position.y, desk_front.z)
+	desk.interact(guard)
+	var ahead: Vector3 = camera.global_position - camera.global_transform.basis.z * 4.0
+	thief.global_position = Vector3(ahead.x, thief.global_position.y, ahead.z)
+	print("[NetTestHooks] Montaje cctv: guardia en la mesa y ladrón delante de CAM-1")
 
 
 func _thief() -> ThiefController3D:

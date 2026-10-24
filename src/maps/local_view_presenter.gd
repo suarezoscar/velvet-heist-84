@@ -1,6 +1,7 @@
 ## @file local_view_presenter.gd
-## Presentador de la vista local del jugador (indicador de exposición y silueta O2).
-## Gestiona la exposición del ladrón y el marcador LastSeenMarker3D del guardia local.
+## Presentador de la vista local del jugador (indicador de exposición, silueta O2 e
+## imágenes CCTV). Gestiona la exposición del ladrón, el marcador LastSeenMarker3D del
+## guardia local y las imágenes de las cámaras mientras mira los monitores (M2).
 class_name LocalViewPresenter
 extends Node
 
@@ -57,3 +58,24 @@ func _physics_process(_delta: float) -> void:
 		_was_perceiving_thief = false
 		if _last_seen_marker != null and _last_seen_marker.visible:
 			_last_seen_marker.hide_marker()
+
+	# 3. Imágenes CCTV del guardia sentado ante los monitores
+	_update_cctv_feeds()
+
+
+func _update_cctv_feeds() -> void:
+	var hud: HUD84 = _map.hud
+	if hud == null or hud.cctv_feeds == null:
+		return
+	var guard: GuardController3D = _map.local_player as GuardController3D
+	var watching: bool = guard != null and guard.is_watching_monitors()
+	if watching and hud.cctv_feeds.panel_count() == 0:
+		var cameras: Array[SecurityCamera3D] = []
+		cameras.assign(get_tree().get_nodes_in_group(&"security_camera"))
+		hud.cctv_feeds.setup(cameras)
+	hud.cctv_feeds.visible = watching
+	if hud.round_sheet != null:
+		var below_feeds: bool = watching and hud.cctv_feeds.panel_count() > 0
+		hud.round_sheet.offset_top = (
+			hud.cctv_feeds.feed_rect(0).end.y + 12.0 if below_feeds else RoundSheet84.TOP
+		)

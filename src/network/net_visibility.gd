@@ -16,3 +16,21 @@ static func roles_visible_to(peer_role: StringName, perceiving: Dictionary) -> A
 				continue
 		visible.append(role)
 	return visible
+
+
+## Cómo ve cada rol de guardia al ladrón (interaction.md M6): &"world" si lo percibe él,
+## &"cctv" si solo una cámara lo detecta mientras ese guardia mira los monitores, o &"".
+## Los guardias van en orden de escena: guards[i] es NetConfig.ROLES[i + 1].
+static func guard_views(guards: Array[GuardController3D], cameras_detect: bool) -> Dictionary:
+	var views: Dictionary = {}
+	for index: int in range(guards.size()):
+		if index + 1 >= NetConfig.ROLES.size():
+			break
+		var guard: GuardController3D = guards[index]
+		var view: StringName = &""
+		if guard.is_perceiving_thief:
+			view = &"world"
+		elif cameras_detect and guard.is_watching_monitors():
+			view = &"cctv"
+		views[NetConfig.ROLES[index + 1]] = view
+	return views

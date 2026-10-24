@@ -4,6 +4,9 @@
 class_name ThiefController3D
 extends PlayerBase3D
 
+## Cómo ve al ladrón el observador local (set_view_mode)
+enum ViewMode { HIDDEN, WORLD, CCTV }
+
 ## Ruta del perfil de movimiento del ladrón
 const MOVEMENT_PROFILE_PATH: String = "res://data/balance/movement_thief.tres"
 
@@ -15,6 +18,9 @@ const REQUIRED_HITS_TO_CAPTURE: int = 2
 
 ## Posición local del ancla de transporte: delante del pecho (-Z es el frente en Godot)
 const CARRY_ANCHOR_POSITION: Vector3 = Vector3(0.0, 0.85, -0.45)
+
+## Capa de render que solo dibujan las cámaras CCTV; la cámara principal del mapa la excluye
+const CCTV_ONLY_LAYER: int = 20
 
 ## Nodo raíz visual del personaje (oculto para guardias fuera de visión)
 @export var visual_root: Node3D
@@ -141,6 +147,37 @@ func set_visible_to_local_viewer(is_visible: bool) -> void:
 		visual_root.visible = is_visible
 	if carry_anchor != null:
 		carry_anchor.visible = is_visible
+
+
+## Cómo lo ve el observador local: oculto, en el mundo o solo en las imágenes CCTV
+## (interaction.md M6). VIEW_CCTV lo pasa a CCTV_ONLY_LAYER, sin sombra, para que la
+## cámara principal no lo dibuje; se vuelve a aplicar en cada snapshot por el botín que coge.
+func set_view_mode(mode: ViewMode) -> void:
+	set_visible_to_local_viewer(mode != ViewMode.HIDDEN)
+	for root: Node3D in [visual_root, carry_anchor]:
+		if root != null:
+			_apply_cctv_layer(root, mode == ViewMode.CCTV)
+
+
+static func _apply_cctv_layer(node: Node, cctv: bool) -> void:
+	var geometry: GeometryInstance3D = node as GeometryInstance3D
+	if geometry != null:
+		if not geometry.has_meta(&"world_layers"):
+			geometry.set_meta(&"world_layers", geometry.layers)
+			geometry.set_meta(&"world_shadow", geometry.cast_shadow)
+		geometry.layers = (
+			1 << (CCTV_ONLY_LAYER - 1) if cctv else int(geometry.get_meta(&"world_layers"))
+		)
+		geometry.cast_shadow = (
+			(
+				GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				if cctv
+				else geometry.get_meta(&"world_shadow")
+			)
+			as GeometryInstance3D.ShadowCastingSetting
+		)
+	for child: Node in node.get_children():
+		_apply_cctv_layer(child, cctv)
 
 
 ## Consulta autoritativa: si un equipo concreto puede ver al ladrón
