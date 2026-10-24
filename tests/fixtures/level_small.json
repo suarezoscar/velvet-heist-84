@@ -1,0 +1,30 @@
+{
+  "name": "level_small",
+  "offset": [0, 0],
+  "wall": {"height": 3.2, "thickness": 0.3, "low_height": 1.2},
+  "rooms": [
+    {"id": "A", "name": "Sala A", "rect": [0, 0, 8, 6], "surface": "carpet", "exterior": false},
+    {"id": "B", "name": "Sala B", "rect": [8, 0, 6, 6], "surface": "marble", "exterior": false},
+    {"id": "OUT", "name": "Calle", "rect": [0, 6, 14, 4], "surface": "asphalt", "exterior": true}
+  ],
+  "doors": [
+    {"id": "D1", "a": "A", "b": "B", "pos": [8, 3], "width": 1.2},
+    {"id": "D2", "a": "A", "b": "OUT", "pos": [4, 6], "width": 2.4}
+  ],
+  "windows": [{"id": "W1", "from": [11, 6], "to": [13, 6], "sill": 1.0}],
+  "partitions": [{"id": "T1", "from": [2, 2], "to": [5, 2], "height": 2.4}],
+  "covers": [{"id": "A_mesa", "pos": [6, 4], "size": [1.6, 0.8, 0.75], "rot_deg": 0, "kind": "desk"}],
+  "lamps": [{"id": "C1_a", "pos": [4, 3], "type": "ceiling", "circuit": 1, "on": true}],
+  "switches": [{"id": "SW1", "pos": [7.5, 4.5], "circuit": 1}],
+  "loot": [
+    {"id": "L1", "pos": [2, 4], "name": "Anillo", "value": 700, "heavy": false, "masterpiece": false},
+    {"id": "M", "pos": [11, 3], "name": "Cuadro", "value": 5000, "heavy": true, "masterpiece": true}
+  ],
+  "safe": {"pos": [12, 1], "value": 3000},
+  "clocks": [{"id": 1, "pos": [13.5, 3], "rot_deg": 270, "round": 90}],
+  "cameras": [{"id": "CAM-1", "pos": [13.5, 5.5], "yaw_deg": 315}],
+  "monitors": [{"camera": "CAM-1", "pos": [9, 1], "rot_deg": 180}],
+  "car": {"pos": [2, 8], "rot_deg": 90},
+  "spawns": {"thief": [10, 8], "guards": [[10, 2]]},
+  "patrols": [[[10, 2], [10, 4]]]
+}

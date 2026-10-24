@@ -45,3 +45,9 @@ Si un aparcado resulta imprescindible para la meta (por ejemplo, si los personaj
 
 ## Cambio de método (2026-10-24)
 A petición del usuario, desde el 2026-10-24 todo lo hace Claude: Opus en la sesión principal para lo pesado y subagentes Sonnet para lo rápido. Se retiran agy, opencode, `dispatch.sh`, el control de propiedad por agente (`ownership.yml`, `check_scope.py`), los paquetes cerrados por agente, el paquete QA aparte y los PR solo de documentación. Las FEAT pasan a ser notas cortas y `reviewer` solo revisa los cambios con riesgo. Detalle en `AGENTS.md` y `CLAUDE.md`.
+
+## Cambio de meta: internet en vez de LAN (2026-10-24)
+El usuario quiere jugar con amigos por internet contra un servidor dedicado; abrirá el UDP 7777 en su router. La meta pasa a ser "3 personas juegan 5 partidas seguidas por internet". Consecuencias:
+- H2 añade la **predicción del jugador local** (FEAT-014 la dejaba para después del PoC), tras medir el retraso en una primera partida real.
+- H4 incluye el **museo v2** (`docs/gdd/levels/museum_v2.md`, aprobado): generador por datos y maqueta gris primero, vestido con assets CC0 después.
+- Relojes con consecuencia y monitores CCTV legibles (decisiones 3 y 5 del museo v2) pasan por `/design`.

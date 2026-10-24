@@ -16,7 +16,7 @@ Pendiente de la división de `docs/gdd/MASTER_GSD.md`. Reparto propuesto:
 | `stealth.md` | Percepción, visibilidad, ruido por superficie, modos de movimiento, linterna, luz y percepción del ruido (audio, vúmetro; sin anillos desde 2026-10-23) | aprobado (partes 1 y 2) |
 | `characters.md` | Vestuario, silueta y presupuesto de los personajes | aprobado |
 | `gadgets.md` | Maletín del ladrón y cinturón de los guardias | por crear |
-| `interaction.md` | Cajas fuertes, puertas, teléfonos, relojes de fichar, cámaras | por crear |
+| `interaction.md` | Relojes de fichar (con hoja de faltas y final por tiempo) y monitores CCTV; después cajas fuertes, puertas, teléfonos | propuesto (parte 1, 2026-10-24) |
 | `loot.md` | Botín ligero y pesado, cuota, Pieza Maestra | por crear |
 | `match.md` | Flujo de partida, tiempo, equipamiento en el lobby | por crear |
 | `disguise.md` | Disfraz de guardia del ladrón | por diseñar (primera propuesta de `/design`) |
@@ -24,4 +24,4 @@ Pendiente de la división de `docs/gdd/MASTER_GSD.md`. Reparto propuesto:
 ## Pendiente de diseño
 - **Disfraz de guardia**: mecánica pedida por el usuario. Va antes de la spec de red autoritativa porque cambia el filtro de visibilidad del ladrón.
 - **Posturas de FEAT-005**: resuelto en `stealth.md` (aprobado).
-- **Nivel nuevo**: rediseño del museo con `/level` (base: `museum_velvet_84`).
+- **Nivel nuevo**: rediseño del museo con `/level` (base: `museum_velvet_84`). Propuesta en `docs/gdd/levels/museum_v2.md` (propuesto, 2026-10-24).
