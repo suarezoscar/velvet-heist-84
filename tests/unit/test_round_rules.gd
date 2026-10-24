@@ -129,3 +129,45 @@ func test_round_sheet_rows_and_warnings() -> void:
 	clock_b.faults += 1
 	sheet.refresh([clock_a, clock_b])
 	assert_string_contains(sheet._warning_label.text, "Ronda rota")
+
+
+func test_clock_at_zero_in_final_tick_counts_as_expired() -> void:
+	var clock: TimeClock3D = _clock()
+	clock.time_left = 0.01
+	GameManager.has_masterpiece = true
+	assert_eq(
+		GameManager.time_expired_state(),
+		GameManager.MatchState.TIME_EXPIRED_BREACH,
+		"Un reloj que llega a 0 en el último tick cuenta como vencido"
+	)
+
+
+func test_alarm_bell_radius_interval_and_flag() -> void:
+	var clock: TimeClock3D = _clock()
+	var guard: GuardController3D = _guard()
+	var bells: Array = []
+	var on_noise: Callable = func(
+		_pos: Vector3, radius: float, _team: StringName, _cat: StringName, emitter: Node
+	) -> void:
+		if emitter == clock:
+			bells.append(radius)
+	SignalBus.noise_event_3d.connect(on_noise)
+	var flag: Node3D = clock.get_node("ExpiredFlag") as Node3D
+	assert_false(flag.visible, "Sin banderola antes de vencer")
+	_expire_for(clock, RULES.alarm_pulse_interval * 2.0)
+	SignalBus.noise_event_3d.disconnect(on_noise)
+	assert_eq(bells.size(), 2, "Una campanada cada alarm_pulse_interval")
+	assert_almost_eq(float(bells[0]), RULES.alarm_noise_radius, 0.001)
+	assert_true(flag.visible, "Banderola roja con el reloj vencido")
+	clock.interact(guard)
+	assert_false(flag.visible, "Fichar recoge la banderola")
+
+
+func test_safe_private_state_only_reaches_thief() -> void:
+	var safe: SafeBox3D = SafeBox3D.new()
+	add_child_autofree(safe)
+	var collected: Dictionary = NetPrivateStates.new().collect({"Props/SafeBox3D": safe}, true)
+	assert_true(NetPrivateStates.for_role(collected, &"guard_1").is_empty(), "Guardia: nada")
+	assert_true(
+		NetPrivateStates.for_role(collected, &"thief").has("Props/SafeBox3D#private"), "Ladrón: sí"
+	)
