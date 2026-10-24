@@ -34,7 +34,9 @@ static func apply(view: Control) -> void:
 	_section(view, "ColumnsHBox/PlayersPanel/VBox/PlayersTitle", "JUGADORES")
 	_small(view, "ColumnsHBox/ConnectionPanel/VBox/IpLabel", "Dirección IP")
 	_small(view, "ColumnsHBox/ConnectionPanel/VBox/PortLabel", "Puerto")
-	_small(view, "ColumnsHBox/RolesPanel/VBox/RolesSubtitle", "1 ladrón contra 2 guardias")
+	_small(
+		view, "ColumnsHBox/RolesPanel/VBox/RolesSubtitle", "El ladrón contra el equipo de seguridad"
+	)
 	var help: Label = view.get_node("ColumnsHBox/ConnectionPanel/VBox/ConnectionLogLabel")
 	help.text = HELP
 	_font(help, MenuTheme84.FONT_BODY, 20, MenuTheme84.DIM)
