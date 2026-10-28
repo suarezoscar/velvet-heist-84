@@ -18,6 +18,9 @@ extends Resource
 ## Desaturación de lo que queda en la niebla (1 = gris)
 @export var fog_desaturation: float = 0.7
 
+## Canal más brillante a partir del cual un píxel (piloto, bombilla) atraviesa la niebla (D5)
+@export var fog_light_keep: float = 0.9
+
 ## Anchura (m) del borde suave entre lo visible y la niebla
 @export var fog_edge_feather: float = 1.0
 
