@@ -19,8 +19,8 @@ Y da a los guardias un juego propio: los rastros y la alerta.
 ## Reglas
 
 ### R1. La lista del coleccionista
-- El nivel marca **6 piezas candidatas** repartidas por alas distintas.
-- Al empezar, el servidor **sortea** las piezas del encargo, de entre esas 6. Su número depende de los guardias:
+- El nivel marca **20 piezas candidatas** repartidas por todo el museo (FEAT-034; eran 6).
+- Al empezar, el servidor **sortea** las piezas del encargo, de entre esas 20. Su número depende de los guardias:
 
   | Guardias | Piezas del encargo |
   |---|---|
@@ -30,10 +30,10 @@ Y da a los guardias un juego propio: los rastros y la alerta.
 
 - **Quién sabe qué**:
   - **el ladrón** conoce sus piezas desde el principio (en la tarjeta de objetivo y en su plano);
-  - **los guardias** saben cuáles son las 6 candidatas y cuántas busca el ladrón, pero no cuáles.
+  - **los guardias** saben cuáles son las candidatas y cuántas busca el ladrón, pero no cuáles: tienen que deducirlo por las zonas que frecuenta.
 - **Robar** una pieza es la interacción de botín de siempre (E). Una pieza que no está en el encargo **no se puede robar**: el ladrón no pierde el tiempo con ella.
 - Las piezas van al maletín, sin cargar en brazos. El botín pesado queda aparcado.
-- La **caja fuerte** es una de las 6 candidatas: si le toca, la pieza está dentro y hay que abrirla con el dial.
+- Las **cajas fuertes** (2) son candidatas: si le toca una, la pieza está dentro y hay que abrirla con el dial.
 - Desaparecen la **cuota de dinero** y la **Pieza Maestra fija**. El resto del botín del museo se retira del nivel.
 
 ### R2. La carta
@@ -113,7 +113,7 @@ Desaparece el caso «ronda rota y el ladrón tenía la Pieza Maestra = gana el l
   - Espera `walkie_cooldown` s entre usos.
 
 ### R9. Protecciones de las piezas
-Cada candidata tiene una protección. El ladrón elige entre **desactivarla y robar en silencio** o **robar a lo bruto**: es instantáneo, pero suena la campana de alarma de esa sala (un ruido de radio `brute_radius`) y la alerta pasa a «alarma» al momento. El reparto es de 2 piezas por tipo, y la caja fuerte es de combinación.
+Cada candidata tiene una protección. El ladrón elige entre **desactivarla y robar en silencio** o **robar a lo bruto**: es instantáneo, pero suena la campana de alarma de esa sala (un ruido de radio `brute_radius`) y la alerta pasa a «alarma» al momento. Reparto (FEAT-034): 7 de combinación (dos de ellas, cajas fuertes), 7 de presión (con dos mesas de réplicas, en el taller y en el ala este) y 6 de sensor, en 4 alas con su cuadro eléctrico.
 
 | Protección | Cómo se desactiva | Qué deja | Contrajuego |
 |---|---|---|---|
@@ -124,6 +124,18 @@ Cada candidata tiene una protección. El ladrón elige entre **desactivarla y ro
 - **Una pieza de pega sin descubrir no es rastro**: el pedestal parece intacto. Es la jugada elegante del caballero.
 - Un guardia que examina una pieza auténtica pierde el tiempo. No compensa revisarlo todo a ciegas.
 - El corte de corriente no cuenta como rastro descubierto hasta que un guardia ve el piloto o llega al ala a oscuras.
+
+### R10. Ventilación (FEAT-034)
+- Tres redes de rejillas (servicio, oeste y este), de 3 o 4 rejillas cada una. Ninguna en la Cámara de la Pieza Maestra ni en la Garita.
+- **Solo el ladrón** se cuela: E en una rejilla, `enter_time` s, con un ruido metálico de radio `hatch_radius`.
+- Dentro **elige la salida** entre las rejillas de su red con izquierda y derecha, y va con E. Elegir la de entrada es volver a salir por ahí.
+- **Viaje**: la distancia en línea recta entre las dos rejillas a `travel_speed`, un `loot_slow` más lento por pieza. Mientras viaja, nadie lo ve (guardias ni cámaras) ni lo puede golpear, y las rejillas de la red retumban (`rumble_radius`).
+- Al salir suena igual que al entrar. Las dos rejillas quedan **abiertas** `open_time` s: un rastro que cualquier guardia cierra con E.
+
+### R11. La puerta de la garita (FEAT-034)
+- La garita tiene **una sola puerta**, cerrada al empezar. Cerrada tapa el paso y la vista: quien mira los monitores no ve el pasillo.
+- Los guardias la abren o cierran con E al momento, y la IA al acercarse. El ladrón **fuerza la cerradura** en `pick_time` s, en silencio.
+- Al abrirse **cruje** (`creak_radius`) y se cierra sola a los `auto_close` s, si el hueco está libre.
 
 ## Números
 Viven en un recurso nuevo, `data/balance/heist_rules.tres` (`HeistRules`). Son valores iniciales para afinar jugando.
@@ -144,6 +156,9 @@ Viven en un recurso nuevo, `data/balance/heist_rules.tres` (`HeistRules`). Son v
 | Somnífero | `drug_doses` / `drug_time` / `drug_nap_time` | ritmo | 1-2 / 2-5 s / 5-12 s | 1 / 3 s / 8 s |
 | Bajón tras las luces de alarma | `crash_level` | ritmo | 0,5-0,8 | 0,6 |
 | Peso del botín | `loot_slow` / `loot_min_speed` (`heist_rules.tres`) | ritmo | 0,03-0,1 / 0,6-0,85 | 0,05 por pieza / 0,7 |
+| Ventilación | `enter_time` / `hatch_radius` / `travel_speed` / `open_time` / `rumble_radius` (`vent_rules.tres`) | ritmo | — | 1,5 s / 4 m / 2 m/s / 20 s / 5 m |
+| Puerta de la garita | `pick_time` / `creak_radius` / `auto_close` (`door_rules.tres`) | ritmo | — | 2 s / 6 m / 6 s |
+| Duración de la partida | `match_minutes` (nivel) | ritmo | 10-15 | 12 en el museo ampliado |
 | Monedas | `coins` / `throw_range` / `coin_radius` | ritmo | 2-5 / 6-14 m / 6-12 m | 3 / 10 / 9 |
 | Walkie | `ping_time` / `walkie_radius` / `walkie_cooldown` | ritmo | — | 8 s / 6 m / 10 s |
 | Robo a lo bruto | `brute_radius` | sensación | 12-20 m | 15 |
@@ -200,6 +215,7 @@ Viven en un recurso nuevo, `data/balance/heist_rules.tres` (`HeistRules`). Son v
 | `coin_thrown` / `walkie` | ¿Se usan las herramientas? | Menos de 1 uso por partida |
 
 ## Estado
+FEAT-034 amplía el museo: 20 candidatas, ventilación (R10), puerta de la garita (R11), 4 salidas y partida de 12 minutos; el nivel está en `docs/gdd/levels/museum_v2.md`.
 FEAT-033 añade el somnífero, la adrenalina y el bajón (R5b), el «Zzz» de las cabezadas y el peso del botín (R3).
 Entrega 1 implementada en FEAT-028 (lista, carta, escape, condiciones de victoria, combinación y robo a lo bruto). Entrega 4 en FEAT-032 (cambiazo con piezas de pega que los guardias examinan, y corte de corriente por ala con panel de pilotos): **las cuatro entregas están implementadas**. Entrega 3 en FEAT-031 (rastros, alerta, monedas, walkie y luces de alarma). Entrega 2 en FEAT-029 (sueño y café; la cafetera es el carrito CC0 de Poly Haven; el bostezo y el café, grabaciones CC-BY de OpenGameArt desde FEAT-030). Entregas, cada una se puede probar por separado:
 1. lista + carta + escape + condiciones de victoria, con las protecciones de combinación y el robo a lo bruto;
