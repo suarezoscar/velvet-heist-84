@@ -156,6 +156,8 @@ func on_noise(
 
 func _polled_actions(delta: float) -> Array[StringName]:
 	var actions: Array[StringName] = []
+	if LocalInput3D.blocked:  # menú de pausa abierto
+		return actions
 	if _just_pressed(&"interact"):
 		actions.append(&"interact")
 	if _just_pressed(&"toggle_flashlight"):
