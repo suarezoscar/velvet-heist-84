@@ -12,7 +12,7 @@ const ZOOM_SCALE: float = 1.07
 const ZOOM_TIME: float = 40.0
 const FADE_TIME: float = 0.7
 const PANEL_SHIFT: float = 40.0
-const VERSION_TEXT: String = "PROTOTIPO  v0.1"
+const VERSION_PREFIX: String = "PROTOTIPO  v"
 const CREDIT_TEXT: String = "Un juego de Óscar Suárez"
 
 var settings: GameSettings = null
@@ -21,6 +21,7 @@ var logo: TitleLogo84 = null
 var nav: MenuNav84 = null
 var hint_label: Label = null
 var credit_label: Label = null
+var version_label: Label = null
 var single_player: SinglePlayerPanel = null
 var options: OptionsPanel = null
 var _open_panel: Control = null
@@ -102,12 +103,15 @@ func _build_home() -> void:
 	hint_label.position = Vector2(MARGIN + 2.0, NAV_TOP + 4.0 * 68.0 + 18.0)
 	home.add_child(hint_label)
 	nav.set_hint_label(hint_label)
-	var version: Label = MenuTheme84.label(
-		VERSION_TEXT, MenuTheme84.FONT_MONO, 16, Color(MenuTheme84.DIM, 0.7)
+	version_label = MenuTheme84.label(
+		VERSION_PREFIX + GameVersion.current(),
+		MenuTheme84.FONT_MONO,
+		16,
+		Color(MenuTheme84.DIM, 0.7)
 	)
-	version.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
-	version.position += Vector2(MARGIN * 0.5, -36.0)
-	home.add_child(version)
+	version_label.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
+	version_label.position += Vector2(MARGIN * 0.5, -36.0)
+	home.add_child(version_label)
 	credit_label = MenuTheme84.label(
 		CREDIT_TEXT, MenuTheme84.FONT_BODY, 20, Color(MenuTheme84.TEXT, 0.5)
 	)

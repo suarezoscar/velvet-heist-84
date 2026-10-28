@@ -26,6 +26,12 @@ func test_entries_and_credit() -> void:
 	assert_eq(_menu.credit_label.text, "Un juego de Óscar Suárez", "Crédito del autor")
 
 
+func test_version_is_shown() -> void:
+	assert_eq(GameVersion.current(), "0.1.0", "Versión base de project.godot")
+	var version: Label = _menu.version_label
+	assert_eq(version.text, "PROTOTIPO  v0.1.0", "La versión del juego en el menú")
+
+
 func test_panels_open_and_close() -> void:
 	_menu.open_section(&"single")
 	assert_true(_menu.single_player.visible, "Panel Un jugador")

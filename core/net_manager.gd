@@ -56,13 +56,13 @@ func start_dedicated_server(port: int = DEFAULT_PORT) -> Error:
 		var err_str: String = error_string(err)
 		push_error("[NetManager] Error al crear servidor dedicado en %d: %s" % [port, err_str])
 		return err
-
 	multiplayer.multiplayer_peer = peer
 	_setup_network_signals()
 	is_dedicated_server = true
 	local_role = &""
 	connected_players.clear()
-	print("[NetManager] Servidor dedicado iniciado con exito en puerto %d" % port)
+	var ver: String = GameVersion.current()
+	print("[NetManager] Servidor dedicado iniciado con exito en puerto %d (v%s)" % [port, ver])
 	return OK
 
 
