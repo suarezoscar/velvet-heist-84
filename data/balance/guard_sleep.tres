@@ -19,3 +19,7 @@ coffee_time = 3.0
 coffee_radius = 8.0
 fresh_time = 120.0
 coffee_leash = 1.5
+drug_doses = 1
+drug_time = 3.0
+drug_nap_time = 8.0
+crash_level = 0.6

@@ -4,7 +4,9 @@
 ## si el guardia acampa (CampingMeter), el sueño sube; somnoliento bosteza (un ruido que se
 ## oye) y ve menos; agotado además da cabezadas sin ver nada. Solo se quita con café en la
 ## cafetera de la garita, que deja un rato despejado. El nivel de sueño, las cabezadas y el
-## café van al cliente de su guardia como estado privado.
+## café van al cliente de su guardia como estado privado. FEAT-033: el café drogado por el
+## ladrón le duerme RULES.drug_nap_time s; la alarma le despeja (adrenalina) y, al apagarse las
+## luces de alarma, le da el bajón. Que da una cabezada lo ven todos («Zzz», SleepBubble3D).
 class_name GuardSleep
 extends Node
 
@@ -23,12 +25,16 @@ var nodding: bool = false
 var drinking_left: float = 0.0
 ## Segundos despejado tras el café
 var fresh_left: float = 0.0
+## El café estaba drogado: está dormido (dura lo que su cabezada)
+var drugged: bool = false
 var _meter: CampingMeter = CampingMeter.new()
 var _yawn_timer: float = 0.0
 var _nod_timer: float = 0.0
 var _nod_left: float = 0.0
 var _coffee_spot: Vector3 = Vector3.ZERO
 var _profiles: Dictionary = {}
+var _machine: CoffeeMachine3D = null
+var _bubble: SleepBubble3D = null
 
 
 ## true si el guardia mira los monitores y no está dando una cabezada (en la cabezada no ve
@@ -60,6 +66,13 @@ func _ready() -> void:
 	add_to_group(&"net_state")
 	if guard == null:
 		guard = get_parent() as GuardController3D
+	_bubble = SleepBubble3D.attach(guard)
+
+
+## Los clientes no corren _physics_process (net_state): el «Zzz» se pinta aquí
+func _process(_delta: float) -> void:
+	if _bubble != null:
+		_bubble.visible = nodding
 
 
 func stage() -> Stage:
@@ -104,12 +117,28 @@ func step(delta: float) -> void:
 
 
 ## La cafetera: empieza a servirse (false si ya se está sirviendo)
-func start_coffee() -> bool:
-	if drinking_left > 0.0:
-		return false
+func start_coffee(machine: CoffeeMachine3D = null) -> bool:
+	if drinking_left > 0.0 or nodding:
+		return false  # dando una cabezada (o dormido por el somnífero) no se sirve café
 	drinking_left = RULES.coffee_time
 	_coffee_spot = guard.global_position
+	_machine = machine
 	return true
+
+
+## Adrenalina: salta la alarma y se despeja (no da para un rato despejado)
+func wake_up() -> void:
+	if drugged:
+		return  # drogado no lo despierta ni la alarma
+	level = 0.0
+	nodding = false
+	_nod_left = 0.0
+
+
+## Bajón tras las luces de alarma: el sueño sube de golpe hasta RULES.crash_level
+func crash() -> void:
+	if fresh_left <= 0.0:
+		level = maxf(level, RULES.crash_level)
 
 
 func _drink(delta: float) -> void:
@@ -119,11 +148,26 @@ func _drink(delta: float) -> void:
 	drinking_left -= delta
 	if drinking_left <= 0.0:
 		drinking_left = 0.0
+		if _machine != null and _machine.take_cup():
+			_fall_asleep()
+			return
 		level = 0.0
+		drugged = false
 		nodding = false
 		_nod_left = 0.0
 		fresh_left = RULES.fresh_time
 		_meter.clear()
+
+
+## Café drogado: se queda dormido RULES.drug_nap_time s y despierta agotado
+func _fall_asleep() -> void:
+	level = 1.0
+	fresh_left = 0.0
+	drugged = true
+	nodding = true
+	_nod_left = RULES.drug_nap_time
+	_nod_timer = RULES.nod_interval
+	print("[GuardSleep] %s se ha bebido el café drogado" % guard.name)
 
 
 func _update_yawn(delta: float) -> void:
@@ -140,6 +184,7 @@ func _update_nod(delta: float) -> void:
 	if _nod_left > 0.0:
 		_nod_left -= delta
 		nodding = _nod_left > 0.0
+		drugged = drugged and nodding
 		return
 	if stage() != Stage.EXHAUSTED:
 		_nod_timer = RULES.nod_interval
@@ -176,8 +221,9 @@ func _profile_for(factor: float) -> PerceptionProfile:
 	return _profiles[factor]
 
 
+## A todos: si da una cabezada (el «Zzz» solo se ve si se ve al guardia, por la niebla)
 func get_net_state() -> Dictionary:
-	return {}
+	return {"zzz": nodding}
 
 
 func get_net_state_private() -> Dictionary:
@@ -186,6 +232,7 @@ func get_net_state_private() -> Dictionary:
 		"nod": nodding,
 		"drinking": drinking_left > 0.0,
 		"fresh": fresh_left > 0.0,
+		"drug": drugged,
 	}
 
 
@@ -203,6 +250,10 @@ func apply_net_state(state: Dictionary) -> void:
 		level = float(state["level"])
 	if state.has("nod"):
 		nodding = bool(state["nod"])
+	if state.has("zzz"):
+		nodding = bool(state["zzz"])
+	if state.has("drug"):
+		drugged = bool(state["drug"])
 	if state.has("drinking"):
 		drinking_left = RULES.coffee_time if bool(state["drinking"]) else 0.0
 	if state.has("fresh"):

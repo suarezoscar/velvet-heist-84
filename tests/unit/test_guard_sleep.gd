@@ -93,8 +93,10 @@ func test_coffee_clears_sleep_and_must_stay() -> void:
 	var sleep: GuardSleep = _sleep(guard)
 	var machine: CoffeeMachine3D = get_tree().get_first_node_in_group(&"coffee_machine")
 	_run(sleep, RULES.window + 50.0)
-	assert_false(
-		machine.can_interact(get_tree().get_first_node_in_group(&"thief")), "Solo guardias"
+	assert_string_contains(
+		machine.get_interaction_text(get_tree().get_first_node_in_group(&"thief")),
+		"somnífero",
+		"El ladrón no se sirve café: lo droga (FEAT-033)"
 	)
 	assert_true(machine.can_interact(guard))
 	machine.interact(guard)
@@ -127,7 +129,7 @@ func test_sleep_state_is_private_to_its_guard() -> void:
 	await wait_physics_frames(1)
 	var sleep: GuardSleep = _sleep(guard)
 	assert_eq(sleep.net_private_audience(), &"guard_1")
-	assert_true(sleep.get_net_state().is_empty(), "Nada público")
+	assert_eq(sleep.get_net_state().keys(), ["zzz"], "Público solo el «Zzz» (FEAT-033)")
 	sleep.level = 0.523
 	assert_almost_eq(float(sleep.get_net_state_private()["level"]), 0.5, 0.001, "Redondeado")
 	assert_string_contains(SleepHud84.status_text(sleep), "SOMNOLIENTO")

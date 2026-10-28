@@ -1,6 +1,7 @@
 ## @file sleep_hud_84.gd
 ## Lo que ve el guardia local de su sueño (heist.md R5): una taza con su estado bajo la hoja
-## de ronda («☕ DESPIERTO», «SOMNOLIENTO», «AGOTADO: ¡CAFÉ!», «SIRVIENDO CAFÉ…», «DESPEJADO»)
+## de ronda («☕ DESPIERTO», «SOMNOLIENTO», «AGOTADO: ¡CAFÉ!», «SIRVIENDO CAFÉ…», «DESPEJADO»,
+## «¡EL CAFÉ ESTABA DROGADO!»)
 ## y un fundido a negro durante cada cabezada. Solo se ve jugando con un guardia que tiene sueño.
 class_name SleepHud84
 extends Control
@@ -52,6 +53,8 @@ func _process(delta: float) -> void:
 
 ## Texto de la taza para un sueño (lo usan los tests)
 static func status_text(sleep: GuardSleep) -> String:
+	if sleep.drugged:
+		return "☕ ¡EL CAFÉ ESTABA DROGADO! Zzz…"
 	if sleep.drinking_left > 0.0:
 		return "☕ SIRVIENDO CAFÉ…"
 	if sleep.fresh_left > 0.0:
