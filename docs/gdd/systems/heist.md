@@ -46,6 +46,7 @@ El número es el del encargo. La carta no da ninguna pista de cuáles son.
 ### R3. Escapar
 - Con todas las piezas del encargo, el ladrón gana al **cruzar cualquiera de las salidas exteriores**. En `museum_v2` hay 3: P01 (vestíbulo), P02 (galería suroeste) y P03 (muelle).
 - Sin todas las piezas, las salidas no hacen nada. El coche queda como decorado.
+- **Peso del botín** (FEAT-033): cada pieza del encargo que lleva le quita `loot_slow` de velocidad, hasta un mínimo de `loot_min_speed`.
 
 ### R4. Cómo se gana
 | Resultado | Cuándo |
@@ -74,6 +75,14 @@ Desaparece el caso «ronda rota y el ladrón tenía la Pieza Maestra = gana el l
   - Deja el sueño a 0 y da `fresh_time` s **despejado**, sin que suba.
   - Mirar los monitores cuenta como acampar, igual que cualquier otro sitio.
 - El guardia ve su nivel de sueño en el HUD (una taza que se vacía). El ladrón no lo ve, pero lo oye bostezar.
+- **Cabezadas a la vista** (FEAT-033): sobre un guardia que da una cabezada sale un «Zzz» que ve cualquiera que lo tenga a la vista (la niebla lo oculta como al cuerpo).
+
+### R5b. Somnífero, adrenalina y bajón (FEAT-033)
+- **Somnífero**: el ladrón tiene `drug_doses` dosis por partida. Con E en la cafetera la droga en silencio (`drug_time` s, sin alejarse). Solo él sabe que está drogada.
+  - El siguiente guardia que termina un café se queda **dormido** `drug_nap_time` s (no ve nada, «Zzz») y despierta agotado: necesita otro café, que ya es normal.
+  - La alarma no despierta a un guardia drogado.
+- **Adrenalina**: al pasar la alerta a «alarma», el sueño de todos los guardias vuelve a 0.
+- **Bajón**: cuando se apagan unas luces de alarma, el sueño de todos los guardias sube de golpe hasta `crash_level` (salvo a quien esté despejado por un café). Encender las luces tiene precio.
 
 ### R6. Rastros
 - Cada pieza robada deja su **pedestal vacío**.
@@ -132,6 +141,9 @@ Viven en un recurso nuevo, `data/balance/heist_rules.tres` (`HeistRules`). Son v
 | Vista somnolienta | `drowsy_sight` | ritmo | 0,6-0,9 | 0,8 |
 | Cabezadas | `nod_interval` / `nod_time` | ritmo | — | 10 / 1,5 s |
 | Café | `coffee_time` / `coffee_radius` / `fresh_time` | ritmo | — | 3 s / 8 m / 120 s |
+| Somnífero | `drug_doses` / `drug_time` / `drug_nap_time` | ritmo | 1-2 / 2-5 s / 5-12 s | 1 / 3 s / 8 s |
+| Bajón tras las luces de alarma | `crash_level` | ritmo | 0,5-0,8 | 0,6 |
+| Peso del botín | `loot_slow` / `loot_min_speed` (`heist_rules.tres`) | ritmo | 0,03-0,1 / 0,6-0,85 | 0,05 por pieza / 0,7 |
 | Monedas | `coins` / `throw_range` / `coin_radius` | ritmo | 2-5 / 6-14 m / 6-12 m | 3 / 10 / 9 |
 | Walkie | `ping_time` / `walkie_radius` / `walkie_cooldown` | ritmo | — | 8 s / 6 m / 10 s |
 | Robo a lo bruto | `brute_radius` | sensación | 12-20 m | 15 |
@@ -143,6 +155,8 @@ Viven en un recurso nuevo, `data/balance/heist_rules.tres` (`HeistRules`). Son v
 |---|---|---|---|
 | Acampar junto a una candidata | Guardia | Bostezos, y el puesto vacío cuando va a por café | Robar las otras piezas, o esperar al café |
 | Ir a por café | Guardia | El ruido de la cafetera | Aprovechar que deja el puesto |
+| Drogar la cafetera | Ladrón | Nada, hasta que alguien cae dormido | Vigilar la garita de paso; no servirse café a ciegas tras un rato sin ver la cafetera |
+| Encender las luces de alarma | Guardia | Todo iluminado 30 s, y después bostezos | Esperar a que pase y aprovechar el bajón |
 | Robar una pieza | Ladrón | El pedestal vacío, si lo ven | Descartar candidatas y cerrar el cerco |
 | Lanzar una moneda | Ladrón | Un ruido como cualquier otro | Mandar a uno solo a mirar, con el walkie |
 | Usar el walkie | Guardia | El chasquido | Saber dónde está ese guardia |
@@ -186,6 +200,7 @@ Viven en un recurso nuevo, `data/balance/heist_rules.tres` (`HeistRules`). Son v
 | `coin_thrown` / `walkie` | ¿Se usan las herramientas? | Menos de 1 uso por partida |
 
 ## Estado
+FEAT-033 añade el somnífero, la adrenalina y el bajón (R5b), el «Zzz» de las cabezadas y el peso del botín (R3).
 Entrega 1 implementada en FEAT-028 (lista, carta, escape, condiciones de victoria, combinación y robo a lo bruto). Entrega 4 en FEAT-032 (cambiazo con piezas de pega que los guardias examinan, y corte de corriente por ala con panel de pilotos): **las cuatro entregas están implementadas**. Entrega 3 en FEAT-031 (rastros, alerta, monedas, walkie y luces de alarma). Entrega 2 en FEAT-029 (sueño y café; la cafetera es el carrito CC0 de Poly Haven; el bostezo y el café, grabaciones CC-BY de OpenGameArt desde FEAT-030). Entregas, cada una se puede probar por separado:
 1. lista + carta + escape + condiciones de victoria, con las protecciones de combinación y el robo a lo bruto;
 2. sueño y café;

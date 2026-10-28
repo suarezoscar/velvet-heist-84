@@ -28,3 +28,10 @@ extends Resource
 @export var fresh_time: float = 120.0
 ## Si el guardia se aleja más de esto (m) mientras se sirve, se cancela
 @export var coffee_leash: float = 1.5
+## Somnífero del ladrón (FEAT-033): dosis por partida, segundos que tarda en echarlo y cuánto
+## dura la cabezada del guardia que se bebe el café drogado (s)
+@export var drug_doses: int = 1
+@export var drug_time: float = 3.0
+@export var drug_nap_time: float = 8.0
+## Bajón tras las luces de alarma (FEAT-033): sueño mínimo de los guardias al apagarse
+@export var crash_level: float = 0.6

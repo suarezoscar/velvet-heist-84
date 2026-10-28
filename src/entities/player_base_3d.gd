@@ -258,10 +258,16 @@ func _setup_surface_detector() -> void:
 func _apply_movement_speed(move_dir: Vector3, delta: float) -> void:
 	var mode: MovementProfile.Mode = get_move_mode()
 	current_speed = movement_profile.speed_for(mode) if movement_profile != null else 4.5
+	current_speed *= speed_factor()
 	var accel: float = movement_profile.acceleration if movement_profile != null else 18.0
 	var target_vel: Vector3 = move_dir * current_speed
 	velocity.x = move_toward(velocity.x, target_vel.x, accel * delta)
 	velocity.z = move_toward(velocity.z, target_vel.z, accel * delta)
+
+
+## Parte de la velocidad normal con la que se mueve ahora (el ladrón cargado va más lento)
+func speed_factor() -> float:
+	return 1.0
 
 
 func _apply_friction(delta: float) -> void:

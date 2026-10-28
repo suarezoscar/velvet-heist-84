@@ -23,3 +23,5 @@ cut_time = 3.0
 restore_time = 3.0
 task_leash = 1.5
 pilot_sight = 4.0
+loot_slow = 0.05
+loot_min_speed = 0.7
