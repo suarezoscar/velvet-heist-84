@@ -14,6 +14,9 @@ const COLOR_RED: Color = Color(1.0, 0.35, 0.25, 0.9)
 const COLOR_DIM: Color = Color(0.7, 0.75, 0.8, 0.7)
 const COLOR_TEXT: Color = Color(0.9, 0.95, 1.0, 1.0)
 
+## Copia del botón de GUARDIA 2 creada en _ready (FEAT-022)
+var role_guard3_btn: Button = null
+
 @onready var lobby_title_lbl: Label = $HeaderBox/LobbyTitleLabel
 @onready var lobby_status_lbl: Label = $HeaderBox/LobbyStatusLabel
 @onready var ip_edit: LineEdit = $ColumnsHBox/ConnectionPanel/VBox/IpEdit
@@ -33,6 +36,9 @@ const COLOR_TEXT: Color = Color(0.9, 0.95, 1.0, 1.0)
 
 func _ready() -> void:
 	host_btn.visible = false  # start_host devuelve ERR_UNAVAILABLE: solo servidor dedicado
+	role_guard3_btn = role_guard2_btn.duplicate() as Button
+	role_guard3_btn.name = "RoleGuard3Button"
+	role_guard2_btn.add_sibling(role_guard3_btn)
 	LobbyStyle84.apply(self)
 	join_btn.pressed.connect(_on_join_pressed)
 	disconnect_btn.pressed.connect(_on_disconnect_pressed)
@@ -41,6 +47,7 @@ func _ready() -> void:
 	role_thief_btn.pressed.connect(_on_role_btn_pressed.bind(NetManagerNode.ROLE_THIEF))
 	role_guard1_btn.pressed.connect(_on_role_btn_pressed.bind(NetManagerNode.ROLE_GUARD_1))
 	role_guard2_btn.pressed.connect(_on_role_btn_pressed.bind(NetManagerNode.ROLE_GUARD_2))
+	role_guard3_btn.pressed.connect(_on_role_btn_pressed.bind(NetManagerNode.ROLE_GUARD_3))
 	NetManager.connection_succeeded.connect(_on_connection_succeeded)
 	NetManager.connection_failed.connect(_on_connection_failed)
 	NetManager.server_disconnected.connect(_on_server_disconnected)
@@ -63,7 +70,8 @@ func refresh() -> void:
 	else:
 		lobby_status_lbl.text = "Conectado al servidor"
 		lobby_status_lbl.modulate = COLOR_CYAN
-	start_match_btn.disabled = _get_role_occupant(NetManagerNode.ROLE_THIEF) == 0
+	start_match_btn.disabled = not NetRoleRegistry.can_start(NetManager.get_connected_players())
+	start_match_btn.tooltip_text = "Hace falta un ladrón y al menos un guardia"
 
 	var local_role: StringName = NetManager.get_local_role()
 	if local_role == &"":
@@ -75,6 +83,7 @@ func refresh() -> void:
 	_update_role_button(role_thief_btn, NetManagerNode.ROLE_THIEF, "LADRÓN")
 	_update_role_button(role_guard1_btn, NetManagerNode.ROLE_GUARD_1, "GUARDIA 1")
 	_update_role_button(role_guard2_btn, NetManagerNode.ROLE_GUARD_2, "GUARDIA 2")
+	_update_role_button(role_guard3_btn, NetManagerNode.ROLE_GUARD_3, "GUARDIA 3")
 	_populate_players_list()
 
 
@@ -207,15 +216,7 @@ func _build_player_row(pid: int, info: Dictionary, is_me: bool) -> PanelContaine
 
 
 func _format_role_name(role: StringName) -> String:
-	match role:
-		NetManagerNode.ROLE_THIEF:
-			return "LADRÓN"
-		NetManagerNode.ROLE_GUARD_1:
-			return "GUARDIA 1"
-		NetManagerNode.ROLE_GUARD_2:
-			return "GUARDIA 2"
-		_:
-			return "SIN BANDO"
+	return NetStatsNode.role_label(role)
 
 
 func _get_port_input() -> int:

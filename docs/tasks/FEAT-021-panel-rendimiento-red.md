@@ -11,7 +11,7 @@ Medir la calidad de una partida en red mientras se juega, para poder hablar con 
 ## Criterios
 | # | Criterio | Evidencia |
 |---|---|---|
-| 1 | F9, o la opción «Panel de rendimiento y red» de Opciones (guardada), muestra un panel arriba a la derecha con FPS, ms por frame y ms de proceso y de física | `tests/unit/test_perf_overlay.gd` y captura |
+| 1 | F9, o la opción «Panel de rendimiento y red» de Opciones (guardada), muestra un panel abajo a la derecha (FEAT-022 lo bajó de arriba, donde tapaba la hoja de ronda) con FPS, ms por frame y ms de proceso y de física | `tests/unit/test_perf_overlay.gd` y captura |
 | 2 | Con red muestra el ping y la pérdida propios, los kB/s enviados y recibidos y los snapshots por segundo | test y captura con servidor y 2 clientes |
 | 3 | Muestra el ping y la pérdida de cada jugador conectado, con su bando, ordenados por rol. El ping va en verde por debajo de 80 ms, en ámbar hasta 150 ms y en rojo por encima | test y captura |
 | 4 | El servidor dedicado escribe cada 10 s una línea `[NetStats]` con el ping y la pérdida de cada jugador | registro del servidor |

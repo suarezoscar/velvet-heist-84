@@ -165,7 +165,7 @@ z=44
 |---|---|---|
 | Aparición del ladrón | (8, 40) | Junto al coche, en el callejón oeste |
 | Coche de huida | (3, 40), mirando al este | Accesos: P02 a 5 m, P01 a ~21 m por el callejón y P03 a ~41 m. A ~9,5 m de la farola más cercana: queda en sombra |
-| Aparición de los guardias | G1 (37, 26) y G2 (39, 26) | Dentro de la garita. A unos 35 m en línea recta del ladrón, con 3 muros de por medio |
+| Aparición de los guardias | G1 (37, 26), G2 (39, 26) y G3 (36, 28,5) | Dentro de la garita. En red hay un guardia por jugador guardia (de 1 a 3, FEAT-022); sin red, dos de IA, uno por patrulla. A unos 35 m en línea recta del ladrón, con 3 muros de por medio |
 | **M** La Dama de Terciopelo (óleo, pesada) | (24, 4) | Sustituye al busto. Valor 5.000 $, `is_heavy` y `is_masterpiece`. Al llevársela, el pedestal queda vacío bajo el foco: es el rastro visible (pilar 2) |
 
 ### Botín

@@ -74,14 +74,8 @@ func test_role_assignment_and_mutual_exclusion() -> void:
 	assert_true(reg3, "Peer 3 registrado")
 	assert_eq(net_mgr.get_role_for_peer(3), NetManagerNode.ROLE_GUARD_1, "Peer 3 recibe guard_1")
 
-	# guard_3 ya no está en el catálogo del PoC
-	assert_false(
-		net_mgr.assign_role(2, NetManagerNode.ROLE_GUARD_3),
-		"assign_role rechaza guard_3 fuera del PoC"
-	)
-	assert_false(
-		net_mgr.is_role_available(NetManagerNode.ROLE_GUARD_3), "guard_3 no está disponible"
-	)
+	# Hasta tres guardias (FEAT-022)
+	assert_true(net_mgr.is_role_available(NetManagerNode.ROLE_GUARD_3), "guard_3 está disponible")
 
 	# Exclusión mutua: un rol ocupado no se puede asignar a otro peer
 	assert_false(
@@ -104,11 +98,11 @@ func test_role_assignment_and_mutual_exclusion() -> void:
 
 
 # ------------------------------------------------------------------------------
-# 4. Autoridad del servidor e IA de los guardias sin humano
+# 4. Autoridad del servidor; en red solo hay guardias humanos (FEAT-022)
 # ------------------------------------------------------------------------------
 
 
-func test_server_authority_and_ai_guards() -> void:
+func test_server_authority_and_human_guards_only() -> void:
 	var net_mgr: NetManagerNode = NetManager
 	net_mgr.start_dedicated_server(7777)
 	net_mgr.register_player(2, "Guardia1", NetManagerNode.ROLE_GUARD_1)
@@ -120,14 +114,14 @@ func test_server_authority_and_ai_guards() -> void:
 
 	assert_eq(map.thief.get_multiplayer_authority(), 1, "Thief tiene autoridad del servidor")
 	assert_eq(map.guards[0].get_multiplayer_authority(), 1, "Guard 1 tiene autoridad del servidor")
-	assert_eq(map.guards[1].get_multiplayer_authority(), 1, "Guard 2 tiene autoridad del servidor")
+	assert_eq(map.guards.size(), 1, "Un jugador guardia: un guardia en el mapa")
+	assert_null(map.get_node_or_null("GuardPlayer2"), "Los guardias sin jugador se quitan")
 
 	assert_false(map.thief.is_locally_controlled, "El servidor no controla al ladrón")
 	assert_false(map.guards[0].is_locally_controlled, "El servidor no controla al Guard 1")
 	assert_null(map.local_player, "El servidor dedicado no tiene jugador local")
 
 	assert_false(map.guards[0].is_ai_controlled, "Guard 1 ocupado por un humano: sin IA")
-	assert_true(map.guards[1].is_ai_controlled, "Guard 2 sin humano: controlado por la IA")
 
 	# Los roles guard_N mapean a guards[N-1] en orden de escena
 	var session: NetSession = map.get_node("NetSession") as NetSession
@@ -136,9 +130,7 @@ func test_server_authority_and_ai_guards() -> void:
 	assert_eq(
 		session.actor_for_role(NetManagerNode.ROLE_GUARD_1), map.guards[0], "guard_1 → guards[0]"
 	)
-	assert_eq(
-		session.actor_for_role(NetManagerNode.ROLE_GUARD_2), map.guards[1], "guard_2 → guards[1]"
-	)
+	assert_null(session.actor_for_role(NetManagerNode.ROLE_GUARD_2), "guard_2 sin actor")
 
 	net_mgr.disconnect_network()
 
