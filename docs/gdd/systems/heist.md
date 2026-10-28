@@ -103,6 +103,19 @@ Desaparece el caso «ronda rota y el ladrón tenía la Pieza Maestra = gana el l
   - El chasquido suena con radio `walkie_radius` alrededor de quien habla.
   - Espera `walkie_cooldown` s entre usos.
 
+### R9. Protecciones de las piezas
+Cada candidata tiene una protección. El ladrón elige entre **desactivarla y robar en silencio** o **robar a lo bruto**: es instantáneo, pero suena la campana de alarma de esa sala (un ruido de radio `brute_radius`) y la alerta pasa a «alarma» al momento. El reparto es de 2 piezas por tipo, y la caja fuerte es de combinación.
+
+| Protección | Cómo se desactiva | Qué deja | Contrajuego |
+|---|---|---|---|
+| **Combinación** (vitrina con dial; la caja fuerte) | El panel del dial que ya existe | La vitrina vacía (rastro normal, R6) | La caja fuerte no admite el robo a lo bruto |
+| **Pedestal de presión: el cambiazo** | Coger una **pieza de pega** en la mesa de réplicas del taller (una cada vez) y cambiarla por el original (`swap_time` s, en silencio) | Una **copia parecida pero no igual**: cada partida se sortea un fallo por copia (color, tamaño, pose o un detalle que falta) | Los guardias tienen en el plano la **ficha** de cada candidata y pueden notar la diferencia. **Examinar** la pieza (E, `inspect_time` s) dice «¡Es una falsificación!» (rastro descubierto) o «Auténtica» |
+| **Sensor del ala: corte de corriente** | Cortar el circuito de alarma en el **cuadro eléctrico de su ala** (`cut_time` s) | Mientras dura el corte, todas las piezas de ese ala se cogen sin alarma. El ala se queda **sin luz**, y en la garita se enciende un **piloto rojo** con el ala cortada | Ver el piloto o la oscuridad. Restablecer la corriente en el cuadro (`restore_time` s), lo que vuelve a proteger las piezas que queden |
+
+- **Una pieza de pega sin descubrir no es rastro**: el pedestal parece intacto. Es la jugada elegante del caballero.
+- Un guardia que examina una pieza auténtica pierde el tiempo. No compensa revisarlo todo a ciegas.
+- El corte de corriente no cuenta como rastro descubierto hasta que un guardia ve el piloto o llega al ala a oscuras.
+
 ## Números
 Viven en un recurso nuevo, `data/balance/heist_rules.tres` (`HeistRules`). Son valores iniciales para afinar jugando.
 
@@ -121,6 +134,9 @@ Viven en un recurso nuevo, `data/balance/heist_rules.tres` (`HeistRules`). Son v
 | Café | `coffee_time` / `coffee_radius` / `fresh_time` | ritmo | — | 3 s / 8 m / 120 s |
 | Monedas | `coins` / `throw_range` / `coin_radius` | ritmo | 2-5 / 6-14 m / 6-12 m | 3 / 10 / 9 |
 | Walkie | `ping_time` / `walkie_radius` / `walkie_cooldown` | ritmo | — | 8 s / 6 m / 10 s |
+| Robo a lo bruto | `brute_radius` | sensación | 12-20 m | 15 |
+| Cambiazo / examinar | `swap_time` / `inspect_time` | ritmo | 1-4 s / 1-3 s | 2 / 2 |
+| Cortar / restablecer la corriente | `cut_time` / `restore_time` | ritmo | 2-5 s | 3 / 3 |
 
 ## Contrajuego
 | Acción | Quién | Qué percibe el otro | Cómo responde |
@@ -131,6 +147,9 @@ Viven en un recurso nuevo, `data/balance/heist_rules.tres` (`HeistRules`). Son v
 | Lanzar una moneda | Ladrón | Un ruido como cualquier otro | Mandar a uno solo a mirar, con el walkie |
 | Usar el walkie | Guardia | El chasquido | Saber dónde está ese guardia |
 | Salir | Ladrón | Nada antes de cruzar | Patrullar cerca de las salidas al final, sin poder cubrir las 3 |
+| Dar el cambiazo | Ladrón | Una copia con un fallo | Fijarse en ella, compararla con la ficha y examinarla |
+| Cortar la corriente de un ala | Ladrón | El piloto rojo en la garita y el ala a oscuras | Ir al cuadro y restablecerla |
+| Robar a lo bruto | Ladrón | La campana y la alarma al momento | Ir todos hacia allí y cerrar las salidas de esa zona |
 
 ## Casos límite
 - **El ladrón roba la última pieza junto a una salida**: gana al cruzarla. Es lo que se busca: elegir bien el orden es parte del juego.
@@ -155,6 +174,7 @@ Viven en un recurso nuevo, `data/balance/heist_rules.tres` (`HeistRules`). Son v
   - la Miniatura (taller);
   - la caja fuerte.
 - Una cafetera en la garita.
+- Protección de cada candidata (2 de combinación con la caja fuerte, 2 de presión y 2 de sensor), la mesa de réplicas en el taller (TAL), un cuadro eléctrico de alarma por ala y el panel de pilotos en la garita.
 - Las salidas exteriores P01, P02 y P03 marcadas como «salida».
 
 ## Qué medir
@@ -167,9 +187,10 @@ Viven en un recurso nuevo, `data/balance/heist_rules.tres` (`HeistRules`). Son v
 
 ## Estado
 Sin implementar. Entregas propuestas, cada una se puede probar por separado:
-1. lista + carta + escape + condiciones de victoria;
+1. lista + carta + escape + condiciones de victoria, con las protecciones de combinación y el robo a lo bruto;
 2. sueño y café;
-3. rastros + alerta + monedas + walkie.
+3. rastros + alerta + monedas + walkie;
+4. el cambiazo con piezas de pega y el corte de corriente.
 
 ## Preguntas abiertas
 1. **Poder de la alarma.** El museo **no tiene puertas que se abran y se cierren** (los pasos son huecos), así que «cerrar puertas con llave» necesita antes un sistema de puertas. Opciones:
