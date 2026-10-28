@@ -25,7 +25,10 @@ static func build(data: LevelData, props: Node3D, targets: Array) -> void:
 		)
 		zone.position = data.to_world(exit_data["pos"])
 		props.add_child(zone)
-	props.add_child(HeistDirector.new())
+	var director: HeistDirector = HeistDirector.new()
+	props.add_child(director)
+	director.add_child(AlertDirector.new())
+	props.add_child(HeistInput.new())
 
 
 ## La cafetera de la garita y el sueño de cada guardia de la escena (heist.md R5)

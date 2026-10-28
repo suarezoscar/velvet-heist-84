@@ -65,6 +65,7 @@ Nadie lo ve todo:
 | Interactuar · robar a lo bruto (salta la alarma) | <kbd>E</kbd> · <kbd>Q</kbd> |
 | Plano del museo | <kbd>M</kbd> o <kbd>Tab</kbd> |
 | Linterna · porra (guardias) | <kbd>F</kbd> · clic izquierdo |
+| Moneda (ladrón) · walkie · luces de alarma (guardias) | clic derecho · <kbd>T</kbd> · <kbd>Q</kbd> |
 | Panel de rendimiento y red | <kbd>F9</kbd> |
 | Pausa: controles y salir | <kbd>Esc</kbd> |
 | Revancha · volver al menú (al acabar) | <kbd>R</kbd> · <kbd>Esc</kbd> |

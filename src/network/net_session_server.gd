@@ -87,7 +87,8 @@ func on_action(peer: int, action: StringName) -> void:
 	var actor: PlayerBase3D = _actor_for_peer(peer)
 	if actor == null:
 		return
-	actor.perform_action(action)
+	if not HeistActions.handle(actor, action):  # moneda, walkie, luces de alarma
+		actor.perform_action(action)
 
 
 ## Un cliente ha cargado el mapa: recibe el estado completo y empieza a recibir ticks

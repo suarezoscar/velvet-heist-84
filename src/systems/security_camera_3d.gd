@@ -176,6 +176,18 @@ func _process_detection() -> void:
 		_set_cone_alert(false)
 
 
+## true si la cámara ve un punto: en su cono y alcance, sin muros de por medio (los muebles no
+## tapan). heist.md R6 la usa para los pedestales vacíos
+func sees_point(point: Vector3) -> bool:
+	var to_point: Vector3 = point - mount.global_position
+	if to_point.length() > detection_range or to_point.length() < 0.2:
+		return false
+	var forward: Vector3 = -mount.global_transform.basis.z.normalized()
+	if rad_to_deg(forward.angle_to(to_point.normalized())) > detection_fov_deg * 0.5:
+		return false
+	return VisionLogic.wall_free(get_world_3d().direct_space_state, mount.global_position, point)
+
+
 func _check_line_of_sight(target: Node3D) -> bool:
 	var cam_pos: Vector3 = mount.global_position
 	var target_center: Vector3 = target.global_position + Vector3(0.0, 0.8, 0.0)

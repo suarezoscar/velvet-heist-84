@@ -40,6 +40,14 @@ static func sees_cameras(target: GuardController3D) -> bool:
 	return sleep == null or not sleep.nodding
 
 
+## true si el guardia está dando una cabezada (no ve nada)
+static func sees_nothing(target: GuardController3D) -> bool:
+	var sleep: GuardSleep = (
+		target.get_node_or_null("Sleep") as GuardSleep if target != null else null
+	)
+	return sleep != null and sleep.nodding
+
+
 static func attach(target: GuardController3D) -> GuardSleep:
 	var sleep: GuardSleep = GuardSleep.new()
 	sleep.name = "Sleep"
@@ -86,7 +94,9 @@ func step(delta: float) -> void:
 		_drink(delta)
 	fresh_left = maxf(0.0, fresh_left - delta)
 	var camping: bool = _meter.is_camping(RULES.radius, RULES.linger_ratio, max_samples)
-	if camping and fresh_left <= 0.0 and not guard.is_perceiving_thief:
+	var alarm: AlertDirector = AlertDirector.of(get_tree())
+	var alarmed: bool = alarm != null and alarm.level == AlertDirector.Level.ALARM
+	if camping and fresh_left <= 0.0 and not guard.is_perceiving_thief and not alarmed:
 		level = minf(1.0, level + RULES.rise_rate * delta)
 	_update_yawn(delta)
 	_update_nod(delta)
