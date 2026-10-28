@@ -8,6 +8,7 @@ extends PlayerBase3D
 enum ViewMode { HIDDEN, WORLD, CCTV }
 
 ## Ruta del perfil de movimiento del ladrón
+const HEIST_RULES: HeistRules = preload("res://data/balance/heist_rules.tres")
 const MOVEMENT_PROFILE_PATH: String = "res://data/balance/movement_thief.tres"
 
 ## Factor multiplicador de velocidad al cargar botín pesado (-20% según GSD 4.3)
@@ -112,6 +113,14 @@ func simulate_movement(delta: float) -> void:
 	if is_carrying_heavy_loot:
 		velocity.x *= HEAVY_LOOT_SPEED_MULTIPLIER
 		velocity.z *= HEAVY_LOOT_SPEED_MULTIPLIER
+
+
+## heist.md R3 (FEAT-033): cada pieza del encargo que lleva le resta HEIST_RULES.loot_slow
+func speed_factor() -> float:
+	if GameManager.heist == null:
+		return 1.0
+	var pieces: int = GameManager.heist.stolen.size()
+	return maxf(HEIST_RULES.loot_min_speed, 1.0 - HEIST_RULES.loot_slow * pieces)
 
 
 ## Sujeta físicamente un botín pesado en las manos del ladrón
