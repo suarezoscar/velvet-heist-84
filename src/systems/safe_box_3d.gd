@@ -5,7 +5,7 @@
 class_name SafeBox3D
 extends Area3D
 
-## Emitida cuando el dial cambia de número. is_near indica si está a +-2 pasos de la combinación
+## Emitida cuando el dial cambia de número. is_near indica si está a NEAR_STEPS de la combinación
 signal dial_rotated(current_val: int, is_near: bool)
 
 ## Emitida cuando se abre la puerta de la caja fuerte con éxito
@@ -20,6 +20,9 @@ enum SafeState {
 	## Desbloqueada y abierta
 	OPENED,
 }
+
+## Pasos a cada lado del número en los que el dial «suena cerca»
+const NEAR_STEPS: int = 2
 
 ## Combinación mecánica de 3 dígitos (entre 0 y 99)
 @export var combination: Array[int] = [30, 65, 15]
@@ -42,6 +45,8 @@ var current_stage: int = 0
 
 ## Posición angular actual del dial (de 00 a 99)
 var current_dial_val: int = 0
+## Números fallados al probar (el panel lo usa para sonar al fallar, también en red)
+var fails: int = 0
 var active_thief: ThiefController3D = null
 var door_pivot: Node3D = null
 var _loot_spawned: bool = false
@@ -118,16 +123,18 @@ func step_dial(direction: int) -> void:
 	var delta_step: int = 1 if direction > 0 else -1
 	current_dial_val = (current_dial_val + delta_step + 100) % 100
 
-	var is_near: bool = false
-	if current_stage < combination.size():
-		var target_num: int = combination[current_stage]
-		var diff: int = absi(current_dial_val - target_num)
-		is_near = diff <= 2 or diff >= 98
-
+	var is_near: bool = target_distance() <= NEAR_STEPS
 	dial_rotated.emit(current_dial_val, is_near)
-
 	if is_near:
-		_emit_acoustic_noise(1.8)
+		_emit_acoustic_noise(1.8, &"dial")
+
+
+## Pasos (por el camino corto) del dial al número que toca; 100 si no queda ninguno
+func target_distance() -> int:
+	if current_stage < 0 or current_stage >= combination.size():
+		return 100
+	var diff: int = absi(current_dial_val - combination[current_stage]) % 100
+	return mini(diff, 100 - diff)
 
 
 ## Cancela la sesión de ganzúa y devuelve la caja fuerte al estado bloqueado
@@ -143,14 +150,15 @@ func _confirm_current_number() -> void:
 	if current_dial_val == target_num:
 		current_stage += 1
 		print("[SafeBox3D] ¡Correcto! Acertados: %d/%d" % [current_stage, combination.size()])
-		_emit_acoustic_noise(4.0)
+		_emit_acoustic_noise(4.0, &"dial")
 
 		if current_stage >= combination.size():
 			_unlock_and_open()
 	else:
 		print("[SafeBox3D] Fallo de combinación. Reseteando pestillos.")
-		_emit_acoustic_noise(7.5)
+		_emit_acoustic_noise(7.5, &"dial")
 		current_stage = 0
+		fails += 1
 
 
 func _unlock_and_open() -> void:
@@ -180,11 +188,12 @@ func _spawn_loot_contents() -> void:
 	get_parent().add_child(loot)
 
 
-func _emit_acoustic_noise(radius: float) -> void:
+## El dial (&"dial") lo oyen los demás como un mecanismo; el ladrón lo oye en su panel
+func _emit_acoustic_noise(radius: float, category: StringName = NoiseEmit.MECHANISM) -> void:
 	var emitter_node: Node = self
 	if active_thief != null:
 		emitter_node = active_thief
-	NoiseEmit.emit(global_position, radius, &"thief", NoiseEmit.MECHANISM, emitter_node)
+	NoiseEmit.emit(global_position, radius, &"thief", category, emitter_node)
 
 
 ## La rompen a lo bruto (vitrina): queda abierta sin combinación
@@ -206,6 +215,7 @@ func get_net_state_private() -> Dictionary:
 		"cracking": current_state == SafeState.CRACKING,
 		"dial": current_dial_val,
 		"stage": current_stage,
+		"fails": fails,
 	}
 
 
@@ -237,15 +247,12 @@ func apply_net_state(state: Dictionary) -> void:
 
 	if state.has("stage"):
 		current_stage = int(state["stage"])
+	if state.has("fails"):
+		fails = int(state["fails"])
 
 	if state.has("dial"):
 		var new_dial: int = int(state["dial"])
 		var dial_changed: bool = new_dial != current_dial_val
 		current_dial_val = new_dial
 		if dial_changed:
-			var is_near: bool = false
-			if current_stage < combination.size():
-				var target_num: int = combination[current_stage]
-				var diff: int = absi(current_dial_val - target_num)
-				is_near = diff <= 2 or diff >= 98
-			dial_rotated.emit(current_dial_val, is_near)
+			dial_rotated.emit(current_dial_val, target_distance() <= NEAR_STEPS)

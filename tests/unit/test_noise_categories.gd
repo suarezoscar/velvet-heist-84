@@ -85,7 +85,7 @@ func test_each_emitter_category() -> void:
 	assert_eq(ev.emitter, thief, "Emisor de depósito pesado debe ser el ladrón")
 	assert_almost_eq(ev.radius, 3.5, 0.01, "Radio de depósito pesado debe ser 3.5 m")
 
-	# 7. safe_box_3d.gd (con ladrón activo) -> mechanism, el ladrón
+	# 7. safe_box_3d.gd (con ladrón activo) -> dial (los demás lo oyen como mecanismo), el ladrón
 	var safe: SafeBox3D = SafeBox3D.new()
 	add_child_autofree(safe)
 	safe.interact(thief)
@@ -94,7 +94,7 @@ func test_each_emitter_category() -> void:
 	safe.interact(thief)
 	assert_eq(_recorded.size(), n + 1, "Confirmar número erróneo debe emitir 1 ruido")
 	ev = _recorded.back()
-	assert_eq(ev.category, &"mechanism", "Caja fuerte debe ser 'mechanism'")
+	assert_eq(ev.category, &"dial", "Caja fuerte debe ser 'dial'")
 	assert_eq(ev.emitter, thief, "Emisor de caja con ladrón activo debe ser el ladrón")
 
 	# Caso self: no hay ruta pública con active_thief == null ya que la sesión requiere un ladrón
@@ -103,7 +103,7 @@ func test_each_emitter_category() -> void:
 	safe._emit_acoustic_noise(6.0)
 	assert_eq(_recorded.size(), n + 1, "Caja fuerte sin ladrón debe emitir 1 ruido")
 	ev = _recorded.back()
-	assert_eq(ev.category, &"mechanism", "Caja fuerte debe ser 'mechanism'")
+	assert_eq(ev.category, &"mechanism", "Abrir la caja suena a mecanismo")
 	assert_eq(ev.emitter, safe, "Emisor de caja sin ladrón debe ser self")
 
 	# 8. escape_car_3d.gd -> mechanism, self

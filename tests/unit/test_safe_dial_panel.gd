@@ -71,3 +71,33 @@ func test_no_prompt_while_turning_dial() -> void:
 	assert_ne(_safe.get_interaction_text(_thief), "", "Antes, «Abrir caja fuerte [E]»")
 	_safe.interact(_thief)
 	assert_eq(_safe.get_interaction_text(_thief), "", "Girando el dial, el aviso lo da el panel")
+
+
+## Cada marca suena según lo cerca que está del número: tic, clic, golpe en el exacto
+func test_sound_and_pointer_follow_distance() -> void:
+	_safe.interact(_thief)
+	var target: int = _safe.combination[0]
+	_safe.current_dial_val = (target + 99) % 100
+	assert_eq(_safe.target_distance(), 1, "Uno antes")
+	_safe.current_dial_val = (target + 2) % 100
+	assert_eq(_safe.target_distance(), 2, "Dos después")
+	_safe.combination = [1, 50, 99] as Array[int]
+	_safe.current_dial_val = 98
+	assert_eq(_safe.target_distance(), 3, "Por el camino corto, pasando por el 0")
+	assert_eq(DialSounds.for_distance(0), DialSounds.exact(), "El número exacto suena distinto")
+	assert_eq(DialSounds.for_distance(1), DialSounds.near(1))
+	assert_ne(DialSounds.near(1), DialSounds.near(2), "Más cerca, otro clic")
+	assert_eq(DialSounds.for_distance(3), DialSounds.tick(), "Lejos, un tic")
+	assert_eq(SafeDial84.pointer_color(0), SafeDial84.OK_COLOR)
+	assert_eq(SafeDial84.pointer_color(2), MenuTheme84.AMBER)
+	assert_eq(SafeDial84.pointer_color(9), SafeDial84.FAR_POINTER)
+
+
+## Fallar se nota aunque se esté en el primer número (el progreso no cambia)
+func test_wrong_guess_counts_even_on_first_number() -> void:
+	_safe.interact(_thief)
+	_safe.current_dial_val = (_safe.combination[0] + 10) % 100
+	_safe.interact(_thief)
+	assert_eq(_safe.current_stage, 0)
+	assert_eq(_safe.fails, 1, "Cuenta el fallo")
+	assert_eq(_safe.get_net_state_private()["fails"], 1, "Y le llega al ladrón")
