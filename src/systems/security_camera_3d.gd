@@ -176,6 +176,12 @@ func _process_detection() -> void:
 		_set_cone_alert(false)
 
 
+## true si la cámara ve el objetivo: en su cono y alcance, sin obstáculos y, si es el ladrón,
+## iluminado (heist.md R6 la usa para los pedestales vacíos)
+func sees(target: Node3D) -> bool:
+	return _check_line_of_sight(target)
+
+
 func _check_line_of_sight(target: Node3D) -> bool:
 	var cam_pos: Vector3 = mount.global_position
 	var target_center: Vector3 = target.global_position + Vector3(0.0, 0.8, 0.0)
