@@ -98,7 +98,10 @@ static func compose(data: Dictionary, players: Array[String]) -> String:
 	var fps: float = float(data.get("fps", 0.0))
 	var frame_ms: float = 1000.0 / fps if fps > 0.0 else 0.0
 	var lines: Array[String] = [
-		"[b]FPS %d[/b]   %.1f ms" % [roundi(fps), frame_ms],
+		(
+			"[b]FPS %d[/b]   %.1f ms   [color=#8a8f9c]v%s[/color]"
+			% [roundi(fps), frame_ms, GameVersion.current()]
+		),
 		(
 			"proceso %.1f ms · física %.1f ms"
 			% [float(data.get("process_ms", 0.0)), float(data.get("physics_ms", 0.0))]
