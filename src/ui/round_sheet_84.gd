@@ -42,6 +42,7 @@ func _ready() -> void:
 	_warning_label.custom_minimum_size = Vector2(190.0, 0.0)
 	box.add_child(_warning_label)
 	_beep = AudioStreamPlayer.new()
+	_beep.bus = &"SFX"
 	_beep.stream = _make_beep()
 	_beep.volume_db = -14.0
 	add_child(_beep)

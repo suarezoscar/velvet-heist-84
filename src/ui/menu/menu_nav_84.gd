@@ -25,6 +25,7 @@ var _player: AudioStreamPlayer = null
 func _ready() -> void:
 	add_theme_constant_override("separation", 4)
 	_player = AudioStreamPlayer.new()
+	_player.bus = &"SFX"
 	_player.volume_db = -14.0
 	add_child(_player)
 

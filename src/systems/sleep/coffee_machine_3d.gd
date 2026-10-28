@@ -1,7 +1,7 @@
 ## @file coffee_machine_3d.gd
 ## La cafetera de la garita (heist.md R5): un guardia humano con E se sirve un café que le
-## quita el sueño. Suena (MECHANISM, radio RULES.coffee_radius): el ladrón sabe que alguien ha
-## dejado su puesto. El modelo es el carrito de café de Poly Haven (coffee_cart.glb).
+## quita el sueño. Suena (categoría «coffee», radio RULES.coffee_radius): el ladrón sabe que
+## alguien ha dejado su puesto. El modelo es el carrito de café de Poly Haven (coffee_cart.glb).
 class_name CoffeeMachine3D
 extends Area3D
 
@@ -27,7 +27,7 @@ func get_interaction_text(actor: Node3D = null) -> String:
 func interact(actor: Node3D) -> void:
 	var sleep: GuardSleep = _sleep_of(actor)
 	if sleep != null and sleep.start_coffee():
-		NoiseEmit.emit(global_position, RULES.coffee_radius, &"guard", NoiseEmit.MECHANISM, actor)
+		NoiseEmit.emit(global_position, RULES.coffee_radius, &"guard", &"coffee", actor)
 
 
 static func _sleep_of(actor: Node3D) -> GuardSleep:
