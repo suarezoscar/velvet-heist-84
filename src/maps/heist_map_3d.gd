@@ -73,6 +73,7 @@ func _ready() -> void:
 	if hud != null and not NetManager.is_dedicated_server:
 		MatchEndMenu84.new().setup(self)  # revancha y vuelta al menú (FEAT-024)
 		PauseMenu84.new().setup(self)  # pausa con Esc (FEAT-026)
+		RoleBriefing84.new().setup(self)  # objetivo al empezar (FEAT-027)
 	if NetManager.is_online() and not NetManager.is_dedicated_server:
 		NetManager.server_disconnected.connect(_on_server_lost)
 	GameManager.start_match()
