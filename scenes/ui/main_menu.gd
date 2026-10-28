@@ -24,6 +24,7 @@ var credit_label: Label = null
 var version_label: Label = null
 var single_player: SinglePlayerPanel = null
 var options: OptionsPanel = null
+var controls: ControlsPanel = null
 var _open_panel: Control = null
 
 @onready var background: TextureRect = $Background
@@ -131,7 +132,11 @@ func _build_panels() -> void:
 	options.name = "OptionsPanel"
 	options.setup(settings)
 	options.back_requested.connect(_close_panel)
-	for panel: Control in [single_player, options]:
+	options.controls_requested.connect(func() -> void: _open(controls))
+	controls = ControlsPanel.new()
+	controls.name = "ControlsPanel"
+	controls.back_requested.connect(func() -> void: _open(options))
+	for panel: Control in [single_player, options, controls]:
 		panel.visible = false
 		home.add_child(panel)
 
@@ -144,9 +149,10 @@ func _open(panel: Control) -> void:
 	_open_panel = panel
 	panel.visible = true
 	panel.reset_size()
-	var target: Vector2 = Vector2(
-		get_viewport_rect().size.x - MARGIN - panel.size.x, NAV_TOP - 260.0
-	)
+	# A la altura del menú, o más arriba si el panel es alto (Controles)
+	var view: Vector2 = get_viewport_rect().size
+	var top: float = clampf(view.y - panel.size.y - 60.0, 40.0, NAV_TOP - 260.0)
+	var target: Vector2 = Vector2(view.x - MARGIN - panel.size.x, top)
 	panel.position = target + Vector2(PANEL_SHIFT, 0.0)
 	panel.modulate.a = 0.0
 	var tween: Tween = create_tween().set_parallel(true)

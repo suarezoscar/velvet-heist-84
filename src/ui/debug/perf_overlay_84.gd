@@ -1,12 +1,13 @@
 ## @file perf_overlay_84.gd
 ## Panel de rendimiento y red (FEAT-021). Autoload PerfOverlay: esquina inferior derecha,
 ## encima de todo. Enseña FPS y tiempos de frame y, con red, el ping, la pérdida y el tráfico
-## propios, los snapshots por segundo y el ping de cada jugador (NetStats). Se muestra con F9 o
-## con la opción «Panel de rendimiento» (GameSettings.show_perf). No existe en el servidor.
+## propios, los snapshots por segundo y el ping de cada jugador (NetStats). Se muestra con la
+## acción toggle_perf_overlay (F9) o con la opción «Panel de rendimiento» (GameSettings.show_perf).
+## No existe en el servidor.
 class_name PerfOverlay84
 extends CanvasLayer
 
-const TOGGLE_KEY: Key = KEY_F9
+const TOGGLE_ACTION: StringName = &"toggle_perf_overlay"
 const REFRESH_INTERVAL: float = 0.25
 const MARGIN: Vector2 = Vector2(16.0, 16.0)
 ## Ping (ms) a partir del cual se pinta en ámbar y en rojo
@@ -43,8 +44,7 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
-	var key: InputEventKey = event as InputEventKey
-	if key != null and key.pressed and not key.echo and key.keycode == TOGGLE_KEY:
+	if event.is_action_pressed(TOGGLE_ACTION, false):
 		set_shown(not visible)
 		get_viewport().set_input_as_handled()
 

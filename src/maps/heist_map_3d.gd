@@ -70,6 +70,8 @@ func _ready() -> void:
 		_setup_online_control()
 	else:
 		_setup_offline_control()
+	if hud != null and not NetManager.is_dedicated_server:
+		MatchEndMenu84.new().setup(self)  # revancha y vuelta al menú (FEAT-024)
 	GameManager.start_match()
 
 
