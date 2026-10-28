@@ -6,7 +6,6 @@
 class_name MatchEndMenu84
 extends VBoxContainer
 
-const MAIN_MENU_SCENE: String = "res://scenes/ui/main_menu.tscn"
 ## Segundos tras el final en que R y Esc no hacen nada: un Esc por reflejo (salir de la caja
 ## fuerte) no debe sacarte al menú y romper la revancha de todos
 const INPUT_GRACE: float = 0.75
@@ -76,9 +75,7 @@ func request_rematch() -> void:
 
 ## Sale de la red, si la hay, y vuelve al menú principal
 func go_to_menu() -> void:
-	if NetManager.is_online():
-		NetManager.disconnect_network()
-	get_tree().change_scene_to_file(MAIN_MENU_SCENE)
+	MenuReturn.to_main_menu(get_tree())
 
 
 ## Texto y estado de los botones según el recuento de la revancha

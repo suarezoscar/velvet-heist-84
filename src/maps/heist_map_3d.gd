@@ -72,6 +72,9 @@ func _ready() -> void:
 		_setup_offline_control()
 	if hud != null and not NetManager.is_dedicated_server:
 		MatchEndMenu84.new().setup(self)  # revancha y vuelta al menú (FEAT-024)
+		PauseMenu84.new().setup(self)  # pausa con Esc (FEAT-026)
+	if NetManager.is_online() and not NetManager.is_dedicated_server:
+		NetManager.server_disconnected.connect(_on_server_lost)
 	GameManager.start_match()
 
 
@@ -240,6 +243,14 @@ func _update_guards_local_visibility(lamps: Array[Lamp3D]) -> void:
 			or VisionLogic.thief_sees_guard(viewer, guard, lamps)
 		)
 		guard.set_body_visible(full)
+
+
+## Se cayó el servidor o nos echó a media partida: al lobby con el motivo (FEAT-026)
+func _on_server_lost() -> void:
+	if is_inside_tree():
+		MenuReturn.to_main_menu(
+			get_tree(), "Se perdió la conexión con el servidor durante la partida."
+		)
 
 
 func _setup_fog() -> void:

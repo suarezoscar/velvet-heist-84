@@ -145,6 +145,12 @@ func _on_server_disconnected() -> void:
 	refresh()
 
 
+## Aviso en ámbar en el registro de conexión (por ejemplo, que se cayó el servidor)
+func show_notice(text: String) -> void:
+	conn_log_lbl.modulate = COLOR_AMBER
+	conn_log_lbl.text = text
+
+
 func _on_version_accepted(server_version: String) -> void:
 	conn_log_lbl.modulate = Color.WHITE
 	conn_log_lbl.text = "Conectado (servidor v%s). Elige bando." % server_version
