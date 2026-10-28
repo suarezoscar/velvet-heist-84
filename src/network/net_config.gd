@@ -38,3 +38,12 @@ const ACTIONS: Array[StringName] = [
 	&"dial_right",
 	&"dial_cancel",
 ]
+
+
+## Puerto de `--port <n>` en los argumentos de la línea de órdenes, o default_port
+static func cli_port(args: PackedStringArray, default_port: int) -> int:
+	var port: int = default_port
+	for i: int in range(args.size()):
+		if args[i] == "--port" and i + 1 < args.size():
+			port = args[i + 1].to_int()
+	return port
