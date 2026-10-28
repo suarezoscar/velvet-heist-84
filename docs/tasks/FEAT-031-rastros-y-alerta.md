@@ -36,4 +36,10 @@ Que patrullar dé información y la partida vaya escalando: los guardias descubr
 - Los guardias de la IA (sin red) no usan el walkie ni las luces.
 
 ## Cierre
-2026-10-28.
+2026-10-28. La revisión del PR #86 encontró que **las cámaras nunca descubrían un pedestal vacío**: su rayo chocaba con el pedestal o con la vitrina. Ahora `SecurityCamera3D.sees_point` mira un punto por encima de la pieza y solo lo tapan los muros (`test_watched_camera_finds_an_empty_pedestal`). También se corrigió:
+- los rastros descubiertos van solo a los guardias, en el estado privado de `Alert` (`found`), y ya no en el estado público de la pieza;
+- el vúmetro del ladrón solo cuenta su propio ruido, no el de las monedas;
+- un guardia en plena cabezada no puede usar el walkie;
+- test de que en alarma no entra sueño.
+
+Para el playtest: un guardia ve los rastros en 360° (sin cono ni luz), y el ladrón puede apagar con un interruptor las lámparas que encendieron las luces de alarma.

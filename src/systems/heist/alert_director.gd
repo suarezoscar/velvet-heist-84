@@ -5,7 +5,8 @@
 ##   alguien mira los monitores queda descubierto (TargetPiece3D.discovered);
 ## - la alerta sube y nunca baja: 1 rastro → sospecha; RULES.alarm_traces rastros, ver al
 ##   ladrón (un guardia o una cámara vigilada) o robar a lo bruto → alarma;
-## - el walkie de los guardias deja marcas en su plano (estado privado de los guardias);
+## - el walkie de los guardias deja marcas en su plano y los rastros descubiertos van solo a
+##   los guardias (estado privado de su audiencia);
 ## - en alarma, las luces de alarma encienden las lámparas cercanas un rato.
 class_name AlertDirector
 extends Node
@@ -136,7 +137,7 @@ func _trace_seen(piece: TargetPiece3D, guards: Array[GuardController3D], watchin
 			return true
 	if watching:
 		for node: Node in get_tree().get_nodes_in_group(&"security_camera"):
-			if (node as SecurityCamera3D).sees(piece):
+			if (node as SecurityCamera3D).sees_point(target):
 				return true
 	return false
 
@@ -158,7 +159,11 @@ func get_net_state_private() -> Dictionary:
 	var marks: Array = []
 	for ping: Dictionary in pings:
 		marks.append([ping["pos"], snappedf(float(ping["left"]), 0.5)])
-	return {"pings": marks, "flood": ceilf(flood_cooldown_left)}
+	var found: Array[StringName] = []
+	for node: Node in get_tree().get_nodes_in_group(&"heist_targets"):
+		if (node as TargetPiece3D).discovered:
+			found.append((node as TargetPiece3D).piece_id)
+	return {"pings": marks, "flood": ceilf(flood_cooldown_left), "found": found}
 
 
 func net_private_audience() -> StringName:
@@ -174,3 +179,8 @@ func apply_net_state(state: Dictionary) -> void:
 			pings.append({"pos": mark[0] as Vector3, "left": float(mark[1])})
 	if state.has("flood"):
 		flood_cooldown_left = float(state["flood"])
+	if state.has("found"):
+		var found: Array = state["found"]
+		for node: Node in get_tree().get_nodes_in_group(&"heist_targets"):
+			var piece: TargetPiece3D = node as TargetPiece3D
+			piece.discovered = found.has(piece.piece_id)
