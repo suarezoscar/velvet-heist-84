@@ -24,6 +24,8 @@ static func start(who: Node3D, seconds: float, leash: float, on_done: Callable) 
 
 ## Avanza; true si ha terminado (completada o cancelada)
 func tick(delta: float) -> bool:
+	if GameManager.is_match_over():
+		return true  # con la partida acabada no termina nada
 	if not is_instance_valid(actor) or actor.global_position.distance_to(_origin) > _leash:
 		return true
 	left -= delta

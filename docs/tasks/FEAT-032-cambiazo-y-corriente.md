@@ -32,4 +32,12 @@ Dar al ladrón formas elegantes de robar las piezas de presión y de sensor sin 
 - Los guardias aparecen a unos 3 m del panel de pilotos: mientras estén en la garita ven los cortes al momento. Es lo que pide el diseño, pero conviene tenerlo en cuenta en el playtest.
 
 ## Cierre
-2026-10-28.
+2026-10-28. La revisión del PR #87 encontró que **la mesa de réplicas estaba encima de la Miniatura (T5)** y le quitaba el foco: el ladrón casi no podía robarla y un guardia no podía examinarla. Se movió a (35,4; 16), junto al armario del taller, con su propia mesa y un busto a medio copiar. Hay un test que comprueba que ninguna pieza queda a menos de 2 m de la mesa.
+
+También se corrigió:
+- las luces de alarma no encienden ni restauran lámparas de un ala sin corriente;
+- una acción que tarda no termina si la partida ya acabó;
+- examinar una pieza robada a lo bruto entretanto no la marca como auténtica;
+- tests de la restauración de las lámparas y de las pistas del encargo.
+
+Pendiente (menor): para enterarse por el panel no hace falta estar despierto ni tener línea de visión, y el cliente no muestra «Examinando…» mientras dura la acción.
