@@ -12,6 +12,7 @@ config_version=5
 
 config/name="Velvet Heist '84"
 config/description="Sigilo tactico / Accion asimetrica multijugador ambientado en 1984"
+config/version="0.1.0"
 run/main_scene="res://scenes/ui/main_menu.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 
