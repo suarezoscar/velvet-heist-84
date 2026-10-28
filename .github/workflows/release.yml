@@ -1,13 +1,18 @@
 name: Release
 
 # Publica una versión descargable del juego (FEAT-023): exporta Linux y Windows y sube los
-# paquetes a GitHub Releases. Se lanza al subir una etiqueta vX.Y.Z, o a mano desde la pestaña
-# Actions («Run workflow») indicando la versión; en ese caso la etiqueta se crea sobre el commit
-# elegido. La versión de la etiqueta se graba en el juego (menú, LEEME y nombre del paquete).
+# paquetes a GitHub Releases, creando la etiqueta vX.Y.Z sobre el commit. Se lanza:
+#   - sola, con cada integración en master que no sea solo documentación: la versión la da
+#     tools/build/next_version.sh (sube el último número; cambiar config/version da el salto);
+#   - al subir a mano una etiqueta vX.Y.Z;
+#   - desde la pestaña Actions («Run workflow») indicando la versión.
+# La versión se graba en el juego (menú, panel F9, LEEME y nombre del paquete).
 
 on:
   push:
+    branches: [ master ]
     tags: [ "v[0-9]+.[0-9]+.[0-9]+*" ]
+    paths-ignore: [ "docs/**", "**/*.md" ]
   workflow_dispatch:
     inputs:
       version:
@@ -17,8 +22,9 @@ on:
 permissions:
   contents: write
 
+# Una release detrás de otra, para que dos integraciones seguidas no pidan la misma versión
 concurrency:
-  group: release-${{ github.ref }}
+  group: release
   cancel-in-progress: false
 
 jobs:
@@ -40,10 +46,13 @@ jobs:
         env:
           INPUT_VERSION: ${{ github.event.inputs.version }}
         run: |
+          git fetch --tags --force --quiet
           if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
             VERSION="${GITHUB_REF_NAME#v}"
-          else
+          elif [[ -n "${INPUT_VERSION}" ]]; then
             VERSION="${INPUT_VERSION#v}"
+          else
+            VERSION="$(./tools/build/next_version.sh)"
           fi
           if [[ ! "${VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
             echo "::error::Versión no válida: '${VERSION}' (se espera X.Y.Z o X.Y.Z-algo)"
