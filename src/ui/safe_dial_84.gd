@@ -3,6 +3,9 @@
 ## número actual, progreso de la combinación y controles. Destella en verde al acertar un
 ## número y en rojo al fallar. Lo enlaza LocalViewPresenter mientras el ladrón local gira el
 ## dial; solo lee la caja, nunca la cambia.
+## Cada marca suena (DialSounds): tic lejos, clic que crece cerca, golpe sordo en el número
+## exacto; acorde al acertar y traqueteo al fallar. La flecha se enciende igual: ámbar cerca,
+## verde en el número.
 class_name SafeDial84
 extends Control
 
@@ -11,6 +14,8 @@ const DIAL_SIZE: Vector2 = Vector2(400.0, 400.0)
 const FLASH_TIME: float = 0.45
 const OK_COLOR: Color = Color("4be38a")
 const FAIL_COLOR: Color = Color("ff4a3d")
+const FAR_POINTER: Color = Color("6d6a62")
+const SFX_DB: float = -6.0
 
 var face: DialFace = null
 var safe: SafeBox3D = null
@@ -18,6 +23,9 @@ var _stage_label: Label = null
 var _pips: Label = null
 var _frame: StyleBoxFlat = null
 var _last_stage: int = 0
+var _last_value: int = 0
+var _last_fails: int = 0
+var _player: AudioStreamPlayer = null
 
 
 ## Esfera del dial dibujada a mano; shown sigue a value por el camino corto
@@ -30,6 +38,7 @@ class DialFace:
 
 	var value: int = 0
 	var shown: float = 0.0
+	var pointer: Color = MenuTheme84.AMBER
 
 	func _process(delta: float) -> void:
 		var diff: float = wrapf(float(value) - shown, -50.0, 50.0)
@@ -66,7 +75,7 @@ class DialFace:
 					center + Vector2(0.0, -tip + 10.0),
 				]
 			),
-			MenuTheme84.AMBER
+			pointer
 		)
 		draw_circle(center, radius * 0.38, KNOB)
 		draw_arc(center, radius * 0.38, 0.0, TAU, 96, Color(RIM, 0.5), 2.0, true)
@@ -89,6 +98,11 @@ class DialFace:
 func _ready() -> void:
 	name = "SafeDial"
 	visible = false
+	_player = AudioStreamPlayer.new()
+	_player.bus = &"SFX"
+	_player.volume_db = SFX_DB
+	_player.max_polyphony = 4
+	add_child(_player)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var center: CenterContainer = CenterContainer.new()
@@ -138,11 +152,28 @@ func _process(_delta: float) -> void:
 	var stage: int = clampi(safe.current_stage, 0, total)
 	_stage_label.text = "NÚMERO %d DE %d" % [mini(stage + 1, total), total]
 	_pips.text = "  ".join(PackedStringArray(_pip_marks(stage, total)))
-	if stage > _last_stage:
-		_flash(OK_COLOR)
-	elif stage < _last_stage:
+	var distance: int = safe.target_distance()
+	face.pointer = pointer_color(distance)
+	if safe.current_dial_val != _last_value:
+		_last_value = safe.current_dial_val
+		_play(DialSounds.for_distance(distance))
+	if safe.fails != _last_fails:
+		_last_fails = safe.fails
 		_flash(FAIL_COLOR)
+		_play(DialSounds.wrong())
+	elif stage > _last_stage:
+		_flash(OK_COLOR)
+		_play(DialSounds.correct())
 	_last_stage = stage
+
+
+## Color de la flecha a distance pasos del número (lo usan los tests)
+static func pointer_color(distance: int) -> Color:
+	if distance == 0:
+		return OK_COLOR
+	if distance <= SafeBox3D.NEAR_STEPS:
+		return MenuTheme84.AMBER
+	return FAR_POINTER
 
 
 ## Enseña el panel para esta caja fuerte, o lo oculta con null
@@ -153,6 +184,8 @@ func bind(target: SafeBox3D) -> void:
 	visible = safe != null
 	if safe != null:
 		_last_stage = safe.current_stage
+		_last_value = safe.current_dial_val
+		_last_fails = safe.fails
 		face.value = safe.current_dial_val
 		face.shown = float(safe.current_dial_val)
 		_process(0.0)
@@ -168,6 +201,12 @@ func _pip_marks(stage: int, total: int) -> Array[String]:
 	for i: int in range(total):
 		marks.append("●" if i < stage else "○")
 	return marks
+
+
+func _play(stream: AudioStream) -> void:
+	if _player != null and visible:
+		_player.stream = stream
+		_player.play()
 
 
 func _flash(color: Color) -> void:

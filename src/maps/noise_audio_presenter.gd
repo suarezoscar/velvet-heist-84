@@ -95,7 +95,8 @@ func handle_noise(
 	var player: Node = null
 
 	if emitter != null and emitter == local:
-		if not streams.is_empty():
+		# El dial propio suena en su panel (SafeDial84 y DialSounds), no como mecanismo
+		if not streams.is_empty() and category != &"dial":
 			var player_2d: AudioStreamPlayer = AudioStreamPlayer.new()
 			if category == &"step":
 				var ratio: float = clampf(radius / _feedback.meter_full_scale, 0.05, 1.0)
