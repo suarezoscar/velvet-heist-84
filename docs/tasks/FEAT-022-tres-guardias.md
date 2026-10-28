@@ -23,6 +23,7 @@ Jugar con 2, 3 o 4 personas: un ladrón y de 1 a 3 guardias, sin guardias de IA 
 - `HeistMap3D`:
   - `offline_guard_count`, que `museum_v2` fija a su número de patrullas;
   - `guard_slots()`.
+- `NetManager.match_guard_slots`: el número de guardias que el servidor fija en `_start_match_rpc(guard_slots)`. Entre «empezar» y la carga del mapa no se aceptan cambios de rol, y quien entra no recibe rol, así que el servidor y los clientes recortan igual aunque la lista cambie.
 - El servidor renumera y sincroniza la lista de jugadores antes del RPC de inicio. Los dos van por el mismo canal fiable, así que los clientes ya tienen su rol definitivo al cargar el mapa.
 
 ## Riesgos y decisiones abiertas

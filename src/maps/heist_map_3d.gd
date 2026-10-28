@@ -152,6 +152,8 @@ func _collect_actors() -> void:
 ## offline_guard_count (o todos)
 func guard_slots() -> int:
 	if NetManager.is_online():
+		if NetManager.match_guard_slots >= 0:
+			return NetManager.match_guard_slots  # fijado al empezar, aunque la lista cambie
 		return NetRoleRegistry.guard_count(NetManager.get_connected_players())
 	return guards.size() if offline_guard_count < 0 else offline_guard_count
 

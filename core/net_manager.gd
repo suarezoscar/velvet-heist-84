@@ -3,14 +3,12 @@
 class_name NetManagerNode
 extends Node
 
-signal server_started
 signal connection_succeeded
 signal connection_failed
 signal server_disconnected
 signal player_connected(peer_id: int, player_info: Dictionary)
 signal player_disconnected(peer_id: int)
 signal player_list_updated
-signal match_started
 
 const DEFAULT_PORT: int = 7777
 const MAX_PLAYERS: int = 4
@@ -20,7 +18,6 @@ const ROLE_THIEF: StringName = &"thief"
 const ROLE_GUARD_1: StringName = &"guard_1"
 const ROLE_GUARD_2: StringName = &"guard_2"
 const ROLE_GUARD_3: StringName = &"guard_3"
-const AVAILABLE_ROLES: Array[StringName] = NetConfig.ROLES
 
 var connected_players: Dictionary = {}
 
@@ -28,6 +25,12 @@ var connected_players: Dictionary = {}
 var local_role: StringName = &""
 
 var is_dedicated_server: bool = false
+
+## Guardias de la partida, fijados por el servidor al empezar (FEAT-022); -1 sin partida
+var match_guard_slots: int = -1
+
+## Entre «empezar» y la carga del mapa: no se aceptan cambios de rol ni roles nuevos
+var _match_starting: bool = false
 
 
 func _ready() -> void:
@@ -37,10 +40,7 @@ func _ready() -> void:
 func _check_cli_arguments() -> void:
 	var args: PackedStringArray = OS.get_cmdline_args()
 	args.append_array(OS.get_cmdline_user_args())
-	var port: int = DEFAULT_PORT
-	for i: int in range(args.size()):
-		if args[i] == "--port" and i + 1 < args.size():
-			port = args[i + 1].to_int()
+	var port: int = NetConfig.cli_port(args, DEFAULT_PORT)
 	if not (args.has("--server") or args.has("--dedicated")):
 		return
 	print("[NetManager] Modo Servidor Dedicado detectado por CLI en puerto %d" % port)
@@ -63,7 +63,6 @@ func start_dedicated_server(port: int = DEFAULT_PORT) -> Error:
 	local_role = &""
 	connected_players.clear()
 	print("[NetManager] Servidor dedicado iniciado con exito en puerto %d" % port)
-	server_started.emit()
 	return OK
 
 
@@ -97,6 +96,8 @@ func disconnect_network() -> void:
 	connected_players.clear()
 	local_role = &""
 	is_dedicated_server = false
+	match_guard_slots = -1
+	_match_starting = false
 	print("[NetManager] Red desconectada.")
 
 
@@ -116,7 +117,9 @@ func _setup_network_signals() -> void:
 func _on_peer_connected(id: int) -> void:
 	print("[NetManager] Peer conectado: ", id)
 	if multiplayer.is_server():
-		var assigned_role: StringName = NetRoleRegistry.next_available_role(connected_players)
+		var assigned_role: StringName = (
+			&"" if _match_in_progress() else NetRoleRegistry.next_available_role(connected_players)
+		)
 		connected_players[id] = {
 			"peer_id": id, "role": assigned_role, "ready": false, "name": "Agente_%d" % id
 		}
@@ -162,18 +165,12 @@ func register_player(peer_id: int, player_name: String = "", role: StringName = 
 		return false
 
 	var p_name: String = player_name if not player_name.is_empty() else "Agente_%d" % peer_id
-
 	connected_players[peer_id] = {
 		"peer_id": peer_id, "role": assigned_role, "ready": false, "name": p_name
 	}
-
 	if multiplayer.has_multiplayer_peer() and peer_id == multiplayer.get_unique_id():
 		local_role = assigned_role
-
-	if multiplayer.has_multiplayer_peer() and multiplayer.is_server():
-		if multiplayer.get_peers().size() > 0:
-			_sync_player_list.rpc(connected_players)
-
+	_broadcast_players()
 	player_connected.emit(peer_id, connected_players[peer_id])
 	player_list_updated.emit()
 	return true
@@ -181,19 +178,20 @@ func register_player(peer_id: int, player_name: String = "", role: StringName = 
 
 ## Asigna un rol a un peer conectado respetando la exclusión mutua
 func assign_role(peer_id: int, desired_role: StringName) -> bool:
-	return _assign_role_internal(peer_id, desired_role)
-
-
-func _assign_role_internal(peer_id: int, desired_role: StringName) -> bool:
 	if not NetRoleRegistry.try_assign(connected_players, peer_id, desired_role):
 		return false
 	if multiplayer.has_multiplayer_peer() and peer_id == multiplayer.get_unique_id():
 		local_role = desired_role
+	_broadcast_players()
+	player_list_updated.emit()
+	return true
+
+
+## En el servidor, reparte la lista de jugadores a los clientes conectados
+func _broadcast_players() -> void:
 	if multiplayer.has_multiplayer_peer() and multiplayer.is_server():
 		if multiplayer.get_peers().size() > 0:
 			_sync_player_list.rpc(connected_players)
-	player_list_updated.emit()
-	return true
 
 
 ## Comprueba si un rol esta libre para ser elegido
@@ -223,7 +221,7 @@ func request_role(new_role: StringName) -> bool:
 	if multiplayer.multiplayer_peer == null:
 		return false
 	if multiplayer.is_server():
-		return _assign_role_internal(multiplayer.get_unique_id(), new_role)
+		return assign_role(multiplayer.get_unique_id(), new_role)
 
 	_request_role_server.rpc_id(1, new_role)
 	return true
@@ -234,18 +232,11 @@ func _request_role_server(desired_role: StringName) -> void:
 	if not multiplayer.is_server() or _match_in_progress():
 		return
 	var sender_id: int = multiplayer.get_remote_sender_id()
-	_assign_role_internal(sender_id, desired_role)
+	assign_role(sender_id, desired_role)
 
 
-## Inicia la operación (solo invocable por el servidor)
-func launch_match() -> void:
-	if not multiplayer.is_server():
-		return
-	_start_match_rpc.rpc()
-
-
-## Pide el lanzamiento de la partida. En un cliente se lo pide al servidor;
-## el servidor solo arranca si el rol de ladrón está ocupado (FEAT-014).
+## Pide el lanzamiento de la partida. En un cliente se lo pide al servidor; el servidor solo
+## arranca con el ladrón y al menos un guardia (FEAT-014, FEAT-022).
 func request_start() -> void:
 	if not is_online():
 		return
@@ -266,15 +257,24 @@ func _try_start_match() -> void:
 	# Sin ladrón o sin guardias no hay partida, y la que está en curso no se relanza
 	if not NetRoleRegistry.can_start(connected_players) or _match_in_progress():
 		return
-	NetRoleRegistry.compact_guards(connected_players)  # guard_1..guard_n, sin huecos
+	_start_match_rpc.rpc(_prepare_start())
+
+
+## Cierra los cambios de rol, renumera los guardias (guard_1..guard_n, sin huecos), reparte la
+## lista y devuelve cuántos guardias tendrá la partida
+func _prepare_start() -> int:
+	_match_starting = true
+	NetRoleRegistry.compact_guards(connected_players)
 	local_role = NetRoleRegistry.role_for_peer(connected_players, multiplayer.get_unique_id())
-	_sync_player_list.rpc(connected_players)
-	launch_match()
+	_broadcast_players()
+	return NetRoleRegistry.guard_count(connected_players)
 
 
 @rpc("authority", "call_local", "reliable")
-func _start_match_rpc() -> void:
-	match_started.emit()
+func _start_match_rpc(guard_slots: int) -> void:
+	match_guard_slots = guard_slots
+	_match_starting = true
+	get_tree().scene_changed.connect(func() -> void: _match_starting = false, CONNECT_ONE_SHOT)
 	get_tree().change_scene_to_file("res://scenes/maps/museum_v2.tscn")
 
 
@@ -297,4 +297,4 @@ func get_connected_players() -> Dictionary:
 
 
 func _match_in_progress() -> bool:
-	return GameManager.current_state == GameManager.MatchState.IN_PROGRESS
+	return _match_starting or GameManager.current_state == GameManager.MatchState.IN_PROGRESS

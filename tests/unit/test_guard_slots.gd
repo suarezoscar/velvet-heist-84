@@ -55,3 +55,19 @@ func test_online_three_guards() -> void:
 	for guard: GuardController3D in map.guards:
 		assert_false(guard.is_ai_controlled, "Todos humanos")
 	net_mgr.disconnect_network()
+
+
+func test_start_closes_roles_and_renumbers() -> void:
+	var net_mgr: NetManagerNode = NetManager
+	net_mgr.start_dedicated_server(7777)
+	net_mgr.register_player(2, "L", &"thief")
+	net_mgr.register_player(3, "A", &"guard_2")
+	net_mgr.register_player(4, "B", &"guard_3")
+	assert_eq(net_mgr.call("_prepare_start"), 2, "Dos guardias en la partida")
+	assert_eq(net_mgr.get_role_for_peer(3), &"guard_1", "guard_2 pasa a guard_1")
+	assert_eq(net_mgr.get_role_for_peer(4), &"guard_2", "guard_3 pasa a guard_2")
+	assert_true(net_mgr.call("_match_in_progress"), "Arrancando cuenta como partida en curso")
+	net_mgr.call("_on_peer_connected", 9)
+	assert_eq(net_mgr.get_role_for_peer(9), &"", "El que entra arrancando no recibe rol")
+	net_mgr.disconnect_network()
+	assert_false(net_mgr.get("_match_starting"), "Al desconectar se reabre el lobby")
