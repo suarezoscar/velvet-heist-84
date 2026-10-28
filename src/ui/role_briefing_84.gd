@@ -101,7 +101,8 @@ func _process(delta: float) -> void:
 	if _panel == null or _closing:
 		return
 	_time_left -= delta
-	_refresh_lines()
+	if GameManager.heist != null and _is_thief and GameManager.heist.targets.is_empty():
+		_refresh_lines()  # con red, el encargo llega al poco de cargar el mapa
 	if GameManager.is_match_over():
 		queue_free()  # sin fundido: no debe tapar el panel de fin
 	elif _time_left <= 0.0:

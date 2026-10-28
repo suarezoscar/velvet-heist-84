@@ -93,9 +93,12 @@ func test_steal_each_protection_and_escape() -> void:
 				break
 	heist.contract_size = 3
 	var safe_piece: TargetPiece3D = _first(map, &"safe", true)
-	assert_false(safe_piece.can_interact(thief), "Caja fuerte cerrada: primero el dial")
 	assert_false(safe_piece.can_force(thief), "La caja fuerte no se rompe")
-	assert_true(safe_piece.lock.can_interact(thief))
+	safe_piece.interact(thief)
+	assert_eq(
+		safe_piece.lock.current_state, SafeBox3D.SafeState.CRACKING, "Cerrada: E abre el dial"
+	)
+	assert_false(safe_piece.stolen, "Y no la roba")
 	safe_piece.lock.current_state = SafeBox3D.SafeState.OPENED
 	safe_piece.interact(thief)
 	assert_true(safe_piece.stolen, "Abierta, se coge en silencio")
@@ -132,3 +135,51 @@ func test_guards_see_the_letter_not_the_contract() -> void:
 		true, ["Busto de bronce (Archivo)"] as Array[String], 3, 10, 4
 	)
 	assert_string_contains(thief_lines[0], "Busto de bronce")
+
+
+## Jugando de verdad: el rayo del ladrón da en el área de la pieza y la E llega a su candado
+func test_dial_reachable_through_the_piece() -> void:
+	var map: HeistMap3D = _map()
+	await wait_physics_frames(2)
+	var heist: HeistDirector = GameManager.heist
+	var thief: ThiefController3D = map.thief
+	for variant: StringName in [&"case", &"safe"]:
+		var piece: TargetPiece3D = null
+		for node: Node in get_tree().get_nodes_in_group(&"heist_targets"):
+			if (node as TargetPiece3D).variant == variant:
+				piece = node as TargetPiece3D
+		heist.targets = [piece.piece_id] as Array[StringName]
+		heist.contract_size = 1
+		var focused: bool = false
+		for dir: Vector3 in [Vector3.RIGHT, Vector3.LEFT, Vector3.BACK, Vector3.FORWARD]:
+			thief.global_position = piece.global_position + dir * 1.2
+			thief.look_at(
+				(
+					piece.global_position
+					+ Vector3(0.0, thief.global_position.y - piece.global_position.y, 0.0)
+				),
+				Vector3.UP
+			)
+			await wait_physics_frames(3)
+			if thief.interactor.current_target == piece:
+				focused = true
+				break
+		assert_true(focused, "El ladrón enfoca la pieza (%s)" % variant)
+		assert_string_contains(piece.get_interaction_text(thief), "[E]", "Texto del candado")
+		assert_true(thief.perform_action(&"interact"), "E abre el dial")
+		assert_eq(
+			piece.lock.current_state, SafeBox3D.SafeState.CRACKING, "Dial abierto (%s)" % variant
+		)
+		piece.lock.cancel_cracking()
+
+
+## heist.md R4: con encargo, la ronda rota al acabar el tiempo es empate aunque lleve la Pieza
+func test_time_out_with_broken_round_is_a_draw() -> void:
+	var map: HeistMap3D = _map()
+	await wait_physics_frames(2)
+	var clock: TimeClock3D = get_tree().get_nodes_in_group(&"time_clock")[0] as TimeClock3D
+	clock.faults = GameManager.CLOCK_RULES.allowed_misses + 1
+	GameManager.has_masterpiece = true
+	assert_eq(GameManager.time_expired_state(), GameManager.MatchState.TIME_EXPIRED_DRAW)
+	GameManager.has_masterpiece = false
+	assert_not_null(map)

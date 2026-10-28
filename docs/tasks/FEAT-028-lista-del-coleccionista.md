@@ -16,7 +16,7 @@ Que los guardias no sepan qué defender ni por dónde saldrá el ladrón: un enc
 | 3 | Protecciones: vitrina y caja fuerte con dial (abiertas, E coge la pieza en silencio); la vitrina se rompe con Q y la caja fuerte no; los pedestales de presión y sensor solo se roban a lo bruto (E o Q) en esta entrega. A lo bruto suena con radio 15 m | `test_steal_each_protection_and_escape` |
 | 4 | Fuera del encargo no se puede tocar ninguna pieza; el dial de su candado ni se activa | `test_steal_each_protection_and_escape` |
 | 5 | Con el encargo completo, el ladrón gana al cruzar cualquiera de las 3 salidas; sin él, no pasa nada. El coche es decorado | `test_steal_each_protection_and_escape`, `test_exit_without_contract_does_nothing` y prueba con el mapa |
-| 6 | Si se acaba el tiempo con la ronda rota, es empate (el ladrón siempre tiene que escapar) | `GameManager.time_expired_state` con encargo |
+| 6 | Si se acaba el tiempo con la ronda rota, es empate (el ladrón siempre tiene que escapar) | `test_time_out_with_broken_round_is_a_draw` |
 | 7 | HUD: el ladrón ve «ENCARGO n / N» y la lista con salas; los guardias, «LA CARTA: SE LLEVARÁ N PIEZAS». Tarjeta de objetivo y resumen de fin con el encargo | capturas y `test_guards_see_the_letter_not_the_contract` |
 
 ## Contratos
@@ -40,4 +40,4 @@ Que los guardias no sepan qué defender ni por dónde saldrá el ladrón: un enc
 - A lo bruto aún no sube la alerta (entrega 3): de momento solo suena.
 
 ## Cierre
-2026-10-28.
+2026-10-28. La revisión del PR #82 encontró que, jugando de verdad, el dial de la vitrina y de la caja fuerte no se podía abrir: el área de la pieza tapaba la de su candado. Ahora la pieza pasa la E a su candado mientras está cerrado. Hay un test que lo comprueba con el rayo de interacción real (`test_dial_reachable_through_the_piece`) y otro del empate por ronda rota con encargo.
