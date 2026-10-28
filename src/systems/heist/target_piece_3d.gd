@@ -2,18 +2,17 @@
 ## Pieza candidata del encargo (heist.md R1 y R9): pedestal con su pieza y una protección.
 ## - Combinación: la guarda un candado (SafeBox3D: vitrina o caja fuerte). Abierto, E la coge en
 ##   silencio. Una vitrina se puede romper a lo bruto (Q); la caja fuerte, no.
-## - Presión y sensor: en esta entrega solo a lo bruto (E o Q); el cambiazo y el corte de
-##   corriente llegan después.
-## A lo bruto suena la campana (ruido de RULES.brute_radius). Solo el ladrón puede robarla, y
-## solo si está en su encargo. Una marca encima la señala: rosa al ladrón si es de su encargo y
-## cian a los guardias en todas las candidatas (saben cuáles son, no cuáles busca).
+## - Presión: con una pieza de pega del taller, E da el cambiazo en silencio (RULES.swap_time).
+##   La copia se queda con un fallo sorteado (TargetPieceLook.Flaw) y no es un rastro hasta
+##   que un guardia la examina (E, RULES.inspect_time). Sin copia, E es a lo bruto.
+## - Sensor: con la corriente de su ala cortada (PowerBox3D), E la coge en silencio; si no,
+##   a lo bruto.
+## A lo bruto suena la campana (ruido de RULES.brute_radius) y salta la alarma. Solo el ladrón
+## puede robarla, y solo si está en su encargo. El aspecto vive en TargetPieceLook.
 class_name TargetPiece3D
 extends Area3D
 
 const RULES: HeistRules = preload("res://data/balance/heist_rules.tres")
-const PEDESTAL_SIZE: Vector3 = Vector3(0.7, 1.0, 0.7)
-const MODEL_SIZE: float = 0.6
-const MARKER_HEIGHT: float = 2.3
 const SILENT_RADIUS: float = 2.5
 
 var piece_id: StringName = &""
@@ -23,16 +22,22 @@ var room_name: String = ""
 var protection: StringName = &"combination"
 ## Candado de las piezas de combinación (null en las demás)
 var lock: SafeBox3D = null
+## Cuadro eléctrico del ala de las piezas de sensor (null en las demás)
+var power_box: PowerBox3D = null
 var variant: StringName = &"pedestal"
 var stolen: bool = false
-## Un guardia (o una cámara vigilada) ha visto el pedestal vacío (heist.md R6)
+## Fallo de la pieza de pega que quedó en su lugar (NONE: no hubo cambiazo)
+var flaw: TargetPieceLook.Flaw = TargetPieceLook.Flaw.NONE
+## Un guardia (o una cámara vigilada) sabe que falta (heist.md R6)
 var discovered: bool = false
+## Un guardia la examinó y era auténtica
+var inspected: bool = false
 var model: Node3D = null
 var marker: Label3D = null
+var _task: TimedTask = null
 var _marker_timer: float = 0.0
 
 
-## Crea la pieza (sin añadirla): model_scene es el modelo que se coloca sobre el pedestal
 ## variant: &"pedestal" (sobre su pedestal), &"case" (sobre la vitrina, que es su candado) o
 ## &"safe" (dentro de la caja fuerte: no se ve hasta abrirla)
 static func create(
@@ -48,7 +53,7 @@ static func create(
 	piece.protection = kind
 	piece.variant = variant
 	piece.name = "Target_%s" % id
-	piece._build(model_scene)
+	TargetPieceLook.build(piece, model_scene)
 	return piece
 
 
@@ -60,6 +65,11 @@ func _ready() -> void:
 	monitoring = true
 
 
+func _physics_process(delta: float) -> void:
+	if _task != null and _task.tick(delta):
+		_task = null
+
+
 func _process(delta: float) -> void:
 	_marker_timer -= delta
 	if _marker_timer > 0.0:
@@ -67,17 +77,29 @@ func _process(delta: float) -> void:
 	_marker_timer = 0.25
 	if variant == &"safe" and model != null and lock != null:
 		model.visible = not stolen and lock.current_state == SafeBox3D.SafeState.OPENED
-	_update_marker()
+	TargetPieceLook.update_marker(self)
+
+
+## true si se ha llevado el original y dejado una copia
+func is_faked() -> bool:
+	return flaw != TargetPieceLook.Flaw.NONE
 
 
 ## El ladrón puede ir a por ella: sigue en su sitio y está en su encargo
 func is_available(actor: Node3D) -> bool:
-	return not stolen and actor is ThiefController3D and _in_contract()
+	return not stolen and actor is ThiefController3D and in_contract()
+
+
+## Un guardia puede examinarla: está a la vista (no vacía) y aún no sabe nada de ella
+func can_inspect(actor: Node3D) -> bool:
+	return actor is GuardController3D and not discovered and not inspected and _looks_whole()
 
 
 ## Con el candado cerrado, la E pasa a él (su área queda tapada por la de la pieza)
 func can_interact(actor: Node3D = null) -> bool:
-	if not is_available(actor):
+	if can_inspect(actor):
+		return _task == null
+	if not is_available(actor) or _task != null:
 		return false
 	if _lock_closed():
 		return lock.can_interact(actor)
@@ -85,26 +107,31 @@ func can_interact(actor: Node3D = null) -> bool:
 
 
 func get_interaction_text(actor: Node3D = null) -> String:
+	if actor is GuardController3D:
+		return "Examinando…" if _task != null else "Examinar %s [E]" % piece_name
+	if _task != null:
+		return "Dando el cambiazo…"
 	if _lock_closed():
 		return lock.get_interaction_text(actor)
-	if lock != null:
+	if lock != null or _silent_steal_ready():
 		return "Coger %s [E]" % piece_name
+	if protection == &"pressure" and _has_fake():
+		return "Dar el cambiazo con la pieza de pega [E]"
 	return "Robar %s a lo bruto: salta la alarma [E]" % piece_name
 
 
-## E: abrir el candado (dial), coger la pieza en silencio si está abierto, o a lo bruto si no
-## tiene candado
+## E: examinar (guardia), abrir el candado, dar el cambiazo, coger en silencio o a lo bruto
 func interact(actor: Node3D) -> void:
 	if not can_interact(actor):
 		return
-	if _lock_closed():
+	if actor is GuardController3D:
+		_task = TimedTask.start(actor, RULES.inspect_time, RULES.task_leash, _finish_inspect)
+	elif _lock_closed():
 		lock.interact(actor)
+	elif protection == &"pressure" and _has_fake():
+		_task = TimedTask.start(actor, RULES.swap_time, RULES.task_leash, _finish_swap)
 	else:
-		steal(lock == null)
-
-
-func _lock_closed() -> bool:
-	return lock != null and lock.current_state != SafeBox3D.SafeState.OPENED
+		steal(lock == null and not _silent_steal_ready())
 
 
 ## Q: a lo bruto. Vale si no hay candado o es una vitrina (la caja fuerte no se rompe)
@@ -121,11 +148,13 @@ func force(actor: Node3D) -> bool:
 	return true
 
 
-## Autoridad: la pieza desaparece del pedestal y cuenta para el encargo
-func steal(brute: bool) -> void:
+## Autoridad: la pieza sale del pedestal y cuenta para el encargo
+func steal(brute: bool, fake: TargetPieceLook.Flaw = TargetPieceLook.Flaw.NONE) -> void:
 	if stolen:
 		return
 	stolen = true
+	flaw = fake
+	inspected = false
 	if lock != null and lock.current_state != SafeBox3D.SafeState.OPENED:
 		lock.break_open()
 	_apply_stolen()
@@ -142,99 +171,64 @@ func steal(brute: bool) -> void:
 	print("[TargetPiece3D] %s robada%s" % [piece_name, " a lo bruto" if brute else ""])
 
 
-## Público: si el pedestal está vacío. Si está descubierto va solo a los guardias (Alert)
+## Público: si el pedestal está vacío, el fallo de la copia (se ve) y si un guardia la
+## examinó y era auténtica. Lo que ya saben los guardias va solo a ellos (AlertDirector)
 func get_net_state() -> Dictionary:
-	return {"stolen": stolen}
+	return {"stolen": stolen, "flaw": int(flaw), "inspected": inspected}
 
 
 func apply_net_state(state: Dictionary) -> void:
+	inspected = bool(state.get("inspected", inspected))
+	var new_flaw: TargetPieceLook.Flaw = int(state.get("flaw", 0)) as TargetPieceLook.Flaw
 	if bool(state.get("stolen", false)) and not stolen:
 		stolen = true
+		flaw = new_flaw
 		_apply_stolen()
+
+
+func in_contract() -> bool:
+	return GameManager.heist != null and GameManager.heist.is_in_contract(piece_id)
+
+
+func _finish_swap(actor: Node3D) -> void:
+	if stolen or GameManager.heist == null or not GameManager.heist.carrying_fake:
+		return
+	GameManager.heist.carrying_fake = false
+	var flaws: Array = [
+		TargetPieceLook.Flaw.TINT, TargetPieceLook.Flaw.SIZE, TargetPieceLook.Flaw.POSE
+	]
+	steal(false, flaws.pick_random() as TargetPieceLook.Flaw)
+	print("[TargetPiece3D] Cambiazo en %s por %s" % [piece_name, actor.name])
+
+
+func _finish_inspect(_actor: Node3D) -> void:
+	if stolen and not is_faked():
+		return  # se la llevaron a lo bruto mientras la examinaba: ya está descubierta
+	if is_faked():
+		discovered = true
+		print("[TargetPiece3D] ¡%s es una falsificación!" % piece_name)
+	else:
+		inspected = true
 
 
 func _apply_stolen() -> void:
 	if model != null:
-		model.visible = false
-	_update_marker()
+		model.visible = is_faked()
+		TargetPieceLook.apply_flaw(model, flaw)
+	TargetPieceLook.update_marker(self)
 
 
-func _in_contract() -> bool:
-	return GameManager.heist != null and GameManager.heist.is_in_contract(piece_id)
+func _looks_whole() -> bool:
+	return (not stolen or is_faked()) and model != null and model.visible
 
 
-## Rosa para el ladrón local si es de su encargo y sigue en su sitio; cian para los guardias
-func _update_marker() -> void:
-	if marker == null:
-		return
-	if HeistDirector.local_is_thief(get_tree()):
-		marker.visible = _in_contract() and not stolen
-		marker.modulate = TeamMarker3D.THIEF_COLOR
-	else:
-		# Guardias: cian si sigue siendo candidata, rojo con ✘ si ya saben que se la llevó
-		marker.visible = not NetManager.is_dedicated_server
-		marker.text = "✘" if discovered else "◆"
-		marker.modulate = Color("ff4a3d") if discovered else TeamMarker3D.GUARD_COLOR
+func _lock_closed() -> bool:
+	return lock != null and lock.current_state != SafeBox3D.SafeState.OPENED
 
 
-func _build(model_scene: PackedScene) -> void:
-	var shape: BoxShape3D = BoxShape3D.new()
-	shape.size = PEDESTAL_SIZE + Vector3(0.6, 0.8, 0.6)
-	var col: CollisionShape3D = CollisionShape3D.new()
-	col.shape = shape
-	col.position = Vector3(0.0, shape.size.y * 0.5, 0.0)
-	add_child(col)
-	if variant == &"pedestal":
-		_build_pedestal()
-	if model_scene != null:
-		model = model_scene.instantiate() as Node3D
-		model.name = "Piece"
-		add_child(model)
-		_fit_model()
-		model.visible = variant != &"safe"
-	marker = Label3D.new()
-	marker.name = "Marker"
-	marker.text = "◆"
-	marker.font_size = 48
-	marker.pixel_size = 0.006
-	marker.no_depth_test = true
-	marker.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	marker.outline_size = 12
-	marker.position = Vector3(0.0, MARKER_HEIGHT, 0.0)
-	marker.visible = false
-	add_child(marker)
+func _silent_steal_ready() -> bool:
+	return protection == &"sensor" and power_box != null and power_box.is_cut
 
 
-## Pedestal con colisión (las piezas de vitrina o de caja fuerte usan su candado)
-func _build_pedestal() -> void:
-	var pedestal: StaticBody3D = StaticBody3D.new()
-	pedestal.name = "Pedestal"
-	var box: BoxShape3D = BoxShape3D.new()
-	box.size = PEDESTAL_SIZE
-	var body_col: CollisionShape3D = CollisionShape3D.new()
-	body_col.shape = box
-	pedestal.add_child(body_col)
-	var mesh: MeshInstance3D = MeshInstance3D.new()
-	var box_mesh: BoxMesh = BoxMesh.new()
-	box_mesh.size = PEDESTAL_SIZE
-	mesh.mesh = box_mesh
-	pedestal.add_child(mesh)
-	pedestal.position = Vector3(0.0, PEDESTAL_SIZE.y * 0.5, 0.0)
-	add_child(pedestal)
-
-
-## Escala el modelo a MODEL_SIZE y lo apoya sobre el pedestal
-func _fit_model() -> void:
-	var bounds: AABB = AABB()
-	var first: bool = true
-	for node: Node in model.find_children("*", "MeshInstance3D", true, false):
-		var mesh_node: MeshInstance3D = node as MeshInstance3D
-		var local: AABB = mesh_node.transform * mesh_node.get_aabb()
-		bounds = local if first else bounds.merge(local)
-		first = false
-	if first:
-		return
-	var biggest: float = maxf(bounds.size.x, maxf(bounds.size.y, bounds.size.z))
-	var factor: float = MODEL_SIZE / biggest if biggest > 0.0 else 1.0
-	model.scale = Vector3.ONE * factor
-	model.position = Vector3(0.0, PEDESTAL_SIZE.y - bounds.position.y * factor, 0.0)
+func _has_fake() -> bool:
+	return GameManager.heist != null and GameManager.heist.carrying_fake

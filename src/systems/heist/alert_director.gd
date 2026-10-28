@@ -57,9 +57,16 @@ func scan() -> void:
 	)
 	for node: Node in get_tree().get_nodes_in_group(&"heist_targets"):
 		var piece: TargetPiece3D = node as TargetPiece3D
-		if piece.stolen and not piece.discovered and _trace_seen(piece, guards, watching):
+		# Una pieza de pega no es un rastro: hay que examinarla (TargetPiece3D)
+		if (
+			piece.stolen
+			and not piece.is_faked()
+			and not piece.discovered
+			and _trace_seen(piece, guards, watching)
+		):
 			piece.discovered = true
 			print("[AlertDirector] Rastro descubierto: %s" % piece.piece_name)
+	_notice_cuts(guards)
 	var thief_seen: bool = guards.any(
 		func(g: GuardController3D) -> bool: return g.is_perceiving_thief
 	)
@@ -78,11 +85,32 @@ func raise(new_level: Level) -> void:
 		print("[AlertDirector] Alerta: %s" % Level.keys()[level])
 
 
+## Rastros que conocen los guardias: piezas que saben que faltan y cortes de corriente
 func discovered_count() -> int:
 	var count: int = 0
 	for node: Node in get_tree().get_nodes_in_group(&"heist_targets"):
 		count += 1 if (node as TargetPiece3D).discovered else 0
+	for node: Node in get_tree().get_nodes_in_group(&"power_boxes"):
+		count += 1 if (node as PowerBox3D).noticed else 0
 	return count
+
+
+## R9: un corte es un rastro cuando un guardia ve el piloto de la garita o entra en el ala
+func _notice_cuts(guards: Array[GuardController3D]) -> void:
+	var panel: Node3D = get_tree().get_first_node_in_group(&"pilot_panel") as Node3D
+	for node: Node in get_tree().get_nodes_in_group(&"power_boxes"):
+		var box: PowerBox3D = node as PowerBox3D
+		if not box.is_cut or box.noticed:
+			continue
+		for guard: GuardController3D in guards:
+			var near_panel: bool = (
+				panel != null
+				and guard.global_position.distance_to(panel.global_position) <= RULES.pilot_sight
+			)
+			if near_panel or box.contains(guard.global_position):
+				box.noticed = true
+				print("[AlertDirector] Los guardias saben del corte en %s" % box.wing_name)
+				break
 
 
 ## Walkie: marca un punto para todo el equipo (lo llama HeistActions en el servidor)
@@ -97,7 +125,9 @@ func flood(pos: Vector3) -> bool:
 	flood_cooldown_left = RULES.flood_cooldown
 	for node: Node in get_tree().get_nodes_in_group(&"lamps"):
 		var lamp: Lamp3D = node as Lamp3D
-		if lamp != null and lamp.global_position.distance_to(pos) <= RULES.flood_radius:
+		if lamp == null or PowerBox3D.lamp_cut(get_tree(), lamp):
+			continue  # un ala sin corriente no se enciende
+		if lamp.global_position.distance_to(pos) <= RULES.flood_radius:
 			if not _flooded.has(lamp):
 				_flooded[lamp] = lamp.is_switched_on
 			lamp.set_switched(true)
@@ -112,7 +142,7 @@ func _tick_flood(delta: float) -> void:
 	if _flood_left > 0.0:
 		return
 	for lamp: Lamp3D in _flooded:
-		if is_instance_valid(lamp):
+		if is_instance_valid(lamp) and not PowerBox3D.lamp_cut(get_tree(), lamp):
 			lamp.set_switched(bool(_flooded[lamp]))
 	_flooded.clear()
 
