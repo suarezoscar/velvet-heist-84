@@ -38,6 +38,11 @@ extends Resource
 @export var walkie_radius: float = 6.0
 @export var walkie_cooldown: float = 10.0
 
+## R3: peso del botín: el ladrón pierde esta parte de su velocidad por cada pieza que lleva
+@export var loot_slow: float = 0.05
+## R3: velocidad mínima con todo el botín (parte de la normal)
+@export var loot_min_speed: float = 0.7
+
 
 ## Piezas del encargo para guard_count guardias, sin pasar de las candidatas
 func pieces_for(guard_count: int, candidates: int) -> int:

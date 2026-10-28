@@ -7,7 +7,9 @@
 ##   ladrón (un guardia o una cámara vigilada) o robar a lo bruto → alarma;
 ## - el walkie de los guardias deja marcas en su plano y los rastros descubiertos van solo a
 ##   los guardias (estado privado de su audiencia);
-## - en alarma, las luces de alarma encienden las lámparas cercanas un rato.
+## - en alarma, las luces de alarma encienden las lámparas cercanas un rato;
+## - FEAT-033: la alarma despeja a los guardias (adrenalina) y, al apagarse las luces de
+##   alarma, les da el bajón (GuardSleep.crash).
 class_name AlertDirector
 extends Node
 
@@ -83,6 +85,9 @@ func raise(new_level: Level) -> void:
 	if new_level > level:
 		level = new_level
 		print("[AlertDirector] Alerta: %s" % Level.keys()[level])
+		if level == Level.ALARM:
+			for sleep: GuardSleep in _sleeps():
+				sleep.wake_up()  # FEAT-033: adrenalina
 
 
 ## Rastros que conocen los guardias: piezas que saben que faltan y cortes de corriente
@@ -145,6 +150,8 @@ func _tick_flood(delta: float) -> void:
 		if is_instance_valid(lamp) and not PowerBox3D.lamp_cut(get_tree(), lamp):
 			lamp.set_switched(bool(_flooded[lamp]))
 	_flooded.clear()
+	for sleep: GuardSleep in _sleeps():
+		sleep.crash()  # FEAT-033: el bajón al apagarse las luces de alarma
 
 
 func _age_pings(delta: float) -> void:
@@ -170,6 +177,15 @@ func _trace_seen(piece: TargetPiece3D, guards: Array[GuardController3D], watchin
 			if (node as SecurityCamera3D).sees_point(target):
 				return true
 	return false
+
+
+func _sleeps() -> Array[GuardSleep]:
+	var sleeps: Array[GuardSleep] = []
+	for guard: GuardController3D in _guards():
+		var sleep: GuardSleep = guard.get_node_or_null("Sleep") as GuardSleep
+		if sleep != null:
+			sleeps.append(sleep)
+	return sleeps
 
 
 func _guards() -> Array[GuardController3D]:
