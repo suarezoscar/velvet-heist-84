@@ -35,7 +35,19 @@ static func compose(heist: HeistDirector) -> String:
 		if heist.stolen.has(piece_id):
 			lines.append("✔ %s" % piece.piece_name)
 		else:
-			lines.append("◆ %s · %s" % [piece.piece_name, piece.room_name])
+			lines.append("◆ %s · %s · %s" % [piece.piece_name, piece.room_name, hint(piece)])
+	if heist.carrying_fake:
+		lines.append("Llevas una pieza de pega")
 	if heist.is_complete():
 		lines.append("¡A cualquier salida!")
 	return "\n".join(PackedStringArray(lines))
+
+
+## Cómo se roba en silencio cada protección
+static func hint(piece: TargetPiece3D) -> String:
+	match piece.protection:
+		&"pressure":
+			return "pieza de pega del taller"
+		&"sensor":
+			return "corta la alarma del ala"
+	return "combinación"
