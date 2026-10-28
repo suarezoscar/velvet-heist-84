@@ -15,12 +15,12 @@ func after_each() -> void:
 	NetManager.connected_players = _saved_players
 
 
-func test_no_hay_boton_de_guardia_3() -> void:
-	assert_null(_menu.find_child("RoleGuard3Button", true, false), "sin botón de guard_3")
+func test_hay_boton_de_guardia_3() -> void:
+	assert_not_null(_menu.find_child("RoleGuard3Button", true, false), "botón de guard_3")
 	assert_false(_menu.lobby_view.host_btn.visible, "Host oculto")
 
 
-func test_iniciar_partida_exige_ladron() -> void:
+func test_iniciar_partida_exige_ladron_y_guardia() -> void:
 	NetManager.connected_players = {}
 	NetManager.player_list_updated.emit()
 	assert_true(_menu.lobby_view.start_match_btn.disabled, "deshabilitado sin ladrón")
@@ -28,4 +28,7 @@ func test_iniciar_partida_exige_ladron() -> void:
 		2: {"peer_id": 2, "role": &"thief", "ready": false, "name": "x"}
 	}
 	NetManager.player_list_updated.emit()
-	assert_false(_menu.lobby_view.start_match_btn.disabled, "habilitado con ladrón")
+	assert_true(_menu.lobby_view.start_match_btn.disabled, "deshabilitado sin guardias")
+	NetManager.connected_players[3] = {"peer_id": 3, "role": &"guard_3", "ready": false}
+	NetManager.player_list_updated.emit()
+	assert_false(_menu.lobby_view.start_match_btn.disabled, "habilitado con ladrón y guardia")

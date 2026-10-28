@@ -123,7 +123,7 @@ func test_museum_v2_data_matches_design() -> void:
 	assert_eq(data.section("clocks").size(), 4, "R1–R4")
 	assert_eq(data.section("cameras").size(), 3, "CAM-1..3")
 	assert_eq(data.section("monitors").size(), 3, "Un monitor por cámara")
-	assert_eq((data.entry("spawns").get("guards", []) as Array).size(), 2, "Dos guardias")
+	assert_eq((data.entry("spawns").get("guards", []) as Array).size(), 3, "Tres guardias")
 	var masterpieces: int = 0
 	for loot: Dictionary in data.section("loot"):
 		masterpieces += 1 if bool(loot.get("masterpiece", false)) else 0
