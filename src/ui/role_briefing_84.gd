@@ -66,7 +66,8 @@ func _process(delta: float) -> void:
 
 func _input(event: InputEvent) -> void:
 	var pressed: bool = (
-		(event is InputEventKey and (event as InputEventKey).pressed)
+		# Una pulsación nueva: mantener una tecla de movimiento no la cierra antes de leerla
+		(event is InputEventKey and event.is_pressed() and not (event as InputEventKey).echo)
 		or (event is InputEventMouseButton and (event as InputEventMouseButton).pressed)
 	)
 	if pressed and _panel != null and _time_left < SHOW_TIME - 0.5:

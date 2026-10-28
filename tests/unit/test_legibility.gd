@@ -43,7 +43,11 @@ func test_marker_hides_and_goes_cctv_with_the_body() -> void:
 	assert_false(marker.is_visible_in_tree(), "Ladrón oculto: marca oculta")
 	map.thief.set_view_mode(ThiefController3D.ViewMode.CCTV)
 	var ring: MeshInstance3D = marker.get_node("Ring") as MeshInstance3D
+	var world_layers: int = int(ring.get_meta(&"world_layers"))
 	assert_eq(ring.layers, 1 << (ThiefController3D.CCTV_ONLY_LAYER - 1), "Solo en las cámaras")
+	assert_eq(marker.label.layers, ring.layers, "La etiqueta también")
+	map.thief.set_view_mode(ThiefController3D.ViewMode.WORLD)
+	assert_eq(ring.layers, world_layers, "Vuelve a la capa del mundo")
 	map.guards[0].set_body_visible(false)
 	assert_false(_marker(map.guards[0]).is_visible_in_tree(), "Guardia oculto: marca oculta")
 
