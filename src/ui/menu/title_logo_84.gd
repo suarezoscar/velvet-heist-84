@@ -6,7 +6,7 @@ extends Control
 
 const FLICKER_MIN_WAIT: float = 3.0
 const FLICKER_MAX_WAIT: float = 7.0
-const TAGLINE: String = "CADA PASO SE OYE.  CADA SOMBRA CUENTA."
+const TAGLINE: String = "UN CABALLERO NUNCA DEJA HUELLAS."
 
 var velvet: Label = null
 var heist: Label = null
