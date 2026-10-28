@@ -3,7 +3,12 @@
 ## versión al servidor nada más conectar; si no coincide con la del servidor, este le contesta
 ## con su versión y lo desconecta medio segundo después, para que el aviso llegue antes que la
 ## desconexión. Un cliente que no manda su versión en HELLO_TIMEOUT (una versión anterior a esta
-## comprobación) también se desconecta. El lobby enseña el motivo.
+## comprobación) también se desconecta. El lobby enseña el motivo. Hasta que el servidor acepta
+## su versión, un peer no tiene bando y NetManager ignora sus peticiones de bando y de empezar.
+##
+## CONTRATO CONGELADO: este nodo habla con versiones distintas, así que sus tres RPC
+## (_server_hello, _client_accepted, _client_rejected), sus nombres y sus parámetros no cambian
+## nunca, ni se añaden otros RPC aquí. Lo nuevo va en otro nodo.
 class_name NetVersionNode
 extends Node
 
@@ -23,11 +28,13 @@ var rejection: String = ""
 
 ## Peers que aún no han mandado su versión → segundos que les quedan (en el servidor)
 var _pending: Dictionary = {}
+## Peers cuya versión aceptó el servidor
+var _verified: Dictionary = {}
 
 
 func _ready() -> void:
 	multiplayer.peer_connected.connect(_on_peer_connected)
-	multiplayer.peer_disconnected.connect(func(peer: int) -> void: _pending.erase(peer))
+	multiplayer.peer_disconnected.connect(_forget)
 	multiplayer.connected_to_server.connect(_on_connected_to_server)
 
 
@@ -55,8 +62,26 @@ static func mismatch_text(server: String, own: String) -> String:
 	)
 
 
-## Lógica del servidor ante la versión de un peer; true si lo acepta
+## true si el servidor aceptó la versión del peer (el propio servidor siempre)
+func is_verified(peer: int) -> bool:
+	return peer == 1 or _verified.has(peer)
+
+
+## Lógica del servidor ante la versión de un peer; true si lo acepta y le da el primer bando
+## libre si no hay partida
 func check_peer(peer: int, version: String) -> bool:
+	if not _check(peer, version):
+		return false
+	_verified[peer] = true
+	var players: Dictionary = NetManager.get_connected_players()
+	var has_side: bool = StringName((players.get(peer, {}) as Dictionary).get("role", &"")) != &""
+	if players.has(peer) and not has_side and not NetManager.match_in_progress():
+		NetManager.assign_role(peer, NetRoleRegistry.next_available_role(players))
+	return true
+
+
+## Decide sobre la versión y avisa al peer; true si es compatible
+func _check(peer: int, version: String) -> bool:
 	_pending.erase(peer)
 	var own: String = GameVersion.current()
 	var reachable: bool = multiplayer.get_peers().has(peer)
@@ -74,6 +99,11 @@ func check_peer(peer: int, version: String) -> bool:
 func _on_peer_connected(peer: int) -> void:
 	if _is_server():
 		_pending[peer] = HELLO_TIMEOUT
+
+
+func _forget(peer: int) -> void:
+	_pending.erase(peer)
+	_verified.erase(peer)
 
 
 func _on_connected_to_server() -> void:

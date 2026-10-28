@@ -117,11 +117,9 @@ func _setup_network_signals() -> void:
 func _on_peer_connected(id: int) -> void:
 	print("[NetManager] Peer conectado: ", id)
 	if multiplayer.is_server():
-		var assigned_role: StringName = (
-			&"" if _match_in_progress() else NetRoleRegistry.next_available_role(connected_players)
-		)
+		# Sin bando hasta que NetVersion acepte su versión (FEAT-025)
 		connected_players[id] = {
-			"peer_id": id, "role": assigned_role, "ready": false, "name": "Agente_%d" % id
+			"peer_id": id, "role": &"", "ready": false, "name": "Agente_%d" % id
 		}
 		_sync_player_list.rpc(connected_players)
 		player_connected.emit(id, connected_players[id])
@@ -229,10 +227,9 @@ func request_role(new_role: StringName) -> bool:
 
 @rpc("any_peer", "call_remote", "reliable")
 func _request_role_server(desired_role: StringName) -> void:
-	if not multiplayer.is_server() or _match_in_progress():
-		return
 	var sender_id: int = multiplayer.get_remote_sender_id()
-	assign_role(sender_id, desired_role)
+	if multiplayer.is_server() and not match_in_progress() and NetVersion.is_verified(sender_id):
+		assign_role(sender_id, desired_role)
 
 
 ## Pide el lanzamiento de la partida. En un cliente se lo pide al servidor; el servidor solo
@@ -250,12 +247,13 @@ func request_start() -> void:
 func _request_start_server() -> void:
 	if not multiplayer.is_server() or get_tree().current_scene is HeistMap3D:  # solo NetRematch
 		return
-	_try_start_match()
+	if NetVersion.is_verified(multiplayer.get_remote_sender_id()):
+		_try_start_match()
 
 
 func _try_start_match() -> void:
 	# Sin ladrón o sin guardias no hay partida, y la que está en curso no se relanza
-	if not NetRoleRegistry.can_start(connected_players) or _match_in_progress():
+	if not NetRoleRegistry.can_start(connected_players) or match_in_progress():
 		return
 	_start_match_rpc.rpc(_prepare_start())
 
@@ -296,5 +294,6 @@ func get_connected_players() -> Dictionary:
 	return connected_players
 
 
-func _match_in_progress() -> bool:
+## true con una partida en curso o arrancando: no se aceptan cambios de bando ni bandos nuevos
+func match_in_progress() -> bool:
 	return _match_starting or GameManager.current_state == GameManager.MatchState.IN_PROGRESS
