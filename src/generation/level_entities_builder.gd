@@ -1,5 +1,6 @@
-## Coloca las entidades de un nivel por datos (FEAT-015): lámparas, interruptores, botín, caja
-## fuerte, relojes de fichar, cámaras y monitores, coche de huida, apariciones y patrullas.
+## Coloca las entidades de un nivel por datos (FEAT-015): lámparas, interruptores, puertas con
+## hoja (FEAT-034), botín, caja fuerte, relojes de fichar, cámaras y monitores, coche de huida,
+## apariciones y patrullas.
 ## Reutiliza las escenas de scenes/entities y los scripts de src/systems; los nombres de nodo
 ## salen de los ids del JSON, así que son iguales en servidor y clientes.
 class_name LevelEntitiesBuilder
@@ -45,12 +46,19 @@ static func build(data: LevelData, map: Node3D) -> Node3D:
 		light_switch.circuit_id = int(switch_data["circuit"])
 		light_switch.position = data.to_world(switch_data["pos"], SWITCH_HEIGHT)
 		props.add_child(light_switch)
+	for door: Dictionary in data.section("doors"):
+		if door.has("leaf"):
+			_add_door(data, props, door)
 	for loot: Dictionary in data.section("loot"):
 		_add_loot(data, props, loot)
 	if not data.entry("safe").is_empty():
 		_add_safe(data, props, data.entry("safe"))
 	for clock: Dictionary in data.section("clocks"):
 		_add_clock(data, props, clock)
+	if not data.section("clocks").is_empty():
+		var planner: RoundPlanner = RoundPlanner.new()
+		planner.graph = RoomGraph.from_level(data)
+		props.add_child(planner)
 	var cameras: Dictionary = {}
 	for cam: Dictionary in data.section("cameras"):
 		cameras[String(cam["id"])] = _add_camera(data, props, cam)
@@ -58,6 +66,8 @@ static func build(data: LevelData, map: Node3D) -> Node3D:
 		_add_monitor(data, props, monitor, cameras)
 	if not data.entry("cctv_desk").is_empty():
 		_add_desk(data, props, data.entry("cctv_desk"))
+	if not data.section("vents").is_empty():
+		_add_vents(data, props)
 	var targets: Array = data.section("targets")
 	if not targets.is_empty():
 		HeistBuilder.build(data, props, targets)
@@ -77,6 +87,35 @@ static func _add_lamp(data: LevelData, props: Node3D, lamp: Dictionary) -> void:
 	node.circuit_id = int(lamp.get("circuit", 0))
 	node.start_on = bool(lamp.get("on", true))
 	node.position = data.to_world(lamp["pos"], LAMP_HEIGHTS.get(lamp_type, 3.0))
+	props.add_child(node)
+
+
+## Rejillas de ventilación bajo un VentTravel («Vents») que lleva al ladrón entre ellas
+static func _add_vents(data: LevelData, props: Node3D) -> void:
+	var travel: VentTravel = VentTravel.new()
+	props.add_child(travel)
+	for vent_data: Dictionary in data.section("vents"):
+		var pos: Array = vent_data["pos"]
+		var angle: float = deg_to_rad(-float(vent_data.get("rot_deg", 0.0)))
+		# La rejilla está en la línea del muro: su sala es la que tiene delante
+		var front: Vector3 = Basis(Vector3.UP, angle) * Vector3(0.0, 0.0, -1.0)
+		var inside: Array = [float(pos[0]) + front.x, float(pos[1]) + front.z]
+		var vent: Vent3D = Vent3D.create(
+			String(vent_data["id"]),
+			String(vent_data["network"]),
+			HeistBuilder.room_name_at(data, inside)
+		)
+		vent.position = data.to_world(pos)
+		vent.rotation.y = angle
+		travel.add_child(vent)
+
+
+## Puerta con hoja en un hueco (FEAT-034): gira según el muro en el que está
+static func _add_door(data: LevelData, props: Node3D, door: Dictionary) -> void:
+	var node: Door3D = Door3D.create(String(door["id"]), float(door.get("width", 1.2)))
+	node.position = data.to_world(door["pos"])
+	if LevelArchitectureBuilder._door_axis(data, door) == "V":
+		node.rotation.y = PI * 0.5
 	props.add_child(node)
 
 
@@ -107,6 +146,8 @@ static func _add_clock(data: LevelData, props: Node3D, clock: Dictionary) -> voi
 	var node: TimeClock3D = TimeClock3D.new()
 	node.name = "TimeClock_%02d" % int(clock["id"])
 	node.clock_id = int(clock["id"])
+	node.zone = String(clock.get("zone", ""))
+	node.room_name = HeistBuilder.room_name_at(data, clock["pos"])
 	node.position = data.to_world(clock["pos"])
 	node.rotation.y = deg_to_rad(-float(clock.get("rot_deg", 0.0)))
 	_setup_area(node, Vector3(0.6, 2.0, 0.4), CLOCK_MODEL)
@@ -209,6 +250,10 @@ static func _place_actors(data: LevelData, map: Node3D) -> void:
 				(child as Node3D).position = data.to_world(guard_spawns[guard_index], ACTOR_HEIGHT)
 			if guard_index < patrols.size():
 				_add_patrol(data, child as GuardController3D, patrols[guard_index])
+			elif guard_index < int(data.raw.get("offline_guards", 0)):
+				_add_patrol(data, child as GuardController3D, [])  # la ronda le da la patrulla
+			if not data.section("clocks").is_empty():
+				GuardRound.attach(child as GuardController3D)
 			guard_index += 1
 
 

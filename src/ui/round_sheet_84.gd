@@ -1,7 +1,8 @@
 ## @file round_sheet_84.gd
-## Tablilla de ronda del HUD de los guardias (interaction.md R6): cada reloj con sus
-## segundos, ámbar a warning_time, rojo vencido, y el contador de faltas con sus avisos.
-## Al entrar un reloj en ámbar suena un pitido de reloj de pulsera (solo UI).
+## Tablilla de ronda del HUD de los guardias (interaction.md R6; FEAT-034): la ruta del
+## guardia local con el reloj que le toca marcado, su sala y los segundos del tramo (ámbar a
+## warning_time, rojo si llega tarde) y las faltas del equipo con sus avisos. Al pasar a ámbar
+## suena un pitido de reloj de pulsera (solo UI).
 class_name RoundSheet84
 extends PanelContainer
 
@@ -26,7 +27,7 @@ func _ready() -> void:
 	name = "RoundSheet"
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_preset(Control.PRESET_TOP_RIGHT)
-	offset_left = -230.0
+	offset_left = -330.0
 	offset_right = -20.0
 	offset_top = TOP
 	var box: VBoxContainer = VBoxContainer.new()
@@ -50,58 +51,85 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	if visible:
-		refresh(get_tree().get_nodes_in_group(&"time_clock"))
+		refresh(get_tree().get_nodes_in_group(&"guard_round"))
 
 
-## Redibuja la tablilla con los relojes dados (ordenados por id)
-func refresh(clocks: Array) -> void:
-	var sorted: Array[TimeClock3D] = []
-	for node: Node in clocks:
-		if node is TimeClock3D:
-			sorted.append(node as TimeClock3D)
-	sorted.sort_custom(func(a: TimeClock3D, b: TimeClock3D) -> bool: return a.clock_id < b.clock_id)
-	for clock: TimeClock3D in sorted:
-		_update_row(clock)
-	var faults: int = RoundRules.team_faults(sorted)
-	_faults_label.text = "FALTAS %d / %d" % [faults, RULES.allowed_misses]
-	_faults_label.modulate = _faults_color(faults)
-	if faults > RULES.allowed_misses:
+## Redibuja la tablilla: la ruta del guardia local, su siguiente reloj y las faltas del equipo
+func refresh(rounds: Array) -> void:
+	var mine: GuardRound = _local_round(rounds)
+	_update_route(mine)
+	var faults: int = RoundRules.team_faults(rounds)
+	var allowed: int = RoundRules.allowed_faults(rounds, RULES.allowed_misses)
+	_faults_label.text = "FALTAS DEL EQUIPO %d / %d" % [faults, allowed]
+	_faults_label.modulate = _faults_color(faults, allowed)
+	if faults > allowed:
 		_warning_label.text = "Ronda rota: solo vale capturarlo"
-	elif faults == RULES.allowed_misses:
+	elif faults == allowed:
 		_warning_label.text = "Una falta más y la central no os cubre"
 	else:
 		_warning_label.text = ""
 	_warning_label.visible = not _warning_label.text.is_empty()
 
 
-## Texto de la fila de un reloj (lo usan los tests)
-func row_text(clock_id: int) -> String:
-	var label: Label = _labels.get(clock_id) as Label
+## Texto de la fila de la ruta (0) o del siguiente reloj (1) (lo usan los tests)
+func row_text(row: int) -> String:
+	var label: Label = _labels.get(row) as Label
 	return label.text if label != null else ""
 
 
-func _update_row(clock: TimeClock3D) -> void:
-	var label: Label = _labels.get(clock.clock_id) as Label
-	if label == null:
-		label = _make_label("", COLOR_NORMAL)
-		_rows.add_child(label)
-		_labels[clock.clock_id] = label
-	var amber: bool = not clock.is_expired and clock.time_left <= RULES.warning_time
-	if amber and not bool(_amber.get(clock.clock_id, false)) and is_visible_in_tree():
+func _local_round(rounds: Array) -> GuardRound:
+	for node: Node in rounds:
+		var round_node: GuardRound = node as GuardRound
+		if (
+			round_node != null
+			and round_node.guard != null
+			and round_node.guard.is_locally_controlled
+		):
+			return round_node
+	return null
+
+
+func _update_route(mine: GuardRound) -> void:
+	for row: int in [0, 1]:
+		if not _labels.has(row):
+			_labels[row] = _make_label("", COLOR_NORMAL)
+			_rows.add_child(_labels[row])
+	var route_label: Label = _labels[0]
+	var next_label: Label = _labels[1]
+	if mine == null or mine.route.is_empty():
+		route_label.text = "Sin ruta asignada"
+		next_label.text = ""
+		return
+	var marks: PackedStringArray = []
+	for index: int in range(mine.route.size()):
+		var text: String = "R%d" % mine.route[index]
+		marks.append("[%s]" % text if index == mine.index else text)
+	route_label.text = "RUTA  " + " › ".join(marks)
+	var amber: bool = not mine.late and mine.time_left <= RULES.warning_time
+	if amber and not bool(_amber.get(0, false)) and is_visible_in_tree():
 		_beep.play()
-	_amber[clock.clock_id] = amber
-	if clock.is_expired:
-		label.text = "R%d  VENCIDO" % clock.clock_id
-		label.modulate = HUD_PALETTE.color_meter_high
+	_amber[0] = amber
+	var where: String = _clock_room(mine.next_clock())
+	if mine.late:
+		next_label.text = "R%d %s  ¡TARDE!" % [mine.next_clock(), where]
+		next_label.modulate = HUD_PALETTE.color_meter_high
 	else:
-		label.text = "R%d  %3d s" % [clock.clock_id, int(ceil(clock.time_left))]
-		label.modulate = HUD_PALETTE.color_meter_mid if amber else COLOR_NORMAL
+		next_label.text = "R%d %s  %d s" % [mine.next_clock(), where, int(ceil(mine.time_left))]
+		next_label.modulate = HUD_PALETTE.color_meter_mid if amber else COLOR_NORMAL
 
 
-func _faults_color(faults: int) -> Color:
-	if faults > RULES.allowed_misses:
+func _clock_room(clock_id: int) -> String:
+	for node: Node in get_tree().get_nodes_in_group(&"time_clock"):
+		var clock: TimeClock3D = node as TimeClock3D
+		if clock.clock_id == clock_id:
+			return "· " + clock.room_name
+	return ""
+
+
+func _faults_color(faults: int, allowed: int) -> Color:
+	if faults > allowed:
 		return HUD_PALETTE.color_meter_high
-	if faults == RULES.allowed_misses:
+	if faults == allowed:
 		return HUD_PALETTE.color_meter_mid
 	return COLOR_NORMAL
 

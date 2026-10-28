@@ -44,6 +44,15 @@ var baton_hits_taken: int = 0
 ## Estado de detección por parte de guardias
 var is_detected_by_guard: bool = false
 
+## FEAT-034: va por la ventilación (VentTravel): nadie lo ve ni lo toca y no se mueve
+var in_vent: bool = false:
+	set(value):
+		in_vent = value
+		var body: CollisionShape3D = get_node_or_null("CollisionShape3D") as CollisionShape3D
+		if body != null:
+			body.set_deferred(&"disabled", value)
+		set_visible_to_local_viewer(view_mode != ViewMode.HIDDEN)
+
 ## Componente modular de interacción
 var interactor: Interactor3D = null
 
@@ -109,6 +118,9 @@ func perform_action(action: StringName) -> bool:
 
 ## Simulación física del ladrón con penalización autoritativa por botín pesado
 func simulate_movement(delta: float) -> void:
+	if in_vent:
+		velocity = Vector3.ZERO
+		return
 	super.simulate_movement(delta)
 	if is_carrying_heavy_loot:
 		velocity.x *= HEAVY_LOOT_SPEED_MULTIPLIER
@@ -161,9 +173,9 @@ func set_stealth_visibility(is_visible_to_guards: bool) -> void:
 ## Actualiza la visibilidad de la presentación para el observador local en esta máquina
 func set_visible_to_local_viewer(is_visible: bool) -> void:
 	if visual_root != null:
-		visual_root.visible = is_visible
+		visual_root.visible = is_visible and not in_vent
 	if carry_anchor != null:
-		carry_anchor.visible = is_visible
+		carry_anchor.visible = is_visible and not in_vent
 
 
 ## Cómo lo ve el observador local: oculto, en el mundo o solo en las imágenes CCTV

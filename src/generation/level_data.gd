@@ -10,7 +10,6 @@ var raw: Dictionary = {}
 var offset: Vector2 = Vector2.ZERO
 var wall_height: float = 3.2
 var wall_thickness: float = 0.3
-var wall_low_height: float = 1.2
 
 
 ## Lee y valida lo mínimo de un JSON de nivel; null si no se puede leer
@@ -27,7 +26,6 @@ static func load_json(path: String) -> LevelData:
 	var wall: Dictionary = data.raw.get("wall", {})
 	data.wall_height = float(wall.get("height", 3.2))
 	data.wall_thickness = float(wall.get("thickness", 0.3))
-	data.wall_low_height = float(wall.get("low_height", 1.2))
 	return data
 
 

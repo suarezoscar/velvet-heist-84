@@ -189,6 +189,8 @@ func sees_point(point: Vector3) -> bool:
 
 
 func _check_line_of_sight(target: Node3D) -> bool:
+	if target is ThiefController3D and (target as ThiefController3D).in_vent:
+		return false  # FEAT-034: por la ventilación no se le ve
 	var cam_pos: Vector3 = mount.global_position
 	var target_center: Vector3 = target.global_position + Vector3(0.0, 0.8, 0.0)
 	var to_target: Vector3 = target_center - cam_pos

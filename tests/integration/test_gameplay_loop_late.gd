@@ -40,38 +40,34 @@ func after_each() -> void:
 
 func test_04_alarm_cycle_time_clock_90s() -> void:
 	var gm: Node = GameManager
-	var bus: Node = SignalBus
-	var map_scene: PackedScene = load(MAP_SCENE_PATH)
-	var map: Node3D = autofree(map_scene.instantiate())
+	var map: Node3D = load("res://scenes/maps/museum_v2.tscn").instantiate() as Node3D
 	add_child_autofree(map)
 	await wait_physics_frames(2)
-
 	gm.call("start_match")
+	await wait_physics_frames(2)
 
-	var clock: TimeClock3D = map.get_node("Props/TimeClock_01") as TimeClock3D
-	assert_not_null(clock, "TimeClock_01 presente en mapa")
-	watch_signals(clock)
-	watch_signals(bus)
+	# FEAT-034: cada guardia recibe su ruta al empezar
+	var guard: GuardController3D = map.get("guards")[0]
+	var round_node: GuardRound = GuardRound.of(guard)
+	assert_eq(round_node.route.size(), 4, "Ruta de 4 relojes")
+	assert_gt(round_node.time_left, 15.0, "El primer tramo da tiempo a llegar")
+	var clock: TimeClock3D = null
+	for node: Node in map.get_tree().get_nodes_in_group(&"time_clock"):
+		if (node as TimeClock3D).clock_id == round_node.next_clock():
+			clock = node as TimeClock3D
+	assert_not_null(clock, "Su siguiente reloj está en el mapa")
 
-	assert_almost_eq(clock.round_duration, 90.0, 0.001, "Duración configurada a 90s")
-	assert_almost_eq(clock.time_left, 90.0, 0.5, "Reloj arranca con ~90 segundos")
-	assert_false(clock.is_expired, "Reloj no vencido al inicio")
+	# 1. Se le acaba el tramo: llega tarde y baja la banderola de ese reloj
+	round_node.step(round_node.time_left + 0.1)
+	assert_true(round_node.late, "Llega tarde")
+	await wait_physics_frames(2)
+	assert_true(clock.is_expired, "Banderola en su reloj")
 
-	# 1. Simular transcurso de los 90s sin fichaje de los guardias
-	clock._update_countdown(90.1)
-	assert_almost_eq(clock.time_left, 0.0, 0.001, "Tiempo de ronda agotado")
-	assert_true(clock.is_expired, "Reloj entra en estado de alarma")
-	assert_signal_emitted(clock, "clock_expired", "Señal clock_expired emitida")
-	assert_true(clock.get_interaction_text().contains("ALARMA"), "Prompt refleja alarma activa")
-
-	# 2. Verificar pulsos acústicos periódicos en SignalBus
-	clock._update_countdown(3.0)
-	assert_signal_emitted(bus, "noise_emitted_3d", "Alarma notificada en SignalBus")
-
-	# 3. Guardia acude y ficha para cancelar la alarma
-	clock.interact(map.guard_1)
-	assert_false(clock.is_expired, "Alarma desactivada tras fichar el guardia")
-	assert_almost_eq(clock.time_left, 90.0, 0.001, "Ciclo de ronda reiniciado a 90 segundos")
+	# 2. Ficha en su reloj: tramo nuevo y banderola recogida
+	clock.interact(guard)
+	assert_false(round_node.late, "Al día tras fichar")
+	await wait_physics_frames(2)
+	assert_false(clock.is_expired, "Banderola recogida")
 
 
 # ------------------------------------------------------------------------------

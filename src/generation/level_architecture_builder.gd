@@ -23,9 +23,11 @@ const SURFACE_COLORS: Dictionary = {
 	"linoleum": Color(0.42, 0.45, 0.42),
 	"asphalt": Color(0.16, 0.16, 0.18),
 }
-const WALL_COLOR: Color = Color(0.62, 0.6, 0.58)
+const WALL_COLOR: Color = Color(0.74, 0.69, 0.6)
 const PARTITION_COLOR: Color = Color(0.5, 0.46, 0.4)
 const COVER_COLOR: Color = Color(0.3, 0.32, 0.36)
+## Lo que mide más que esto (m) puede tapar a un personaje: usa el material de WallXRay
+const XRAY_FROM: float = 1.6
 
 
 ## Crea el nodo Architecture con todo lo construido como hijo de parent
@@ -81,22 +83,17 @@ static func _build_floors(data: LevelData, root: Node3D) -> void:
 
 
 ## Muros: une los bordes de las salas interiores por línea, resta puertas y ventanas y crea
-## una caja por tramo. La colisión siempre mide wall_height; la vista es baja salvo en el
-## perímetro norte y oeste, que no tapan nada a la cámara isométrica (mira hacia el noroeste)
+## una caja por tramo, alta entera (FEAT-034): lo que se ve tapar es lo que tapa la vista. Los
+## que quedan entre la cámara y el jugador local se recortan con WallXRay
 static func _build_walls(data: LevelData, root: Node3D) -> void:
 	var lines: Dictionary = _wall_lines(data)
 	var gaps: Dictionary = _wall_gaps(data)
-	var bounds: Rect2 = data.building_bounds()
 	var keys: Array = lines.keys()
 	keys.sort()
 	for key: String in keys:
 		var axis: String = key.substr(0, 1)
 		var coord: float = float(key.substr(2))
-		var tall: bool = (
-			(axis == "H" and is_equal_approx(coord, bounds.position.y))
-			or (axis == "V" and is_equal_approx(coord, bounds.position.x))
-		)
-		var visual: float = data.wall_height if tall else data.wall_low_height
+		var visual: float = data.wall_height
 		var pieces: Array = _subtract(_union(lines[key]), gaps.get(key, []))
 		for index: int in range(pieces.size()):
 			var piece: Vector2 = pieces[index]
@@ -221,7 +218,9 @@ static func _add_segment_box(
 	var body: StaticBody3D = _static_body(node_name)
 	body.collision_layer = LAYER_WORLD_SOLID | LAYER_WALLS
 	body.position = (start + end) * 0.5
-	_add_box(body, size, Vector3(0.0, collision_h * 0.5, 0.0), color, visual_h)
+	_add_box(
+		body, size, Vector3(0.0, collision_h * 0.5, 0.0), color, visual_h, visual_h > XRAY_FROM
+	)
 	root.add_child(body)
 
 
@@ -232,7 +231,7 @@ static func _add_cover(data: LevelData, root: Node3D, cover: Dictionary) -> void
 	body.position = data.to_world(cover["pos"])
 	body.rotation.y = deg_to_rad(-float(cover.get("rot_deg", 0.0)))
 	body.set_meta("kind", String(cover.get("kind", "")))
-	_add_box(body, size, Vector3(0.0, size.y * 0.5, 0.0), COVER_COLOR, size.y)
+	_add_box(body, size, Vector3(0.0, size.y * 0.5, 0.0), COVER_COLOR, size.y, size.y > XRAY_FROM)
 	root.add_child(body)
 
 
@@ -247,7 +246,12 @@ static func _static_body(node_name: String) -> StaticBody3D:
 ## Colisión de tamaño size centrada en center y malla de la misma planta con altura visual_h,
 ## apoyada en la misma base
 static func _add_box(
-	body: StaticBody3D, size: Vector3, center: Vector3, color: Color, visual_h: float
+	body: StaticBody3D,
+	size: Vector3,
+	center: Vector3,
+	color: Color,
+	visual_h: float,
+	xray: bool = false
 ) -> void:
 	var shape: BoxShape3D = BoxShape3D.new()
 	shape.size = size
@@ -258,9 +262,12 @@ static func _add_box(
 	body.add_child(col)
 	var mesh: BoxMesh = BoxMesh.new()
 	mesh.size = Vector3(size.x, visual_h, size.z)
-	var mat: StandardMaterial3D = StandardMaterial3D.new()
-	mat.albedo_color = color
-	mesh.material = mat
+	if xray:
+		mesh.material = WallXRay.material(color)
+	else:
+		var mat: StandardMaterial3D = StandardMaterial3D.new()
+		mat.albedo_color = color
+		mesh.material = mat
 	var mesh_inst: MeshInstance3D = MeshInstance3D.new()
 	mesh_inst.name = "Mesh"
 	mesh_inst.mesh = mesh

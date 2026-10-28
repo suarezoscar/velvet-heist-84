@@ -18,11 +18,11 @@ const NOISE_INVESTIGATE_TIME: float = 5.0
 const SPOTTED_INVESTIGATE_TIME: float = 6.0
 ## Distancia horizontal (m) a la que ficha un reloj de ronda al pasar (alcance del interactor)
 const CLOCK_PUNCH_DISTANCE: float = 1.6
-## Segundos que deben haber pasado desde el último fichaje de un reloj para volver a ficharlo
-const CLOCK_PUNCH_MIN_ELAPSED: float = 5.0
 
 ## Rutas de patrulla configurables
 @export var patrol_waypoints: Array[Vector3] = []
+## Al acabar los waypoints vuelve a este (FEAT-034: de la garita a la ronda, y luego en bucle)
+@export var patrol_loop_start: int = 0
 @export var is_ai_active: bool = true
 
 var current_state: AIState = AIState.PATROL
@@ -88,16 +88,14 @@ func _physics_process(_delta: float) -> void:
 			_process_chase()
 
 
-## Ficha los relojes que tiene al alcance (interaction.md R1: la IA debe cubrir su ronda)
+## Ficha el siguiente reloj de su ronda cuando lo tiene al alcance (FEAT-034: GuardRound)
 func _punch_nearby_clocks() -> void:
+	var round_node: GuardRound = GuardRound.of(_guard)
+	if round_node == null:
+		return
 	for node: Node in get_tree().get_nodes_in_group(&"time_clock"):
 		var clock: TimeClock3D = node as TimeClock3D
-		if clock == null:
-			continue
-		if (
-			clock.round_duration - clock.time_left < CLOCK_PUNCH_MIN_ELAPSED
-			and not clock.is_expired
-		):
+		if clock == null or clock.clock_id != round_node.next_clock():
 			continue
 		if _flat_distance(clock.global_position, _guard.global_position) < CLOCK_PUNCH_DISTANCE:
 			clock.interact(_guard)
@@ -109,7 +107,9 @@ func _process_patrol() -> void:
 		return
 	var target: Vector3 = patrol_waypoints[_current_waypoint_idx]
 	if _flat_distance(target, _guard.global_position) < WAYPOINT_REACHED_DISTANCE:
-		_current_waypoint_idx = (_current_waypoint_idx + 1) % patrol_waypoints.size()
+		_current_waypoint_idx += 1
+		if _current_waypoint_idx >= patrol_waypoints.size():
+			_current_waypoint_idx = clampi(patrol_loop_start, 0, patrol_waypoints.size() - 1)
 		return
 	_steer_towards(target, false)
 
