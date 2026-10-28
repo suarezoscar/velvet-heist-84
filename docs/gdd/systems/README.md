@@ -20,7 +20,9 @@ Pendiente de la división de `docs/gdd/MASTER_GSD.md`. Reparto propuesto:
 | `vision.md` | Zona visible de cada jugador y niebla de guerra en la vista cenital; filtro de red del ladrón | aprobado (2026-10-24) |
 | `loot.md` | Botín ligero y pesado, cuota, Pieza Maestra | por crear |
 | `match.md` | Flujo de partida, tiempo, equipamiento en el lobby | por crear |
-| `disguise.md` | Disfraz de guardia del ladrón | por diseñar (primera propuesta de `/design`) |
+| `heist.md` | El golpe: lista del coleccionista, escape por cualquier salida, sueño y café, rastros, nivel de alerta, monedas y walkie | aprobado (2026-10-28) |
+| `gentleman.md` | Temática del caballero ladrón: golpe anunciado, tarjeta de visita, estilo, disfraz | propuesto (2026-10-28) |
+| `disguise.md` | Disfraz de guardia del ladrón (de momento, M4 de `gentleman.md`) | por diseñar |
 
 ## Pendiente de diseño
 - **Disfraz de guardia**: mecánica pedida por el usuario. Va antes de la spec de red autoritativa porque cambia el filtro de visibilidad del ladrón.
