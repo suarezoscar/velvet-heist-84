@@ -24,12 +24,12 @@
     {
       "name": "target_dimensions",
       "pass": true,
-      "detail": "Dimensiones dentro de tolerancia: (2.1676, 1.0725, 1.7188)m vs esperadas (2.1680, 1.0730, 1.7180)m."
+      "detail": "Dimensiones dentro de tolerancia: (2.1672, 1.0730, 1.7242)m vs esperadas (2.1680, 1.0730, 1.7180)m."
     },
     {
       "name": "triangle_budget",
       "pass": true,
-      "detail": "Triángulos: 4749 <= presupuesto (5000)."
+      "detail": "Triángulos: 1897 <= presupuesto (2000)."
     },
     {
       "name": "palette_materials",
