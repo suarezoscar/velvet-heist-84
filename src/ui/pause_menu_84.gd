@@ -60,6 +60,13 @@ func setup(map: HeistMap3D) -> void:
 	map.add_child(self)
 
 
+## Con red la partida puede acabar con la pausa abierta: se cierra sola para dejar paso al
+## menú de fin de partida (si no, taparía sus botones y su Esc te sacaría al menú)
+func _process(_delta: float) -> void:
+	if visible and GameManager.is_match_over():
+		close()
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if not event.is_action_pressed(&"ui_cancel", false) or not can_open():
 		return
