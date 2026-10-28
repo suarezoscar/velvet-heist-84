@@ -44,6 +44,9 @@ var current_state: MatchState = MatchState.LOBBY
 ## Faltas de la hoja de ronda al acabar la partida (durante la partida no se replica)
 var round_faults: int = 0
 
+## Encargo del coleccionista del nivel (heist.md); null en los mapas con cuota y Pieza Maestra
+var heist: HeistDirector = null
+
 
 func _ready() -> void:
 	_connect_signal_bus()
@@ -115,6 +118,8 @@ func time_expired_state() -> MatchState:
 	var expired_now: bool = RoundRules.any_expired(clocks, get_physics_process_delta_time())
 	if RoundRules.is_on_time(faults, expired_now, CLOCK_RULES.allowed_misses):
 		return MatchState.TIME_EXPIRED
+	if heist != null:
+		return MatchState.TIME_EXPIRED_DRAW  # heist.md R4: para ganar, el ladrón siempre escapa
 	return MatchState.TIME_EXPIRED_BREACH if has_masterpiece else MatchState.TIME_EXPIRED_DRAW
 
 
@@ -165,6 +170,8 @@ func _on_thief_captured(guard_peer_id: int) -> void:
 
 ## Comprueba si el ladrón cumple todos los requisitos para poder escapar en el coche
 func can_thief_escape() -> bool:
+	if heist != null:
+		return heist.is_complete()
 	return current_loot_value >= quota_target and has_masterpiece
 
 

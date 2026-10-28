@@ -45,6 +45,29 @@ static func stats(
 	)
 
 
+## Cifras con encargo (heist.md): piezas robadas, cuáles eran, tiempo y faltas
+static func heist_stats(heist: HeistDirector, elapsed: float, faults: int, allowed: int) -> String:
+	var seconds: int = maxi(roundi(elapsed), 0)
+	var names: Array[String] = []
+	for piece_id: StringName in heist.targets:
+		var piece: TargetPiece3D = heist.piece(piece_id)
+		if piece != null:
+			names.append(("✔ " if heist.stolen.has(piece_id) else "✘ ") + piece.piece_name)
+	return (
+		"\n"
+		. join(
+			PackedStringArray(
+				[
+					"Encargo: %d de %d piezas" % [heist.stolen.size(), heist.contract_size],
+					"  ".join(PackedStringArray(names)),
+					"Tiempo: %d:%02d" % [seconds / 60, seconds % 60],
+					"Faltas de ronda: %d de %d toleradas" % [faults, allowed],
+				]
+			)
+		)
+	)
+
+
 ## Bando del jugador local en el mapa
 static func local_side(map: HeistMap3D) -> StringName:
 	if map == null or map.local_player == null:

@@ -27,6 +27,13 @@ enum SafeState {
 ## Escena del botín que se instanciará en su interior al abrirse
 @export var loot_inside_scene: PackedScene = null
 
+## Candado de una pieza del encargo (heist.md R9): nombre para el texto y si se puede romper
+@export var lock_name: String = "caja fuerte"
+@export var breakable: bool = false
+
+## Pieza del encargo que protege (null: caja fuerte clásica con botín dentro)
+var contained_target: TargetPiece3D = null
+
 ## Estado actual de la caja
 var current_state: SafeState = SafeState.LOCKED
 
@@ -51,6 +58,8 @@ func _ready() -> void:
 
 ## Contrato de interacción: solo puede interactuarse si no está abierta
 func can_interact(_actor: Node3D = null) -> bool:
+	if contained_target != null and not contained_target.is_available(_actor):
+		return false  # una pieza que no está en el encargo: el dial ni se activa
 	return current_state != SafeState.OPENED
 
 
@@ -62,7 +71,9 @@ func get_interaction_text(_actor: Node3D = null) -> String:
 		SafeState.CRACKING:
 			return ""
 		_:
-			return "Abrir caja fuerte [E]"
+			if breakable:
+				return "Abrir la %s con la combinación [E] · Romper el cristal [Q]" % lock_name
+			return "Abrir la %s [E]" % lock_name
 
 
 ## Ejecuta la interacción iniciada por el jugador
@@ -174,6 +185,12 @@ func _emit_acoustic_noise(radius: float) -> void:
 	if active_thief != null:
 		emitter_node = active_thief
 	NoiseEmit.emit(global_position, radius, &"thief", NoiseEmit.MECHANISM, emitter_node)
+
+
+## La rompen a lo bruto (vitrina): queda abierta sin combinación
+func break_open() -> void:
+	current_state = SafeState.OPENED
+	active_thief = null
 
 
 ## Devuelve el estado público de red (abierta o no)

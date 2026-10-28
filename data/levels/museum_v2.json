@@ -74,7 +74,6 @@
     {"id": "ANTE_banco_2", "pos": [28, 13.5], "size": [1.6, 0.5, 0.45], "rot_deg": 0, "kind": "bench"},
     {"id": "ANTE_jarron_1", "pos": [21.5, 10.8], "size": [0.6, 0.6, 1.0], "rot_deg": 0, "kind": "jar_pedestal"},
     {"id": "ANTE_jarron_2", "pos": [26.5, 10.8], "size": [0.6, 0.6, 1.0], "rot_deg": 0, "kind": "jar_pedestal"},
-    {"id": "VLT_pedestal", "pos": [24, 4], "size": [1.2, 1.2, 1.1], "rot_deg": 0, "kind": "pedestal"},
     {"id": "VLT_columna_1", "pos": [19, 3], "size": [0.6, 0.6, 3.0], "rot_deg": 0, "kind": "column"},
     {"id": "VLT_columna_2", "pos": [29, 3], "size": [0.6, 0.6, 3.0], "rot_deg": 0, "kind": "column"},
     {"id": "VLT_columna_3", "pos": [19, 8], "size": [0.6, 0.6, 3.0], "rot_deg": 0, "kind": "column"},
@@ -187,21 +186,19 @@
     {"id": "SW_C5_MNT", "pos": [47.8, 20.0], "circuit": 5},
     {"id": "SW_C7_MNT", "pos": [47.8, 20.5], "circuit": 7}
   ],
-  "loot": [
-    {"id": "L1", "pos": [5, 4], "name": "Escarabajo de oro", "value": 1500, "heavy": false, "masterpiece": false},
-    {"id": "L2", "pos": [11, 9], "name": "Monedas romanas", "value": 1000, "heavy": false, "masterpiece": false},
-    {"id": "L3", "pos": [3, 10], "name": "Amuleto de lapislázuli", "value": 1000, "heavy": false, "masterpiece": false},
-    {"id": "L4", "pos": [24, 20], "name": "Pitillera esmaltada", "value": 1000, "heavy": false, "masterpiece": false},
-    {"id": "L5", "pos": [20, 29], "name": "Caja registradora", "value": 500, "heavy": false, "masterpiece": false},
-    {"id": "L6", "pos": [43, 4], "name": "Fajo del cajón", "value": 500, "heavy": false, "masterpiece": false},
-    {"id": "L7", "pos": [37, 20], "name": "Miniatura en restauración", "value": 1000, "heavy": false, "masterpiece": false},
-    {"id": "L8", "pos": [8, 30], "name": "Reloj de bolsillo", "value": 500, "heavy": false, "masterpiece": false},
-    {"id": "H1", "pos": [8, 2], "name": "Ánfora griega", "value": 3000, "heavy": true, "masterpiece": false},
-    {"id": "H2", "pos": [8, 19], "name": "Retrato del Duque", "value": 2500, "heavy": true, "masterpiece": false},
-    {"id": "H3", "pos": [36, 4], "name": "Busto de bronce", "value": 2000, "heavy": true, "masterpiece": false},
-    {"id": "M", "pos": [24, 4], "name": "La Dama de Terciopelo", "value": 5000, "heavy": true, "masterpiece": true}
+  "targets": [
+    {"id": "T1", "name": "La Dama de Terciopelo", "pos": [24, 4], "protection": "pressure", "variant": "pedestal", "model": "loot_masterpiece"},
+    {"id": "T2", "name": "Retrato del Duque", "pos": [8, 19], "protection": "sensor", "variant": "pedestal", "model": "picture_frame"},
+    {"id": "T3", "name": "Ánfora griega", "pos": [8, 2], "protection": "combination", "variant": "case", "model": "ceramic_vase", "combination": [12, 47, 83]},
+    {"id": "T4", "name": "Busto de bronce", "pos": [36, 4], "protection": "pressure", "variant": "pedestal", "model": "marble_bust"},
+    {"id": "T5", "name": "Miniatura de la reina", "pos": [37, 20], "protection": "sensor", "variant": "pedestal", "model": "picture_frame"},
+    {"id": "T6", "name": "Collar de la condesa", "pos": [46, 12], "protection": "combination", "variant": "safe", "model": "loot_cash", "combination": [30, 65, 15]}
   ],
-  "safe": {"pos": [46, 12], "value": 3000},
+  "exits": [
+    {"id": "P01", "pos": [24, 36], "size": [3.2, 2.0]},
+    {"id": "P02", "pos": [6, 36], "size": [2.0, 2.0]},
+    {"id": "P03", "pos": [44, 36], "size": [3.8, 2.0]}
+  ],
   "clocks": [
     {"id": 1, "pos": [36, 24.2], "rot_deg": 180},
     {"id": 2, "pos": [0.2, 6], "rot_deg": 90},

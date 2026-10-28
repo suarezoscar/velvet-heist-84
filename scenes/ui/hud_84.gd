@@ -206,20 +206,7 @@ func _update_header_stats() -> void:
 	if not is_instance_valid(GameManager):
 		return
 
-	if loot_label != null:
-		var cur: int = GameManager.current_loot_value
-		var target: int = GameManager.quota_target
-		loot_label.text = "BOTIN: $%d / $%d" % [cur, target]
-		loot_label.modulate = Color(0.3, 1.0, 0.4) if cur >= target else Color(1.0, 0.85, 0.3)
-
-	if masterpiece_label != null:
-		var has_art: bool = GameManager.has_masterpiece
-		if has_art:
-			masterpiece_label.text = "[★] PIEZA MAESTRA: ASEGURADA"
-			masterpiece_label.modulate = Color(1.0, 0.84, 0.0)
-		else:
-			masterpiece_label.text = "[ ] PIEZA MAESTRA: PENDIENTE"
-			masterpiece_label.modulate = Color(0.6, 0.6, 0.6)
+	HudHeader84.update_goal(loot_label, masterpiece_label)
 
 	if timer_label != null:
 		var sec: float = GameManager.match_timer
@@ -267,7 +254,7 @@ func _check_game_over_state() -> void:
 		GameManager.MatchState.TIME_EXPIRED_DRAW:
 			_show_game_over_modal(
 				"EMPATE",
-				"La ronda fallo, pero el ladron no llevaba la Pieza Maestra.\n" + sheet,
+				"La ronda fallo, pero el ladron no llego a escapar con el golpe.\n" + sheet,
 				Color(0.9, 0.9, 0.9)
 			)
 
