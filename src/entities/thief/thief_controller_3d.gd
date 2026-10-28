@@ -72,6 +72,8 @@ func _physics_process(delta: float) -> void:
 func _process_local_actions() -> void:
 	if InputMap.has_action("interact") and Input.is_action_just_pressed("interact"):
 		perform_action(&"interact")
+	if InputMap.has_action("force") and Input.is_action_just_pressed("force"):
+		perform_action(&"force")
 
 
 ## Ejecuta una acción discreta sobre el ladrón (interactuar, dial). Devuelve true si la ejecutó
@@ -96,6 +98,9 @@ func perform_action(action: StringName) -> bool:
 			if safe != null:
 				safe.cancel_cracking()
 				result = true
+		&"force":
+			var piece: TargetPiece3D = HeistReach.forceable(self)
+			result = piece != null and piece.force(self)
 		_:
 			result = super.perform_action(action)
 	return result

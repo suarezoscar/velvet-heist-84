@@ -58,8 +58,11 @@ static func build(data: LevelData, map: Node3D) -> Node3D:
 		_add_monitor(data, props, monitor, cameras)
 	if not data.entry("cctv_desk").is_empty():
 		_add_desk(data, props, data.entry("cctv_desk"))
+	var targets: Array = data.section("targets")
+	if not targets.is_empty():
+		HeistBuilder.build(data, props, targets)
 	if not data.entry("car").is_empty():
-		_add_car(data, props, data.entry("car"))
+		_add_car(data, props, data.entry("car"), targets.is_empty())
 	_place_actors(data, map)
 	return props
 
@@ -158,12 +161,16 @@ static func _add_desk(data: LevelData, props: Node3D, desk: Dictionary) -> void:
 	props.add_child(node)
 
 
-static func _add_car(data: LevelData, props: Node3D, car: Dictionary) -> void:
-	var node: EscapeCar3D = EscapeCar3D.new()
-	node.name = "EscapeCar3D"
+## Con encargo (heist.md R3) el coche es solo decorado: se sale por cualquier salida
+static func _add_car(data: LevelData, props: Node3D, car: Dictionary, usable: bool) -> void:
+	var node: Node3D = EscapeCar3D.new() if usable else Node3D.new()
+	node.name = "EscapeCar3D" if usable else "Car"
 	node.position = data.to_world(car["pos"])
 	node.rotation.y = deg_to_rad(-float(car.get("rot_deg", 0.0)))
-	_setup_area(node, Vector3(2.0, 1.8, 4.2), CAR_MODEL)
+	if usable:
+		_setup_area(node as Area3D, Vector3(2.0, 1.8, 4.2), CAR_MODEL)
+	else:
+		node.add_child(CAR_MODEL.instantiate())
 	props.add_child(node)
 
 

@@ -166,6 +166,8 @@ func _polled_actions(delta: float) -> Array[StringName]:
 		actions.append(&"strike")
 	if _just_pressed(&"crouch"):
 		actions.append(&"crouch_toggle")
+	if _just_pressed(&"force"):
+		actions.append(&"force")
 	var cracking: bool = _any_safe_cracking()
 	var step: int = _dial_repeat.update(
 		cracking and DialRepeat.left_held(), cracking and DialRepeat.right_held(), delta

@@ -22,6 +22,8 @@ func setup(map: HeistMap3D) -> void:
 		add_child(_last_seen_marker)
 	if not NetManager.is_dedicated_server:
 		_attach_markers()
+		if map.hud != null:
+			map.hud.add_child(ContractList84.new())  # encargo del ladrón (heist.md)
 
 
 func _physics_process(_delta: float) -> void:
