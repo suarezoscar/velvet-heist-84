@@ -34,4 +34,11 @@ Que quedarse en un mismo sitio cueste: al guardia que acampa le entra sueño (bo
 - **Validación local**: mi Blender es la 5.2.3 y el proyecto fija la 5.2.2. Validé con la misma función del validador, sin la comprobación de versión; el CI valida con la 5.2.2.
 
 ## Cierre
-2026-10-28.
+2026-10-28. La revisión del PR #83 pidió tres cambios, ya hechos:
+- la audiencia del sueño sale del orden en `map.guards` (como el rol de red), no de `guard_id`;
+- en una cabezada el guardia tampoco ve las cámaras (`GuardSleep.sees_cameras` en `NetVisibility` y en la vista local);
+- la cafetera baja a 1.897 triángulos: es un prop (≤ 2.000), no una pieza protagonista.
+
+Además: el haz de la linterna se encoge con la vista y el carrito ya no invade el muro sur.
+
+Pendiente: «con la alerta en alarma no sube» llega con la entrega 3; hasta entonces lo frena perseguir al ladrón. La cafetera está a 1,5-4 m de los monitores. Acampar en los monitores cuesta un café con ruido cada ~4 minutos; lo dirá el playtest.

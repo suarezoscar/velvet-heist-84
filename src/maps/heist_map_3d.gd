@@ -272,7 +272,7 @@ func _update_thief_local_visibility() -> void:
 	var mode: ThiefController3D.ViewMode = ThiefController3D.ViewMode.HIDDEN
 	if local_player == thief or (guard != null and guard.is_perceiving_thief):
 		mode = ThiefController3D.ViewMode.WORLD
-	elif guard != null and guard.is_watching_monitors() and SecurityCamera3D.any_detects(self):
+	elif GuardSleep.sees_cameras(guard) and SecurityCamera3D.any_detects(self):
 		mode = ThiefController3D.ViewMode.CCTV
 	thief.set_view_mode(mode)
 

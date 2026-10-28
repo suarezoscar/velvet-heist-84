@@ -131,3 +131,32 @@ func test_sleep_state_is_private_to_its_guard() -> void:
 	sleep.level = 0.523
 	assert_almost_eq(float(sleep.get_net_state_private()["level"]), 0.5, 0.001, "Redondeado")
 	assert_string_contains(SleepHud84.status_text(sleep), "SOMNOLIENTO")
+
+
+func test_audience_follows_scene_order_not_guard_id() -> void:
+	var map: HeistMap3D = MAP_SCENE.instantiate() as HeistMap3D
+	add_child_autofree(map)
+	await wait_physics_frames(1)
+	map.guards[0].guard_id = 7  # un guard_id que no cuadra con el rol no debe importar
+	assert_eq(_sleep(map.guards[0]).net_private_audience(), &"guard_1")
+	assert_eq(_sleep(map.guards[1]).net_private_audience(), &"guard_2")
+	assert_false(NetPrivateStates.audience_matches(&"guard_1", &"thief"), "Al ladrón no le llega")
+	assert_false(NetPrivateStates.audience_matches(&"guard_1", &"guard_2"), "Ni a otro guardia")
+
+
+func test_nodding_guard_does_not_see_cameras() -> void:
+	var guard: GuardController3D = _human_guard()
+	await wait_physics_frames(1)
+	guard.monitor_watch.state = GuardMonitorWatch.State.WATCHING
+	var guards: Array[GuardController3D] = [guard]
+	assert_eq(
+		NetVisibility.guard_views(guards, true)[&"guard_1"], &"cctv", "Despierto, ve las cámaras"
+	)
+	_sleep(guard).nodding = true
+	assert_eq(NetVisibility.guard_views(guards, true)[&"guard_1"], &"", "En la cabezada, nada")
+	guard.monitor_watch.state = GuardMonitorWatch.State.NONE
+
+
+func test_yawn_has_sound() -> void:
+	var mix: NoiseMix = load("res://assets/audio/noise_mix.tres") as NoiseMix
+	assert_false(mix.streams_for(&"voice", 1.0).is_empty(), "El bostezo suena")

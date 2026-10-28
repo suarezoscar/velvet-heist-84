@@ -31,6 +31,15 @@ var _coffee_spot: Vector3 = Vector3.ZERO
 var _profiles: Dictionary = {}
 
 
+## true si el guardia mira los monitores y no está dando una cabezada (en la cabezada no ve
+## nada, tampoco las cámaras)
+static func sees_cameras(target: GuardController3D) -> bool:
+	if target == null or not target.is_watching_monitors():
+		return false
+	var sleep: GuardSleep = target.get_node_or_null("Sleep") as GuardSleep
+	return sleep == null or not sleep.nodding
+
+
 static func attach(target: GuardController3D) -> GuardSleep:
 	var sleep: GuardSleep = GuardSleep.new()
 	sleep.name = "Sleep"
@@ -141,6 +150,8 @@ func _apply_perception() -> void:
 	elif stage() != Stage.AWAKE:
 		factor = RULES.drowsy_sight
 	guard.perception = _profile_for(factor)
+	if guard.maglite_light != null:
+		guard.maglite_light.spot_range = guard.perception.flashlight_range
 
 
 func _profile_for(factor: float) -> PerceptionProfile:
@@ -168,9 +179,13 @@ func get_net_state_private() -> Dictionary:
 	}
 
 
-## Solo lo recibe su guardia (el rol coincide con guard_id tras renumerar, FEAT-022)
+## Solo lo recibe su guardia: el rol sale del orden en map.guards, como en NetSession
 func net_private_audience() -> StringName:
-	return StringName("guard_%d" % guard.guard_id) if guard != null else &""
+	var map: HeistMap3D = guard.get_parent() as HeistMap3D if guard != null else null
+	var index: int = map.guards.find(guard) if map != null else -1
+	if index < 0 or index + 1 >= NetConfig.ROLES.size():
+		return &""
+	return NetConfig.ROLES[index + 1]
 
 
 func apply_net_state(state: Dictionary) -> void:

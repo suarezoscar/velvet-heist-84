@@ -75,7 +75,7 @@ ASSETS: Dict[str, Dict[str, Any]] = {
     },
     "coffee_cart": {
         "pivot": "bottom_center",
-        "max_triangles": 5000,
+        "max_triangles": 2000,
         "collision": True,
     },
     "security_tv": {
