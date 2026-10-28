@@ -25,6 +25,8 @@ var protection: StringName = &"combination"
 var lock: SafeBox3D = null
 var variant: StringName = &"pedestal"
 var stolen: bool = false
+## Un guardia (o una cámara vigilada) ha visto el pedestal vacío (heist.md R6)
+var discovered: bool = false
 var model: Node3D = null
 var marker: Label3D = null
 var _marker_timer: float = 0.0
@@ -133,9 +135,14 @@ func steal(brute: bool) -> void:
 	var kind: StringName = NoiseEmit.MECHANISM if brute else NoiseEmit.IMPACT
 	var radius: float = RULES.brute_radius if brute else SILENT_RADIUS
 	NoiseEmit.emit(global_position, radius, &"thief", kind, thief)
+	var alert: AlertDirector = AlertDirector.of(get_tree())
+	if brute and alert != null:
+		alert.raise(AlertDirector.Level.ALARM)  # R9: a lo bruto salta la alarma
+		discovered = true
 	print("[TargetPiece3D] %s robada%s" % [piece_name, " a lo bruto" if brute else ""])
 
 
+## Público: si el pedestal está vacío. Si está descubierto va solo a los guardias (Alert)
 func get_net_state() -> Dictionary:
 	return {"stolen": stolen}
 
@@ -164,8 +171,10 @@ func _update_marker() -> void:
 		marker.visible = _in_contract() and not stolen
 		marker.modulate = TeamMarker3D.THIEF_COLOR
 	else:
+		# Guardias: cian si sigue siendo candidata, rojo con ✘ si ya saben que se la llevó
 		marker.visible = not NetManager.is_dedicated_server
-		marker.modulate = TeamMarker3D.GUARD_COLOR
+		marker.text = "✘" if discovered else "◆"
+		marker.modulate = Color("ff4a3d") if discovered else TeamMarker3D.GUARD_COLOR
 
 
 func _build(model_scene: PackedScene) -> void:

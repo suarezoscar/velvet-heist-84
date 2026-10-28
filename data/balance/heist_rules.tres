@@ -6,3 +6,14 @@
 script = ExtResource("1_heist")
 pieces_by_guards = Array[int]([4, 3, 2])
 brute_radius = 15.0
+trace_sight = 10.0
+alarm_traces = 2
+flood_radius = 14.0
+flood_time = 30.0
+flood_cooldown = 60.0
+coins = 3
+throw_range = 10.0
+coin_radius = 9.0
+ping_time = 8.0
+walkie_radius = 6.0
+walkie_cooldown = 10.0

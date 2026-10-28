@@ -85,7 +85,8 @@ func handle_noise(
 	if local == null:
 		return
 
-	if local == _map.thief and team == &"thief":
+	# Solo el ruido que hace el propio ladrón (no una moneda que lanza lejos)
+	if local == _map.thief and team == &"thief" and emitter == local:
 		if _map.hud != null and _map.hud.get_noise_meter() != null:
 			_map.hud.get_noise_meter().push(radius)
 

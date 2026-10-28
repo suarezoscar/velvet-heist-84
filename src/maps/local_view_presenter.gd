@@ -27,6 +27,9 @@ func setup(map: HeistMap3D) -> void:
 			var sleep_hud: SleepHud84 = SleepHud84.new()  # sueño del guardia (heist.md R5)
 			sleep_hud.map = map
 			map.hud.add_child(sleep_hud)
+			var alert_hud: AlertHud84 = AlertHud84.new()  # alerta, monedas y walkie (heist.md)
+			alert_hud.map = map
+			map.hud.add_child(alert_hud)
 
 
 func _physics_process(_delta: float) -> void:

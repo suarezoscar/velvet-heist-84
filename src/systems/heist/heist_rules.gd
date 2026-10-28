@@ -9,6 +9,25 @@ extends Resource
 ## Radio (m) del ruido de la campana al robar a lo bruto (R9)
 @export var brute_radius: float = 15.0
 
+## R6: distancia (m) a la que un guardia descubre un pedestal vacío que tiene a la vista
+@export var trace_sight: float = 10.0
+## R7: rastros descubiertos para pasar a «alarma» (1 basta para «sospecha»)
+@export var alarm_traces: int = 2
+## R7: luces de alarma: radio (m), duración (s) y espera del equipo entre usos (s)
+@export var flood_radius: float = 14.0
+@export var flood_time: float = 30.0
+@export var flood_cooldown: float = 60.0
+
+## R8: monedas del ladrón, alcance del lanzamiento (m) y radio del ruido al caer (m)
+@export var coins: int = 3
+@export var throw_range: float = 10.0
+@export var coin_radius: float = 9.0
+
+## R8: walkie: segundos que dura la marca, radio del chasquido (m) y espera entre usos (s)
+@export var ping_time: float = 8.0
+@export var walkie_radius: float = 6.0
+@export var walkie_cooldown: float = 10.0
+
 
 ## Piezas del encargo para guard_count guardias, sin pasar de las candidatas
 func pieces_for(guard_count: int, candidates: int) -> int:
