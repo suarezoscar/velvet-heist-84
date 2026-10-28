@@ -126,6 +126,8 @@ func _setup_online_control() -> void:
 		set_local_player(null)
 	else:
 		set_local_player(session.actor_for_role(NetManager.get_local_role()))
+		# Hasta el primer snapshot, el ladrón no ve a ningún guardia (vision.md R4)
+		NetViewModes.apply(self, NetManager.get_local_role(), {})
 
 
 ## Nombres de mallas extra a ocultar en este mapa (además de las de colisión)
@@ -192,10 +194,7 @@ func _process_camera_follow(delta: float) -> void:
 func _process_guards_perception(delta: float) -> void:
 	if thief == null:
 		return
-	var lamps: Array[Lamp3D] = []
-	for node: Node in get_tree().get_nodes_in_group(&"lamps"):
-		if node is Lamp3D:
-			lamps.append(node as Lamp3D)
+	var lamps: Array[Lamp3D] = VisionLogic.lamps_in(self)
 	var any_spotted: bool = false
 	for guard: GuardController3D in guards:
 		guard.update_perception(thief, lamps, delta)
@@ -203,16 +202,13 @@ func _process_guards_perception(delta: float) -> void:
 			any_spotted = true
 	thief.set_stealth_visibility(any_spotted)
 	_update_thief_local_visibility()
-	_update_guards_local_visibility()
+	_update_guards_local_visibility(lamps)
 
 
 ## Sin red, el ladrón local solo ve a los guardias de su vista; del resto, si llevan la linterna
 ## encendida, solo el haz (vision.md R3). Los guardias se ven siempre entre sí
-func _update_guards_local_visibility() -> void:
+func _update_guards_local_visibility(lamps: Array[Lamp3D]) -> void:
 	var viewer: ThiefController3D = local_player as ThiefController3D
-	var lamps: Array[Lamp3D] = []
-	if viewer != null:
-		lamps = VisionLogic.lamps_in(self)
 	for guard: GuardController3D in guards:
 		var full: bool = (
 			viewer == null

@@ -157,4 +157,6 @@ func test_loot_memory_ghost_until_seen() -> void:
 	_root.add_child(fresh)
 	fresh.global_position = Vector3(2.0, 0.0, 1.0)
 	memory.sample()
-	assert_false(fresh.visible, "Lo nuevo tras el tabique no aparece hasta verlo")
+	assert_true(memory.is_hidden(fresh), "Lo nuevo tras el tabique no aparece hasta verlo")
+	fresh.visible = true
+	assert_true(memory.is_hidden(fresh), "Aunque la red toque la raíz, sigue oculto")

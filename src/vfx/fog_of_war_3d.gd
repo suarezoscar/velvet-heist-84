@@ -23,6 +23,7 @@ var _eye: Vector3 = Vector3.ZERO
 var _radius: float = 0.0
 var _timer: float = 0.0
 var _material: ShaderMaterial = null
+var _query: PhysicsRayQueryParameters3D = null
 
 
 func _ready() -> void:
@@ -32,10 +33,13 @@ func _ready() -> void:
 	mesh = quad
 	_material = ShaderMaterial.new()
 	_material.shader = SHADER
-	_material.render_priority = 100
+	# Lo primero del pase transparente: copia la pantalla opaca y lo transparente (vidrio,
+	# siluetas O2, partículas) se dibuja encima sin niebla
+	_material.render_priority = Material.RENDER_PRIORITY_MIN
 	_material.set_shader_parameter("edge_feather", RULES.fog_edge_feather)
 	_material.set_shader_parameter("fog_brightness", RULES.fog_brightness)
 	_material.set_shader_parameter("fog_desaturation", RULES.fog_desaturation)
+	_material.set_shader_parameter("light_keep", RULES.fog_light_keep)
 	material_override = _material
 	layers = 1 << (FOG_LAYER - 1)
 	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -43,6 +47,8 @@ func _ready() -> void:
 	_ray_count = clampi(RULES.fog_rays, 8, MAX_RAYS)
 	distances.resize(MAX_RAYS)
 	distances.fill(0.0)
+	_query = PhysicsRayQueryParameters3D.new()
+	_query.collision_mask = LevelArchitectureBuilder.LAYER_WALLS
 
 
 func _process(delta: float) -> void:
@@ -53,7 +59,9 @@ func _process(delta: float) -> void:
 	if _timer > 0.0:
 		return
 	_timer = UPDATE_INTERVAL
-	recompute()
+	# Los muros no se mueven: si los ojos y el radio siguen igual, la zona tampoco cambia
+	if VisionLogic.eye(viewer) != _eye or VisionLogic.view_radius(viewer) != _radius:
+		recompute()
 
 
 ## true si hay a quién seguir y la partida no ha terminado
@@ -76,10 +84,9 @@ func recompute() -> void:
 	for i: int in range(_ray_count):
 		var angle: float = TAU * float(i) / float(_ray_count)
 		var target: Vector3 = _eye + Vector3(cos(angle), 0.0, sin(angle)) * _radius
-		var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(
-			_eye, target, LevelArchitectureBuilder.LAYER_WALLS
-		)
-		var hit: Dictionary = space.intersect_ray(query)
+		_query.from = _eye
+		_query.to = target
+		var hit: Dictionary = space.intersect_ray(_query)
 		if not hit.is_empty():
 			var at: Vector3 = hit["position"]
 			var reach: float = Vector2(at.x - _eye.x, at.z - _eye.z).length() + WALL_MARGIN

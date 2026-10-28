@@ -88,7 +88,8 @@ El servidor decide; cada cliente solo recibe lo que su jugador ve.
 | Brillo de la niebla | `fog_brightness` | sensación | 0,2-0,6 | 0,35. El plano se lee, pero se nota que es «recuerdo» |
 | Desaturación de la niebla | `fog_desaturation` | sensación | 0,4-1,0 | 0,7. Gris de foto vieja, a juego con el tono neo-noir |
 | Borde suave | `fog_edge_feather` | sensación | 0,3-2,0 m | 1,0. Sin corte duro: la vista se apaga al girar una esquina |
-| Rayos del polígono | `fog_rays` | técnico | 128-512 | 256. Bordes limpios a 30 Hz sin coste notable |
+| Rayos del polígono | `fog_rays` | técnico | 8-256 | 256. Bordes limpios a 30 Hz: unos 0,6 ms por recálculo en `museum_v2`, y solo se recalcula si el jugador se mueve |
+| Luz que atraviesa la niebla | `fog_light_keep` | técnico | 0,7-1,5 | 0,9. Canal más brillante de un píxel a partir del cual no se oscurece: pilotos y bombillas se ven en la niebla (D5); el suelo iluminado, no |
 
 `eye_height` se reutiliza de `perception_guard.tres` (1,6 m), sin número nuevo.
 
@@ -128,7 +129,7 @@ El servidor decide; cada cliente solo recibe lo que su jugador ve.
 | Robos descubiertos al pasar por la sala (D4) | ¿La memoria del botín crea rondas? | Ninguno en 5 partidas |
 
 ## Estado
-Sin implementar. Hoy el ladrón ve a todos los guardias y el filtro de red solo protege al ladrón. Se implementa en FEAT-020.
+Implementado en FEAT-020 (2026-10-28). Simplificación del PoC: la vista ladrón-guardia usa un solo rayo de ojos a ojos (no 1-3), así que un guardia con la cabeza tapada por un marco de puerta queda oculto aunque se le vea el cuerpo. Los compañeros guardias en la niebla solo se oscurecen, sin silueta propia.
 
 ## Decisiones (aprobadas por el usuario el 2026-10-24)
 1. **► Opción de visión.** Recomendación: **A**, 360° cortada por muros con radio.
