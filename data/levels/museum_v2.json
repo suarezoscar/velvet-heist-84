@@ -194,6 +194,7 @@
     {"id": "T5", "name": "Miniatura de la reina", "pos": [37, 20], "protection": "sensor", "variant": "pedestal", "model": "picture_frame"},
     {"id": "T6", "name": "Collar de la condesa", "pos": [46, 12], "protection": "combination", "variant": "safe", "model": "loot_cash", "combination": [30, 65, 15]}
   ],
+  "coffee": {"pos": [40.3, 29.3], "rot_deg": 180},
   "exits": [
     {"id": "P01", "pos": [24, 36], "size": [3.2, 2.0]},
     {"id": "P02", "pos": [6, 36], "size": [2.0, 2.0]},

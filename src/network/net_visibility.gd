@@ -30,7 +30,7 @@ static func guard_views(guards: Array[GuardController3D], cameras_detect: bool) 
 		var view: StringName = &""
 		if guard.is_perceiving_thief:
 			view = &"world"
-		elif cameras_detect and guard.is_watching_monitors():
+		elif cameras_detect and GuardSleep.sees_cameras(guard):  # en la cabezada, nada
 			view = &"cctv"
 		views[NetConfig.ROLES[index + 1]] = view
 	return views

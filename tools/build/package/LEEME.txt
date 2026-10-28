@@ -13,7 +13,7 @@ CONTROLES
   WASD o flechas: mover · ratón: hacia dónde miras · Mayús: correr · C: sigilo
   Ctrl: agacharse · E: interactuar · Q: robar a lo bruto (salta la alarma)
   M o Tab: plano · F: linterna (guardias)
-  Clic izquierdo: porra (guardias)
+  Clic izquierdo: porra (guardias) · E en la cafetera de la garita: café (quita el sueño)
   Caja fuerte: flechas o A/D giran el dial (mantener para girar seguido), E prueba, Esc sale
   Esc: pausa (controles y salir) · F9: panel de rendimiento y red
   Al acabar: R revancha, Esc menú principal
