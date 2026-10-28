@@ -42,7 +42,7 @@ Rango: 0 a ~4 × (duración de la partida / `T`) = 24 con los valores iniciales 
 - **Dos guardias fichan a la vez**: el servidor aplica las dos acciones en orden; el reloj queda en `round_duration` y suenan los dos fichajes. Ninguna falta cambia.
 - **Mismo tick**: un reloj que llega a 0 en el tick final cuenta como vencido (borde = vencido). Un fichaje recibido en ese tick se aplica antes de evaluar R3.
 - **Guardia "capturado"**: no existe (pilar 6, el ladrón nunca ataca). Si el capturado es el ladrón, la partida acaba en `THIEF_CAPTURED` y los relojes no cuentan.
-- **Guardia desconectado**: la regla no cambia; un guardia solo ficha los cuatro en ~39 s de cada 90 (museo v2 §8), así que sigue siendo posible. Un guardia de IA (puesto sin humano) **debe** incluir los relojes en su patrulla o la regla castiga a su compañero (requisito para la FEAT).
+- **Guardia desconectado**: la regla no cambia; un guardia solo ficha los cuatro en ~39 s de cada 90 (museo v2 §8), así que sigue siendo posible. En red no hay guardias de IA: hay uno por jugador guardia, de 1 a 3 (FEAT-022). Sin red, los guardias de IA **deben** incluir los relojes en su patrulla.
 - **Ladrón junto a un reloj**: no puede ficharlo ni sabotearlo (sabotaje, si llega, en `gadgets.md` con su contramedida). Esperar junto a un reloj es apostar a que viene un guardia: un riesgo, no un escondite.
 
 ## Números (nuevo recurso `data/balance/time_clock_rules.tres`)

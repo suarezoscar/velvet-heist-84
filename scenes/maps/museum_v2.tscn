@@ -63,5 +63,11 @@ script = ExtResource("5_guard_script")
 maglite_light = NodePath("MagliteSpotLight")
 guard_id = 2
 
+[node name="GuardPlayer3" type="CharacterBody3D" parent="." node_paths=PackedStringArray("maglite_light") instance=ExtResource("4_guard")]
+collision_layer = 2
+script = ExtResource("5_guard_script")
+maglite_light = NodePath("MagliteSpotLight")
+guard_id = 3
+
 [node name="HUD84" type="CanvasLayer" parent="." instance=ExtResource("6_hud")]
 script = ExtResource("7_hud_script")

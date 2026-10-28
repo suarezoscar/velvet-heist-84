@@ -63,7 +63,7 @@ Cuando arranca, el servidor escribe: `[NetManager] Servidor dedicado iniciado co
 ### 4.3 Conectarse
 Cada jugador abre el juego y sigue estos pasos:
 1. Entra en **Multijugador** y escribe la dirección del servidor.
-2. Pulsa **Unirse** y elige bando. Para empezar hace falta un ladrón.
+2. Pulsa **Unirse** y elige bando. Caben un ladrón y hasta tres guardias, y para empezar hace falta el ladrón y al menos un guardia. No hay guardias de IA en red: hay uno por cada jugador guardia.
 3. Alguien pulsa **Empezar partida**.
 
 | Quién | Dirección |
@@ -71,6 +71,15 @@ Cada jugador abre el juego y sigue estos pasos:
 | Tú, en el mismo PC que el servidor | `127.0.0.1` |
 | Alguien de tu misma casa o red | la IP local del servidor (192.168.x.x) |
 | Tus amigos por internet | tu IP pública (https://ifconfig.me) |
+
+### 4.4 Medir la conexión
+Pulsa **F9** durante la partida, o activa **Opciones → Panel de rendimiento y red**, para ver abajo a la derecha:
+- los FPS;
+- tu ping y tu pérdida de paquetes;
+- el tráfico;
+- el ping de cada jugador.
+
+El servidor dedicado escribe lo mismo en su consola cada 10 s (líneas `[NetStats]`).
 
 ## 5. Problemas frecuentes
 - **«No se pudo conectar»**:
@@ -80,4 +89,4 @@ Cada jugador abre el juego y sigue estos pasos:
   - pedir a tu operador una IP pública (muchos lo hacen gratis);
   - usar una red privada virtual como Tailscale o ZeroTier: todos se unen a la misma red y se conectan con la IP que asigna.
 - **Desincronías o errores raros**: casi siempre son versiones distintas. Recompila y reparte la misma compilación a todos.
-- **Retraso**: el PoC aún no tiene predicción del jugador local, así que con mucho ping el movimiento propio llega con algo de retardo. Cuéntamelo con cifras si lo notas, porque es lo siguiente que se trabaja en red.
+- **Retraso**: el PoC aún no tiene predicción del jugador local, así que con mucho ping el movimiento propio llega con algo de retardo. Cuéntamelo con las cifras del panel (F9) si lo notas, porque es lo siguiente que se trabaja en red.
