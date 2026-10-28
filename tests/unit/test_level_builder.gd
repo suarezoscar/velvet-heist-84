@@ -124,11 +124,14 @@ func test_museum_v2_data_matches_design() -> void:
 	assert_eq(data.section("cameras").size(), 3, "CAM-1..3")
 	assert_eq(data.section("monitors").size(), 3, "Un monitor por cámara")
 	assert_eq((data.entry("spawns").get("guards", []) as Array).size(), 3, "Tres guardias")
-	var masterpieces: int = 0
-	for loot: Dictionary in data.section("loot"):
-		masterpieces += 1 if bool(loot.get("masterpiece", false)) else 0
-	assert_eq(masterpieces, 1, "Una sola Pieza Maestra")
-	assert_eq(data.section("loot").size(), 12, "L1–L8, H1–H3 y M")
+	# heist.md: 6 candidatas (2 de cada protección) y 3 salidas exteriores; sin cuota
+	var kinds: Dictionary = {}
+	for target: Dictionary in data.section("targets"):
+		kinds[target["protection"]] = int(kinds.get(target["protection"], 0)) + 1
+	assert_eq(data.section("targets").size(), 6, "Seis piezas candidatas")
+	assert_eq(kinds, {"combination": 2, "pressure": 2, "sensor": 2}, "Dos de cada protección")
+	assert_eq(data.section("exits").size(), 3, "P01, P02 y P03")
+	assert_true(data.section("loot").is_empty(), "Sin botín suelto")
 
 
 func _child_names(node: Node) -> Array[String]:

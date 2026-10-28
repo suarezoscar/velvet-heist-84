@@ -5,12 +5,14 @@ Un juego de Óscar Suárez
 JUGAR
   Linux:   ./VelvetHeist84.x86_64
   Windows: VelvetHeist84.exe
-  - Un jugador: tú eres el ladrón y la IA lleva a los guardias.
+  - Un jugador: tú eres el ladrón y la IA lleva a los guardias. Roba las piezas de tu
+    encargo (lista arriba a la izquierda, marcas rosas) y sal por cualquier puerta exterior.
   - Multijugador: escribe la IP del servidor, pulsa Unirse, elige bando y Empezar partida.
 
 CONTROLES
   WASD o flechas: mover · ratón: hacia dónde miras · Mayús: correr · C: sigilo
-  Ctrl: agacharse · E: interactuar · M o Tab: plano · F: linterna (guardias)
+  Ctrl: agacharse · E: interactuar · Q: robar a lo bruto (salta la alarma)
+  M o Tab: plano · F: linterna (guardias)
   Clic izquierdo: porra (guardias)
   Caja fuerte: flechas o A/D giran el dial (mantener para girar seguido), E prueba, Esc sale
   Esc: pausa (controles y salir) · F9: panel de rendimiento y red

@@ -107,14 +107,21 @@ func refresh() -> void:
 			else (TeamMarker3D.GUARD_COLOR if side == &"guards" else MenuTheme84.TEXT)
 		)
 	)
-	stats_label.text = MatchSummary.stats(
-		GameManager.current_loot_value,
-		GameManager.quota_target,
-		GameManager.has_masterpiece,
-		GameManager.match_duration_seconds - GameManager.match_timer,
-		GameManager.round_faults,
-		GameManager.CLOCK_RULES.allowed_misses
-	)
+	var elapsed: float = GameManager.match_duration_seconds - GameManager.match_timer
+	var allowed: int = GameManager.CLOCK_RULES.allowed_misses
+	if GameManager.heist != null:
+		stats_label.text = MatchSummary.heist_stats(
+			GameManager.heist, elapsed, GameManager.round_faults, allowed
+		)
+	else:
+		stats_label.text = MatchSummary.stats(
+			GameManager.current_loot_value,
+			GameManager.quota_target,
+			GameManager.has_masterpiece,
+			elapsed,
+			GameManager.round_faults,
+			allowed
+		)
 	var vote: NetRematch = _vote()
 	if vote == null:
 		status_label.visible = false
