@@ -1,9 +1,37 @@
 # Nivel: Museo Velvet '84, versión 2
 
-- **Estado**: aprobado (2026-10-24). El usuario aprueba todas las recomendaciones: esqueleto A "dos alas", 48 × 36 m y decisiones 3–8 (3 y 5 pasan por `/design`).
+- **Estado**: aprobado (2026-10-24); ampliado en FEAT-034 (sección 0). El usuario aprueba todas las recomendaciones: esqueleto A "dos alas", 48 × 36 m y decisiones 3–8 (3 y 5 pasan por `/design`).
 - **Origen**: petición del usuario del 2026-10-24: tirar `scenes/maps/museum_velvet_84.tscn` ("feo", 30 × 19 m, 8 salas) y tener un museo grande y bien diseñado, con pasillos, varias salas y una garita de guardia. Meta del PoC (`docs/decisions/2026-10-23-roadmap-poc.md`): 3 personas juegan 5 partidas seguidas, 1 ladrón contra 2 guardias humanos en LAN, y quieren la sexta.
 - **Relacionado**: `docs/gdd/pillars.md`; `docs/gdd/systems/stealth.md` (partes 1 y 2, P2.4); sistemas en código: `src/systems/lighting/`, `safe_box_3d.gd`, `time_clock_3d.gd`, `escape_car_3d.gd`, `security_camera_3d.gd`, `cctv_monitor_3d.gd`, `src/entities/loot_item_3d.gd`, `core/game_manager.gd`.
 - **Fuente de verdad**: las tablas de este documento, hasta que exista `data/levels/museum_v2.tres` (no existe formato de nivel por datos: `FloorplanBlueprint` describe salas y puertas en código y `MuseumLevelBuilder3D` tiene los muros y el mobiliario escritos a mano). Ver "Siguiente paso".
+
+## 0. Ampliación FEAT-034 (aprobada por el usuario el 2026-10-28)
+La fuente de verdad del nivel es `data/levels/museum_v2.json`. Esta sección manda sobre lo que contradiga el resto del documento (las secciones 1-13 describen la versión de 16 salas).
+
+- **Tamaño**: el edificio pasa de 48 × 36 m a **66 × 36 m**, con 21 salas y el callejón.
+- **Ala este** (x 48-66), unida al resto por el Despacho (P25) y por el **Pasillo de Servicio Este** (EPS, x 48-50, que toca Mantenimiento, Vestuario y Muelle):
+
+  | Sala | Id | Rect [x, z, ancho, fondo] | Suelo |
+  |---|---|---|---|
+  | Galería de Arte Oriental | ORI | [48, 0, 18, 14] | parqué |
+  | Sala de Joyas y Relojes | JOY | [50, 14, 8, 10] | moqueta |
+  | Biblioteca de Manuscritos | BIB | [58, 14, 8, 10] | parqué |
+  | Patio de Esculturas | PAT | [50, 24, 10, 12] | mármol |
+  | Sala de Tapices | TAP | [60, 24, 6, 12] | moqueta |
+  | Pasillo de Servicio Este | EPS | [48, 14, 2, 22] | linóleo |
+
+- **Puertas nuevas**: P25-P38. La 4.ª salida exterior es **P38** (Patio → callejón).
+- **Garita**: una sola puerta, P20 al Pasillo de Servicio, con hoja (`Door3D`). P21 y P24 pasan a ser muro. Decorado de oficina de 1984: fluorescentes, reloj de pared, taquillas, mesita con teléfono, linóleo a cuadros y la pared de 5 monitores.
+- **20 candidatas** (heist.md R1, R9): 7 de combinación (cajas fuertes en el Despacho y en Joyas), 7 de presión y 6 de sensor. Las de sensor están en las alas Oeste (GW, GSW), Servicio (TAL, MNT), Este (BIB, TAP) y Antigüedades (ANT). Hay mesas de réplicas en el Taller y en el ala oriental.
+- **Ventilación** (heist.md R10): red de servicio (TAL, MNT, DOCK), red oeste (GW, GSW, ANT, ARC) y red este (ORI, PAT, VES, BIB).
+- **Rondas** (interaction.md R1): 8 relojes en tres zonas (oeste R2, R4, R8; centro R1, R5; este R3, R6, R7). Cada guardia recibe una ruta de 4. Las patrullas fijas desaparecen: la IA patrulla su ruta (`offline_guards`: 2).
+- **Cámaras**: 5 (CAM-4 en el Patio y CAM-5 en Arte Oriental).
+- **Partida**: 12 minutos (`match_minutes`).
+- **Aspecto**:
+  - paredes a 3,2 m, recortadas con tramado delante del jugador local (`WallXRay`);
+  - 29 cuadros de dominio público colgados, con cartela y cordón (`art`);
+  - modelos de decorado (`decor`) y muebles con su modelo según el tipo;
+  - mármol y linóleo a cuadros, y un foco sobre cada pieza.
 
 ## 1. Concepto y fantasía
 Medianoche de noviembre de 1984 en el Museo Velvet, un palacete de mármol con ala de servicio de linóleo y fluorescentes. Las arañas de la rotonda siguen encendidas para las cámaras, el resto es penumbra y farolas de sodio filtrándose por las ventanas.

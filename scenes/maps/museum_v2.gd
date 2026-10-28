@@ -12,6 +12,7 @@ const LEVEL_DATA_PATH: String = "res://data/levels/museum_v2.json"
 func _ready() -> void:
 	var data: LevelData = LevelData.load_json(LEVEL_DATA_PATH)
 	if data != null:
+		set_meta(&"level_data", data)  # el plano (M) se dibuja con estos datos
 		LevelArchitectureBuilder.build(data, self)
 		LevelEntitiesBuilder.build(data, self)
 		LevelDressingBuilder.build(data, self)

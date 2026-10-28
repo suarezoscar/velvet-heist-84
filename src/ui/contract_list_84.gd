@@ -1,6 +1,7 @@
 ## @file contract_list_84.gd
 ## Lista del encargo para el ladrón local (heist.md R1): cada pieza con su sala, tachada al
-## robarla, bajo el indicador de exposición. Solo se ve jugando con el ladrón y con encargo.
+## robarla, bajo el indicador de exposición. A los guardias (FEAT-034), solo un contador: las
+## candidatas que siguen en juego y los rastros descubiertos; las fichas están en el plano (M).
 class_name ContractList84
 extends Label
 
@@ -20,9 +21,21 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	var heist: HeistDirector = GameManager.heist
-	visible = heist != null and HeistDirector.local_is_thief(get_tree())
-	if visible:
-		text = compose(heist)
+	visible = heist != null and not NetManager.is_dedicated_server
+	if not visible:
+		return
+	text = compose(heist) if HeistDirector.local_is_thief(get_tree()) else guards_line(heist)
+
+
+## A los guardias: «CANDIDATAS 17 · RASTROS 3 · plano [M]»
+static func guards_line(heist: HeistDirector) -> String:
+	var found: int = 0
+	var candidates: Array[StringName] = heist.candidates()
+	for piece_id: StringName in candidates:
+		var piece: TargetPiece3D = heist.piece(piece_id)
+		if piece != null and piece.discovered:
+			found += 1
+	return "CANDIDATAS %d · RASTROS %d · plano [M]" % [candidates.size() - found, found]
 
 
 ## «ENCARGO» y una línea por pieza: «✔ Busto de bronce» o «◆ Retrato del Duque · Galería…»
@@ -47,7 +60,7 @@ static func compose(heist: HeistDirector) -> String:
 static func hint(piece: TargetPiece3D) -> String:
 	match piece.protection:
 		&"pressure":
-			return "pieza de pega del taller"
+			return "pieza de pega de una mesa de réplicas"
 		&"sensor":
 			return "corta la alarma del ala"
 	return "combinación"
