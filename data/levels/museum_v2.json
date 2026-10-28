@@ -195,6 +195,12 @@
     {"id": "T6", "name": "Collar de la condesa", "pos": [46, 12], "protection": "combination", "variant": "safe", "model": "loot_cash", "combination": [30, 65, 15]}
   ],
   "coffee": {"pos": [40.3, 29.3], "rot_deg": 180},
+  "wings": [
+    {"id": "OESTE", "name": "Ala oeste", "rooms": ["GW", "GSW"], "circuits": [6, 7], "box": {"pos": [0.3, 30], "rot_deg": 90}},
+    {"id": "SERVICIO", "name": "Ala de servicio", "rooms": ["TAL", "MNT"], "circuits": [11, 12], "box": {"pos": [47.7, 15.6], "rot_deg": 270}}
+  ],
+  "replica_table": {"pos": [37, 20]},
+  "pilot_panel": {"pos": [34.4, 26.2]},
   "exits": [
     {"id": "P01", "pos": [24, 36], "size": [3.2, 2.0]},
     {"id": "P02", "pos": [6, 36], "size": [2.0, 2.0]},

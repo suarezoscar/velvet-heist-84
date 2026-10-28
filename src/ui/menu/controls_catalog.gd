@@ -62,6 +62,7 @@ static func groups() -> Array[Dictionary]:
 					"Tomar un café (quita el sueño)",
 					keys(&"interact") + " en la cafetera de la garita"
 				],
+				["Examinar una pieza (¿es de pega?) · restablecer la corriente", keys(&"interact")],
 				["Walkie: marcar un punto al equipo", keys(&"walkie")],
 				["Luces de alarma (en «alarma»)", keys(&"alarm_lights")],
 			],
