@@ -1,6 +1,6 @@
 # El golpe: la lista del coleccionista, el café y la alerta
 
-- **Estado**: aprobado por el usuario el 2026-10-28 (decisiones tomadas en conversación), salvo las preguntas abiertas del final.
+- **Estado**: aprobado por el usuario el 2026-10-28 (decisiones tomadas en conversación).
 - **Origen**: rediseño pedido por el usuario el 2026-10-28 para que los guardias no acampen en un sitio y para que su turno sea divertido. Temática: `docs/decisions/2026-10-28-tematica-caballero-ladron.md`.
 - **Relacionado**: `interaction.md` (relojes de ronda, CCTV), `vision.md` (niebla y filtro de red), `stealth.md` (percepción y ruido), `gentleman.md` (temática; sus M1-M3 quedan sustituidas por este documento), `docs/gdd/levels/museum_v2.md`.
 
@@ -88,7 +88,7 @@ Desaparece el caso «ronda rota y el ladrón tenía la Pieza Maestra = gana el l
 |---|---|---|
 | **Calma** | Al empezar | — |
 | **Sospecha** | 1 rastro descubierto | Los rastros se ven en el plano del equipo (R6) |
-| **Alarma** | 2 rastros descubiertos, o que un guardia (o una cámara vigilada) vea al ladrón | Poder de alarma (pregunta abierta 1). El sueño deja de subir |
+| **Alarma** | 2 rastros descubiertos, o que un guardia (o una cámara vigilada) vea al ladrón | Encender de golpe todas las luces de un ala durante 30 s (decisión 1). El sueño deja de subir |
 
 - La alerta **nunca baja** durante la partida.
 - Todos la ven, el ladrón también: sabe que le han descubierto, y la tensión sube.
@@ -192,10 +192,6 @@ Sin implementar. Entregas propuestas, cada una se puede probar por separado:
 3. rastros + alerta + monedas + walkie;
 4. el cambiazo con piezas de pega y el corte de corriente.
 
-## Preguntas abiertas
-1. **Poder de la alarma.** El museo **no tiene puertas que se abran y se cierren** (los pasos son huecos), así que «cerrar puertas con llave» necesita antes un sistema de puertas. Opciones:
-   - **(a) Puertas ahora.** Abrir y cerrar (cortan la vista y suenan), cerrar con llave como poder de la alarma (máximo 2 a la vez, nunca las salidas) y puertas abiertas como rastro. Es más trabajo, pero las puertas son la base de mucho sigilo.
-   - **(b) Simple ahora y puertas después.** En alarma, los guardias pueden **encender de golpe todas las luces de un ala** durante 30 s, con los interruptores que ya existen.
-
-   Recomendación: **(b) ahora y (a) en su propio diseño después**.
-2. ¿El ladrón **ve el nivel de alerta**? Recomendación: sí.
+## Decisiones (usuario, 2026-10-28)
+1. **Poder de la alarma**: en «alarma», los guardias pueden **encender de golpe todas las luces de un ala durante 30 s** con los interruptores que ya existen. Las puertas, con «cerrar con llave» y puertas abiertas como rastro, irán en su propio diseño más adelante.
+2. **El ladrón ve el nivel de alerta.**
