@@ -7,6 +7,8 @@ extends RefCounted
 
 ## Lo físico y visible de un actor remoto: nunca la percepción ni la estamina
 const REMOTE_KEYS: Array[String] = ["pos", "vel", "rot_y", "crouching", "look", "flashlight"]
+## Lo que basta para dibujar solo el haz de un guardia (vision.md R4)
+const BEAM_KEYS: Array[String] = ["pos", "rot_y", "look", "flashlight"]
 
 
 ## Vistas del tick: {"guards": rol → &"world"|&"cctv"|&"", "thief": rol → &"full"|&"beam"|&""}
@@ -37,16 +39,22 @@ static func build(
 		var actor: PlayerBase3D = session.actor_for_role(role)
 		if actor == null:
 			continue
-		var state: Dictionary = remote_state(actor)
+		var state: Dictionary = remote_state(
+			actor, BEAM_KEYS if mark == &"beam_only" else REMOTE_KEYS
+		)
 		if mark != &"":
 			state[String(mark)] = true
 		states[role] = state
 	return states
 
 
-## Marca de role para peer_role: &"" (completo), &"cctv_only", &"beam_only" o &"hidden"
+## Marca de role para peer_role: &"" (completo), &"cctv_only", &"beam_only" o &"hidden".
+## Ante un dato que falta, oculta: un rol sin vista calculada o un peer sin bando no ve nada
 static func mark_for(peer_role: StringName, role: StringName, views: Dictionary) -> StringName:
-	if role == &"thief" and String(peer_role).begins_with("guard"):
+	var peer_is_guard: bool = String(peer_role).begins_with("guard")
+	if not peer_is_guard and peer_role != &"thief":
+		return &"hidden"
+	if role == &"thief" and peer_is_guard:
 		match (views["guards"] as Dictionary).get(peer_role, &""):
 			&"world":
 				return &""
@@ -54,7 +62,7 @@ static func mark_for(peer_role: StringName, role: StringName, views: Dictionary)
 				return &"cctv_only"
 		return &"hidden"
 	if peer_role == &"thief" and String(role).begins_with("guard"):
-		match (views["thief"] as Dictionary).get(role, &"full"):
+		match (views["thief"] as Dictionary).get(role, &""):
 			&"full":
 				return &""
 			&"beam":
@@ -63,10 +71,10 @@ static func mark_for(peer_role: StringName, role: StringName, views: Dictionary)
 	return &""
 
 
-static func remote_state(actor: PlayerBase3D) -> Dictionary:
+static func remote_state(actor: PlayerBase3D, keys: Array[String] = REMOTE_KEYS) -> Dictionary:
 	var full: Dictionary = actor.get_net_actor_state()
 	var state: Dictionary = {}
-	for key: String in REMOTE_KEYS:
+	for key: String in keys:
 		if full.has(key):
 			state[key] = full[key]
 	return state
