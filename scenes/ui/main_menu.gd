@@ -41,6 +41,10 @@ func _ready() -> void:
 	lobby_view.back_requested.connect(_show_home)
 	_show_home()
 	_play_intro()
+	var notice: String = MenuReturn.take_notice()
+	if notice != "":  # volvemos de una partida que se cortó (FEAT-026)
+		open_section(&"multi")
+		lobby_view.show_notice(notice)
 
 
 func _unhandled_input(event: InputEvent) -> void:

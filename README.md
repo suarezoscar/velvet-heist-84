@@ -66,6 +66,7 @@ Nadie lo ve todo:
 | Plano del museo | <kbd>M</kbd> o <kbd>Tab</kbd> |
 | Linterna · porra (guardias) | <kbd>F</kbd> · clic izquierdo |
 | Panel de rendimiento y red | <kbd>F9</kbd> |
+| Pausa: controles y salir | <kbd>Esc</kbd> |
 | Revancha · volver al menú (al acabar) | <kbd>R</kbd> · <kbd>Esc</kbd> |
 
 La lista completa está en el juego, en **Opciones → Ver controles**.
