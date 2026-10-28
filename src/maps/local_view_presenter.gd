@@ -24,6 +24,9 @@ func setup(map: HeistMap3D) -> void:
 		_attach_markers()
 		if map.hud != null:
 			map.hud.add_child(ContractList84.new())  # encargo del ladrón (heist.md)
+			var sleep_hud: SleepHud84 = SleepHud84.new()  # sueño del guardia (heist.md R5)
+			sleep_hud.map = map
+			map.hud.add_child(sleep_hud)
 
 
 func _physics_process(_delta: float) -> void:

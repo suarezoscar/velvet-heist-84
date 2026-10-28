@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="GuardSleepRules" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/systems/sleep/guard_sleep_rules.gd" id="1_sleep"]
+
+[resource]
+script = ExtResource("1_sleep")
+window = 60.0
+radius = 8.0
+linger_ratio = 0.75
+rise_rate = 0.0111
+drowsy_at = 0.5
+exhausted_at = 1.0
+yawn_interval = 8.0
+yawn_radius = 7.0
+drowsy_sight = 0.8
+nod_interval = 10.0
+nod_time = 1.5
+coffee_time = 3.0
+coffee_radius = 8.0
+fresh_time = 120.0
+coffee_leash = 1.5

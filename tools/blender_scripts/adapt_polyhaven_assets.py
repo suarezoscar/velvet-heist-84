@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """tools/blender_scripts/adapt_polyhaven_assets.py.
 
-Adapta los 7 assets CC0 de Poly Haven según FEAT-010:
+Adapta los assets CC0 de Poly Haven (FEAT-010; coffee_cart en FEAT-029):
 - Conserva copia intacta en assets/models/raw/polyhaven/<name>.glb
 - Elimina armatures, icospheres auxiliares y colisiones heredadas
 - Aplica transformaciones
@@ -72,6 +72,11 @@ ASSETS: Dict[str, Dict[str, Any]] = {
         "pivot": "back_center",
         "max_triangles": 2000,
         "collision": False,
+    },
+    "coffee_cart": {
+        "pivot": "bottom_center",
+        "max_triangles": 5000,
+        "collision": True,
     },
     "security_tv": {
         "pivot": "bottom_center",

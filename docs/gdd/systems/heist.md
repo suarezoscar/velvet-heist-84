@@ -186,7 +186,7 @@ Viven en un recurso nuevo, `data/balance/heist_rules.tres` (`HeistRules`). Son v
 | `coin_thrown` / `walkie` | ¿Se usan las herramientas? | Menos de 1 uso por partida |
 
 ## Estado
-Entrega 1 implementada en FEAT-028 (lista, carta, escape, condiciones de victoria, combinación y robo a lo bruto). Entregas, cada una se puede probar por separado:
+Entrega 1 implementada en FEAT-028 (lista, carta, escape, condiciones de victoria, combinación y robo a lo bruto). Entrega 2 en FEAT-029 (sueño y café; la cafetera es el carrito CC0 de Poly Haven y el bostezo, un sonido sintético propio). Entregas, cada una se puede probar por separado:
 1. lista + carta + escape + condiciones de victoria, con las protecciones de combinación y el robo a lo bruto;
 2. sueño y café;
 3. rastros + alerta + monedas + walkie;

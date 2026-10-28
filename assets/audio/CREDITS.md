@@ -15,3 +15,8 @@ Se copian sin modificar (solo cambia el nombre en `impact/`). Las incorporó FEA
 |---|---|---|
 | Impact Sounds 1.0 | https://kenney.nl/assets/impact-sounds | `029d734af1582474edf3a694d1b0cebc97c1c152f2f39fa34d4c2bafc5de77f8` |
 | Interface Sounds 1.0 | https://kenney.nl/assets/interface-sounds | `f2193d072726d6758a5f7871b2dcc54dcce0d5c35c6f0a62f92549b327c81232` |
+
+## Sonidos propios
+| Carpeta | Archivos | Origen | Licencia |
+|---|---|---|---|
+| `sfx/voice/` | `yawn_000`…`002.ogg` | Síntesis de formantes con `tools/audio/gen_yawn.py` (FEAT-029, 2026-10-28): reproducible con su semilla | Propia del proyecto (CC0) |

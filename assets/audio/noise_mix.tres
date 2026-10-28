@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="NoiseMix" load_steps=27 format=3]
+[gd_resource type="Resource" script_class="NoiseMix" load_steps=30 format=3]
 
 [ext_resource type="Script" path="res://src/vfx/noise_mix.gd" id="1_noise_mix"]
 [ext_resource type="AudioStream" uid="uid://bd76gd3jpkhug" path="res://assets/audio/sfx/step_carpet/footstep_carpet_000.ogg" id="2_sc0"]
@@ -26,12 +26,16 @@
 [ext_resource type="AudioStream" uid="uid://2ai0mbafk5e3" path="res://assets/audio/sfx/mechanism/switch_003.ogg" id="24_mc2"]
 [ext_resource type="AudioStream" uid="uid://b0577qgn4olq8" path="res://assets/audio/sfx/mechanism/switch_004.ogg" id="25_mc3"]
 [ext_resource type="AudioStream" uid="uid://bdvqe0hbg608p" path="res://assets/audio/sfx/mechanism/switch_005.ogg" id="26_mc4"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/voice/yawn_000.ogg" id="27_yw0"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/voice/yawn_001.ogg" id="28_yw1"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/voice/yawn_002.ogg" id="29_yw2"]
 
 [resource]
 script = ExtResource("1_noise_mix")
 step_db = -14.0
 impact_db = -6.0
 mechanism_db = -10.0
+voice_db = -8.0
 soft_surface_max = 0.7
 hard_surface_min = 1.3
 step_soft = Array[AudioStream]([ExtResource("2_sc0"), ExtResource("3_sc1"), ExtResource("4_sc2"), ExtResource("5_sc3"), ExtResource("6_sc4")])
@@ -39,3 +43,4 @@ step_wood = Array[AudioStream]([ExtResource("7_sw0"), ExtResource("8_sw1"), ExtR
 step_hard = Array[AudioStream]([ExtResource("12_sh0"), ExtResource("13_sh1"), ExtResource("14_sh2"), ExtResource("15_sh3"), ExtResource("16_sh4")])
 impact = Array[AudioStream]([ExtResource("17_ip0"), ExtResource("18_ip1"), ExtResource("19_ip2"), ExtResource("20_ip3"), ExtResource("21_ip4")])
 mechanism = Array[AudioStream]([ExtResource("22_mc0"), ExtResource("23_mc1"), ExtResource("24_mc2"), ExtResource("25_mc3"), ExtResource("26_mc4")])
+voice = Array[AudioStream]([ExtResource("27_yw0"), ExtResource("28_yw1"), ExtResource("29_yw2")])

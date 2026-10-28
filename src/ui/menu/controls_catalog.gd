@@ -57,6 +57,10 @@ static func groups() -> Array[Dictionary]:
 				["Linterna", keys(&"toggle_flashlight")],
 				["Porra", keys(&"strike")],
 				["Mirar los monitores · levantarse", keys(&"interact") + " en la mesa CCTV"],
+				[
+					"Tomar un café (quita el sueño)",
+					keys(&"interact") + " en la cafetera de la garita"
+				],
 			],
 		},
 		{

@@ -10,6 +10,9 @@ const CASE_MODEL: PackedScene = preload("res://assets/models/museum_display_case
 const SAFE_SIZE: Vector3 = Vector3(0.8, 1.8, 0.8)
 const CASE_SIZE: Vector3 = Vector3(0.9, 1.2, 0.9)
 const EXIT_HEIGHT: float = 2.5
+const COFFEE_MODEL: PackedScene = preload("res://assets/models/coffee_cart.glb")
+## Zona de la cafetera: algo mayor que el carrito (2,17 × 1,07 m) para alcanzarla con E
+const COFFEE_AREA: Vector3 = Vector3(2.6, 1.8, 1.6)
 
 
 static func build(data: LevelData, props: Node3D, targets: Array) -> void:
@@ -23,6 +26,19 @@ static func build(data: LevelData, props: Node3D, targets: Array) -> void:
 		zone.position = data.to_world(exit_data["pos"])
 		props.add_child(zone)
 	props.add_child(HeistDirector.new())
+
+
+## La cafetera de la garita y el sueño de cada guardia de la escena (heist.md R5)
+static func build_coffee(data: LevelData, props: Node3D, map: Node3D, coffee: Dictionary) -> void:
+	var machine: CoffeeMachine3D = CoffeeMachine3D.new()
+	machine.name = "CoffeeMachine"
+	machine.position = data.to_world(coffee["pos"])
+	machine.rotation.y = deg_to_rad(-float(coffee.get("rot_deg", 0.0)))
+	LevelEntitiesBuilder._setup_area(machine, COFFEE_AREA, COFFEE_MODEL)
+	props.add_child(machine)
+	for child: Node in map.get_children():
+		if child is GuardController3D and child.get_node_or_null("Sleep") == null:
+			GuardSleep.attach(child as GuardController3D)
 
 
 ## Sala de un punto del nivel (nombre), para que el ladrón sepa dónde buscar
