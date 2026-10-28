@@ -29,3 +29,6 @@ Las ideas baratas del brainstorming del 2026-10-28 que encajan con el golpe: el 
 - El parpadeo negro de las cabezadas ya existía (SleepHud84).
 
 ## Cierre
+- **Revisión (reviewer)**: un guardia drogado podía cortarse la siesta con otro café. Ahora nadie se sirve café dando una cabezada, y el café normal limpia `drugged`.
+- **Aceptado para el PoC**: `zzz` va a todos los peers por el estado público; un cliente modificado sabría qué guardia está dormido aunque no lo vea. La niebla lo oculta en pantalla. Moverlo al snapshot del actor, que ya se filtra por visibilidad, queda en el backlog.
+- Durante la siesta drogada, el guardia puede andar a ciegas, igual que en las cabezadas.

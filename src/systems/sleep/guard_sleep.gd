@@ -118,8 +118,8 @@ func step(delta: float) -> void:
 
 ## La cafetera: empieza a servirse (false si ya se está sirviendo)
 func start_coffee(machine: CoffeeMachine3D = null) -> bool:
-	if drinking_left > 0.0:
-		return false
+	if drinking_left > 0.0 or nodding:
+		return false  # dando una cabezada (o dormido por el somnífero) no se sirve café
 	drinking_left = RULES.coffee_time
 	_coffee_spot = guard.global_position
 	_machine = machine
@@ -152,6 +152,7 @@ func _drink(delta: float) -> void:
 			_fall_asleep()
 			return
 		level = 0.0
+		drugged = false
 		nodding = false
 		_nod_left = 0.0
 		fresh_left = RULES.fresh_time

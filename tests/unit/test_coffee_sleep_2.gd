@@ -69,6 +69,8 @@ func test_drugged_coffee_puts_the_next_guard_to_sleep() -> void:
 	assert_eq(sleep.get_net_state()["zzz"], true, "Todos ven el «Zzz»")
 	assert_string_contains(SleepHud84.status_text(sleep), "DROGADO")
 	assert_false(machine.drugged, "La cafetera queda limpia")
+	assert_false(machine.can_interact(guard), "Dormido no se sirve otro café")
+	assert_false(sleep.start_coffee(machine), "Ni por la puerta de atrás")
 	_run(sleep, RULES.drug_nap_time + 0.5)
 	assert_false(sleep.nodding, "Despierta")
 	assert_false(sleep.drugged)
