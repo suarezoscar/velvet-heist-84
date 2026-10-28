@@ -44,7 +44,7 @@ func _ready() -> void:
 	box.add_child(MenuTheme84.label("UN JUGADOR", MenuTheme84.FONT_DISPLAY, 64, MenuTheme84.TEXT))
 	box.add_child(
 		MenuTheme84.label(
-			"Eres el caballero ladrón; la IA lleva a los guardias.",
+			"Eres el ladrón de guante blanco; la IA lleva a los guardias.",
 			MenuTheme84.FONT_BODY,
 			24,
 			MenuTheme84.DIM

@@ -99,7 +99,9 @@ func _build_home() -> void:
 	nav = MenuNav84.new()
 	nav.position = Vector2(MARGIN, NAV_TOP)
 	home.add_child(nav)
-	nav.add_entry(&"single", "UN JUGADOR", "Eres el caballero ladrón; la IA lleva a los guardias.")
+	nav.add_entry(
+		&"single", "UN JUGADOR", "Eres el ladrón de guante blanco; la IA lleva a los guardias."
+	)
 	nav.add_entry(&"multi", "MULTIJUGADOR", "Únete a un servidor por IP y elige bando.")
 	nav.add_entry(&"options", "OPCIONES", "Pantalla y sonido.")
 	nav.add_entry(&"quit", "SALIR", "Hasta la próxima noche.")

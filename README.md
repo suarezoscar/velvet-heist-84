@@ -7,7 +7,7 @@
 **Un caballero nunca deja huellas.**
 
 Sigilo táctico asimétrico multijugador en 1984.<br>
-Un caballero ladrón contra hasta tres guardias, en red o en solitario contra la IA.
+Un ladrón de guante blanco frente a una patrulla de guardias, en red o en solitario contra la IA.
 
 [![Última versión](https://img.shields.io/github/v/release/suarezoscar/velvet-heist-84?label=descargar&style=for-the-badge&color=ff3d9a)](https://github.com/suarezoscar/velvet-heist-84/releases/latest)
 &nbsp;
