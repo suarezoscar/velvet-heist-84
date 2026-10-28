@@ -12,7 +12,8 @@ CONTROLES
   Ctrl: agacharse · E: interactuar · M o Tab: plano · F: linterna (guardias)
   Clic izquierdo: porra (guardias)
   Caja fuerte: flechas o A/D giran el dial (mantener para girar seguido), E prueba, Esc sale
-  F9: panel de rendimiento y red · al acabar: R revancha, Esc menú principal
+  Esc: pausa (controles y salir) · F9: panel de rendimiento y red
+  Al acabar: R revancha, Esc menú principal
   Lista completa en el juego: Opciones > Ver controles
 
 SER EL ANFITRIÓN (servidor)

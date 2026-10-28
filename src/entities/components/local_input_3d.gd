@@ -2,10 +2,21 @@
 class_name LocalInput3D
 extends RefCounted
 
+## Con un menú abierto encima de la partida (pausa), el jugador local no se mueve ni actúa
+static var blocked: bool = false
+
 
 ## Diccionario con movement_vector (Vector2), is_sprinting, is_sneaking, crouch
 ## (just_pressed) y look_target (Vector3). Usa move_* o ui_* como hoy.
 static func read(player: PlayerBase3D, cam: Camera3D) -> Dictionary:
+	if blocked:
+		return {
+			"movement_vector": Vector2.ZERO,
+			"is_sprinting": false,
+			"is_sneaking": false,
+			"look_target": player.look_target_position if player != null else Vector3.ZERO,
+			"crouch": false,
+		}
 	var left: StringName = &"move_left" if InputMap.has_action("move_left") else &"ui_left"
 	var right: StringName = &"move_right" if InputMap.has_action("move_right") else &"ui_right"
 	var up: StringName = &"move_up" if InputMap.has_action("move_up") else &"ui_up"

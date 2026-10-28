@@ -37,6 +37,7 @@ static func groups() -> Array[Dictionary]:
 				["Interactuar", keys(&"interact")],
 				["Plano del museo", keys(&"toggle_blueprint")],
 				["Panel de rendimiento y red", keys(&"toggle_perf_overlay")],
+				["Pausa (controles y salir)", "Esc"],
 			],
 		},
 		{

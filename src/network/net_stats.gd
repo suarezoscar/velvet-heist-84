@@ -3,12 +3,17 @@
 ## El servidor mide cada segundo el ping y la pérdida de paquetes de cada peer con ENet y se
 ## los reparte a todos (RPC no fiable); cada máquina mide además su propio tráfico y los
 ## snapshots que recibe. Sin red no mide nada. El servidor dedicado lo escribe en su consola
-## cada LOG_INTERVAL segundos mientras haya jugadores.
+## cada LOG_INTERVAL segundos mientras haya jugadores. También acorta el plazo con el que ENet da
+## por perdida una conexión que deja de responder (FEAT-026): de ~30 s a TIMEOUT_MAX_MS.
 class_name NetStatsNode
 extends Node
 
 const SAMPLE_INTERVAL: float = 1.0
 const LOG_INTERVAL: float = 10.0
+## Plazos de ENet para dar por perdida una conexión (ms): mínimo y máximo sin respuesta
+const TIMEOUT_MIN_MS: int = 3000
+const TIMEOUT_MAX_MS: int = 8000
+const TIMEOUT_LIMIT: int = 32
 
 ## peer_id → {"rtt": ms, "loss": %}, medido por el servidor (el ping de cada jugador)
 var peers: Dictionary = {}
@@ -21,6 +26,15 @@ var snapshots_per_second: int = 0
 var _timer: float = 0.0
 var _log_timer: float = 0.0
 var _snapshots: int = 0
+
+
+func _ready() -> void:
+	multiplayer.connected_to_server.connect(func() -> void: _shorten_timeout(1))
+	multiplayer.peer_connected.connect(
+		func(peer: int) -> void:
+			if multiplayer.is_server():
+				_shorten_timeout(peer)
+	)
 
 
 func _process(delta: float) -> void:
@@ -138,6 +152,13 @@ static func _role_rank(players: Dictionary, peer_id: int) -> int:
 	var role: StringName = (players.get(peer_id, {}) as Dictionary).get("role", &"")
 	var index: int = NetConfig.ROLES.find(role)
 	return index if index >= 0 else NetConfig.ROLES.size() + peer_id
+
+
+func _shorten_timeout(peer: int) -> void:
+	var enet: ENetMultiplayerPeer = _enet()
+	var packet_peer: ENetPacketPeer = enet.get_peer(peer) if enet != null else null
+	if packet_peer != null:
+		packet_peer.set_timeout(TIMEOUT_LIMIT, TIMEOUT_MIN_MS, TIMEOUT_MAX_MS)
 
 
 func _enet() -> ENetMultiplayerPeer:
