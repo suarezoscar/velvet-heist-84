@@ -1,5 +1,6 @@
 ## @file game_settings.gd
-## Ajustes del jugador (pantalla completa, sincronía vertical y volumen general), guardados en
+## Ajustes del jugador (pantalla completa, sincronía vertical, volumen general y panel de
+## rendimiento), guardados en
 ## user://settings.cfg. El menú principal los carga y aplica al arrancar.
 class_name GameSettings
 extends RefCounted
@@ -11,6 +12,8 @@ var fullscreen: bool = false
 var vsync: bool = true
 ## Volumen general lineal, de 0 a 1
 var master_volume: float = 0.8
+## Panel de rendimiento y red (FEAT-021), también con F9
+var show_perf: bool = false
 
 
 ## Lee los ajustes guardados; los que falten (o el archivo entero) quedan por defecto
@@ -21,6 +24,7 @@ static func load_saved(path: String = DEFAULT_PATH) -> GameSettings:
 		return settings
 	settings.fullscreen = bool(config.get_value(SECTION, "fullscreen", settings.fullscreen))
 	settings.vsync = bool(config.get_value(SECTION, "vsync", settings.vsync))
+	settings.show_perf = bool(config.get_value(SECTION, "show_perf", settings.show_perf))
 	settings.master_volume = clampf(
 		float(config.get_value(SECTION, "master_volume", settings.master_volume)), 0.0, 1.0
 	)
@@ -33,6 +37,7 @@ func save(path: String = DEFAULT_PATH) -> Error:
 	config.set_value(SECTION, "fullscreen", fullscreen)
 	config.set_value(SECTION, "vsync", vsync)
 	config.set_value(SECTION, "master_volume", master_volume)
+	config.set_value(SECTION, "show_perf", show_perf)
 	return config.save(path)
 
 
@@ -43,6 +48,7 @@ func apply() -> void:
 	AudioServer.set_bus_volume_db(master, linear_to_db(maxf(master_volume, 0.0001)))
 	if DisplayServer.get_name() == "headless":
 		return
+	PerfOverlay.set_shown(show_perf)
 	DisplayServer.window_set_mode(
 		DisplayServer.WINDOW_MODE_FULLSCREEN if fullscreen else DisplayServer.WINDOW_MODE_WINDOWED
 	)
