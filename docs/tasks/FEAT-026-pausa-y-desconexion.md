@@ -25,7 +25,8 @@ Poder salir de una partida y consultar los controles sin cerrar el juego, y no q
 
 ## Riesgos y decisiones abiertas
 - Con red, pausar no detiene a nadie más: tu personaje se queda quieto y expuesto.
-- Una conexión que se corta más de 8 s seguidos se da por perdida. Es razonable para jugar por internet; si da problemas con conexiones malas, se sube el plazo.
+- Una conexión que deja de responder se da por perdida en unos 5 s en LAN, y hasta 8 s por internet. Un congelón de más de unos 5 s (carga lenta del mapa, el depurador) expulsa al jugador. Si se ven expulsiones al empezar la partida, se suben `TIMEOUT_MIN_MS` o `TIMEOUT_LIMIT` en `net_stats.gd`.
+- Si la partida acaba con la pausa abierta (con red), la pausa se cierra sola para dejar paso al menú de fin.
 
 ## Cierre
 2026-10-28.

@@ -56,6 +56,17 @@ func test_pause_menu_online_blocks_input_without_pausing() -> void:
 	assert_false(LocalInput3D.blocked)
 
 
+func test_pause_closes_when_match_ends() -> void:
+	NetManager.start_dedicated_server(7797)
+	var pause: PauseMenu84 = PauseMenu84.new()
+	pause.setup(_map())
+	pause.open()
+	GameManager.end_match(GameManager.MatchState.THIEF_CAPTURED)
+	await wait_process_frames(1)
+	assert_false(pause.visible, "Deja paso al menú de fin de partida")
+	assert_false(LocalInput3D.blocked)
+
+
 func test_pause_not_available_when_over_or_dial_open() -> void:
 	var map: HeistMap3D = _map()
 	var pause: PauseMenu84 = map.get_node("PauseMenu") as PauseMenu84
