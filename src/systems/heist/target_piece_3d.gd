@@ -142,12 +142,12 @@ func steal(brute: bool) -> void:
 	print("[TargetPiece3D] %s robada%s" % [piece_name, " a lo bruto" if brute else ""])
 
 
+## Público: si el pedestal está vacío. Si está descubierto va solo a los guardias (Alert)
 func get_net_state() -> Dictionary:
-	return {"stolen": stolen, "discovered": discovered}
+	return {"stolen": stolen}
 
 
 func apply_net_state(state: Dictionary) -> void:
-	discovered = bool(state.get("discovered", discovered))
 	if bool(state.get("stolen", false)) and not stolen:
 		stolen = true
 		_apply_stolen()

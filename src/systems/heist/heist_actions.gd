@@ -59,7 +59,7 @@ static func throw_coin(thief: PlayerBase3D, heist: HeistDirector) -> bool:
 
 static func walkie(guard: GuardController3D, alert: AlertDirector) -> bool:
 	var now: float = Time.get_ticks_msec() / 1000.0
-	if now < float(guard.get_meta(&"walkie_ready_at", 0.0)):
+	if GuardSleep.sees_nothing(guard) or now < float(guard.get_meta(&"walkie_ready_at", 0.0)):
 		return false
 	guard.set_meta(&"walkie_ready_at", now + RULES.walkie_cooldown)
 	alert.add_ping(guard.look_target_position)

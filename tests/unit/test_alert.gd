@@ -57,7 +57,7 @@ func test_silent_theft_is_found_by_a_guard_and_raises_suspicion() -> void:
 	alert.scan()
 	assert_true(safe.discovered, "El guardia ve el pedestal vacío")
 	assert_eq(alert.level, AlertDirector.Level.SUSPICION)
-	assert_true(safe.get_net_state()["discovered"], "Se replica")
+	assert_has(alert.get_net_state_private()["found"], safe.piece_id, "Les llega a los guardias")
 
 
 func test_brute_theft_or_sighting_means_alarm_and_it_never_drops() -> void:
@@ -143,3 +143,56 @@ func test_alarm_lights_only_in_alarm_and_restore() -> void:
 		AlertHud84.tools_text(false, alert, GameManager.heist), "LUCES DE ALARMA"
 	)
 	assert_string_contains(AlertHud84.tools_text(true, alert, GameManager.heist), "MONEDAS")
+
+
+func test_watched_camera_finds_an_empty_pedestal() -> void:
+	var map: HeistMap3D = _map()
+	await wait_physics_frames(2)
+	var alert: AlertDirector = AlertDirector.of(get_tree())
+	var piece: TargetPiece3D = _piece(&"pedestal")
+	GameManager.heist.targets.assign([piece.piece_id])
+	piece.steal(false)
+	var camera: SecurityCamera3D = (
+		load("res://scenes/entities/security_camera.tscn").instantiate() as SecurityCamera3D
+	)
+	camera.sweep_enabled = false
+	map.add_child(camera)
+	camera.global_position = piece.global_position + Vector3(4.0, 2.9, 0.0)
+	camera.look_at(piece.global_position + Vector3.UP * 1.1, Vector3.UP)
+	await wait_physics_frames(2)
+	assert_true(
+		camera.sees_point(piece.global_position + Vector3.UP * 1.1), "El pedestal no la tapa"
+	)
+	alert.scan()
+	assert_false(piece.discovered, "Sin nadie en los monitores no cuenta")
+	var guard: GuardController3D = map.guards[0]
+	guard.monitor_watch.state = GuardMonitorWatch.State.WATCHING
+	alert.scan()
+	assert_true(piece.discovered, "Con alguien mirando los monitores, sí")
+	guard.monitor_watch.state = GuardMonitorWatch.State.NONE
+
+
+func test_discovered_traces_only_reach_guards() -> void:
+	var map: HeistMap3D = _map()
+	await wait_physics_frames(2)
+	var alert: AlertDirector = AlertDirector.of(get_tree())
+	var piece: TargetPiece3D = _piece(&"pedestal")
+	GameManager.heist.targets.assign([piece.piece_id])
+	piece.interact(map.thief)
+	assert_false(piece.get_net_state().has("discovered"), "No va en el estado público")
+	assert_has(alert.get_net_state_private()["found"], piece.piece_id, "Va a los guardias")
+	piece.discovered = false
+	alert.apply_net_state({"found": [piece.piece_id]})
+	assert_true(piece.discovered, "El cliente del guardia lo aplica")
+
+
+func test_no_sleep_during_alarm() -> void:
+	var map: HeistMap3D = _map()
+	await wait_physics_frames(2)
+	var guard: GuardController3D = map.guards[0]
+	guard.is_ai_controlled = false
+	AlertDirector.of(get_tree()).raise(AlertDirector.Level.ALARM)
+	var sleep: GuardSleep = guard.get_node("Sleep") as GuardSleep
+	for i: int in range(300):
+		sleep.step(0.5)
+	assert_eq(sleep.level, 0.0, "En alarma no entra sueño")
