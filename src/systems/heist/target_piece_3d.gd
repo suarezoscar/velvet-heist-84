@@ -73,22 +73,36 @@ func is_available(actor: Node3D) -> bool:
 	return not stolen and actor is ThiefController3D and _in_contract()
 
 
+## Con el candado cerrado, la E pasa a él (su área queda tapada por la de la pieza)
 func can_interact(actor: Node3D = null) -> bool:
 	if not is_available(actor):
 		return false
-	return lock == null or lock.current_state == SafeBox3D.SafeState.OPENED
+	if _lock_closed():
+		return lock.can_interact(actor)
+	return true
 
 
-func get_interaction_text(_actor: Node3D = null) -> String:
+func get_interaction_text(actor: Node3D = null) -> String:
+	if _lock_closed():
+		return lock.get_interaction_text(actor)
 	if lock != null:
 		return "Coger %s [E]" % piece_name
 	return "Robar %s a lo bruto: salta la alarma [E]" % piece_name
 
 
-## E: coger la pieza (en silencio si el candado está abierto; a lo bruto si no tiene candado)
+## E: abrir el candado (dial), coger la pieza en silencio si está abierto, o a lo bruto si no
+## tiene candado
 func interact(actor: Node3D) -> void:
-	if can_interact(actor):
+	if not can_interact(actor):
+		return
+	if _lock_closed():
+		lock.interact(actor)
+	else:
 		steal(lock == null)
+
+
+func _lock_closed() -> bool:
+	return lock != null and lock.current_state != SafeBox3D.SafeState.OPENED
 
 
 ## Q: a lo bruto. Vale si no hay candado o es una vitrina (la caja fuerte no se rompe)
