@@ -6,18 +6,19 @@ Cómo sacar ejecutables de Velvet Heist '84 para Linux y Windows, pasárselos a 
 Cada versión publicada está en **https://github.com/suarezoscar/velvet-heist-84/releases/latest**, con un paquete para Windows (`.zip`) y otro para Linux (`.tar.gz`). Pasa ese enlace a tus amigos: no hace falta compilar nada.
 
 ### Publicar una versión nueva
-La versión sigue el formato `X.Y.Z`: sube Z para arreglos, Y para novedades y X cuando el juego cambie de etapa. La pipeline `Release` de GitHub Actions hace lo siguiente:
-1. compila Linux y Windows;
-2. pasa los tests;
-3. publica la release con los dos paquetes y las notas de los cambios.
+No hace falta hacer nada: **cada integración en `master` publica una versión** (salvo las que solo tocan documentación). Se trabaja en ramas como siempre; las ramas solo pasan el CI.
 
-Hay dos formas de lanzarla:
-- **Desde git**, sobre el `master` actualizado:
-  ```bash
-  git tag v0.2.0
-  git push origin v0.2.0
-  ```
-- **Desde GitHub**: pestaña **Actions → Release → Run workflow**, escribe la versión (por ejemplo `0.2.0`) y elige la rama. La etiqueta se crea sola.
+La versión sigue el formato `X.Y.Z` y sube sola el último número: 0.1.0, 0.1.1, 0.1.2… Para dar un salto (0.2.0 o 1.0.0), cambia `config/version` en `project.godot` en un PR; la release siguiente sale con ese número y a partir de ahí vuelve a subir sola.
+
+La pipeline `Release` de GitHub Actions hace lo siguiente:
+1. calcula la versión (`tools/build/next_version.sh`);
+2. pasa los tests;
+3. compila Linux y Windows;
+4. crea la etiqueta `vX.Y.Z` y publica la release con los dos paquetes y las notas de los cambios.
+
+También se puede lanzar a mano, para una versión concreta como `0.2.0-rc1`:
+- **desde git**: `git tag v0.2.0-rc1` y `git push origin v0.2.0-rc1`;
+- **desde GitHub**: pestaña **Actions → Release → Run workflow**, con la versión y la rama.
 
 Tarda unos 5 minutos. La versión se graba en el juego: sale abajo a la izquierda del menú, en el panel F9, en el `LEEME.txt` y en la consola del servidor. Una versión con guion, como `0.2.0-rc1`, se publica como *pre-release* y no cambia el enlace `latest`.
 
