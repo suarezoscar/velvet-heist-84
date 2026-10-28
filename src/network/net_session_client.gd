@@ -85,6 +85,7 @@ func on_own_state(state: Dictionary) -> void:
 
 ## Snapshot del servidor: alimenta el búfer de interpolación y el filtro del ladrón
 func on_snapshot(server_time: float, states: Dictionary) -> void:
+	NetStats.count_snapshot()
 	_server_time = server_time
 	_server_time_local = _now()
 	_has_server_time = true
