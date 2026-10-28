@@ -22,21 +22,17 @@ extends Resource
 @export var coffee: Array[AudioStream] = []
 
 
-## dB base de la categoría; 0.0 si la categoría no existe
+## dB base de la categoría; 0.0 si la categoría no existe. El dial suena como un mecanismo
 func category_db(category: StringName) -> float:
-	match category:
-		&"step":
-			return step_db
-		&"impact":
-			return impact_db
-		&"mechanism":
-			return mechanism_db
-		&"voice":
-			return voice_db
-		&"coffee":
-			return coffee_db
-		_:
-			return 0.0
+	var levels: Dictionary = {
+		&"step": step_db,
+		&"impact": impact_db,
+		&"mechanism": mechanism_db,
+		&"dial": mechanism_db,
+		&"voice": voice_db,
+		&"coffee": coffee_db,
+	}
+	return float(levels.get(category, 0.0))
 
 
 ## Familia de muestras: step según surface_mult y los umbrales; impact; mechanism; [] si no existe
@@ -51,7 +47,7 @@ func streams_for(category: StringName, surface_mult: float) -> Array[AudioStream
 				streams = step_hard
 		&"impact":
 			streams = impact
-		&"mechanism":
+		&"mechanism", &"dial":
 			streams = mechanism
 		&"voice":
 			streams = voice
