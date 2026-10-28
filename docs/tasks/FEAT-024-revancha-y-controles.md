@@ -25,11 +25,16 @@ Encadenar partidas sin cerrar el juego (la meta del PoC son 5 partidas seguidas)
   - señal `votes_changed(votes, needed)`.
 - RPC: `_server_vote(on)` (cualquier peer → servidor, fiable) y `_client_votes(voters, needed)` (servidor → todos, fiable).
 - `MatchEndMenu84`, `ControlsCatalog` y `ControlsPanel`.
-- `NetSession` ignora las RPC que llegan mientras se recarga el mapa.
+- `NetSession` ignora las RPC que llegan mientras se recarga el mapa y da `ready_peers()`, los peers que han cargado el mapa.
+- `NetManager._request_start_server` rechaza las peticiones mientras el servidor tiene un mapa cargado: entonces solo se relanza con `NetRematch`.
 
 ## Riesgos y decisiones abiertas
 - La revancha mantiene los bandos. Para cambiarlos: «Menú principal», volver a unirse y elegir.
 - Dentro de la partida no hay menú de pausa: los controles se consultan desde el menú principal.
 
 ## Cierre
-2026-10-28.
+2026-10-28. La revisión del PR #76 pidió estos cambios, ya hechos:
+- **Error de script al pulsar R o Esc**: el evento se marca como atendido antes de cambiar de escena.
+- **La revancha solo se puede lanzar votando**: con el mapa cargado, el servidor rechaza los «empezar» que llegan del lobby. Solo cuentan los jugadores con bando que están en el mapa, así que uno que ha vuelto al lobby no bloquea la revancha. El recuento solo se envía a quien está en el mapa.
+- **Esc por reflejo**: R y Esc no hacen nada durante 0,75 s tras el final, para que salir de la caja fuerte no te saque al menú.
+- **Imágenes del README**: se dejan de importar en Godot (`docs/img/.gdignore`).
