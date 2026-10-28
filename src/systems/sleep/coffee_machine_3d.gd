@@ -31,7 +31,7 @@ func can_interact(actor: Node3D = null) -> bool:
 	if actor is ThiefController3D:
 		return _task == null and not drugged and doses_left > 0
 	var sleep: GuardSleep = _sleep_of(actor)
-	return sleep != null and sleep.drinking_left <= 0.0
+	return sleep != null and sleep.drinking_left <= 0.0 and not sleep.nodding
 
 
 func get_interaction_text(actor: Node3D = null) -> String:
