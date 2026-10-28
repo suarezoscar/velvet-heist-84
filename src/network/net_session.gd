@@ -23,6 +23,7 @@ func setup(map_ref: HeistMap3D, audio_ref: NoiseAudioPresenter) -> void:
 	map = map_ref
 	audio = audio_ref
 	rematch = NetRematch.new()
+	rematch.in_map = ready_peers
 	add_child(rematch)
 	if multiplayer.is_server():
 		_server = NetSessionServer.new()
@@ -30,6 +31,11 @@ func setup(map_ref: HeistMap3D, audio_ref: NoiseAudioPresenter) -> void:
 	else:
 		_client = NetSessionClient.new()
 		_client.setup(self)
+
+
+## Peers que han cargado este mapa (en el servidor; vacío en un cliente)
+func ready_peers() -> Array[int]:
+	return _server.ready_peers() if _server != null else ([] as Array[int])
 
 
 ## Actor que ocupa un rol: thief → map.thief; guard_N → map.guards[N-1]

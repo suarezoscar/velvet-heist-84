@@ -45,6 +45,13 @@ func setup(session: NetSession) -> void:
 	_hooks = NetTestHooks.create(map)
 
 
+## Peers que han cargado el mapa y reciben sus estados
+func ready_peers() -> Array[int]:
+	var peers: Array[int] = []
+	peers.assign(_ready_peers.keys())
+	return peers
+
+
 ## Tick autoritativo: se ejecuta después de que los actores hayan simulado
 func tick(delta: float) -> void:
 	_send_own_states()

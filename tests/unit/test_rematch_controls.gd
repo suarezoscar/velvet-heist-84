@@ -13,6 +13,7 @@ func before_each() -> void:
 
 func after_each() -> void:
 	GameManager.current_state = _saved_state
+	NetManager.disconnect_network()
 
 
 func test_catalog_reads_input_map() -> void:
@@ -76,4 +77,19 @@ func test_rematch_votes_count_only_players_with_side() -> void:
 	assert_eq(vote.needed, 2)
 	vote.register_vote(2, false)
 	assert_eq(vote.voters.size(), 0, "Se puede retirar el voto")
-	net_mgr.disconnect_network()
+
+
+func test_players_in_lobby_do_not_block_rematch() -> void:
+	var players: Dictionary = {
+		2: {"role": &"thief"}, 3: {"role": &"guard_1"}, 5: {"role": &"guard_2"}
+	}
+	var in_map: Array[int] = [2, 3]
+	assert_eq(NetRematch.players_needed(players, in_map), 2, "El 5 está en el lobby")
+	NetManager.start_dedicated_server(7777)
+	NetManager.connected_players = players
+	var vote: NetRematch = NetRematch.new()
+	vote.in_map = func() -> Array[int]: return in_map
+	add_child_autofree(vote)
+	GameManager.current_state = GameManager.MatchState.THIEF_CAPTURED
+	assert_false(vote.register_vote(5, true), "Desde el lobby no se vota")
+	assert_eq(vote.voters.size(), 0)

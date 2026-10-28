@@ -44,7 +44,7 @@ static func groups() -> Array[Dictionary]:
 			"rows":
 			[
 				["Agacharse", keys(&"crouch")],
-				["Caja fuerte: girar el dial", "← →  (mantener para girar seguido)"],
+				["Caja fuerte: girar el dial", "← → / A D  (mantener: gira seguido)"],
 				["Caja fuerte: probar número · salir", keys(&"interact") + " · Esc"],
 			],
 		},

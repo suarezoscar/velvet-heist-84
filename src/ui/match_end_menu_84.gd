@@ -7,11 +7,15 @@ class_name MatchEndMenu84
 extends VBoxContainer
 
 const MAIN_MENU_SCENE: String = "res://scenes/ui/main_menu.tscn"
+## Segundos tras el final en que R y Esc no hacen nada: un Esc por reflejo (salir de la caja
+## fuerte) no debe sacarte al menú y romper la revancha de todos
+const INPUT_GRACE: float = 0.75
 
 var rematch_button: Button = null
 var menu_button: Button = null
 var status_label: Label = null
 var _map: HeistMap3D = null
+var _shown_time: float = 0.0
 
 
 ## Se añade al panel de fin de partida del HUD del mapa
@@ -40,21 +44,23 @@ func setup(map: HeistMap3D) -> void:
 	refresh()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	visible = GameManager.is_match_over()
+	_shown_time = _shown_time + delta if visible else 0.0
 	if visible:
 		refresh()
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not visible:
+	if not visible or _shown_time < INPUT_GRACE:
 		return
+	# Antes de cambiar de escena: después ya no hay viewport
 	if event.is_action_pressed(&"rematch", false):
+		get_viewport().set_input_as_handled()
 		request_rematch()
-		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed(&"ui_cancel", false):
-		go_to_menu()
 		get_viewport().set_input_as_handled()
+		go_to_menu()
 
 
 ## Sin red recarga el mapa; con red vota la revancha (o retira el voto)
@@ -87,8 +93,9 @@ func refresh() -> void:
 	rematch_button.disabled = not possible
 	if not possible:
 		status_label.text = "Falta el ladrón o un guardia: no hay revancha"
+		rematch_button.text = "REVANCHA  [%s]" % ControlsCatalog.keys(&"rematch")
 		return
-	var needed: int = maxi(vote.needed, NetRematch.players_needed(players))
+	var needed: int = vote.needed if vote.needed > 0 else NetRematch.players_needed(players)
 	status_label.text = "Revancha: %d de %d listos" % [vote.voters.size(), needed]
 	rematch_button.text = (
 		"CANCELAR REVANCHA  [%s]" % ControlsCatalog.keys(&"rematch")

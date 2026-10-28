@@ -1,8 +1,10 @@
 ## @file net_rematch.gd
 ## Revancha en red (FEAT-024). Hija de NetSession con el nombre fijo «Rematch», para que su
 ## ruta coincida en el servidor y en los clientes. Con la partida terminada, cada jugador con
-## bando vota (o retira su voto); el servidor reparte el recuento y, cuando han votado todos y
-## sigue habiendo ladrón y al menos un guardia, vuelve a lanzar el mapa con los mismos bandos.
+## bando que está en el mapa vota (o retira su voto); el servidor reparte el recuento y, cuando
+## han votado todos y sigue habiendo ladrón y al menos un guardia, vuelve a lanzar el mapa con
+## los mismos bandos. Es el único camino para relanzar con el mapa cargado: NetManager rechaza
+## las peticiones de «empezar» que llegan entonces desde el lobby.
 class_name NetRematch
 extends Node
 
@@ -13,6 +15,8 @@ signal votes_changed(votes: int, needed: int)
 var voters: Array[int] = []
 ## Jugadores con bando que tienen que votar
 var needed: int = 0
+## Peers que han cargado el mapa (los da NetSession); null: todos los conectados (tests)
+var in_map: Callable = Callable()
 
 
 func _ready() -> void:
@@ -31,13 +35,19 @@ func has_voted() -> bool:
 	return voters.has(multiplayer.get_unique_id())
 
 
-## Jugadores que cuentan para la revancha: los que tienen bando
-static func players_needed(players: Dictionary) -> int:
-	var count: int = 0
+## Peers que cuentan para la revancha: los que tienen bando y, si se da present, están en él
+static func voters_expected(players: Dictionary, present: Array[int] = []) -> Array[int]:
+	var peers: Array[int] = []
 	for peer_id: int in players:
-		if StringName(players[peer_id].get("role", &"")) != &"":
-			count += 1
-	return count
+		var has_side: bool = StringName(players[peer_id].get("role", &"")) != &""
+		if has_side and (present.is_empty() or present.has(peer_id)):
+			peers.append(peer_id)
+	return peers
+
+
+## Cuántos peers tienen que votar
+static func players_needed(players: Dictionary, present: Array[int] = []) -> int:
+	return voters_expected(players, present).size()
 
 
 ## Lógica del servidor: registra el voto y lanza la revancha si están todos (true si la lanza)
@@ -45,7 +55,7 @@ func register_vote(peer: int, on: bool) -> bool:
 	if not GameManager.is_match_over():
 		return false
 	var players: Dictionary = NetManager.get_connected_players()
-	if StringName((players.get(peer, {}) as Dictionary).get("role", &"")) == &"":
+	if not voters_expected(players, _present()).has(peer):
 		return false
 	voters.erase(peer)
 	if on:
@@ -54,11 +64,12 @@ func register_vote(peer: int, on: bool) -> bool:
 
 
 func _check(players: Dictionary) -> bool:
-	needed = players_needed(players)
+	var expected: Array[int] = voters_expected(players, _present())
+	needed = expected.size()
 	for peer: int in voters.duplicate():
-		if not players.has(peer):
+		if not expected.has(peer):
 			voters.erase(peer)
-	_broadcast()
+	_broadcast(expected)
 	if needed == 0 or voters.size() < needed or not NetRoleRegistry.can_start(players):
 		return false
 	voters.clear()
@@ -66,10 +77,17 @@ func _check(players: Dictionary) -> bool:
 	return true
 
 
-func _broadcast() -> void:
+## Solo a quien está en el mapa: los del lobby no tienen este nodo
+func _broadcast(expected: Array[int]) -> void:
 	votes_changed.emit(voters.size(), needed)
-	if multiplayer.get_peers().size() > 0:
-		_client_votes.rpc(voters, needed)
+	var connected: PackedInt32Array = multiplayer.get_peers()
+	for peer: int in expected:
+		if connected.has(peer):
+			_client_votes.rpc_id(peer, voters, needed)
+
+
+func _present() -> Array[int]:
+	return in_map.call() if in_map.is_valid() else ([] as Array[int])
 
 
 func _on_left(_peer: int) -> void:
