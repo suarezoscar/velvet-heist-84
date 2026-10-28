@@ -1,6 +1,6 @@
 ## @file options_panel.gd
-## Panel de opciones del menú principal: pantalla completa, sincronía vertical y volumen
-## general. Cada cambio se aplica y se guarda al momento.
+## Panel de opciones del menú principal: pantalla completa, sincronía vertical, volumen
+## general y panel de rendimiento. Cada cambio se aplica y se guarda al momento.
 class_name OptionsPanel
 extends PanelContainer
 
@@ -11,6 +11,7 @@ var settings: GameSettings = null
 var fullscreen_check: CheckButton = null
 var vsync_check: CheckButton = null
 var volume_slider: HSlider = null
+var perf_check: CheckButton = null
 var back_button: Button = null
 var _volume_value: Label = null
 var _settings_path: String = GameSettings.DEFAULT_PATH
@@ -52,6 +53,9 @@ func setup(current: GameSettings, path: String = GameSettings.DEFAULT_PATH) -> v
 	_volume_value.custom_minimum_size = Vector2(60.0, 0.0)
 	row.add_child(_volume_value)
 	_refresh_volume_label()
+	box.add_child(_section("DEPURACIÓN"))
+	perf_check = _check(box, "Panel de rendimiento y red (F9)", settings.show_perf)
+	perf_check.toggled.connect(_on_perf)
 	box.add_child(HSeparator.new())
 	back_button = Button.new()
 	back_button.text = "VOLVER"
@@ -80,6 +84,11 @@ func _on_fullscreen(on: bool) -> void:
 
 func _on_vsync(on: bool) -> void:
 	settings.vsync = on
+	_commit()
+
+
+func _on_perf(on: bool) -> void:
+	settings.show_perf = on
 	_commit()
 
 
