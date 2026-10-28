@@ -1,0 +1,24 @@
+{
+  "name": "pocket_watch",
+  "feat": "FEAT-034",
+  "description": "Reloj de bolsillo del zar: pieza del encargo en la Sala de Joyas (vitrina).",
+  "dimensions": [
+    0.061,
+    0.014,
+    0.08
+  ],
+  "pivot": "bottom_center",
+  "max_triangles": 5000,
+  "materials": [
+    "vintage_pocket_watch_glass",
+    "vintage_pocket_watch",
+    "vintage_pocket_watch_hands"
+  ],
+  "collision": false,
+  "source": {
+    "origin": "polyhaven",
+    "url": "https://polyhaven.com/a/vintage_pocket_watch",
+    "license": "CC0",
+    "author": "Tal Swicegood"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "bull_head",
+  "feat": "FEAT-034",
+  "description": "Ritón del toro: pieza del encargo en el Ala de Antigüedades (sensor).",
+  "dimensions": [
+    0.306,
+    0.281,
+    0.433
+  ],
+  "pivot": "bottom_center",
+  "max_triangles": 5000,
+  "materials": [
+    "bull_head"
+  ],
+  "collision": false,
+  "source": {
+    "origin": "polyhaven",
+    "url": "https://polyhaven.com/a/bull_head",
+    "license": "CC0",
+    "author": "Tina"
+  }
+}

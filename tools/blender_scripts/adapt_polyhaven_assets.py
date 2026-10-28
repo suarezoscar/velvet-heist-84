@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """tools/blender_scripts/adapt_polyhaven_assets.py.
 
-Adapta los assets CC0 de Poly Haven (FEAT-010; coffee_cart en FEAT-029):
+Adapta los assets CC0 de Poly Haven (FEAT-010; coffee_cart en FEAT-029; obras y decorado del
+museo ampliado en FEAT-034):
 - Conserva copia intacta en assets/models/raw/polyhaven/<name>.glb
 - Elimina armatures, icospheres auxiliares y colisiones heredadas
 - Aplica transformaciones
@@ -83,6 +84,87 @@ ASSETS: Dict[str, Dict[str, Any]] = {
         "max_triangles": 2000,
         "collision": True,
     },
+    # FEAT-034: obras del museo ampliado y decorado (piezas ≤ 5000, decorado ≤ 2000)
+    "pocket_watch": {
+        "pivot": "bottom_center",
+        "max_triangles": 5000,
+        "collision": False,
+    },
+    "antique_vase": {
+        "pivot": "bottom_center",
+        "max_triangles": 5000,
+        "collision": False,
+    },
+    "brass_vase": {
+        "pivot": "bottom_center",
+        "max_triangles": 5000,
+        "collision": False,
+    },
+    "gothic_statue": {
+        "pivot": "bottom_center",
+        "max_triangles": 5000,
+        "collision": False,
+    },
+    "katana_stand": {
+        "pivot": "bottom_center",
+        "max_triangles": 5000,
+        "collision": False,
+    },
+    "horse_statue": {
+        "pivot": "bottom_center",
+        "max_triangles": 5000,
+        "collision": False,
+    },
+    "cat_statue": {
+        "pivot": "bottom_center",
+        "max_triangles": 5000,
+        "collision": False,
+    },
+    "horse_head": {
+        "pivot": "bottom_center",
+        "max_triangles": 5000,
+        "collision": False,
+    },
+    "bull_head": {
+        "pivot": "bottom_center",
+        "max_triangles": 5000,
+        "collision": False,
+    },
+    "museum_bench": {
+        "pivot": "bottom_center",
+        "max_triangles": 2000,
+        "collision": False,
+    },
+    "planter": {
+        "pivot": "bottom_center",
+        "max_triangles": 2000,
+        "collision": False,
+    },
+    "chinese_screen": {
+        "pivot": "bottom_center",
+        "max_triangles": 2000,
+        "collision": False,
+    },
+    "wall_clock": {
+        "pivot": "back_center",
+        "max_triangles": 2000,
+        "collision": False,
+    },
+    "fluorescent_light": {
+        "pivot": "top_center",
+        "max_triangles": 2000,
+        "collision": False,
+    },
+    "wooden_elephant": {
+        "pivot": "bottom_center",
+        "max_triangles": 2000,
+        "collision": False,
+    },
+    "chinese_cabinet": {
+        "pivot": "bottom_center",
+        "max_triangles": 2000,
+        "collision": False,
+    },
 }
 
 
@@ -103,6 +185,9 @@ def clean_scene_hierarchy():
             for mod in list(obj.modifiers):
                 if mod.type == "ARMATURE":
                     obj.modifiers.remove(mod)
+            # Las shape keys impiden aplicar Decimate (horse_statue): se queda la forma base
+            if obj.data.shape_keys is not None:
+                obj.shape_key_clear()
 
     # Eliminar cualquier objeto que no sea malla visual (armatures, icospheres, colisiones)
     for obj in list(bpy.data.objects):

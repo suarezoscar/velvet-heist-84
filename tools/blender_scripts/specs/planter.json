@@ -1,0 +1,22 @@
+{
+  "name": "planter",
+  "feat": "FEAT-034",
+  "description": "Jardinera con plantas (decorado).",
+  "dimensions": [
+    0.915,
+    0.416,
+    0.426
+  ],
+  "pivot": "bottom_center",
+  "max_triangles": 2000,
+  "materials": [
+    "planter_box_01"
+  ],
+  "collision": false,
+  "source": {
+    "origin": "polyhaven",
+    "url": "https://polyhaven.com/a/planter_box_01",
+    "license": "CC0",
+    "author": "James Ray Cock"
+  }
+}

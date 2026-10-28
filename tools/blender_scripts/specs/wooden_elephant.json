@@ -1,0 +1,22 @@
+{
+  "name": "wooden_elephant",
+  "feat": "FEAT-034",
+  "description": "Elefante tallado de la Galería de Arte Oriental (decorado).",
+  "dimensions": [
+    0.109,
+    0.058,
+    0.096
+  ],
+  "pivot": "bottom_center",
+  "max_triangles": 2000,
+  "materials": [
+    "carved_wooden_elephant"
+  ],
+  "collision": false,
+  "source": {
+    "origin": "polyhaven",
+    "url": "https://polyhaven.com/a/carved_wooden_elephant",
+    "license": "CC0",
+    "author": "Greg Zaal"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "chinese_screen",
+  "feat": "FEAT-034",
+  "description": "Biombo chino de la Galería de Arte Oriental (decorado).",
+  "dimensions": [
+    1.294,
+    0.377,
+    1.603
+  ],
+  "pivot": "bottom_center",
+  "max_triangles": 2000,
+  "materials": [
+    "chinese_screen_panels"
+  ],
+  "collision": false,
+  "source": {
+    "origin": "polyhaven",
+    "url": "https://polyhaven.com/a/chinese_screen_panels",
+    "license": "CC0",
+    "author": "Kirill Sannikov"
+  }
+}
