@@ -52,6 +52,8 @@ func _ready() -> void:
 	NetManager.connection_failed.connect(_on_connection_failed)
 	NetManager.server_disconnected.connect(_on_server_disconnected)
 	NetManager.player_list_updated.connect(refresh)
+	NetVersion.accepted.connect(_on_version_accepted)
+	NetVersion.rejected.connect(_on_version_rejected)
 	refresh()
 
 
@@ -92,6 +94,7 @@ func _on_join_pressed() -> void:
 	if ip.is_empty():
 		ip = "127.0.0.1"
 	var port: int = _get_port_input()
+	conn_log_lbl.modulate = Color.WHITE
 	conn_log_lbl.text = "Conectando con %s:%d…" % [ip, port]
 	var err: Error = NetManager.join_server(ip, port)
 	if err != OK:
@@ -132,8 +135,23 @@ func _on_connection_failed() -> void:
 
 
 func _on_server_disconnected() -> void:
-	conn_log_lbl.text = "Se perdió la conexión con el servidor."
+	if NetVersion.rejection != "":  # el motivo ya está a la vista (FEAT-025)
+		conn_log_lbl.text = NetVersionNode.mismatch_text(
+			NetVersion.rejection, GameVersion.current()
+		)
+	else:
+		conn_log_lbl.text = "Se perdió la conexión con el servidor."
 	refresh()
+
+
+func _on_version_accepted(server_version: String) -> void:
+	conn_log_lbl.modulate = Color.WHITE
+	conn_log_lbl.text = "Conectado (servidor v%s). Elige bando." % server_version
+
+
+func _on_version_rejected(server_version: String, own_version: String) -> void:
+	conn_log_lbl.modulate = COLOR_AMBER
+	conn_log_lbl.text = NetVersionNode.mismatch_text(server_version, own_version)
 
 
 ## Devuelve el peer que ocupa el rol, o 0 si está libre.

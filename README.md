@@ -73,7 +73,7 @@ La lista completa está en el juego, en **Opciones → Ver controles**.
 ## Jugar en red
 Un PC hace de **servidor dedicado**. Es el mismo ejecutable, sin ventana: `servidor.bat` en Windows o `./servidor.sh` en Linux, ambos incluidos en el paquete. Abre el puerto **UDP 7777** en el router y pasa tu IP pública a tus amigos. Caben un ladrón y hasta tres guardias, y para empezar hace falta el ladrón y al menos un guardia.
 
-Todos deben usar la misma versión, que se ve abajo a la izquierda del menú. Con <kbd>F9</kbd> verás el ping y la pérdida de paquetes de cada jugador.
+Todos deben usar la misma versión, que se ve abajo a la izquierda del menú; si no coincide, el lobby avisa de cuál necesitas. Con <kbd>F9</kbd> verás el ping y la pérdida de paquetes de cada jugador.
 
 La guía completa, con el router, el cortafuegos, CGNAT y cómo compilar desde el código, está en **[docs/manual-compilacion.md](docs/manual-compilacion.md)**.
 
