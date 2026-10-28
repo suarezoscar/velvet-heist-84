@@ -1,0 +1,23 @@
+{
+  "name": "horse_statue",
+  "feat": "FEAT-034",
+  "description": "Caballo de bronce: pieza del encargo en el Patio de Esculturas.",
+  "dimensions": [
+    0.163,
+    0.108,
+    0.22
+  ],
+  "pivot": "bottom_center",
+  "max_triangles": 5000,
+  "materials": [
+    "horse_statue_01",
+    "horse_statue_01_base"
+  ],
+  "collision": false,
+  "source": {
+    "origin": "polyhaven",
+    "url": "https://polyhaven.com/a/horse_statue_01",
+    "license": "CC0",
+    "author": "Rico Cilliers"
+  }
+}

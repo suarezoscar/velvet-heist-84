@@ -1,0 +1,22 @@
+{
+  "name": "gothic_statue",
+  "feat": "FEAT-034",
+  "description": "Virgen gótica: pieza del encargo en la rotonda (pedestal de presión).",
+  "dimensions": [
+    1.473,
+    1.564,
+    1.744
+  ],
+  "pivot": "bottom_center",
+  "max_triangles": 5000,
+  "materials": [
+    "gothic_statue"
+  ],
+  "collision": false,
+  "source": {
+    "origin": "polyhaven",
+    "url": "https://polyhaven.com/a/gothic_statue",
+    "license": "CC0",
+    "author": "Benny Weimer"
+  }
+}

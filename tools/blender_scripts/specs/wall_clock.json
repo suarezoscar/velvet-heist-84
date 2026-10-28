@@ -1,0 +1,23 @@
+{
+  "name": "wall_clock",
+  "feat": "FEAT-034",
+  "description": "Reloj de pared de la garita (decorado).",
+  "dimensions": [
+    0.321,
+    0.047,
+    0.322
+  ],
+  "pivot": "back_center",
+  "max_triangles": 2000,
+  "materials": [
+    "wall_clock",
+    "wall_clock_glass"
+  ],
+  "collision": false,
+  "source": {
+    "origin": "polyhaven",
+    "url": "https://polyhaven.com/a/wall_clock",
+    "license": "CC0",
+    "author": "PierreB3D"
+  }
+}

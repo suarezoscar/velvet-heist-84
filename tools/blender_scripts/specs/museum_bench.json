@@ -1,0 +1,22 @@
+{
+  "name": "museum_bench",
+  "feat": "FEAT-034",
+  "description": "Banco de sala de museo (decorado).",
+  "dimensions": [
+    1.165,
+    0.497,
+    0.889
+  ],
+  "pivot": "bottom_center",
+  "max_triangles": 2000,
+  "materials": [
+    "painted_wooden_bench"
+  ],
+  "collision": false,
+  "source": {
+    "origin": "polyhaven",
+    "url": "https://polyhaven.com/a/painted_wooden_bench",
+    "license": "CC0",
+    "author": "Kirill Sannikov"
+  }
+}
