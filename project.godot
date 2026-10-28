@@ -20,6 +20,8 @@ config/features=PackedStringArray("4.7", "Forward Plus")
 SignalBus="*res://core/signal_bus.gd"
 GameManager="*res://core/game_manager.gd"
 NetManager="*res://core/net_manager.gd"
+NetStats="*res://src/network/net_stats.gd"
+PerfOverlay="*res://src/ui/debug/perf_overlay_84.gd"
 MCPRuntimeServer="*res://addons/godot_mcp_toolkit/runtime/mcp_runtime_server.gd"
 
 [display]
