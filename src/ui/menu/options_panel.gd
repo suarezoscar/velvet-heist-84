@@ -1,6 +1,7 @@
 ## @file options_panel.gd
-## Panel de opciones del menú principal: pantalla completa, sincronía vertical, volumen
-## general y panel de rendimiento. Cada cambio se aplica y se guarda al momento.
+## Panel de opciones del menú principal: pantalla completa, sincronía vertical, volúmenes
+## (general, música y efectos) y panel de rendimiento. Cada cambio se aplica y se guarda al
+## momento.
 class_name OptionsPanel
 extends PanelContainer
 
@@ -13,10 +14,11 @@ var settings: GameSettings = null
 var fullscreen_check: CheckButton = null
 var vsync_check: CheckButton = null
 var volume_slider: HSlider = null
+var music_slider: HSlider = null
+var sfx_slider: HSlider = null
 var perf_check: CheckButton = null
 var controls_button: Button = null
 var back_button: Button = null
-var _volume_value: Label = null
 var _settings_path: String = GameSettings.DEFAULT_PATH
 
 
@@ -26,7 +28,7 @@ func setup(current: GameSettings, path: String = GameSettings.DEFAULT_PATH) -> v
 	_settings_path = path
 	custom_minimum_size = Vector2(620.0, 0.0)
 	var box: VBoxContainer = VBoxContainer.new()
-	box.add_theme_constant_override("separation", 18)
+	box.add_theme_constant_override("separation", 14)
 	add_child(box)
 	box.add_child(MenuTheme84.label("OPCIONES", MenuTheme84.FONT_DISPLAY, 64, MenuTheme84.TEXT))
 	box.add_child(_section("PANTALLA"))
@@ -35,27 +37,9 @@ func setup(current: GameSettings, path: String = GameSettings.DEFAULT_PATH) -> v
 	vsync_check = _check(box, "Sincronía vertical (VSync)", settings.vsync)
 	vsync_check.toggled.connect(_on_vsync)
 	box.add_child(_section("SONIDO"))
-	var row: HBoxContainer = HBoxContainer.new()
-	row.add_theme_constant_override("separation", 16)
-	box.add_child(row)
-	var name_label: Label = MenuTheme84.label(
-		"Volumen general", MenuTheme84.FONT_BODY, 24, MenuTheme84.TEXT
-	)
-	name_label.custom_minimum_size = Vector2(230.0, 0.0)
-	row.add_child(name_label)
-	volume_slider = HSlider.new()
-	volume_slider.min_value = 0.0
-	volume_slider.max_value = 100.0
-	volume_slider.step = 5.0
-	volume_slider.value = roundf(settings.master_volume * 100.0)
-	volume_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	volume_slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	volume_slider.value_changed.connect(_on_volume)
-	row.add_child(volume_slider)
-	_volume_value = MenuTheme84.label("", MenuTheme84.FONT_MONO, 22, MenuTheme84.AMBER)
-	_volume_value.custom_minimum_size = Vector2(60.0, 0.0)
-	row.add_child(_volume_value)
-	_refresh_volume_label()
+	volume_slider = _slider(box, "Volumen general", settings.master_volume, &"master_volume")
+	music_slider = _slider(box, "Música", settings.music_volume, &"music_volume")
+	sfx_slider = _slider(box, "Efectos", settings.sfx_volume, &"sfx_volume")
 	box.add_child(_section("DEPURACIÓN"))
 	perf_check = _check(
 		box,
@@ -90,6 +74,36 @@ func _check(box: VBoxContainer, text: String, value: bool) -> CheckButton:
 	return check
 
 
+## Fila «nombre — deslizador 0-100 — valor» que guarda en el campo field de los ajustes
+func _slider(box: VBoxContainer, text: String, value: float, field: StringName) -> HSlider:
+	var row: HBoxContainer = HBoxContainer.new()
+	row.add_theme_constant_override("separation", 16)
+	box.add_child(row)
+	var name_label: Label = MenuTheme84.label(text, MenuTheme84.FONT_BODY, 24, MenuTheme84.TEXT)
+	name_label.custom_minimum_size = Vector2(230.0, 0.0)
+	row.add_child(name_label)
+	var slider: HSlider = HSlider.new()
+	slider.min_value = 0.0
+	slider.max_value = 100.0
+	slider.step = 5.0
+	slider.value = roundf(value * 100.0)
+	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(slider)
+	var value_label: Label = MenuTheme84.label(
+		"%d" % int(slider.value), MenuTheme84.FONT_MONO, 22, MenuTheme84.AMBER
+	)
+	value_label.custom_minimum_size = Vector2(60.0, 0.0)
+	row.add_child(value_label)
+	slider.value_changed.connect(
+		func(new_value: float) -> void:
+			settings.set(field, new_value / 100.0)
+			value_label.text = "%d" % int(new_value)
+			_commit()
+	)
+	return slider
+
+
 func _on_fullscreen(on: bool) -> void:
 	settings.fullscreen = on
 	_commit()
@@ -103,16 +117,6 @@ func _on_vsync(on: bool) -> void:
 func _on_perf(on: bool) -> void:
 	settings.show_perf = on
 	_commit()
-
-
-func _on_volume(value: float) -> void:
-	settings.master_volume = value / 100.0
-	_refresh_volume_label()
-	_commit()
-
-
-func _refresh_volume_label() -> void:
-	_volume_value.text = "%d" % int(roundf(settings.master_volume * 100.0))
 
 
 func _commit() -> void:

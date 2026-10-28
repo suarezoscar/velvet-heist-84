@@ -9,6 +9,8 @@ extends Resource
 @export var mechanism_db: float = -10.0
 ## Voz de los guardias: bostezos (FEAT-029)
 @export var voice_db: float = -8.0
+## Cafetera de la garita (FEAT-030)
+@export var coffee_db: float = -8.0
 @export var soft_surface_max: float = 0.7
 @export var hard_surface_min: float = 1.3
 @export var step_soft: Array[AudioStream] = []
@@ -17,6 +19,7 @@ extends Resource
 @export var impact: Array[AudioStream] = []
 @export var mechanism: Array[AudioStream] = []
 @export var voice: Array[AudioStream] = []
+@export var coffee: Array[AudioStream] = []
 
 
 ## dB base de la categoría; 0.0 si la categoría no existe
@@ -30,6 +33,8 @@ func category_db(category: StringName) -> float:
 			return mechanism_db
 		&"voice":
 			return voice_db
+		&"coffee":
+			return coffee_db
 		_:
 			return 0.0
 
@@ -50,4 +55,6 @@ func streams_for(category: StringName, surface_mult: float) -> Array[AudioStream
 			streams = mechanism
 		&"voice":
 			streams = voice
+		&"coffee":
+			streams = coffee
 	return streams
