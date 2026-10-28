@@ -108,5 +108,5 @@ El servidor dedicado escribe lo mismo en su consola cada 10 s (líneas `[NetStat
 - **CGNAT.** Si la IP WAN que muestra el router no coincide con la de https://ifconfig.me, tu operador te tiene detrás de CGNAT y la redirección de puertos no funcionará. Hay dos salidas:
   - pedir a tu operador una IP pública (muchos lo hacen gratis);
   - usar una red privada virtual como Tailscale o ZeroTier: todos se unen a la misma red y se conectan con la IP que asigna.
-- **Desincronías o errores raros**: casi siempre son versiones distintas. Comparad la versión del menú (abajo a la izquierda) con la de la consola del servidor y usad todos la misma release.
+- **«Versión distinta» al unirse**: el servidor solo admite jugadores con su misma versión (la del menú, abajo a la izquierda). El aviso dice cuál tiene el servidor; descargadla todos desde `/releases/latest`, servidor incluido. Las versiones anteriores a la 0.1.3 no saben enviar su versión: el servidor las desconecta a los 5 s con «Se perdió la conexión».
 - **Retraso**: el PoC aún no tiene predicción del jugador local, así que con mucho ping el movimiento propio llega con algo de retardo. Cuéntamelo con las cifras del panel (F9) si lo notas, porque es lo siguiente que se trabaja en red.
