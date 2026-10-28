@@ -202,6 +202,8 @@ func _finish_swap(actor: Node3D) -> void:
 
 
 func _finish_inspect(_actor: Node3D) -> void:
+	if stolen and not is_faked():
+		return  # se la llevaron a lo bruto mientras la examinaba: ya está descubierta
 	if is_faked():
 		discovered = true
 		print("[TargetPiece3D] ¡%s es una falsificación!" % piece_name)

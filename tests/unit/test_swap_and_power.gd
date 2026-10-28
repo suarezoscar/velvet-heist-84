@@ -121,4 +121,19 @@ func test_power_cut_silences_sensor_pieces_and_pilot_tells_guards() -> void:
 	box.interact(map.guards[0])
 	_run(box, RULES.restore_time + 0.5)
 	assert_false(box.is_cut, "Restablecida")
+	for node: Node in get_tree().get_nodes_in_group(&"lamps"):
+		var lamp: Lamp3D = node as Lamp3D
+		if box.circuits.has(lamp.circuit_id):
+			assert_eq(lamp.is_switched_on, lamp.start_on, "Las luces vuelven a como estaban")
 	assert_true(box.noticed, "Pero el rastro sigue")
+
+
+func test_replica_table_does_not_hide_a_piece_and_hints() -> void:
+	var map: HeistMap3D = _map()
+	await wait_physics_frames(2)
+	var table: Node3D = map.find_child("ReplicaTable", true, false) as Node3D
+	for node: Node in get_tree().get_nodes_in_group(&"heist_targets"):
+		var piece: TargetPiece3D = node as TargetPiece3D
+		assert_gt(piece.global_position.distance_to(table.global_position), 2.0, piece.piece_name)
+		assert_ne(ContractList84.hint(piece), "", "Cada pieza dice cómo robarla")
+	assert_eq(ContractList84.hint(_piece(&"pressure")), "pieza de pega del taller")

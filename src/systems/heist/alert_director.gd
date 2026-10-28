@@ -125,7 +125,9 @@ func flood(pos: Vector3) -> bool:
 	flood_cooldown_left = RULES.flood_cooldown
 	for node: Node in get_tree().get_nodes_in_group(&"lamps"):
 		var lamp: Lamp3D = node as Lamp3D
-		if lamp != null and lamp.global_position.distance_to(pos) <= RULES.flood_radius:
+		if lamp == null or PowerBox3D.lamp_cut(get_tree(), lamp):
+			continue  # un ala sin corriente no se enciende
+		if lamp.global_position.distance_to(pos) <= RULES.flood_radius:
 			if not _flooded.has(lamp):
 				_flooded[lamp] = lamp.is_switched_on
 			lamp.set_switched(true)
@@ -140,7 +142,7 @@ func _tick_flood(delta: float) -> void:
 	if _flood_left > 0.0:
 		return
 	for lamp: Lamp3D in _flooded:
-		if is_instance_valid(lamp):
+		if is_instance_valid(lamp) and not PowerBox3D.lamp_cut(get_tree(), lamp):
 			lamp.set_switched(bool(_flooded[lamp]))
 	_flooded.clear()
 

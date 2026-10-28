@@ -50,6 +50,15 @@ func _ready() -> void:
 	add_to_group(&"power_boxes")
 
 
+## true si la lámpara está en un ala con la corriente cortada (no se enciende)
+static func lamp_cut(tree: SceneTree, lamp: Lamp3D) -> bool:
+	for node: Node in tree.get_nodes_in_group(&"power_boxes"):
+		var box: PowerBox3D = node as PowerBox3D
+		if box.is_cut and box.circuits.has(lamp.circuit_id):
+			return true
+	return false
+
+
 func _physics_process(delta: float) -> void:
 	if _task != null and _task.tick(delta):
 		_task = null
