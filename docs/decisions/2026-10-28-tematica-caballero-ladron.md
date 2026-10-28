@@ -1,9 +1,9 @@
-# Temática: el caballero ladrón (2026-10-28)
+# Temática: el ladrón de guante blanco (2026-10-28)
 
 - **Estado**: aprobado por el usuario el 2026-10-28.
 
 ## Decisión
-El ladrón pasa a ser un **caballero ladrón al estilo de Arsène Lupin**: elegante, irónico, roba con guante blanco y jamás recurre a la violencia. **El juego sigue en 1984**: se mantienen la tecnología de la época (cámaras CCTV, linternas, relojes de fichar, teléfonos de disco), todo lo implementado y el título «Velvet Heist '84».
+El ladrón pasa a ser un **ladrón de guante blanco al estilo de Arsène Lupin**: elegante, irónico, roba con guante blanco y jamás recurre a la violencia. **El juego sigue en 1984**: se mantienen la tecnología de la época (cámaras CCTV, linternas, relojes de fichar, teléfonos de disco), todo lo implementado y el título «Velvet Heist '84».
 
 Nuevo lema: **«Un caballero nunca deja huellas.»** Sustituye a «Cada paso se oye. Cada sombra cuenta.».
 

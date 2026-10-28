@@ -21,7 +21,7 @@ Pendiente de la división de `docs/gdd/MASTER_GSD.md`. Reparto propuesto:
 | `loot.md` | Botín ligero y pesado, cuota, Pieza Maestra | por crear |
 | `match.md` | Flujo de partida, tiempo, equipamiento en el lobby | por crear |
 | `heist.md` | El golpe: lista del coleccionista, escape por cualquier salida, sueño y café, rastros, nivel de alerta, monedas y walkie | aprobado (2026-10-28) |
-| `gentleman.md` | Temática del caballero ladrón: golpe anunciado, tarjeta de visita, estilo, disfraz | propuesto (2026-10-28) |
+| `gentleman.md` | Temática del ladrón de guante blanco: golpe anunciado, tarjeta de visita, estilo, disfraz | propuesto (2026-10-28) |
 | `disguise.md` | Disfraz de guardia del ladrón (de momento, M4 de `gentleman.md`) | por diseñar |
 
 ## Pendiente de diseño
