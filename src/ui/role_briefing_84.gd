@@ -13,6 +13,7 @@ var lines_label: Label = null
 var _panel: PanelContainer = null
 var _time_left: float = SHOW_TIME
 var _closing: bool = false
+var _is_thief: bool = false
 
 
 ## Prepara la tarjeta para el actor local del mapa (sin actor local no se enseña)
@@ -25,15 +26,55 @@ func setup(map: HeistMap3D) -> void:
 		queue_free()
 		return
 	_build()
-	var is_thief: bool = actor == map.thief
-	var color: Color = TeamMarker3D.THIEF_COLOR if is_thief else TeamMarker3D.GUARD_COLOR
+	_is_thief = actor == map.thief
+	var color: Color = TeamMarker3D.THIEF_COLOR if _is_thief else TeamMarker3D.GUARD_COLOR
 	var guard_number: int = map.guards.find(actor as GuardController3D) + 1
-	title_label.text = "ERES EL LADRÓN" if is_thief else "ERES EL GUARDIA %d" % guard_number
+	title_label.text = "ERES EL LADRÓN" if _is_thief else "ERES EL GUARDIA %d" % guard_number
 	title_label.add_theme_color_override("font_color", color)
+	_refresh_lines()
+
+
+## Con encargo, sus líneas (heist.md); si no, las de la cuota. Con red, el encargo llega unos
+## instantes después de cargar el mapa: por eso se vuelve a leer mientras la tarjeta está abierta
+func _refresh_lines() -> void:
 	var clocks: int = get_tree().get_nodes_in_group(&"time_clock").size()
-	lines_label.text = "\n".join(
-		PackedStringArray(objectives(is_thief, GameManager.quota_target, _minutes(), clocks))
-	)
+	var lines: Array[String] = []
+	if GameManager.heist != null:
+		lines = heist_objectives(
+			_is_thief, _contract_names(), GameManager.heist.contract_size, _minutes(), clocks
+		)
+	else:
+		lines = objectives(_is_thief, GameManager.quota_target, _minutes(), clocks)
+	lines_label.text = "\n".join(PackedStringArray(lines))
+
+
+## Líneas con encargo: el ladrón ve sus piezas y dónde están; los guardias, la carta
+static func heist_objectives(
+	is_thief: bool, pieces: Array[String], size: int, minutes: int, clocks: int
+) -> Array[String]:
+	if is_thief:
+		var listed: String = ", ".join(PackedStringArray(pieces)) if not pieces.is_empty() else "…"
+		return [
+			"• Tu encargo (%d piezas): %s." % [size, listed],
+			"• Con todas, sal por cualquier puerta exterior antes de %d minutos." % minutes,
+			"• Vitrinas y cajas fuertes se abren con el dial; Q las roba a lo bruto, pero salta la alarma.",
+			"• Jamás la violencia: escóndete, engaña y espera tu momento.",
+		]
+	return [
+		"«Esta noche me llevaré %d piezas de su colección. Con mis respetos, —V.»" % size,
+		"• Las piezas candidatas llevan una marca cian: no sabéis cuáles busca.",
+		"• Atrapadlo con la porra antes de %d minutos y fichad los %d relojes." % [minutes, clocks],
+		"• Él ve tu linterna; tú no lo ves a oscuras. Escucha sus pasos.",
+	]
+
+
+func _contract_names() -> Array[String]:
+	var names: Array[String] = []
+	for piece_id: StringName in GameManager.heist.targets:
+		var piece: TargetPiece3D = GameManager.heist.piece(piece_id)
+		if piece != null:
+			names.append("%s (%s)" % [piece.piece_name, piece.room_name])
+	return names
 
 
 ## Líneas del objetivo de cada bando (las usan los tests)
@@ -60,7 +101,11 @@ func _process(delta: float) -> void:
 	if _panel == null or _closing:
 		return
 	_time_left -= delta
-	if _time_left <= 0.0 or GameManager.is_match_over():
+	if GameManager.heist != null and _is_thief and GameManager.heist.targets.is_empty():
+		_refresh_lines()  # con red, el encargo llega al poco de cargar el mapa
+	if GameManager.is_match_over():
+		queue_free()  # sin fundido: no debe tapar el panel de fin
+	elif _time_left <= 0.0:
 		close()
 
 

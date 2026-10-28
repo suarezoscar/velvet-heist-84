@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="HeistRules" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/systems/heist/heist_rules.gd" id="1_heist"]
+
+[resource]
+script = ExtResource("1_heist")
+pieces_by_guards = Array[int]([4, 3, 2])
+brute_radius = 15.0

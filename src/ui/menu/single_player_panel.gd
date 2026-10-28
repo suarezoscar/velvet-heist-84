@@ -14,7 +14,7 @@ const MAPS: Array[Dictionary] = [
 		"title": "MUSEO '84",
 		"tag": "RECOMENDADO  ·  CCTV  ·  TRES RUTAS",
 		"desc":
-		"Dos alas, tres rutas y una cámara acorazada. Roba la Pieza Maestra y llega al coche.",
+		"Dos alas, tres rutas y una cámara acorazada. Roba tu encargo y sal por cualquier puerta.",
 		"scene": "res://scenes/maps/museum_v2.tscn",
 		"thumb": "res://assets/ui/thumb_museum_v2.png",
 	},

@@ -22,7 +22,7 @@ Un caballero ladrón contra hasta tres guardias, en red o en solitario contra la
 ---
 
 ## El juego
-Es de noche en el Museo Velvet. El **ladrón**, un caballero al estilo de Arsène Lupin que roba con guante blanco y jamás recurre a la violencia, tiene diez minutos para reunir el botín, llevarse la Pieza Maestra de la cámara acorazada y volver al coche sin que lo atrapen. Los **guardias** patrullan con linterna, fichan en los relojes de ronda y vigilan las cámaras desde la garita.
+Es de noche en el Museo Velvet. El **ladrón**, un caballero al estilo de Arsène Lupin que roba con guante blanco y jamás recurre a la violencia, trae el encargo de un coleccionista: varias piezas concretas entre las candidatas del museo. Tiene diez minutos para robarlas y salir por cualquier puerta exterior sin que lo atrapen. Los **guardias** han recibido su carta, *«Esta noche me llevaré tres piezas de su colección»*, pero no saben cuáles. Patrullan con linterna, fichan en los relojes de ronda y vigilan las cámaras desde la garita.
 
 Nadie lo ve todo:
 - **El sonido es información.** Cada paso sobre mármol, parqué o alfombra suena distinto, y cada interruptor, caja fuerte o reloj deja un rastro que el otro bando puede oír.
@@ -62,7 +62,7 @@ Nadie lo ve todo:
 |---|---|
 | Moverse / mirar | <kbd>WASD</kbd> o flechas / ratón |
 | Correr · sigilo · agacharse | <kbd>Mayús</kbd> · <kbd>C</kbd> · <kbd>Ctrl</kbd> |
-| Interactuar | <kbd>E</kbd> |
+| Interactuar · robar a lo bruto (salta la alarma) | <kbd>E</kbd> · <kbd>Q</kbd> |
 | Plano del museo | <kbd>M</kbd> o <kbd>Tab</kbd> |
 | Linterna · porra (guardias) | <kbd>F</kbd> · clic izquierdo |
 | Panel de rendimiento y red | <kbd>F9</kbd> |
