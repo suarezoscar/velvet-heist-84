@@ -1,6 +1,6 @@
 # Caballero ladrón
 
-- **Estado**: propuesto (2026-10-28)
+- **Estado**: propuesto (2026-10-28). **M1-M3 quedan sustituidas por `heist.md`** (lista del coleccionista, carta sin pistas, alerta). Siguen vivas M4 (disfraz) y M5 (gadgets).
 - **Origen**: decisión del usuario del 2026-10-28 (`docs/decisions/2026-10-28-tematica-caballero-ladron.md`): el ladrón es un caballero al estilo de Arsène Lupin, en 1984. Recoge también el disfraz de guardia, pedido antes y pendiente de diseño (`README.md`).
 - **Relacionado**: `stealth.md` (percepción y ruido), `vision.md` (niebla y filtro de red), `interaction.md` (relojes y CCTV), `pillars.md` (1, 4 y 6).
 
