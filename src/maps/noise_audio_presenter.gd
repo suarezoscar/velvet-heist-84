@@ -135,6 +135,7 @@ func handle_noise(
 		player.set(
 			"pitch_scale", 1.0 + rng.randf_range(-_feedback.pitch_jitter, _feedback.pitch_jitter)
 		)
+		player.set("bus", &"SFX")
 		player.add_to_group(&"noise_audio")
 		add_child(player)
 		if player is Node3D:

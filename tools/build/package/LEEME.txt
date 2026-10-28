@@ -28,3 +28,12 @@ SER EL ANFITRIÓN (servidor)
      cortafuegos.
   3. Tus amigos se unen con tu IP pública (búscala en https://ifconfig.me). Tú, desde el mismo
      PC, con 127.0.0.1; desde otro PC de tu casa, con la IP local del servidor.
+
+CRÉDITOS
+  Un juego de Óscar Suárez.
+  Música: «Coffee Black» de grimfrenzy (CC-BY 3.0) y «Espionage» de haeldb (CC0),
+    de OpenGameArt.org.
+  Sonidos: Kenney (CC0); «Yawn» de spookymodem y «coffee cooking» de Christoph (CC-BY 3.0),
+    de OpenGameArt.org.
+  Modelos: Poly Haven (CC0), entre ellos «Coffee Cart 01» de Joe Seabuhr.
+  Tipografías: Google Fonts (SIL Open Font License 1.1).
