@@ -34,6 +34,9 @@ var local_view_presenter: LocalViewPresenter = null
 var fog: FogOfWar3D = null
 var fog_memory: FogMemory = null
 
+## Guardias que quedan sin red (uno por patrulla del nivel); -1 deja todos los de la escena
+var offline_guard_count: int = -1
+
 ## Personaje controlado por esta máquina (null en un servidor dedicado)
 var local_player: PlayerBase3D = null
 
@@ -142,6 +145,23 @@ func _collect_actors() -> void:
 			thief = child
 		elif child is GuardController3D:
 			guards.append(child)
+	_trim_guards(guard_slots())
+
+
+## Guardias de esta partida: con red, uno por jugador guardia (sin IA, FEAT-022); sin red,
+## offline_guard_count (o todos)
+func guard_slots() -> int:
+	if NetManager.is_online():
+		return NetRoleRegistry.guard_count(NetManager.get_connected_players())
+	return guards.size() if offline_guard_count < 0 else offline_guard_count
+
+
+## Quita de la escena los guardias que sobran, empezando por el final
+func _trim_guards(count: int) -> void:
+	while guards.size() > maxi(count, 0):
+		var extra: GuardController3D = guards.pop_back()
+		remove_child(extra)
+		extra.free()
 
 
 func _hide_collision_helpers(node: Node) -> void:

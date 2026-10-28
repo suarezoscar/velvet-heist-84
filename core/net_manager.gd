@@ -15,7 +15,7 @@ signal match_started
 const DEFAULT_PORT: int = 7777
 const MAX_PLAYERS: int = 4
 
-## Roles del PoC (FEAT-014): ladrón y dos guardias; ROLE_GUARD_3 no es asignable.
+## Roles del PoC (FEAT-014, FEAT-022): ladrón y hasta tres guardias.
 const ROLE_THIEF: StringName = &"thief"
 const ROLE_GUARD_1: StringName = &"guard_1"
 const ROLE_GUARD_2: StringName = &"guard_2"
@@ -24,7 +24,7 @@ const AVAILABLE_ROLES: Array[StringName] = NetConfig.ROLES
 
 var connected_players: Dictionary = {}
 
-## Rol asignado al jugador local (&"thief", &"guard_1", &"guard_2" o &"" si no tiene)
+## Rol asignado al jugador local (&"thief", &"guard_1".. &"guard_3" o &"" si no tiene)
 var local_role: StringName = &""
 
 var is_dedicated_server: bool = false
@@ -263,9 +263,12 @@ func _request_start_server() -> void:
 
 
 func _try_start_match() -> void:
-	# Sin ladrón no hay partida; con una en curso, nadie puede relanzarla para todos
-	if get_peer_id_for_role(ROLE_THIEF) == 0 or _match_in_progress():
+	# Sin ladrón o sin guardias no hay partida, y la que está en curso no se relanza
+	if not NetRoleRegistry.can_start(connected_players) or _match_in_progress():
 		return
+	NetRoleRegistry.compact_guards(connected_players)  # guard_1..guard_n, sin huecos
+	local_role = NetRoleRegistry.role_for_peer(connected_players, multiplayer.get_unique_id())
+	_sync_player_list.rpc(connected_players)
 	launch_match()
 
 

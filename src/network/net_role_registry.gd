@@ -35,6 +35,34 @@ static func next_available_role(players: Dictionary) -> StringName:
 	return &""
 
 
+## Verdadero si hay ladrón y al menos un guardia: en red no hay guardias de IA (FEAT-022)
+static func can_start(players: Dictionary) -> bool:
+	return peer_for_role(players, &"thief") != 0 and guard_count(players) > 0
+
+
+## Guardias ocupados por jugadores
+static func guard_count(players: Dictionary) -> int:
+	var count: int = 0
+	for peer_id: int in players:
+		if String(players[peer_id].get("role", &"")).begins_with("guard_"):
+			count += 1
+	return count
+
+
+## Renumera los guardias ocupados para que queden seguidos (guard_1..guard_n) en su orden;
+## así los n primeros guardias del mapa son los de los jugadores
+static func compact_guards(players: Dictionary) -> void:
+	var guards: Array[StringName] = []
+	for role: StringName in NetConfig.ROLES:
+		if String(role).begins_with("guard_") and peer_for_role(players, role) != 0:
+			guards.append(role)
+	var peers: Array[int] = []
+	for role: StringName in guards:
+		peers.append(peer_for_role(players, role))
+	for index: int in range(peers.size()):
+		players[peers[index]]["role"] = NetConfig.ROLES[index + 1]
+
+
 ## Asigna desired_role a peer_id si está en NetConfig.ROLES y libre (o ya es suyo)
 static func try_assign(players: Dictionary, peer_id: int, desired_role: StringName) -> bool:
 	if not NetConfig.ROLES.has(desired_role):

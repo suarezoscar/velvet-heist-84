@@ -1,5 +1,5 @@
 ## @file perf_overlay_84.gd
-## Panel de rendimiento y red (FEAT-021). Autoload PerfOverlay: esquina superior derecha,
+## Panel de rendimiento y red (FEAT-021). Autoload PerfOverlay: esquina inferior derecha,
 ## encima de todo. Enseña FPS y tiempos de frame y, con red, el ping, la pérdida y el tráfico
 ## propios, los snapshots por segundo y el ping de cada jugador (NetStats). Se muestra con F9 o
 ## con la opción «Panel de rendimiento» (GameSettings.show_perf). No existe en el servidor.
@@ -8,7 +8,7 @@ extends CanvasLayer
 
 const TOGGLE_KEY: Key = KEY_F9
 const REFRESH_INTERVAL: float = 0.25
-const MARGIN: Vector2 = Vector2(16.0, 56.0)
+const MARGIN: Vector2 = Vector2(16.0, 16.0)
 ## Ping (ms) a partir del cual se pinta en ámbar y en rojo
 const PING_WARN: int = 80
 const PING_BAD: int = 150
@@ -164,9 +164,11 @@ func _build() -> void:
 	)
 	style.set_content_margin_all(10)
 	_panel.add_theme_stylebox_override("panel", style)
-	_panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	# Abajo a la derecha: arriba están la hoja de ronda y el indicador de sombra
 	_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	_panel.position += Vector2(-MARGIN.x, MARGIN.y)
+	_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+	_panel.position -= MARGIN
 	root.add_child(_panel)
 	text_label = RichTextLabel.new()
 	text_label.bbcode_enabled = true

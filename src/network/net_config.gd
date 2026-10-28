@@ -25,8 +25,8 @@ const GAME_TIMER_HZ: float = 1.0
 ## Distancia horizontal máxima de un look_target respecto al actor (metros)
 const MAX_LOOK_DISTANCE: float = 30.0
 
-## Roles del PoC: un ladrón y dos guardias
-const ROLES: Array[StringName] = [&"thief", &"guard_1", &"guard_2"]
+## Roles del PoC: un ladrón y hasta tres guardias (FEAT-022)
+const ROLES: Array[StringName] = [&"thief", &"guard_1", &"guard_2", &"guard_3"]
 
 ## Acciones discretas que un cliente puede pedir al servidor
 const ACTIONS: Array[StringName] = [
