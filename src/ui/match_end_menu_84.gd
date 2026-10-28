@@ -1,5 +1,6 @@
 ## @file match_end_menu_84.gd
-## Acciones del panel de fin de partida (FEAT-024): «Revancha» (R) y «Menú principal» (Esc).
+## Panel de fin de partida: resumen (FEAT-027: has ganado o perdido y las cifras) y acciones
+## (FEAT-024): «Revancha» (R) y «Menú principal» (Esc).
 ## Sin red, la revancha recarga el mapa. Con red, vota en NetRematch y enseña cuántos jugadores
 ## están listos; el servidor relanza el mapa con los mismos bandos cuando han votado todos.
 ## La crea HeistMap3D dentro del panel de fin de partida del HUD.
@@ -13,6 +14,8 @@ const INPUT_GRACE: float = 0.75
 var rematch_button: Button = null
 var menu_button: Button = null
 var status_label: Label = null
+var verdict_label: Label = null
+var stats_label: Label = null
 var _map: HeistMap3D = null
 var _shown_time: float = 0.0
 
@@ -22,6 +25,11 @@ func setup(map: HeistMap3D) -> void:
 	_map = map
 	name = "MatchEndMenu"
 	add_theme_constant_override("separation", 10)
+	verdict_label = MenuTheme84.label("", MenuTheme84.FONT_DISPLAY, 56, MenuTheme84.TEXT)
+	verdict_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	stats_label = MenuTheme84.label("", MenuTheme84.FONT_MONO, 20, MenuTheme84.TEXT)
+	stats_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	add_child(stats_label)
 	status_label = MenuTheme84.label("", MenuTheme84.FONT_BODY, 20, MenuTheme84.DIM)
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(status_label)
@@ -35,8 +43,16 @@ func setup(map: HeistMap3D) -> void:
 	menu_button.pressed.connect(go_to_menu)
 	var panel: Control = map.hud.game_over_panel if map.hud != null else null
 	var box: Node = panel.get_node_or_null("VBox") if panel != null else null
+	# Veredicto arriba, después el motivo del HUD y debajo las cifras y los botones
 	if box != null:
+		box.add_child(verdict_label)
+		box.move_child(verdict_label, 0)
 		box.add_child(self)
+		var style: StyleBoxFlat = MenuTheme84.box(
+			Color(MenuTheme84.INK, 0.92), Color(MenuTheme84.TEXT, 0.25), 2
+		)
+		style.set_content_margin_all(28)
+		panel.add_theme_stylebox_override("panel", style)
 	var vote: NetRematch = _vote()
 	if vote != null:
 		vote.votes_changed.connect(func(_v: int, _n: int) -> void: refresh())
@@ -78,8 +94,27 @@ func go_to_menu() -> void:
 	MenuReturn.to_main_menu(get_tree())
 
 
-## Texto y estado de los botones según el recuento de la revancha
+## Veredicto, cifras y estado de los botones (recuento de la revancha con red)
 func refresh() -> void:
+	var state: GameManager.MatchState = GameManager.current_state
+	verdict_label.text = MatchSummary.verdict(state, MatchSummary.local_side(_map))
+	var side: StringName = MatchSummary.winner(state)
+	verdict_label.add_theme_color_override(
+		"font_color",
+		(
+			TeamMarker3D.THIEF_COLOR
+			if side == &"thief"
+			else (TeamMarker3D.GUARD_COLOR if side == &"guards" else MenuTheme84.TEXT)
+		)
+	)
+	stats_label.text = MatchSummary.stats(
+		GameManager.current_loot_value,
+		GameManager.quota_target,
+		GameManager.has_masterpiece,
+		GameManager.match_duration_seconds - GameManager.match_timer,
+		GameManager.round_faults,
+		GameManager.CLOCK_RULES.allowed_misses
+	)
 	var vote: NetRematch = _vote()
 	if vote == null:
 		status_label.visible = false
