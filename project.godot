@@ -24,6 +24,7 @@ NetManager="*res://core/net_manager.gd"
 NetStats="*res://src/network/net_stats.gd"
 NetVersion="*res://src/network/net_version_check.gd"
 PerfOverlay="*res://src/ui/debug/perf_overlay_84.gd"
+Music="*res://src/audio/music_player_84.gd"
 MCPRuntimeServer="*res://addons/godot_mcp_toolkit/runtime/mcp_runtime_server.gd"
 
 [display]
