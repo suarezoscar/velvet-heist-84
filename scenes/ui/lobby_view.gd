@@ -103,6 +103,7 @@ func _on_join_pressed() -> void:
 
 
 func _on_disconnect_pressed() -> void:
+	conn_log_lbl.modulate = Color.WHITE
 	NetManager.disconnect_network()
 	conn_log_lbl.text = "Desconectado."
 	refresh()
