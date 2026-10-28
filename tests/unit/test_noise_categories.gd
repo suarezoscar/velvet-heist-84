@@ -116,9 +116,12 @@ func test_each_emitter_category() -> void:
 	assert_eq(ev.category, &"mechanism", "Coche de fuga debe ser 'mechanism'")
 	assert_eq(ev.emitter, car, "Emisor de coche de fuga debe ser self")
 
-	# 9. time_clock_3d.gd (fichar y alarma) -> mechanism
+	# 9. time_clock_3d.gd (fichar) y guard_round.gd (campana del reloj al que llega tarde)
 	var clock: TimeClock3D = TimeClock3D.new()
+	clock.clock_id = 1
 	add_child_autofree(clock)
+	var round_node: GuardRound = GuardRound.attach(guard)
+	round_node.assign([1, 2] as Array[int], [90.0, 90.0] as Array[float])
 	n = _recorded.size()
 	clock.interact(guard)
 	assert_eq(_recorded.size(), n + 1, "Fichar debe emitir 1 ruido")
@@ -126,13 +129,15 @@ func test_each_emitter_category() -> void:
 	assert_eq(ev.category, &"mechanism", "Fichar debe ser 'mechanism'")
 	assert_eq(ev.emitter, guard, "Emisor al fichar debe ser el guardia que ficha")
 
-	clock.time_left = 0.0
+	round_node.assign([1, 2] as Array[int], [90.0, 90.0] as Array[float])
+	round_node.step(90.0)
 	n = _recorded.size()
-	clock._update_countdown(3.0)
-	assert_eq(_recorded.size(), n + 1, "Alarma del reloj debe emitir 1 ruido")
+	round_node.step(3.0)
+	assert_eq(_recorded.size(), n + 1, "Campana del reloj debe emitir 1 ruido")
 	ev = _recorded.back()
-	assert_eq(ev.category, &"mechanism", "Alarma de fichador debe ser 'mechanism'")
-	assert_eq(ev.emitter, clock, "Emisor de alarma debe ser self")
+	assert_eq(ev.category, &"mechanism", "Campana del fichador debe ser 'mechanism'")
+	assert_eq(ev.emitter, clock, "Emisor de la campana debe ser el reloj")
+	round_node.free()
 
 	# 10. lamp_3d.gd (desenroscar) -> mechanism, el actor
 	var lamp: Lamp3D = Lamp3D.new()

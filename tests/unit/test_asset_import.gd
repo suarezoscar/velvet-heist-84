@@ -148,7 +148,7 @@ func test_assets_match_their_cards() -> void:
 		f = dir.get_next()
 	dir.list_dir_end()
 	spec_files.sort()
-	assert_eq(spec_files.size(), 25, "25 fichas en %s" % SPECS_DIR)
+	assert_eq(spec_files.size(), 42, "42 fichas en %s" % SPECS_DIR)
 
 	var count: int = 0
 	for spec_file: String in spec_files:
@@ -172,7 +172,7 @@ func test_assets_match_their_cards() -> void:
 			assert_false(_is_pivot_valid(aabb, exp_size, "bottom_center"), msg_mut)
 		count += 1
 
-	assert_eq(count, 25, "Se recorrieron las 25 fichas de assets")
+	assert_eq(count, 42, "Se recorrieron las 42 fichas de assets")
 
 
 func test_collision_meshes_are_invisible() -> void:
@@ -190,7 +190,7 @@ func test_collision_meshes_are_invisible() -> void:
 		f = dir.get_next()
 	dir.list_dir_end()
 	glb_files.sort()
-	assert_gte(glb_files.size(), 25, "Al menos 25 .glb en %s" % ASSETS_DIR)
+	assert_gte(glb_files.size(), 42, "Al menos 42 .glb en %s" % ASSETS_DIR)
 
 	for glb_name: String in glb_files:
 		var sc: PackedScene = load(ASSETS_DIR + glb_name) as PackedScene
