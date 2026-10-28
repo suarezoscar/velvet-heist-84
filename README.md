@@ -4,10 +4,10 @@
 
 # Velvet Heist '84
 
-**Cada paso se oye. Cada sombra cuenta.**
+**Un caballero nunca deja huellas.**
 
-Sigilo táctico asimétrico multijugador en un museo de 1984.<br>
-Un ladrón contra hasta tres guardias, en red o en solitario contra la IA.
+Sigilo táctico asimétrico multijugador en 1984.<br>
+Un caballero ladrón contra hasta tres guardias, en red o en solitario contra la IA.
 
 [![Última versión](https://img.shields.io/github/v/release/suarezoscar/velvet-heist-84?label=descargar&style=for-the-badge&color=ff3d9a)](https://github.com/suarezoscar/velvet-heist-84/releases/latest)
 &nbsp;
@@ -22,7 +22,7 @@ Un ladrón contra hasta tres guardias, en red o en solitario contra la IA.
 ---
 
 ## El juego
-Es de noche en el Museo Velvet. El **ladrón** tiene diez minutos para reunir el botín, llevarse la Pieza Maestra de la cámara acorazada y volver al coche sin que lo atrapen. Los **guardias** patrullan con linterna, fichan en los relojes de ronda y vigilan las cámaras desde la garita.
+Es de noche en el Museo Velvet. El **ladrón**, un caballero al estilo de Arsène Lupin que roba con guante blanco y jamás recurre a la violencia, tiene diez minutos para reunir el botín, llevarse la Pieza Maestra de la cámara acorazada y volver al coche sin que lo atrapen. Los **guardias** patrullan con linterna, fichan en los relojes de ronda y vigilan las cámaras desde la garita.
 
 Nadie lo ve todo:
 - **El sonido es información.** Cada paso sobre mármol, parqué o alfombra suena distinto, y cada interruptor, caja fuerte o reloj deja un rastro que el otro bando puede oír.

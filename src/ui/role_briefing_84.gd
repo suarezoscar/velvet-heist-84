@@ -42,8 +42,8 @@ static func objectives(is_thief: bool, quota: int, minutes: int, clocks: int) ->
 		return [
 			"• Roba $%d en botín y la Pieza Maestra de la cámara acorazada." % quota,
 			"• Vuelve al coche antes de %d minutos." % minutes,
-			"• La luz y el ruido te delatan: busca la sombra y muévete en sigilo.",
-			"• Nunca atacas: escóndete, engaña y espera tu momento.",
+			"• La luz y el ruido delatan: un caballero se mueve en la sombra y en silencio.",
+			"• Jamás la violencia: escóndete, engaña y espera tu momento.",
 		]
 	return [
 		"• Atrapa al ladrón con la porra antes de %d minutos." % minutes,
