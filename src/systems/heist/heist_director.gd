@@ -17,6 +17,8 @@ var targets: Array[StringName] = []
 var contract_size: int = 0
 ## Ids de las piezas del encargo ya robadas (privado del ladrón)
 var stolen: Array[StringName] = []
+## Monedas que le quedan al ladrón (heist.md R8; privado del ladrón)
+var coins_left: int = RULES.coins
 
 
 func _ready() -> void:
@@ -84,7 +86,7 @@ func get_net_state() -> Dictionary:
 
 
 func get_net_state_private() -> Dictionary:
-	return {"targets": targets.duplicate(), "stolen": stolen.duplicate()}
+	return {"targets": targets.duplicate(), "stolen": stolen.duplicate(), "coins": coins_left}
 
 
 ## true si en esta máquina se juega con el ladrón
@@ -104,6 +106,8 @@ func apply_net_state(state: Dictionary) -> void:
 		stolen.assign(state["stolen"])
 	if state.has("targets"):
 		targets.assign(state["targets"])
+	if state.has("coins"):
+		coins_left = int(state["coins"])
 
 
 func _draw_contract() -> void:

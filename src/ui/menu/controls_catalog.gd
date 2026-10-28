@@ -46,6 +46,7 @@ static func groups() -> Array[Dictionary]:
 			[
 				["Agacharse", keys(&"crouch")],
 				["Robar a lo bruto (salta la alarma)", keys(&"force")],
+				["Lanzar una moneda (ruido falso)", keys(&"throw_coin")],
 				["Caja fuerte: girar el dial", "← → / A D  (mantener: gira seguido)"],
 				["Caja fuerte: probar número · salir", keys(&"interact") + " · Esc"],
 			],
@@ -61,6 +62,8 @@ static func groups() -> Array[Dictionary]:
 					"Tomar un café (quita el sueño)",
 					keys(&"interact") + " en la cafetera de la garita"
 				],
+				["Walkie: marcar un punto al equipo", keys(&"walkie")],
+				["Luces de alarma (en «alarma»)", keys(&"alarm_lights")],
 			],
 		},
 		{

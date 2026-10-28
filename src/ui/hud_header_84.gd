@@ -12,7 +12,13 @@ const DIM_COLOR: Color = Color(0.6, 0.6, 0.6)
 static func update_goal(goal_label: Label, detail_label: Label) -> void:
 	var heist: HeistDirector = GameManager.heist
 	if heist != null and not HeistDirector.local_is_thief(Engine.get_main_loop() as SceneTree):
-		_paint(goal_label, "LA CARTA: SE LLEVARÁ %d PIEZAS" % heist.contract_size, PENDING_COLOR)
+		var alert: AlertDirector = AlertDirector.of(Engine.get_main_loop() as SceneTree)
+		var found: int = alert.discovered_count() if alert != null else 0
+		_paint(
+			goal_label,
+			"LA CARTA: SE LLEVARÁ %d PIEZAS · DESCUBIERTAS %d" % [heist.contract_size, found],
+			PENDING_COLOR
+		)
 		_paint(detail_label, "SALIDAS: TODAS LAS PUERTAS EXTERIORES", DIM_COLOR)
 		return
 	if heist != null:
