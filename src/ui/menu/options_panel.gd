@@ -6,12 +6,15 @@ extends PanelContainer
 
 ## Se emite al pulsar «Volver»
 signal back_requested
+## Se emite al pulsar «Ver controles»
+signal controls_requested
 
 var settings: GameSettings = null
 var fullscreen_check: CheckButton = null
 var vsync_check: CheckButton = null
 var volume_slider: HSlider = null
 var perf_check: CheckButton = null
+var controls_button: Button = null
 var back_button: Button = null
 var _volume_value: Label = null
 var _settings_path: String = GameSettings.DEFAULT_PATH
@@ -54,8 +57,18 @@ func setup(current: GameSettings, path: String = GameSettings.DEFAULT_PATH) -> v
 	row.add_child(_volume_value)
 	_refresh_volume_label()
 	box.add_child(_section("DEPURACIÓN"))
-	perf_check = _check(box, "Panel de rendimiento y red (F9)", settings.show_perf)
+	perf_check = _check(
+		box,
+		"Panel de rendimiento y red (%s)" % ControlsCatalog.keys(&"toggle_perf_overlay"),
+		settings.show_perf
+	)
 	perf_check.toggled.connect(_on_perf)
+	box.add_child(_section("TECLADO Y RATÓN"))
+	controls_button = Button.new()
+	controls_button.text = "VER CONTROLES"
+	controls_button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	controls_button.pressed.connect(controls_requested.emit)
+	box.add_child(controls_button)
 	box.add_child(HSeparator.new())
 	back_button = Button.new()
 	back_button.text = "VOLVER"

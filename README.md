@@ -56,7 +56,7 @@ Nadie lo ve todo:
    - **Linux**: `tar -xzf VelvetHeist84-*-linux.tar.gz` y después `./linux/VelvetHeist84.x86_64`.
 2. Elige un modo:
    - **Un jugador**: eres el ladrón y la IA lleva a dos guardias.
-   - **Multijugador**: escribe la IP del servidor, pulsa Unirse, elige bando y empezad.
+   - **Multijugador**: escribe la IP del servidor, pulsa Unirse, elige bando y empezad. Al acabar, si todos pulsan **Revancha**, se juega otra con los mismos bandos sin salir del juego.
 
 | Acción | Tecla |
 |---|---|
@@ -66,6 +66,9 @@ Nadie lo ve todo:
 | Plano del museo | <kbd>M</kbd> o <kbd>Tab</kbd> |
 | Linterna · porra (guardias) | <kbd>F</kbd> · clic izquierdo |
 | Panel de rendimiento y red | <kbd>F9</kbd> |
+| Revancha · volver al menú (al acabar) | <kbd>R</kbd> · <kbd>Esc</kbd> |
+
+La lista completa está en el juego, en **Opciones → Ver controles**.
 
 ## Jugar en red
 Un PC hace de **servidor dedicado**. Es el mismo ejecutable, sin ventana: `servidor.bat` en Windows o `./servidor.sh` en Linux, ambos incluidos en el paquete. Abre el puerto **UDP 7777** en el router y pasa tu IP pública a tus amigos. Caben un ladrón y hasta tres guardias, y para empezar hace falta el ladrón y al menos un guardia.

@@ -248,7 +248,7 @@ func request_start() -> void:
 
 @rpc("any_peer", "call_remote", "reliable")
 func _request_start_server() -> void:
-	if not multiplayer.is_server():
+	if not multiplayer.is_server() or get_tree().current_scene is HeistMap3D:  # solo NetRematch
 		return
 	_try_start_match()
 

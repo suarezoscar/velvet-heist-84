@@ -11,6 +11,9 @@ var map: HeistMap3D = null
 ## Presentador de audio local, para reproducir los ruidos filtrados del servidor
 var audio: NoiseAudioPresenter = null
 
+## Votación de la revancha (FEAT-024)
+var rematch: NetRematch = null
+
 var _server: NetSessionServer = null
 var _client: NetSessionClient = null
 
@@ -19,12 +22,20 @@ var _client: NetSessionClient = null
 func setup(map_ref: HeistMap3D, audio_ref: NoiseAudioPresenter) -> void:
 	map = map_ref
 	audio = audio_ref
+	rematch = NetRematch.new()
+	rematch.in_map = ready_peers
+	add_child(rematch)
 	if multiplayer.is_server():
 		_server = NetSessionServer.new()
 		_server.setup(self)
 	else:
 		_client = NetSessionClient.new()
 		_client.setup(self)
+
+
+## Peers que han cargado este mapa (en el servidor; vacío en un cliente)
+func ready_peers() -> Array[int]:
+	return _server.ready_peers() if _server != null else ([] as Array[int])
 
 
 ## Actor que ocupa un rol: thief → map.thief; guard_N → map.guards[N-1]
@@ -101,21 +112,21 @@ func send_ready() -> void:
 
 @rpc("any_peer", "call_remote", "unreliable_ordered")
 func _server_input(tick: int, move: Vector2, sprint: bool, sneak: bool, look: Vector3) -> void:
-	if _server == null:
+	if _server == null or not is_inside_tree():  # mensajes que llegan al recargar el mapa
 		return
 	_server.on_input(multiplayer.get_remote_sender_id(), tick, move, sprint, sneak, look)
 
 
 @rpc("any_peer", "call_remote", "reliable")
 func _server_action(action: StringName) -> void:
-	if _server == null:
+	if _server == null or not is_inside_tree():  # mensajes que llegan al recargar el mapa
 		return
 	_server.on_action(multiplayer.get_remote_sender_id(), action)
 
 
 @rpc("any_peer", "call_remote", "reliable")
 func _server_client_ready() -> void:
-	if _server == null:
+	if _server == null or not is_inside_tree():  # mensajes que llegan al recargar el mapa
 		return
 	_server.on_client_ready(multiplayer.get_remote_sender_id())
 
