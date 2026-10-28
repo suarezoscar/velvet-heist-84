@@ -1,0 +1,16 @@
+{
+  "name": "coffee_cart",
+  "feat": "FEAT-029",
+  "description": "Carrito de café de oficina con cafetera industrial, jarras de cristal y tazas: la cafetera de la garita (heist.md R5).",
+  "dimensions": [2.168, 1.073, 1.718],
+  "pivot": "bottom_center",
+  "max_triangles": 2000,
+  "materials": ["CoffeeCart_01_cart", "CoffeeCart_01_props", "CoffeeCart_01_mugs"],
+  "collision": true,
+  "source": {
+    "origin": "polyhaven",
+    "url": "https://polyhaven.com/a/CoffeeCart_01",
+    "license": "CC0",
+    "author": "Joe Seabuhr"
+  }
+}

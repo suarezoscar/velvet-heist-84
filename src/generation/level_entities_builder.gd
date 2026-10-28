@@ -61,6 +61,8 @@ static func build(data: LevelData, map: Node3D) -> Node3D:
 	var targets: Array = data.section("targets")
 	if not targets.is_empty():
 		HeistBuilder.build(data, props, targets)
+	if not data.entry("coffee").is_empty():
+		HeistBuilder.build_coffee(data, props, map, data.entry("coffee"))
 	if not data.entry("car").is_empty():
 		_add_car(data, props, data.entry("car"), targets.is_empty())
 	_place_actors(data, map)
