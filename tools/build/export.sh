@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Exporta Velvet Heist '84 para Linux y/o Windows (presets de export_presets.cfg) y deja un
 # paquete por plataforma en build/ (Linux .tar.gz, Windows .zip) con el juego, el script para
-# arrancar el servidor y un LEEME.
-# Uso: tools/build/export.sh [linux|windows|all]   (por defecto all)
+# arrancar el servidor y un LEEME. Los paquetes llevan la versión en el nombre
+# (tools/build/version.sh); la versión se graba en el juego solo durante la exportación.
+# Uso: [VERSION=X.Y.Z] tools/build/export.sh [linux|windows|all]   (por defecto all)
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -19,6 +20,14 @@ if [[ ! -f "${TEMPLATES}/version.txt" ]]; then
 fi
 
 cd "${PROJECT_ROOT}"
+GAME_VERSION="$("${SCRIPT_DIR}/version.sh")"
+echo "==> Versión ${GAME_VERSION}"
+# Graba la versión en project.godot mientras se exporta y deja el archivo como estaba al salir
+cp project.godot build.project.godot.bak
+trap 'mv -f build.project.godot.bak project.godot' EXIT
+sed -i "s/^config\/version=.*/config\/version=\"${GAME_VERSION}\"/" project.godot
+mkdir -p build
+rm -f build/VelvetHeist84-*.tar.gz build/VelvetHeist84-*.zip
 echo "==> Importando recursos"
 godot --headless --path . --import >/dev/null 2>&1 || true
 
@@ -29,7 +38,8 @@ export_one() {
 	echo "==> Exportando ${preset}"
 	godot --headless --path . --export-release "${preset}" "build/${dir}/${binary}" 2>&1 \
 		| grep -E "ERROR|WARNING|DONE" | grep -v "MCPServer\|MCPRegistry" || true
-	cp "${SCRIPT_DIR}/package/LEEME.txt" "build/${dir}/"
+	{ echo "Versión ${GAME_VERSION}"; echo; cat "${SCRIPT_DIR}/package/LEEME.txt"; } \
+		>"build/${dir}/LEEME.txt"
 	cp "${SCRIPT_DIR}/package/${4}" "build/${dir}/"
 	chmod +x "build/${dir}/${binary}" "build/${dir}/${4}" 2>/dev/null || true
 	package "${dir}"
@@ -39,12 +49,11 @@ export_one() {
 package() {
 	local dir="$1"
 	if [[ "${dir}" == "linux" ]]; then
-		tar -czf "build/VelvetHeist84-${dir}.tar.gz" -C build "${dir}"
-		echo "==> build/VelvetHeist84-${dir}.tar.gz"
+		tar -czf "build/VelvetHeist84-${GAME_VERSION}-${dir}.tar.gz" -C build "${dir}"
+		echo "==> build/VelvetHeist84-${GAME_VERSION}-${dir}.tar.gz"
 	else
-		rm -f "build/VelvetHeist84-${dir}.zip"
-		(cd build && python3 -m zipfile -c "VelvetHeist84-${dir}.zip" "${dir}")
-		echo "==> build/VelvetHeist84-${dir}.zip"
+		(cd build && python3 -m zipfile -c "VelvetHeist84-${GAME_VERSION}-${dir}.zip" "${dir}")
+		echo "==> build/VelvetHeist84-${GAME_VERSION}-${dir}.zip"
 	fi
 }
 
