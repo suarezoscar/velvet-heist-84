@@ -94,6 +94,10 @@ func test_coins_make_thief_noise_where_they_land() -> void:
 		assert_true(HeistActions.handle(thief, &"throw_coin"), "Moneda %d" % i)
 	assert_false(HeistActions.handle(thief, &"throw_coin"), "Se acaban")
 	assert_eq(GameManager.heist.coins_left, 0)
+	assert_true(_noises.is_empty(), "Suena al caer, no al lanzar (FEAT-038)")
+	assert_not_null(map.find_child("CoinFlight", true, false), "La moneda se ve volar")
+	await wait_seconds(RULES.coin_flight_time + 0.2)
+	assert_eq(_noises.size(), RULES.coins, "Una por moneda, al caer")
 	var coin: Dictionary = _noises[0]
 	assert_eq(coin["team"], &"thief", "Suena como el ladrón")
 	assert_almost_eq(float(coin["radius"]), RULES.coin_radius, 0.01)

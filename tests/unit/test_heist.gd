@@ -137,6 +137,23 @@ func test_guards_see_the_letter_not_the_contract() -> void:
 	assert_string_contains(thief_lines[0], "Busto de bronce")
 
 
+func test_briefing_waits_for_the_contract() -> void:
+	var lines: Array[String] = RoleBriefing84.heist_objectives(true, [] as Array[String], 0, 10, 4)
+	assert_false(lines[0].contains("0 piezas"), "Sin encargo aún no dice «0 piezas»")
+	assert_false(lines[0].contains("…."), "Ni puntuación doble")
+
+
+## El encargo se sortea justo después de abrirse la tarjeta: la tarjeta acaba diciéndolo bien
+func test_briefing_shows_the_drawn_contract() -> void:
+	var map: HeistMap3D = _map()
+	await wait_physics_frames(4)
+	var card: RoleBriefing84 = map.find_child("RoleBriefing", true, false) as RoleBriefing84
+	assert_not_null(card, "Tarjeta de inicio")
+	var size: int = GameManager.heist.contract_size
+	assert_gt(size, 0, "Hay encargo")
+	assert_string_contains(card.lines_label.text, "(%d piezas)" % size)
+
+
 ## Jugando de verdad: el rayo del ladrón da en el área de la pieza y la E llega a su candado
 func test_dial_reachable_through_the_piece() -> void:
 	var map: HeistMap3D = _map()

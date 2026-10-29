@@ -1,9 +1,9 @@
 ## @file heist_actions.gd
 ## Acciones del golpe (heist.md R7-R8), validadas por quien tiene la autoridad (el servidor o
 ## la partida sin red):
-## - throw_coin (ladrón): lanza una moneda al punto del ratón, a RULES.throw_range como mucho
-##   (si hay un muro, cae contra él). Suena como un ruido del ladrón: los guardias no lo
-##   distinguen de un paso. Quedan RULES.coins por partida;
+## - throw_coin (ladrón): lanza una moneda al punto del ratón (CoinThrow: alcance, muros y
+##   arco). Vuela en arco y suena al caer como un ruido del ladrón: los guardias no lo
+##   distinguen de un paso. Quedan RULES.coins por partida (FEAT-038);
 ## - walkie (guardia): marca el punto del ratón en el plano del equipo; el chasquido delata a
 ##   quien habla. Espera RULES.walkie_cooldown entre usos;
 ## - alarm_lights (guardia, en alarma): enciende las lámparas cercanas (AlertDirector.flood).
@@ -39,23 +39,18 @@ static func handle(actor: PlayerBase3D, action: StringName) -> bool:
 static func throw_coin(thief: PlayerBase3D, heist: HeistDirector) -> bool:
 	if heist.coins_left <= 0:
 		return false
-	var from: Vector3 = thief.global_position + Vector3.UP
-	var aim: Vector3 = thief.look_target_position - thief.global_position
-	aim.y = 0.0
-	if aim.length() < 0.5:
-		aim = -thief.global_basis.z
-	var target: Vector3 = thief.global_position + aim.limit_length(RULES.throw_range)
-	target.y = from.y
-	var space: PhysicsDirectSpaceState3D = thief.get_world_3d().direct_space_state
-	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(
-		from, target, LevelArchitectureBuilder.LAYER_WALLS
-	)
-	var hit: Dictionary = space.intersect_ray(query)
-	var landing: Vector3 = (hit["position"] as Vector3) if not hit.is_empty() else target
-	landing.y = thief.global_position.y
+	var from: Vector3 = CoinThrow.origin(thief)
+	var landing: Vector3 = CoinThrow.landing(thief, thief.look_target_position)
+	var flight: float = CoinThrow.flight_time(from, landing)
 	heist.coins_left -= 1
-	# Ruido del ladrón sin emisor: a quien lo oye le llega como cualquier otro ruido suyo
-	NoiseEmit.emit(landing, RULES.coin_radius, &"thief", NoiseEmit.MECHANISM, null)
+	SignalBus.coin_thrown.emit(from, landing, flight)
+	# Suena al caer (si la partida sigue). Ruido del ladrón sin emisor: a quien lo oye le llega
+	# como cualquier otro
+	thief.get_tree().create_timer(flight, false).timeout.connect(
+		func() -> void:
+			if GameManager.current_state == GameManager.MatchState.IN_PROGRESS:
+				NoiseEmit.emit(landing, RULES.coin_radius, &"thief", NoiseEmit.MECHANISM, null)
+	)
 	return true
 
 

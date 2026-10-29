@@ -23,6 +23,11 @@ signal noise_event_3d(
 	emitter: Node
 )
 
+## El ladrón ha lanzado una moneda (FEAT-038): sale de [param from], vuela en arco
+## [param flight_time] segundos y cae en [param landing], donde suena. Solo la emite quien
+## tiene la autoridad (el servidor o la partida sin red).
+signal coin_thrown(from: Vector3, landing: Vector3, flight_time: float)
+
 ## Emitida al dar un paso sobre superficies que puedan registrar huellas temporales (ej. talco).
 ## [param world_position]: Posición del pie sobre el plano del suelo.
 ## [param rotation_y]: Orientación angular en radianes para orientar el Decal de la pisada.
