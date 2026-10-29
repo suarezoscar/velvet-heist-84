@@ -138,6 +138,13 @@ func on_game_state(state: Dictionary) -> void:
 	GameManager.apply_net_state(state)
 
 
+## Moneda en vuelo que ve este jugador (FEAT-038)
+func on_coin(from: Vector3, landing: Vector3, flight_time: float) -> void:
+	var presenter: CoinFlightPresenter = CoinFlightPresenter.of(_session.get_tree())
+	if presenter != null:
+		presenter.show_coin(from, landing, flight_time)
+
+
 ## Ruido filtrado por el servidor para el actor de este peer
 func on_noise(
 	pos: Vector3,
@@ -157,6 +164,7 @@ func on_noise(
 func _polled_actions(delta: float) -> Array[StringName]:
 	var actions: Array[StringName] = []
 	if LocalInput3D.blocked:  # menú de pausa abierto
+		CoinTrigger.reset()
 		return actions
 	if _just_pressed(&"interact"):
 		actions.append(&"interact")
@@ -167,7 +175,10 @@ func _polled_actions(delta: float) -> Array[StringName]:
 	if _just_pressed(&"crouch"):
 		actions.append(&"crouch_toggle")
 	for heist_action: StringName in [&"force"] + HeistActions.ACTIONS:
-		if _just_pressed(heist_action):
+		if heist_action == CoinTrigger.ACTION:
+			if CoinTrigger.poll():  # se apunta manteniendo y se lanza al soltar (FEAT-038)
+				actions.append(heist_action)
+		elif _just_pressed(heist_action):
 			actions.append(heist_action)
 	var cracking: bool = _any_safe_cracking()
 	var step: int = _dial_repeat.update(

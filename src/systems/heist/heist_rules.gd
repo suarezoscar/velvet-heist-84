@@ -32,6 +32,10 @@ extends Resource
 @export var coins: int = 3
 @export var throw_range: float = 10.0
 @export var coin_radius: float = 9.0
+## FEAT-038: segundos de vuelo de la moneda a throw_range (más cerca, menos) y segundos que
+## brilla en el suelo antes de desaparecer
+@export var coin_flight_time: float = 0.5
+@export var coin_glint_time: float = 3.0
 
 ## R8: walkie: segundos que dura la marca, radio del chasquido (m) y espera entre usos (s)
 @export var ping_time: float = 8.0
