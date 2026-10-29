@@ -50,6 +50,7 @@ static func build(data: LevelData, props: Node3D, targets: Array) -> void:
 	props.add_child(director)
 	director.add_child(AlertDirector.new())
 	props.add_child(HeistInput.new())
+	props.add_child(MatchRecorder.new())  # FEAT-041: cuenta de la partida para el informe
 	props.add_child(CoinFlightPresenter.new())  # FEAT-038: la moneda en vuelo y su mira
 	props.add_child(CoinAim3D.new())
 

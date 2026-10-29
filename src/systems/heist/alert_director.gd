@@ -16,12 +16,17 @@ extends Node
 enum Level { CALM, SUSPICION, ALARM }
 
 const RULES: HeistRules = preload("res://data/balance/heist_rules.tres")
+## Segundos sin llamadas a la alarma para que la siguiente cuente como otra (FEAT-041)
+const ALARM_GAP: float = 3.0
 const TICK: float = 0.2
 
 var level: Level = Level.CALM
 ## Marcas del walkie: [{"pos": Vector3, "left": float}]
 var pings: Array[Dictionary] = []
 var flood_cooldown_left: float = 0.0
+## Veces que algo hizo saltar la alarma (FEAT-041); una situación seguida cuenta una vez
+var alarm_triggers: int = 0
+var _last_alarm_call: float = -INF
 var _timer: float = 0.0
 var _flood_left: float = 0.0
 var _flooded: Dictionary = {}
@@ -82,6 +87,11 @@ func scan() -> void:
 
 
 func raise(new_level: Level) -> void:
+	if new_level == Level.ALARM:
+		var now: float = Time.get_ticks_msec() / 1000.0
+		if now - _last_alarm_call > ALARM_GAP:
+			alarm_triggers += 1
+		_last_alarm_call = now
 	if new_level > level:
 		level = new_level
 		print("[AlertDirector] Alerta: %s" % Level.keys()[level])

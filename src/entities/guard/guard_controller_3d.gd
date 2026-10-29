@@ -271,6 +271,7 @@ func swing_baton(target_thief: ThiefController3D = null) -> bool:
 	)
 
 	if valid_hit:
+		set_meta(MatchRecorder.HITS_META, int(get_meta(MatchRecorder.HITS_META, 0)) + 1)
 		var is_captured: bool = true
 		if target_thief.has_method("register_baton_hit"):
 			is_captured = target_thief.register_baton_hit()
@@ -282,6 +283,7 @@ func swing_baton(target_thief: ThiefController3D = null) -> bool:
 
 
 func _capture_thief() -> void:
+	set_meta(MatchRecorder.CAPTURE_META, true)  # quién lo atrapó, para el informe (FEAT-041)
 	SignalBus.thief_captured.emit(get_multiplayer_authority())
 	if perception == null:
 		perception = load(PERCEPTION_PROFILE_PATH) as PerceptionProfile

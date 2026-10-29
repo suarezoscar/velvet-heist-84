@@ -18,6 +18,8 @@ var legs: Array[float] = []
 var index: int = 0
 var time_left: float = 0.0
 var faults: int = 0
+## Relojes fichados en la partida (FEAT-041)
+var punched: int = 0
 ## El tramo actual va con retraso
 var late: bool = false
 var _late_time: float = 0.0
@@ -100,6 +102,7 @@ func punch(clock_id: int) -> bool:
 	if route.is_empty() or clock_id != next_clock():
 		return false
 	index = (index + 1) % route.size()
+	punched += 1
 	_start_leg()
 	return true
 

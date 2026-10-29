@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ScoreRules" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/systems/match/score_rules.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+thief_piece = 100
+thief_escape = 150
+thief_alarm = -25
+thief_seen = -10
+guard_clock = 10
+guard_fault = -20
+guard_seen = 25
+guard_hit = 50
+guard_capture = 150
+guard_nap = -15
