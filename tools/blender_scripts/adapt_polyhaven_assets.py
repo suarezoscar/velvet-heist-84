@@ -49,11 +49,6 @@ ASSETS: Dict[str, Dict[str, Any]] = {
         "max_triangles": 2000,
         "collision": True,
     },
-    "chandelier": {
-        "pivot": "top_center",
-        "max_triangles": 5000,
-        "collision": False,
-    },
     "grandfather_clock": {
         "pivot": "bottom_center",
         "max_triangles": 5000,
@@ -63,16 +58,6 @@ ASSETS: Dict[str, Dict[str, Any]] = {
         "pivot": "bottom_center",
         "max_triangles": 5000,
         "collision": True,
-    },
-    "metal_office_desk": {
-        "pivot": "bottom_center",
-        "max_triangles": 2000,
-        "collision": True,
-    },
-    "picture_frame": {
-        "pivot": "back_center",
-        "max_triangles": 2000,
-        "collision": False,
     },
     "coffee_cart": {
         "pivot": "bottom_center",

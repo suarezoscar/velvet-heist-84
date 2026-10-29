@@ -25,3 +25,9 @@ desktop.ini
 
 # Claude Code: ajustes locales de cada usuario
 .claude/settings.local.json
+
+# Originales de Mixamo: se quedan en local (sus condiciones no permiten redistribuirlos sueltos)
+assets/models/raw/*.fbx
+assets/models/raw/crypto_*
+assets/models/raw/swat_*
+assets/models/raw/animations/

@@ -66,58 +66,6 @@ def apply_bevel(obj, width=0.02, segments=2):
 
 
 
-# 1. Suelos modulares (2.0m x 2.0m x 0.1m, pivote en Z=0.0)
-def generate_floor(filename: str, mat_name: str, prefix: str):
-    clear_scene()
-    mat = create_pbr_material(mat_name, mat_name)
-
-    # Malla visual: 2.0 x 2.0 x 0.1, centrada en XY, base en Z=0.0 (centro Z=0.05)
-    bpy.ops.mesh.primitive_cube_add(
-        size=1.0, location=(0.0, 0.0, 0.05), scale=(2.0, 2.0, 0.1)
-    )
-    visual = bpy.context.active_object
-    visual.name = f"{prefix}_Visual"
-    bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
-    visual.data.materials.append(mat)
-    apply_bevel(visual, width=0.01, segments=1)
-
-    # Malla de colisión estática
-    bpy.ops.mesh.primitive_cube_add(
-        size=1.0, location=(0.0, 0.0, 0.05), scale=(2.0, 2.0, 0.1)
-    )
-    col = bpy.context.active_object
-    col.name = f"{prefix}-colonly"
-    bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
-
-    export_glb(filename)
-
-
-# 2. Muro Modular Caoba (2.0m ancho x 0.2m grosor x 3.0m alto, pivote en Z=0.0)
-def generate_wall(filename: str):
-    clear_scene()
-    mat = create_pbr_material("MahoganyWood", "MahoganyWood")
-
-    # Malla visual: base en Z=0.0 (centro Z=1.5)
-    bpy.ops.mesh.primitive_cube_add(
-        size=1.0, location=(0.0, 0.0, 1.5), scale=(2.0, 0.2, 3.0)
-    )
-    visual = bpy.context.active_object
-    visual.name = "Wall_Mahogany"
-    bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
-    visual.data.materials.append(mat)
-    apply_bevel(visual, width=0.02, segments=2)
-
-    # Malla de colisión estática
-    bpy.ops.mesh.primitive_cube_add(
-        size=1.0, location=(0.0, 0.0, 1.5), scale=(2.0, 0.2, 3.0)
-    )
-    col = bpy.context.active_object
-    col.name = "Wall_Mahogany-colonly"
-    bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
-
-    export_glb(filename)
-
-
 # 3. Caja Fuerte Años 80 (safe_box_84.glb)
 def generate_safe_box(filename: str):
     clear_scene()
@@ -380,43 +328,12 @@ def generate_loot_cash(filename: str):
     export_glb(filename)
 
 
-# 10. Botín Pesado: Pieza Maestra (loot_masterpiece.glb)
-def generate_loot_masterpiece(filename: str):
-    clear_scene()
-    mat_frame = create_pbr_material("BrassGold", "BrassGold")
-    mat_canvas = create_pbr_material("CanvasOil", "CanvasOil")
-
-    bpy.ops.mesh.primitive_cube_add(
-        size=1.0, location=(0.0, 0.0, 0.50), scale=(0.80, 0.08, 1.00)
-    )
-    frame = bpy.context.active_object
-    frame.name = "Masterpiece_Frame"
-    bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
-    frame.data.materials.append(mat_frame)
-    apply_bevel(frame, width=0.025, segments=2)
-
-    bpy.ops.mesh.primitive_cube_add(
-        size=1.0, location=(0.0, 0.015, 0.50), scale=(0.66, 0.06, 0.86)
-    )
-    canvas = bpy.context.active_object
-    canvas.name = "Masterpiece_Canvas"
-    bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
-    canvas.data.materials.append(mat_canvas)
-
-    export_glb(filename)
-
-
 GENERATORS = {
-    "floor_carpet": lambda: generate_floor("floor_carpet.glb", "CarpetWine", "Floor_Carpet"),
-    "floor_parquet": lambda: generate_floor("floor_parquet.glb", "ParquetWood", "Floor_Parquet"),
-    "floor_marble": lambda: generate_floor("floor_marble.glb", "MarbleWhite", "Floor_Marble"),
-    "wall_mahogany": lambda: generate_wall("wall_mahogany.glb"),
     "safe_box_84": lambda: generate_safe_box("safe_box_84.glb"),
     "rotary_phone_84": lambda: generate_rotary_phone("rotary_phone_84.glb"),
     "time_clock_84": lambda: generate_time_clock("time_clock_84.glb"),
     "escape_car_84": lambda: generate_escape_car("escape_car_84.glb"),
     "loot_cash": lambda: generate_loot_cash("loot_cash.glb"),
-    "loot_masterpiece": lambda: generate_loot_masterpiece("loot_masterpiece.glb"),
 }
 
 
