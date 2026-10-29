@@ -65,11 +65,11 @@ static func heist_objectives(
 	signature: String = PlayerName.FALLBACK_SIGNATURE
 ) -> Array[String]:
 	if is_thief:
-		var contract: String = "• El encargo del coleccionista: llegando…"
+		var contract: String = "• El encargo del coleccionista: aún sin abrir el sobre…"
 		if size > 0 and not pieces.is_empty():
 			contract = (
-				"• El encargo del coleccionista (%d piezas): %s."
-				% [size, ", ".join(PackedStringArray(pieces))]
+				"• El encargo del coleccionista (%d %s): %s."
+				% [size, "pieza" if size == 1 else "piezas", ", ".join(PackedStringArray(pieces))]
 			)
 		return [
 			contract,

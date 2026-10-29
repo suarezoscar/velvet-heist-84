@@ -44,10 +44,12 @@ static func throw_coin(thief: PlayerBase3D, heist: HeistDirector) -> bool:
 	var flight: float = CoinThrow.flight_time(from, landing)
 	heist.coins_left -= 1
 	SignalBus.coin_thrown.emit(from, landing, flight)
-	# Suena al caer. Ruido del ladrón sin emisor: a quien lo oye le llega como cualquier otro
+	# Suena al caer (si la partida sigue). Ruido del ladrón sin emisor: a quien lo oye le llega
+	# como cualquier otro
 	thief.get_tree().create_timer(flight, false).timeout.connect(
 		func() -> void:
-			NoiseEmit.emit(landing, RULES.coin_radius, &"thief", NoiseEmit.MECHANISM, null)
+			if GameManager.current_state == GameManager.MatchState.IN_PROGRESS:
+				NoiseEmit.emit(landing, RULES.coin_radius, &"thief", NoiseEmit.MECHANISM, null)
 	)
 	return true
 

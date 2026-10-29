@@ -4,6 +4,9 @@
 extends GutTest
 
 const RULES: HeistRules = preload("res://data/balance/heist_rules.tres")
+const FIXTURE_PATH: String = "res://tests/fixtures/level_small.json"
+const THIEF_SCENE: PackedScene = preload("res://scenes/entities/thief_player.tscn")
+const GUARD_SCENE: PackedScene = preload("res://scenes/entities/guard_player.tscn")
 
 
 func after_each() -> void:
@@ -72,3 +75,44 @@ func test_landing_is_limited_by_range_and_walls_in_the_museum() -> void:
 	assert_false(
 		CoinFlightPresenter.visible_to(guard, far_away, far_away), "Un guardia lejos no la ve"
 	)
+
+
+## Nivel pequeño de los tests (sala A de x 0-8, sala B de x 8-14, muro en x = 8 con puerta en
+## z 2,4-3,6) con un actor en (2, 0, 1)
+func _level_with(scene: PackedScene) -> PlayerBase3D:
+	var root: Node3D = Node3D.new()
+	add_child_autofree(root)
+	LevelArchitectureBuilder.build(LevelData.load_json(FIXTURE_PATH), root)
+	var actor: PlayerBase3D = scene.instantiate() as PlayerBase3D
+	actor.is_locally_controlled = false
+	root.add_child(actor)
+	actor.global_position = Vector3(2.0, 0.0, 1.0)
+	return actor
+
+
+func test_guard_sees_the_coin_only_with_it_in_view() -> void:
+	var guard: GuardController3D = _level_with(GUARD_SCENE) as GuardController3D
+	await wait_physics_frames(2)
+	var near: Vector3 = Vector3(4.0, 0.0, 1.0)
+	var out_of_range: Vector3 = Vector3(2.0, 0.0, 60.0)
+	var behind_wall_a: Vector3 = Vector3(11.0, 0.0, 0.5)
+	var behind_wall_b: Vector3 = Vector3(12.0, 0.0, 1.0)
+	assert_true(CoinFlightPresenter.visible_to(guard, near, near), "La ve salir a 2 m")
+	assert_true(
+		CoinFlightPresenter.visible_to(guard, out_of_range, near), "Ve caer la que viene de lejos"
+	)
+	assert_false(
+		CoinFlightPresenter.visible_to(guard, behind_wall_a, behind_wall_b),
+		"Tras el muro, dentro del radio, no la ve"
+	)
+	var sleep: GuardSleep = GuardSleep.attach(guard)
+	sleep.nodding = true
+	assert_false(CoinFlightPresenter.visible_to(guard, near, near), "Dando una cabezada no ve nada")
+
+
+func test_coin_stops_short_of_a_wall() -> void:
+	var thief: PlayerBase3D = _level_with(THIEF_SCENE)
+	await wait_physics_frames(2)
+	var landing: Vector3 = CoinThrow.landing(thief, Vector3(13.0, 0.0, 1.0))
+	assert_lt(landing.x, 8.0, "No atraviesa el muro de x = 8")
+	assert_gt(landing.x, 7.0, "Cae junto al muro")

@@ -24,10 +24,10 @@ coleccionista (0 piezas): ….» y la moneda no se veía ni se podía decidir d�
 |---|---|---|
 | 1 | La tarjeta del ladrón dice el número real de piezas y sus nombres | `test_heist.gd` (`test_briefing_shows_the_drawn_contract`), captura |
 | 2 | Mantener apunta, soltar lanza, el clic izquierdo cancela, un clic rápido lanza | `test_coin_throw.gd` |
-| 3 | Alcance, arco y tiempo de vuelo | `test_coin_throw.gd` |
+| 3 | Alcance, arco, tiempo de vuelo y parada contra muros | `test_coin_throw.gd` (`test_coin_stops_short_of_a_wall`) |
 | 4 | El ruido llega al caer, una vez por moneda | `test_alert.gd` |
 | 5 | La moneda se ve volar y brillar; la mira dibuja arco, aro y radio de oído | Capturas del 2026-10-29 |
-| 6 | Con red, la moneda en vuelo solo llega a quien la ve | `NetSessionServer._on_coin_thrown` con `CoinFlightPresenter.visible_to`; revisión |
+| 6 | Con red, la moneda en vuelo solo llega a quien la ve (y nunca a un guardia dando una cabezada) | `test_coin_throw.gd` (`test_guard_sees_the_coin_only_with_it_in_view`): el servidor filtra con ese mismo `visible_to` |
 
 ## Contratos
 - `SignalBus.coin_thrown(from, landing, flight_time)` (commit propio): la emite quien tiene la autoridad.

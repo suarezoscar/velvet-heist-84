@@ -19,6 +19,9 @@ static func poll() -> bool:
 	if LocalInput3D.blocked or not InputMap.has_action(ACTION):
 		reset()
 		return false
+	if aiming and not Input.is_action_pressed(ACTION) and not Input.is_action_just_released(ACTION):
+		reset()  # se soltó con la pausa abierta: no se lanza
+		return false
 	return step(
 		Input.is_action_just_pressed(ACTION),
 		Input.is_action_just_released(ACTION),

@@ -8,11 +8,13 @@ extends Node
 const GROUP: StringName = &"coin_flight_presenter"
 
 
-## true si actor debe ver la moneda: el ladrón siempre (es suya); un guardia, si la salida o
-## la caída están en su zona visible (vision.md R1)
+## true si actor debe ver la moneda: el ladrón siempre (es suya); un guardia despierto, si la
+## salida o la caída están en su zona visible (vision.md R1)
 static func visible_to(actor: Node3D, from: Vector3, landing: Vector3) -> bool:
 	if actor is ThiefController3D:
 		return true
+	if actor is GuardController3D and GuardSleep.sees_nothing(actor as GuardController3D):
+		return false  # en la cabezada no ve nada
 	return VisionLogic.sees_point(actor, from) or VisionLogic.sees_point(actor, landing)
 
 
