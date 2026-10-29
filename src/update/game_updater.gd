@@ -1,7 +1,8 @@
 ## @file game_updater.gd
 ## Actualizaciones del juego con Velopack (FEAT-036). Velopack instala el juego en la carpeta
 ## del usuario con un programa «Update» al lado y deja en packages/ el paquete completo de la
-## versión instalada. Aquí el juego:
+## versión instalada (en Linux, el AppImage no deja ninguno: la primera vez baja el completo).
+## Aquí el juego:
 ## - lee el índice de Velopack de la última release de GitHub (releases.<canal>.json);
 ## - si hay una versión mayor, elige qué bajar (plan): los paquetes de diferencias desde la
 ##   versión instalada si están todos, pesan menos y está su paquete completo; si no, el completo;
@@ -72,14 +73,17 @@ static func update_program() -> String:
 	return path if not path.is_empty() and FileAccess.file_exists(path) else ""
 
 
-## Carpeta de paquetes de Velopack, junto al programa Update
+## Carpeta de paquetes de Velopack: junto a Update.exe en Windows; en Linux, la del AppImage
 static func packages_dir() -> String:
-	return update_program().get_base_dir().path_join("packages")
+	if OS.get_name() == "Windows":
+		return update_program().get_base_dir().path_join("packages")
+	return "/var/tmp/velopack/%s/packages" % PACKAGE_ID
 
 
 ## Paquete completo de una versión dentro de packages/
 static func full_package(version: String) -> String:
-	return packages_dir().path_join("%s-%s-full.nupkg" % [PACKAGE_ID, version])
+	var suffix: String = "" if channel() == "win" else "-" + channel()
+	return packages_dir().path_join("%s-%s%s-full.nupkg" % [PACKAGE_ID, version, suffix])
 
 
 ## a > b en versiones «X.Y.Z» (lo que va tras un «-» no cuenta)
