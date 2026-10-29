@@ -18,6 +18,9 @@ const NOISE_INVESTIGATE_TIME: float = 5.0
 const SPOTTED_INVESTIGATE_TIME: float = 6.0
 ## Distancia horizontal (m) a la que ficha un reloj de ronda al pasar (alcance del interactor)
 const CLOCK_PUNCH_DISTANCE: float = 1.6
+## Atascado: menos de STUCK_SPEED m/s durante STUCK_TIME s patrullando
+const STUCK_SPEED: float = 0.3
+const STUCK_TIME: float = 1.5
 
 ## Rutas de patrulla configurables
 @export var patrol_waypoints: Array[Vector3] = []
@@ -29,6 +32,7 @@ var current_state: AIState = AIState.PATROL
 var investigation_point: Vector3 = Vector3.ZERO
 var _current_waypoint_idx: int = 0
 var _investigate_timer: float = 0.0
+var _stuck_time: float = 0.0
 var _guard: GuardController3D = null
 var _thief: ThiefController3D = null
 var _nav_agent: NavigationAgent3D = null
@@ -106,12 +110,22 @@ func _process_patrol() -> void:
 		_guard.apply_world_move(Vector3.ZERO)
 		return
 	var target: Vector3 = patrol_waypoints[_current_waypoint_idx]
-	if _flat_distance(target, _guard.global_position) < WAYPOINT_REACHED_DISTANCE:
+	var stuck: bool = _update_stuck(get_physics_process_delta_time())
+	if stuck or _flat_distance(target, _guard.global_position) < WAYPOINT_REACHED_DISTANCE:
+		_stuck_time = 0.0
 		_current_waypoint_idx += 1
 		if _current_waypoint_idx >= patrol_waypoints.size():
 			_current_waypoint_idx = clampi(patrol_loop_start, 0, patrol_waypoints.size() - 1)
 		return
 	_steer_towards(target, false)
+
+
+## true si lleva STUCK_TIME casi sin moverse yendo a un waypoint (un mueble en medio): pasa al
+## siguiente para no quedarse atascado
+func _update_stuck(delta: float) -> bool:
+	var speed: float = Vector2(_guard.velocity.x, _guard.velocity.z).length()
+	_stuck_time = _stuck_time + delta if speed < STUCK_SPEED else 0.0
+	return _stuck_time >= STUCK_TIME
 
 
 func _process_investigate(delta: float) -> void:

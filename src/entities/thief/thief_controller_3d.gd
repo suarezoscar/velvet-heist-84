@@ -88,6 +88,8 @@ func _process_local_actions() -> void:
 
 ## Ejecuta una acción discreta sobre el ladrón (interactuar, dial). Devuelve true si la ejecutó
 func perform_action(action: StringName) -> bool:
+	if in_vent:
+		return _vent_action(action)
 	var result: bool = false
 	match action:
 		&"interact":
@@ -125,6 +127,15 @@ func simulate_movement(delta: float) -> void:
 	if is_carrying_heavy_loot:
 		velocity.x *= HEAVY_LOOT_SPEED_MULTIPLIER
 		velocity.z *= HEAVY_LOOT_SPEED_MULTIPLIER
+
+
+## Dentro del conducto solo vale la E, y siempre va a la rejilla por la que entró (FEAT-034)
+func _vent_action(action: StringName) -> bool:
+	var travel: VentTravel = VentTravel.of(get_tree())
+	if action != &"interact" or travel == null or travel.entry == null:
+		return false
+	travel.entry.interact(self)
+	return true
 
 
 ## heist.md R3 (FEAT-033): cada pieza del encargo que lleva le resta HEIST_RULES.loot_slow
