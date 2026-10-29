@@ -50,7 +50,7 @@ func can_interact(actor: Node3D = null) -> bool:
 
 
 func get_interaction_text(_actor: Node3D = null) -> String:
-	return "Coger una pieza de pega [E]"
+	return "Coger una réplica [E]"
 
 
 func interact(actor: Node3D) -> void:

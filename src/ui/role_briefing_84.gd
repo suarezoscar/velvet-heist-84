@@ -41,7 +41,12 @@ func _refresh_lines() -> void:
 	var lines: Array[String] = []
 	if GameManager.heist != null:
 		lines = heist_objectives(
-			_is_thief, _contract_names(), GameManager.heist.contract_size, _minutes(), clocks
+			_is_thief,
+			_contract_names(),
+			GameManager.heist.contract_size,
+			_minutes(),
+			clocks,
+			PlayerName.thief_signature(get_tree())
 		)
 	else:
 		lines = objectives(_is_thief, GameManager.quota_target, _minutes(), clocks)
@@ -50,20 +55,37 @@ func _refresh_lines() -> void:
 
 ## Líneas con encargo: el ladrón ve sus piezas y dónde están; los guardias, la carta
 static func heist_objectives(
-	is_thief: bool, pieces: Array[String], size: int, minutes: int, clocks: int
+	is_thief: bool,
+	pieces: Array[String],
+	size: int,
+	minutes: int,
+	_clocks: int,
+	signature: String = PlayerName.FALLBACK_SIGNATURE
 ) -> Array[String]:
 	if is_thief:
 		var listed: String = ", ".join(PackedStringArray(pieces)) if not pieces.is_empty() else "…"
 		return [
-			"• Tu encargo (%d piezas): %s." % [size, listed],
-			"• Con todas, sal por cualquier puerta exterior antes de %d minutos." % minutes,
-			"• Vitrinas y cajas fuertes se abren con el dial; Q las roba a lo bruto, pero salta la alarma.",
-			"• Jamás la violencia: escóndete, engaña y espera tu momento.",
+			"• El encargo del coleccionista (%d piezas): %s." % [size, listed],
+			"• Con todas encima, sal por cualquier puerta exterior antes de %d minutos." % minutes,
+			(
+				"• Vitrinas y cajas fuertes se abren con el dial."
+				+ " A lo bruto [Q] es rápido, pero salta la alarma."
+			),
+			"• Nada de violencia: escóndete, engaña y espera tu momento. Un caballero no deja huellas.",
 		]
 	return [
-		"«Esta noche me llevaré %d piezas de su colección. Con mis respetos, —V.»" % size,
-		"• Las piezas candidatas llevan una marca cian: no sabéis cuáles busca.",
-		"• Atrapadlo con la porra antes de %d minutos y fichad los %d relojes." % [minutes, clocks],
+		(
+			"«Esta noche me llevaré %d piezas de su colección. Con mis respetos, %s»"
+			% [size, signature]
+		),
+		(
+			"• Parte de la central: las piezas en el punto de mira llevan una marca cian."
+			+ " No se sabe cuáles busca."
+		),
+		(
+			"• Atrapadlo con la porra antes de %d minutos. Cada uno tiene su ronda: no la dejéis."
+			% minutes
+		),
 		"• Él ve tu linterna; tú no lo ves a oscuras. Escucha sus pasos.",
 	]
 
@@ -81,17 +103,14 @@ func _contract_names() -> Array[String]:
 static func objectives(is_thief: bool, quota: int, minutes: int, clocks: int) -> Array[String]:
 	if is_thief:
 		return [
-			"• Roba $%d en botín y la Pieza Maestra de la cámara acorazada." % quota,
+			"• Llévate piezas por valor de %d y la Pieza Maestra de la cámara acorazada." % quota,
 			"• Vuelve al coche antes de %d minutos." % minutes,
 			"• La luz y el ruido delatan: un caballero se mueve en la sombra y en silencio.",
-			"• Jamás la violencia: escóndete, engaña y espera tu momento.",
+			"• Nada de violencia: escóndete, engaña y espera tu momento.",
 		]
 	return [
 		"• Atrapa al ladrón con la porra antes de %d minutos." % minutes,
-		(
-			"• Ficha los %d relojes antes de que se agoten: con demasiadas faltas solo os vale atraparlo."
-			% clocks
-		),
+		"• Ficha los %d relojes a tiempo: con demasiadas faltas solo os vale atraparlo." % clocks,
 		"• Los monitores de la garita muestran lo que ven las cámaras.",
 		"• Él ve tu linterna; tú no lo ves a oscuras. Escucha sus pasos.",
 	]
@@ -156,7 +175,7 @@ func _build() -> void:
 	box.add_child(lines_label)
 	box.add_child(
 		MenuTheme84.label(
-			"Pulsa cualquier tecla para cerrar  ·  Esc: pausa y controles",
+			"Pulsa cualquier tecla para empezar  ·  Esc: pausa y controles",
 			MenuTheme84.FONT_BODY,
 			20,
 			MenuTheme84.DIM

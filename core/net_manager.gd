@@ -35,6 +35,7 @@ var _match_starting: bool = false
 
 func _ready() -> void:
 	_check_cli_arguments()
+	add_child(NetNames.new())  # nombres de los jugadores (FEAT-035)
 
 
 func _check_cli_arguments() -> void:
@@ -119,7 +120,7 @@ func _on_peer_connected(id: int) -> void:
 	if multiplayer.is_server():
 		# Sin bando hasta que NetVersion acepte su versión (FEAT-025)
 		connected_players[id] = {
-			"peer_id": id, "role": &"", "ready": false, "name": "Agente_%d" % id
+			"peer_id": id, "role": &"", "ready": false, "name": "Jugador %d" % id
 		}
 		_sync_player_list.rpc(connected_players)
 		player_connected.emit(id, connected_players[id])
@@ -162,7 +163,7 @@ func register_player(peer_id: int, player_name: String = "", role: StringName = 
 		print("[NetManager] Rol %s no disponible para peer %d" % [assigned_role, peer_id])
 		return false
 
-	var p_name: String = player_name if not player_name.is_empty() else "Agente_%d" % peer_id
+	var p_name: String = player_name if not player_name.is_empty() else "Jugador %d" % peer_id
 	connected_players[peer_id] = {
 		"peer_id": peer_id, "role": assigned_role, "ready": false, "name": p_name
 	}

@@ -24,6 +24,7 @@ var credit_label: Label = null
 var version_label: Label = null
 var single_player: SinglePlayerPanel = null
 var options: OptionsPanel = null
+var name_panel: NamePanel = null
 var controls: ControlsPanel = null
 var _open_panel: Control = null
 
@@ -41,6 +42,8 @@ func _ready() -> void:
 	lobby_view.back_requested.connect(_show_home)
 	_show_home()
 	_play_intro()
+	if not settings.name_asked:
+		_open(name_panel)  # la primera vez, ¿cómo te llamas? (FEAT-035)
 	var notice: String = MenuReturn.take_notice()
 	if notice != "":  # volvemos de una partida que se cortó (FEAT-026)
 		open_section(&"multi")
@@ -99,11 +102,9 @@ func _build_home() -> void:
 	nav = MenuNav84.new()
 	nav.position = Vector2(MARGIN, NAV_TOP)
 	home.add_child(nav)
-	nav.add_entry(
-		&"single", "UN JUGADOR", "Eres el ladrón de guante blanco; la IA lleva a los guardias."
-	)
-	nav.add_entry(&"multi", "MULTIJUGADOR", "Únete a un servidor por IP y elige bando.")
-	nav.add_entry(&"options", "OPCIONES", "Pantalla y sonido.")
+	nav.add_entry(&"single", "UN JUGADOR", "Eres el ladrón. A los guardias los lleva el ordenador.")
+	nav.add_entry(&"multi", "MULTIJUGADOR", "Únete a una partida con su IP y elige bando.")
+	nav.add_entry(&"options", "OPCIONES", "Tu nombre, pantalla y sonido.")
 	nav.add_entry(&"quit", "SALIR", "Hasta la próxima noche.")
 	nav.entry_chosen.connect(open_section)
 	hint_label = MenuTheme84.label("", MenuTheme84.FONT_BODY, 22, MenuTheme84.DIM)
@@ -142,9 +143,18 @@ func _build_panels() -> void:
 	controls = ControlsPanel.new()
 	controls.name = "ControlsPanel"
 	controls.back_requested.connect(func() -> void: _open(options))
-	for panel: Control in [single_player, options, controls]:
+	name_panel = NamePanel.new()
+	name_panel.name = "NamePanel"
+	name_panel.setup(settings)
+	name_panel.done.connect(_on_name_done)
+	for panel: Control in [single_player, options, controls, name_panel]:
 		panel.visible = false
 		home.add_child(panel)
+
+
+func _on_name_done() -> void:
+	options.name_edit.text = settings.player_name
+	_close_panel()
 
 
 func _open(panel: Control) -> void:

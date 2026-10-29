@@ -38,7 +38,7 @@ func test_options_opens_controls_panel() -> void:
 	menu.options.controls_button.pressed.emit()
 	assert_true(menu.controls.visible, "Ver controles abre el panel")
 	assert_false(menu.options.visible)
-	assert_string_contains(menu.controls.rows_text(), "Panel de rendimiento y red: F9")
+	assert_string_contains(menu.controls.rows_text(), "Datos de la conexión: F9")
 	menu.controls.back_button.pressed.emit()
 	assert_true(menu.options.visible, "Volver regresa a Opciones")
 

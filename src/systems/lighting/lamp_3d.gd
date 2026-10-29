@@ -117,8 +117,8 @@ func interact(actor: Node3D) -> void:
 func get_interaction_text(actor: Node3D = null) -> String:
 	var team: StringName = actor.get("team_id") if actor != null and "team_id" in actor else &""
 	if team == &"guard":
-		return "Enroscar bombilla"
-	return "Desenroscar bombilla"
+		return "Enroscar la bombilla"
+	return "Desenroscar la bombilla"
 
 
 func _is_actor_focusing(actor: PlayerBase3D) -> bool:

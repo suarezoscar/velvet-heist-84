@@ -36,7 +36,7 @@ static func groups() -> Array[Dictionary]:
 				["Sigilo", keys(&"sneak")],
 				["Interactuar", keys(&"interact")],
 				["Plano del museo", keys(&"toggle_blueprint")],
-				["Panel de rendimiento y red", keys(&"toggle_perf_overlay")],
+				["Datos de la conexión", keys(&"toggle_perf_overlay")],
 				["Pausa (controles y salir)", "Esc"],
 			],
 		},
@@ -46,7 +46,7 @@ static func groups() -> Array[Dictionary]:
 			[
 				["Agacharse", keys(&"crouch")],
 				["Robar a lo bruto (salta la alarma)", keys(&"force")],
-				["Lanzar una moneda (ruido falso)", keys(&"throw_coin")],
+				["Lanzar una moneda (para despistar)", keys(&"throw_coin")],
 				["Caja fuerte: girar el dial", "← → / A D  (mantener: gira seguido)"],
 				["Caja fuerte: probar número · salir", keys(&"interact") + " · Esc"],
 			],
@@ -57,12 +57,18 @@ static func groups() -> Array[Dictionary]:
 			[
 				["Linterna", keys(&"toggle_flashlight")],
 				["Porra", keys(&"strike")],
-				["Mirar los monitores · levantarse", keys(&"interact") + " en la mesa CCTV"],
+				[
+					"Mirar los monitores · levantarse",
+					keys(&"interact") + " en la mesa de monitores"
+				],
 				[
 					"Tomar un café (quita el sueño)",
 					keys(&"interact") + " en la cafetera de la garita"
 				],
-				["Examinar una pieza (¿es de pega?) · restablecer la corriente", keys(&"interact")],
+				[
+					"Examinar una pieza (¿falsificación?) · restablecer la corriente",
+					keys(&"interact")
+				],
 				["Walkie: marcar un punto al equipo", keys(&"walkie")],
 				["Luces de alarma (en «alarma»)", keys(&"alarm_lights")],
 			],

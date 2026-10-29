@@ -1,6 +1,7 @@
 ## @file match_summary.gd
 ## Resumen de la partida para el panel de fin (FEAT-027): qué bando gana, si has ganado tú y
-## las cifras (botín, Pieza Maestra, tiempo jugado y faltas de ronda). Lógica pura.
+## las cifras (botín, Pieza Maestra, tiempo jugado y faltas de ronda) y quién jugaba en cada
+## bando (FEAT-035). Lógica pura.
 class_name MatchSummary
 extends RefCounted
 
@@ -35,7 +36,7 @@ static func stats(
 		. join(
 			PackedStringArray(
 				[
-					"Botín: $%d de $%d" % [loot, quota],
+					"Botín: %d de %d" % [loot, quota],
 					"Pieza Maestra: %s" % ("robada" if masterpiece else "en su sitio"),
 					"Tiempo: %d:%02d" % [seconds / 60, seconds % 60],
 					"Faltas de ronda: %d de %d toleradas" % [faults, allowed],
@@ -43,6 +44,26 @@ static func stats(
 			)
 		)
 	)
+
+
+## «Ladrón: Diego · Guardias: Ana, Luis». En red, de la lista de jugadores; sin red, el ladrón es
+## el jugador local (own_name, o «tú» si no tiene) y a los guardias los lleva el ordenador
+static func players_line(players: Dictionary, own_name: String) -> String:
+	if players.is_empty():
+		var thief: String = own_name if not own_name.is_empty() else "tú"
+		return "Ladrón: %s · Guardias: el ordenador" % thief
+	var thief_name: String = "nadie"
+	var guards: Array[String] = []
+	for peer: int in players:
+		var info: Dictionary = players[peer]
+		if info.get("role", &"") == NetManagerNode.ROLE_THIEF:
+			thief_name = String(info.get("name", ""))
+		elif String(info.get("role", "")).begins_with("guard"):
+			guards.append(String(info.get("name", "")))
+	var guard_names: String = "nadie"
+	if not guards.is_empty():
+		guard_names = ", ".join(PackedStringArray(guards))
+	return "Ladrón: %s · Guardias: %s" % [thief_name, guard_names]
 
 
 ## Cifras con encargo (heist.md): piezas robadas, cuáles eran, tiempo y faltas

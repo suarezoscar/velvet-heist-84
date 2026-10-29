@@ -116,7 +116,7 @@ func get_interaction_text(actor: Node3D = null) -> String:
 	if lock != null or _silent_steal_ready():
 		return "Coger %s [E]" % piece_name
 	if protection == &"pressure" and _has_fake():
-		return "Dar el cambiazo con la pieza de pega [E]"
+		return "Dar el cambiazo con la réplica [E]"
 	return "Robar %s a lo bruto: salta la alarma [E]" % piece_name
 
 

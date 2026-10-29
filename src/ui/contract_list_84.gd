@@ -27,7 +27,7 @@ func _process(_delta: float) -> void:
 	text = compose(heist) if HeistDirector.local_is_thief(get_tree()) else guards_line(heist)
 
 
-## A los guardias: «CANDIDATAS 17 · RASTROS 3 · plano [M]»
+## A los guardias: «EN EL PUNTO DE MIRA 17 · RASTROS 3 · plano [M]»
 static func guards_line(heist: HeistDirector) -> String:
 	var found: int = 0
 	var candidates: Array[StringName] = heist.candidates()
@@ -35,7 +35,7 @@ static func guards_line(heist: HeistDirector) -> String:
 		var piece: TargetPiece3D = heist.piece(piece_id)
 		if piece != null and piece.discovered:
 			found += 1
-	return "CANDIDATAS %d · RASTROS %d · plano [M]" % [candidates.size() - found, found]
+	return "EN EL PUNTO DE MIRA %d · RASTROS %d · plano [M]" % [candidates.size() - found, found]
 
 
 ## «ENCARGO» y una línea por pieza: «✔ Busto de bronce» o «◆ Retrato del Duque · Galería…»
@@ -50,7 +50,7 @@ static func compose(heist: HeistDirector) -> String:
 		else:
 			lines.append("◆ %s · %s · %s" % [piece.piece_name, piece.room_name, hint(piece)])
 	if heist.carrying_fake:
-		lines.append("Llevas una pieza de pega")
+		lines.append("Llevas una réplica")
 	if heist.is_complete():
 		lines.append("¡A cualquier salida!")
 	return "\n".join(PackedStringArray(lines))
@@ -60,7 +60,7 @@ static func compose(heist: HeistDirector) -> String:
 static func hint(piece: TargetPiece3D) -> String:
 	match piece.protection:
 		&"pressure":
-			return "pieza de pega de una mesa de réplicas"
+			return "cambiazo con una réplica"
 		&"sensor":
 			return "corta la alarma del ala"
-	return "combinación"
+	return "abre el dial"

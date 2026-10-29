@@ -97,7 +97,7 @@ func _update_route(mine: GuardRound) -> void:
 	var route_label: Label = _labels[0]
 	var next_label: Label = _labels[1]
 	if mine == null or mine.route.is_empty():
-		route_label.text = "Sin ruta asignada"
+		route_label.text = "Esperando la ronda de la central"
 		next_label.text = ""
 		return
 	var marks: PackedStringArray = []

@@ -8,8 +8,8 @@ extends Area3D
 ## Emitida cuando el ladrón cumple las condiciones y escapa en el vehículo
 signal escape_succeeded
 
-const PROMPT_DEPOSIT: String = "Depositar Botin en el Maletero [E]"
-const PROMPT_ESCAPE: String = "¡ARRANCAR Y ESCAPAR! [E]"
+const PROMPT_DEPOSIT: String = "Dejar el botín en el maletero [E]"
+const PROMPT_ESCAPE: String = "¡Arrancar y escapar! [E]"
 const PROMPT_LOCKED: String = "Escape bloqueado: Requiere $10.000 y Pieza Maestra"
 
 var is_escaped: bool = false

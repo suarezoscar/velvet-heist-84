@@ -57,7 +57,7 @@ static func compatible(client_version: String, own_version: String) -> bool:
 ## Texto para el jugador rechazado
 static func mismatch_text(server: String, own: String) -> String:
 	return (
-		"Versión distinta: el servidor tiene la v%s y tú la v%s. Usad todos la misma: %s"
+		"La partida es de la versión %s y tu juego, de la %s. Descargad todos la misma: %s"
 		% [server, own, DOWNLOAD_URL]
 	)
 

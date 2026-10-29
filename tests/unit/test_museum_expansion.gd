@@ -187,9 +187,9 @@ func test_guards_see_a_counter_and_the_map_has_the_level() -> void:
 	var map: HeistMap3D = _map()
 	await wait_physics_frames(2)
 	var heist: HeistDirector = GameManager.heist
-	assert_eq(ContractList84.guards_line(heist), "CANDIDATAS 20 · RASTROS 0 · plano [M]")
+	assert_eq(ContractList84.guards_line(heist), "EN EL PUNTO DE MIRA 20 · RASTROS 0 · plano [M]")
 	heist.piece(heist.candidates()[0]).discovered = true
-	assert_string_contains(ContractList84.guards_line(heist), "CANDIDATAS 19 · RASTROS 1")
+	assert_string_contains(ContractList84.guards_line(heist), "EN EL PUNTO DE MIRA 19 · RASTROS 1")
 	assert_true(map.get_meta(&"level_data") is LevelData, "El plano (M) tiene los datos")
 
 

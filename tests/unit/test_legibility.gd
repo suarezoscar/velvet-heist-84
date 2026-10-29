@@ -65,7 +65,7 @@ func test_marker_arrow_points_where_the_actor_faces() -> void:
 
 func test_briefing_lines_use_match_numbers() -> void:
 	var thief: Array[String] = RoleBriefing84.objectives(true, 12000, 8, 4)
-	assert_string_contains(thief[0], "$12000")
+	assert_string_contains(thief[0], "12000")
 	assert_string_contains(thief[1], "8 minutos")
 	var guard: Array[String] = RoleBriefing84.objectives(false, 12000, 8, 4)
 	assert_string_contains(guard[1], "4 relojes")
@@ -81,6 +81,6 @@ func test_summary_verdict_per_side() -> void:
 	)
 	assert_eq(MatchSummary.verdict(GameManager.MatchState.TIME_EXPIRED_DRAW, &"thief"), "EMPATE")
 	var stats: String = MatchSummary.stats(6500, 10000, false, 252.0, 1, 2)
-	assert_string_contains(stats, "$6500 de $10000")
+	assert_string_contains(stats, "6500 de 10000")
 	assert_string_contains(stats, "4:12")
 	assert_string_contains(stats, "1 de 2")

@@ -97,7 +97,7 @@ func test_05_defeat_cycle_by_time_expiration() -> void:
 
 	map.hud._process(0.016)
 	assert_true(map.hud.game_over_panel.visible, "HUD muestra panel de derrota por tiempo")
-	assert_true(map.hud.game_over_title.text.contains("TIEMPO AGOTADO"))
+	assert_true(map.hud.game_over_title.text.contains("SE ACABÓ LA NOCHE"))
 
 
 # ------------------------------------------------------------------------------

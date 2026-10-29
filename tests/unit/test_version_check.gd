@@ -17,8 +17,8 @@ func test_only_same_version_is_compatible() -> void:
 
 func test_mismatch_text_names_both_versions_and_download() -> void:
 	var text: String = NetVersionNode.mismatch_text("0.1.3", "0.1.2")
-	assert_string_contains(text, "v0.1.3")
-	assert_string_contains(text, "v0.1.2")
+	assert_string_contains(text, "versión 0.1.3")
+	assert_string_contains(text, "de la 0.1.2")
 	assert_string_contains(text, NetVersionNode.DOWNLOAD_URL)
 
 
@@ -52,8 +52,10 @@ func test_lobby_shows_rejection_and_keeps_it_on_disconnect() -> void:
 	add_child_autofree(menu)
 	NetVersion.rejection = "0.1.3"
 	NetVersion.rejected.emit("0.1.3", "0.1.2")
-	assert_string_contains(menu.lobby_view.conn_log_lbl.text, "v0.1.3")
+	assert_string_contains(menu.lobby_view.conn_log_lbl.text, "versión 0.1.3")
 	NetManager.server_disconnected.emit()
 	assert_string_contains(
-		menu.lobby_view.conn_log_lbl.text, "Versión distinta", "La desconexión no tapa el motivo"
+		menu.lobby_view.conn_log_lbl.text,
+		"La partida es de la versión",
+		"La desconexión no tapa el motivo"
 	)

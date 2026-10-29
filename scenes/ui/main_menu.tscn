@@ -38,13 +38,13 @@ theme_override_constants/separation = 4
 modulate = Color(1, 0.85, 0.35, 1)
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
-text = "SALA DE TRANSMISIÓN ANALÓGICA — FRECUENCIA 7777"
+text = "MULTIJUGADOR"
 
 [node name="LobbyStatusLabel" type="Label" parent="LobbyView/HeaderBox" unique_id=1984777704]
 modulate = Color(0.35, 0.9, 0.85, 1)
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
-text = "ESTADO: DESCONECTADO"
+text = "Sin conectar"
 
 [node name="ColumnsHBox" type="HBoxContainer" parent="LobbyView" unique_id=1984777705]
 custom_minimum_size = Vector2(1500, 530)
@@ -67,13 +67,13 @@ theme_override_constants/separation = 10
 modulate = Color(1, 0.85, 0.35, 1)
 layout_mode = 2
 theme_override_font_sizes/font_size = 17
-text = "PARÁMETROS DE SINTONIZACIÓN"
+text = "UNIRSE A UNA PARTIDA"
 
 [node name="IpLabel" type="Label" parent="LobbyView/ColumnsHBox/ConnectionPanel/VBox" unique_id=1984777709]
 modulate = Color(0.75, 0.8, 0.85, 0.9)
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
-text = "DIRECCIÓN IP / REPETIDOR:"
+text = "Dirección IP"
 
 [node name="IpEdit" type="LineEdit" parent="LobbyView/ColumnsHBox/ConnectionPanel/VBox" unique_id=1984777710]
 custom_minimum_size = Vector2(0, 42)
@@ -85,7 +85,7 @@ placeholder_text = "127.0.0.1"
 modulate = Color(0.75, 0.8, 0.85, 0.9)
 layout_mode = 2
 theme_override_font_sizes/font_size = 13
-text = "PUERTO ANALÓGICO:"
+text = "Puerto"
 
 [node name="PortEdit" type="LineEdit" parent="LobbyView/ColumnsHBox/ConnectionPanel/VBox" unique_id=1984777712]
 custom_minimum_size = Vector2(0, 42)
@@ -100,12 +100,12 @@ layout_mode = 2
 visible = false
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
-text = "CREAR OPERACIÓN (HOST)"
+text = "CREAR PARTIDA"
 
 [node name="JoinButton" type="Button" parent="LobbyView/ColumnsHBox/ConnectionPanel/VBox" unique_id=1984777715]
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
-text = "UNIRSE A FRECUENCIA"
+text = "UNIRSE"
 
 [node name="DisconnectButton" type="Button" parent="LobbyView/ColumnsHBox/ConnectionPanel/VBox" unique_id=1984777716]
 custom_minimum_size = Vector2(0, 44)
@@ -117,7 +117,7 @@ text = "DESCONECTAR"
 modulate = Color(0.35, 0.9, 0.85, 0.85)
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
-text = "Arranca el servidor con tools/net/run_server.sh en un PC de la red y únete con su IP (puerto UDP 7777; ábrelo en su cortafuegos)"
+text = "Quien organiza la partida te da su IP y su puerto. Escríbelos, pulsa Unirse y elige bando."
 autowrap_mode = 3
 
 [node name="RolesPanel" type="PanelContainer" parent="LobbyView/ColumnsHBox" unique_id=1984777718]
@@ -132,18 +132,18 @@ theme_override_constants/separation = 12
 modulate = Color(1, 0.85, 0.35, 1)
 layout_mode = 2
 theme_override_font_sizes/font_size = 17
-text = "ASIGNACIÓN TÁCTICA DE ROLES"
+text = "ELIGE BANDO"
 
 [node name="RolesSubtitle" type="Label" parent="LobbyView/ColumnsHBox/RolesPanel/VBox" unique_id=1984777721]
 modulate = Color(0.75, 0.8, 0.85, 0.8)
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
-text = "El ladrón contra el equipo de seguridad"
+text = "Un ladrón contra la patrulla de vigilantes"
 
 [node name="RoleThiefButton" type="Button" parent="LobbyView/ColumnsHBox/RolesPanel/VBox" unique_id=1984777722]
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
-text = "INFILTRADO (LADRÓN)"
+text = "LADRÓN"
 alignment = 0
 
 [node name="RoleGuard1Button" type="Button" parent="LobbyView/ColumnsHBox/RolesPanel/VBox" unique_id=1984777723]
@@ -165,7 +165,7 @@ layout_mode = 2
 modulate = Color(0.35, 0.9, 0.85, 1)
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
-text = "TU FRECUENCIA ASIGNADA: NINGUNA"
+text = "Tu bando: ninguno"
 
 [node name="PlayersPanel" type="PanelContainer" parent="LobbyView/ColumnsHBox" unique_id=1984777728]
 custom_minimum_size = Vector2(560, 530)
@@ -179,7 +179,7 @@ theme_override_constants/separation = 10
 modulate = Color(1, 0.85, 0.35, 1)
 layout_mode = 2
 theme_override_font_sizes/font_size = 17
-text = "AGENTES SINTONIZADOS EN FRECUENCIA"
+text = "JUGADORES"
 
 [node name="Scroll" type="ScrollContainer" parent="LobbyView/ColumnsHBox/PlayersPanel/VBox" unique_id=1984777731]
 custom_minimum_size = Vector2(0, 450)
@@ -203,7 +203,7 @@ theme_override_constants/separation = 30
 [node name="LobbyBackButton" type="Button" parent="LobbyView/BottomActionsHBox" unique_id=1984777734]
 custom_minimum_size = Vector2(260, 50)
 layout_mode = 2
-text = "◀  VOLVER AL MENÚ"
+text = "VOLVER"
 
 [node name="Spacer" type="Control" parent="LobbyView/BottomActionsHBox" unique_id=1984777735]
 layout_mode = 2
@@ -214,4 +214,4 @@ modulate = Color(1, 0.85, 0.35, 1)
 custom_minimum_size = Vector2(340, 50)
 layout_mode = 2
 disabled = true
-text = "▶  COMENZAR OPERACIÓN"
+text = "EMPEZAR PARTIDA  ▶"
