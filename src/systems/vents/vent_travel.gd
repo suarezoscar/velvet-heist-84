@@ -4,6 +4,7 @@
 ## misma red con izquierda y derecha y va con E; elegir la de entrada es volver a salir por ahí.
 ## El viaje dura la distancia en línea recta entre las dos rejillas a RULES.travel_speed, más
 ## lento con botín (HeistRules.loot_slow por pieza), y hace retumbar las rejillas de la red.
+## Si tarda más de RULES.max_inside s en elegir, sale solo por la rejilla de entrada.
 ## Mientras está dentro, nadie lo ve ni lo toca (ThiefController3D.in_vent). Decide el servidor
 ## (o la partida sin red); solo el ladrón recibe su estado.
 class_name VentTravel
@@ -21,7 +22,7 @@ var thief: ThiefController3D = null
 var entry: Vent3D = null
 var choices: Array[Vent3D] = []
 var selected: int = 0
-## Segundos que quedan de viaje
+## Segundos que quedan de viaje (o, eligiendo, para salir solo)
 var left: float = 0.0
 var _last_axis: float = 0.0
 
@@ -43,6 +44,11 @@ func _physics_process(delta: float) -> void:
 		_reset()
 		return
 	if phase == Phase.CHOOSING:
+		left -= delta
+		if left <= 0.0:
+			selected = choices.find(entry)  # se acabó el tiempo: sale por donde entró
+			_arrive()
+			return
 		var axis: float = thief.current_input_dir.x
 		if absf(axis) > AXIS_THRESHOLD and absf(_last_axis) <= AXIS_THRESHOLD:
 			selected = wrapi(selected + (1 if axis > 0.0 else -1), 0, choices.size())
@@ -68,6 +74,7 @@ func enter(who: ThiefController3D, vent: Vent3D) -> void:
 	_last_axis = thief.current_input_dir.x
 	thief.in_vent = true
 	vent.mark_open()
+	left = RULES.max_inside
 	phase = Phase.CHOOSING
 
 
@@ -96,7 +103,7 @@ func choice_text() -> String:
 		return ""
 	var target: Vent3D = choices[selected]
 	var where: String = "volver a salir aquí" if target == entry else target.room_name
-	return "Conducto: ◀ %s ▶ · ir [E]" % where
+	return "Conducto: ◀ %s ▶ · ir [E] · %d s" % [where, ceili(maxf(0.0, left))]
 
 
 func _arrive() -> void:
@@ -133,6 +140,7 @@ func get_net_state_private() -> Dictionary:
 		"entry": entry.vent_id if entry != null else "",
 		"choices": ids,
 		"sel": selected,
+		"left": ceilf(left),
 	}
 
 
@@ -145,6 +153,7 @@ func apply_net_state(state: Dictionary) -> void:
 		return
 	phase = int(state["phase"]) as Phase
 	selected = int(state.get("sel", 0))
+	left = float(state.get("left", left))
 	choices.clear()
 	entry = null
 	for id: Variant in state.get("choices", []):
