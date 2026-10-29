@@ -33,12 +33,24 @@ var _open_panel: Control = null
 
 
 func _ready() -> void:
+	if VelopackInstall.is_hook():
+		get_tree().quit()  # Velopack avisa de una instalación o actualización: no se abre nada
+		return
 	settings = GameSettings.load_saved()
 	settings.apply()
 	theme = MenuTheme84.build()
 	_build_backdrop()
 	_build_home()
 	_build_panels()
+	var update_notice: UpdateNotice = UpdateNotice.new()
+	home.add_child(update_notice)
+	update_notice.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+	update_notice.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	update_notice.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	update_notice.offset_left = -80.0
+	update_notice.offset_right = -80.0
+	update_notice.offset_top = -60.0
+	update_notice.offset_bottom = -60.0
 	lobby_view.back_requested.connect(_show_home)
 	_show_home()
 	_play_intro()
