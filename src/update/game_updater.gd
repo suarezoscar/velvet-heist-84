@@ -7,8 +7,8 @@
 ## - descarga cada paquete y comprueba su SHA256 en otro hilo;
 ## - con diferencias, Update las suma al paquete completo instalado («patch») en otro hilo; si
 ##   falla, el siguiente intento baja el completo;
-## - deja en packages/ solo el paquete completo nuevo (la base de la siguiente vez);
-## - lanza un único «apply» (VelopackInstall.start_apply), que espera a que el juego se cierre
+## - al instalar, deja en packages/ solo el completo nuevo (la base de la siguiente vez) y
+##   lanza un único «apply» (VelopackInstall.start_apply), que espera a que el juego se cierre
 ##   y lo vuelve a abrir.
 ## Sin instalación de Velopack (el .zip o el .tar.gz) no se actualiza solo.
 class_name GameUpdater
@@ -98,6 +98,9 @@ func download() -> void:
 func apply() -> void:
 	if _ready_package.is_empty():
 		return
+	# packages/ se queda solo con el completo nuevo (la base de la siguiente vez) justo al
+	# instalar: si el jugador se va sin instalar, la base de ahora sigue sirviendo
+	VelopackInstall.keep_only(VelopackInstall.packages_dir(), _ready_package)
 	if not VelopackInstall.start_apply(_ready_package, OS.get_process_id()):
 		failed.emit("No se pudo instalar la actualización. Inténtalo más tarde.")
 		return
@@ -170,9 +173,8 @@ func _merged(code: int, output: String) -> void:
 	_prepared(output)
 
 
-## Deja en packages/ solo el paquete completo nuevo y avisa de que está listo
+## Avisa de que el paquete completo nuevo está listo
 func _prepared(package: String) -> void:
-	VelopackInstall.keep_only(VelopackInstall.packages_dir(), package)
 	_paths.clear()
 	_ready_package = package
 	ready_to_apply.emit()
