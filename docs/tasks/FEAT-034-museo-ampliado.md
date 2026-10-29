@@ -37,7 +37,7 @@ Un museo más bonito y más rejugable:
 - Mapas antiguos (mansión, museo de 1984): sin rondas (sus relojes son decorado). Al backlog si se vuelven a usar.
 - Los focos de las piezas son solo decorado: no cuentan como luz ni se apagan con el corte de corriente. Al backlog.
 - Tamaño del repositorio: los originales de Poly Haven (74 MB) van en git como antes; plantear Git LFS en el backlog.
-- Pendiente de decidir: un tiempo máximo dentro del conducto.
+- Tiempo máximo dentro del conducto: 20 s eligiendo salida (decidido por el usuario el 2026-10-29).
 - Sorteo de seguridad por partida (salidas, cámaras): sigue en el backlog.
 - El plano (M) se rehace aquí, con los datos del nivel (Q20).
 
