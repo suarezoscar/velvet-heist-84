@@ -51,9 +51,11 @@ Nadie lo ve todo:
 </table>
 
 ## Cómo jugar
-1. Descarga el paquete de tu sistema desde la **[última versión](https://github.com/suarezoscar/velvet-heist-84/releases/latest)**:
-   - **Windows**: descomprime el `.zip` y abre `VelvetHeist84.exe`. El ejecutable no está firmado: en el aviso de SmartScreen pulsa «Más información» y luego «Ejecutar de todos modos».
-   - **Linux**: `tar -xzf VelvetHeist84-*-linux.tar.gz` y después `./linux/VelvetHeist84.x86_64`.
+1. Descarga el juego de tu sistema desde la **[última versión](https://github.com/suarezoscar/velvet-heist-84/releases/latest)**:
+   - **Windows**: [`VelvetHeist84-win-Setup.exe`](https://github.com/suarezoscar/velvet-heist-84/releases/latest/download/VelvetHeist84-win-Setup.exe). Ábrelo y el juego se instala y se abre solo. No está firmado: en el aviso de SmartScreen pulsa «Más información» y luego «Ejecutar de todos modos».
+   - **Linux**: [`VelvetHeist84.AppImage`](https://github.com/suarezoscar/velvet-heist-84/releases/latest/download/VelvetHeist84.AppImage). `chmod +x VelvetHeist84.AppImage` y ábrelo.
+
+   Cuando salga una versión, el menú principal te avisa y la instala con un botón. Si prefieres no instalar nada, en la misma página están el `.zip` (Windows) y el `.tar.gz` (Linux), que no se actualizan solos.
 2. La primera vez, el juego te pregunta cómo te llamas. Así te verán en la sala de espera y, si te toca ser el ladrón, la carta y la victoria llevarán tu inicial: *«Con mis respetos, —D.»*. Se cambia en **Opciones**.
 3. Elige un modo:
    - **Un jugador**: eres el ladrón, y a dos guardias los lleva el ordenador.

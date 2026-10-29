@@ -4,8 +4,7 @@
 ## versión instalada (en Linux, el AppImage no deja ninguno: la primera vez baja el completo).
 ## Aquí el juego:
 ## - lee el índice de Velopack de la última release de GitHub (releases.<canal>.json);
-## - si hay una versión mayor, elige qué bajar (plan): los paquetes de diferencias desde la
-##   versión instalada si están todos, pesan menos y está su paquete completo; si no, el completo;
+## - si hay una versión mayor, elige qué bajar (UpdatePlan);
 ## - descarga cada paquete y comprueba su SHA256;
 ## - con diferencias, Update las suma al paquete completo instalado («patch») en otro hilo;
 ## - deja en packages/ solo el paquete completo nuevo (la base de la siguiente vez);
@@ -25,9 +24,10 @@ signal ready_to_apply
 ## No se pudo: qué ha pasado, para el jugador (estilo-de-textos.md)
 signal failed(reason: String)
 
-## El índice y los paquetes: la última release de GitHub, o VELVET_UPDATE_URL (pruebas)
+## Releases de GitHub: el índice va en la última; cada paquete, en la release de su versión
 const REPOSITORY: String = "https://github.com/suarezoscar/velvet-heist-84"
-const RELEASES_URL: String = REPOSITORY + "/releases/latest/download/"
+const LATEST_URL: String = REPOSITORY + "/releases/latest/download/"
+const VERSION_URL: String = REPOSITORY + "/releases/download/v%s/%s"
 const PACKAGE_ID: String = "VelvetHeist84"
 
 ## Paquetes que hay que bajar, en orden
@@ -42,9 +42,19 @@ var _paths: Array[String] = []
 var _ready_package: String = ""
 
 
-static func base_url() -> String:
+## Dirección del índice; con VELVET_UPDATE_URL (pruebas) todo sale de esa carpeta
+static func feed_url() -> String:
 	var custom: String = OS.get_environment("VELVET_UPDATE_URL")
-	return custom if not custom.is_empty() else RELEASES_URL
+	var base: String = custom if not custom.is_empty() else LATEST_URL
+	return base + "releases.%s.json" % channel()
+
+
+## Dirección de un paquete del índice
+static func package_url(item: Dictionary) -> String:
+	var custom: String = OS.get_environment("VELVET_UPDATE_URL")
+	if not custom.is_empty():
+		return custom + String(item["FileName"])
+	return VERSION_URL % [String(item["Version"]), String(item["FileName"]).uri_encode()]
 
 
 ## Canal de Velopack del sistema: «win» o «linux»
@@ -86,54 +96,6 @@ static func full_package(version: String) -> String:
 	return packages_dir().path_join("%s-%s%s-full.nupkg" % [PACKAGE_ID, version, suffix])
 
 
-## a > b en versiones «X.Y.Z» (lo que va tras un «-» no cuenta)
-static func is_newer(a: String, b: String) -> bool:
-	var left: PackedStringArray = a.get_slice("-", 0).split(".")
-	var right: PackedStringArray = b.get_slice("-", 0).split(".")
-	for index: int in range(maxi(left.size(), right.size())):
-		var l: int = int(left[index]) if index < left.size() else 0
-		var r: int = int(right[index]) if index < right.size() else 0
-		if l != r:
-			return l > r
-	return false
-
-
-## Qué bajar para pasar de current a la versión más nueva del índice ([] si ya está al día):
-## las diferencias de cada versión intermedia si hay base (el paquete completo de current), si
-## están todas y si pesan menos que el completo; si no, solo el paquete completo de la última
-static func make_plan(feed: Dictionary, current: String, has_base: bool) -> Array[Dictionary]:
-	var fulls: Dictionary = {}
-	var deltas: Dictionary = {}
-	for entry: Variant in feed.get("Assets", []):
-		var item: Dictionary = entry as Dictionary
-		var version: String = String(item.get("Version", ""))
-		if String(item.get("Type", "")) == "Full":
-			fulls[version] = item
-		elif String(item.get("Type", "")) == "Delta":
-			deltas[version] = item
-	var versions: Array = fulls.keys()
-	for version: String in deltas:
-		if not fulls.has(version):
-			versions.append(version)
-	versions.sort_custom(func(a: String, b: String) -> bool: return is_newer(b, a))
-	var result: Array[Dictionary] = []
-	if versions.is_empty() or not fulls.has(versions[-1]) or not is_newer(versions[-1], current):
-		return result
-	var latest: Dictionary = fulls[versions[-1]]
-	var start: int = versions.find(current)
-	var chain_size: int = 0
-	if has_base and start >= 0:
-		for version: String in versions.slice(start + 1):
-			if not deltas.has(version):
-				result.clear()
-				break
-			result.append(deltas[version])
-			chain_size += int(deltas[version].get("Size", 0))
-	if result.is_empty() or chain_size >= int(latest.get("Size", 0)):
-		result.assign([latest])
-	return result
-
-
 func _ready() -> void:
 	name = "GameUpdater"
 	_request = HTTPRequest.new()
@@ -157,7 +119,7 @@ func check() -> void:
 	if update_program().is_empty():
 		return
 	_request.request_completed.connect(_on_feed, CONNECT_ONE_SHOT)
-	if _request.request(base_url() + "releases.%s.json" % channel()) != OK:
+	if _request.request(feed_url()) != OK:
 		_request.request_completed.disconnect(_on_feed)
 
 
@@ -199,7 +161,7 @@ func apply() -> void:
 		args = ["/c", line]
 		program = "cmd.exe"
 	if OS.create_process(program, args) <= 0:
-		failed.emit("No se pudo instalar la versión nueva. Inténtalo más tarde.")
+		failed.emit("No se pudo instalar la actualización. Inténtalo más tarde.")
 		return
 	get_tree().quit()
 
@@ -217,7 +179,7 @@ func _next_package() -> void:
 	_paths.append(path)
 	_request.download_file = path
 	_request.request_completed.connect(_on_package, CONNECT_ONE_SHOT)
-	if _request.request(base_url() + String(plan[_index]["FileName"])) != OK:
+	if _request.request(package_url(plan[_index])) != OK:
 		_request.request_completed.disconnect(_on_package)
 		_fail("No se pudo empezar la descarga. Inténtalo de nuevo.")
 
@@ -245,7 +207,7 @@ func _merge(program: String, args: Array[String], output: String) -> void:
 func _merged(code: int, output: String) -> void:
 	_thread.wait_to_finish()
 	if code != 0 or not FileAccess.file_exists(output):
-		_fail("No se pudo preparar la versión nueva. Inténtalo de nuevo.")
+		_fail("No se pudo preparar la actualización. Inténtalo de nuevo.")
 		return
 	_prepared(output)
 
@@ -267,7 +229,7 @@ func _on_feed(result: int, code: int, _headers: PackedStringArray, body: PackedB
 	if not (feed is Dictionary):
 		return
 	var current: String = GameVersion.current()
-	plan = make_plan(feed, current, FileAccess.file_exists(full_package(current)))
+	plan = UpdatePlan.make(feed, current, FileAccess.file_exists(full_package(current)))
 	if not plan.is_empty():
 		update_found.emit(String(plan[-1]["Version"]))
 

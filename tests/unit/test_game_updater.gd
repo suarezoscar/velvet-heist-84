@@ -22,38 +22,34 @@ func _names(plan: Array[Dictionary]) -> Array:
 
 
 func test_versions_compare_by_number() -> void:
-	assert_true(GameUpdater.is_newer("0.10.0", "0.9.9"), "10 > 9, no por texto")
-	assert_false(GameUpdater.is_newer("0.9.1", "0.9.1"))
-	assert_false(GameUpdater.is_newer("0.9.1", "0.9.1-dev+abc"), "Lo que va tras «-» no cuenta")
+	assert_true(UpdatePlan.is_newer("0.10.0", "0.9.9"), "10 > 9, no por texto")
+	assert_false(UpdatePlan.is_newer("0.9.1", "0.9.1"))
+	assert_false(UpdatePlan.is_newer("0.9.1", "0.9.1-dev+abc"), "Lo que va tras «-» no cuenta")
 
 
 func test_plan_chains_deltas_or_takes_the_full_package() -> void:
-	assert_eq(_names(GameUpdater.make_plan(_feed(), "0.9.3", true)), [], "Al día")
+	assert_eq(_names(UpdatePlan.make(_feed(), "0.9.3", true)), [], "Al día")
+	assert_eq(_names(UpdatePlan.make(_feed(), "0.9.2", true)), ["d0.9.3"], "Una versión atrás")
 	assert_eq(
-		_names(GameUpdater.make_plan(_feed(), "0.9.2", true)), ["d0.9.3"], "Una versión atrás"
-	)
-	assert_eq(
-		_names(GameUpdater.make_plan(_feed(), "0.9.0", true)),
+		_names(UpdatePlan.make(_feed(), "0.9.0", true)),
 		["d0.9.1", "d0.9.2", "d0.9.3"],
 		"Varias atrás: la cadena de diferencias"
 	)
 	assert_eq(
-		_names(GameUpdater.make_plan(_feed(), "0.8.0", true)),
+		_names(UpdatePlan.make(_feed(), "0.8.0", true)),
 		["f0.9.3"],
 		"Versión fuera del índice: completo"
 	)
 	var feed: Dictionary = _feed()
 	(feed["Assets"] as Array).remove_at(3)  # falta el completo de 0.9.2: la cadena sigue
-	assert_eq(_names(GameUpdater.make_plan(feed, "0.9.0", true)), ["d0.9.1", "d0.9.2", "d0.9.3"])
+	assert_eq(_names(UpdatePlan.make(feed, "0.9.0", true)), ["d0.9.1", "d0.9.2", "d0.9.3"])
 	feed = _feed()
 	(feed["Assets"] as Array).remove_at(4)  # falta la diferencia de 0.9.2: cadena rota
-	assert_eq(
-		_names(GameUpdater.make_plan(feed, "0.9.0", true)), ["f0.9.3"], "Cadena rota: completo"
-	)
+	assert_eq(_names(UpdatePlan.make(feed, "0.9.0", true)), ["f0.9.3"], "Cadena rota: completo")
 
 
 func test_plan_without_installed_full_package_takes_the_full_one() -> void:
-	assert_eq(_names(GameUpdater.make_plan(_feed(), "0.9.2", false)), ["f0.9.3"])
+	assert_eq(_names(UpdatePlan.make(_feed(), "0.9.2", false)), ["f0.9.3"])
 
 
 func test_plan_prefers_full_when_deltas_weigh_more() -> void:
@@ -61,7 +57,16 @@ func test_plan_prefers_full_when_deltas_weigh_more() -> void:
 	for item: Dictionary in feed["Assets"]:
 		if item["Type"] == "Delta":
 			item["Size"] = 600
-	assert_eq(_names(GameUpdater.make_plan(feed, "0.9.0", true)), ["f0.9.3"])
+	assert_eq(_names(UpdatePlan.make(feed, "0.9.0", true)), ["f0.9.3"])
+
+
+func test_each_package_comes_from_the_release_of_its_version() -> void:
+	var item: Dictionary = {"Version": "0.1.30", "FileName": "VelvetHeist84-0.1.30-delta.nupkg"}
+	assert_eq(
+		GameUpdater.package_url(item),
+		GameUpdater.REPOSITORY + "/releases/download/v0.1.30/VelvetHeist84-0.1.30-delta.nupkg"
+	)
+	assert_string_ends_with(GameUpdater.feed_url(), "/releases/latest/download/releases.linux.json")
 
 
 func test_not_installed_with_velopack_does_not_check() -> void:

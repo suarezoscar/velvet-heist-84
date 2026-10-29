@@ -7,6 +7,8 @@ name: Release
 #   - al subir a mano una etiqueta vX.Y.Z;
 #   - desde la pestaña Actions («Run workflow») indicando la versión.
 # La versión se graba en el juego (menú, panel F9, LEEME y nombre del paquete).
+# Velopack (FEAT-036) añade el instalador de Windows, el AppImage de Linux y los paquetes e
+# índices con los que el juego se actualiza desde el menú (tools/build/velopack.sh).
 
 on:
   push:
@@ -126,20 +128,42 @@ jobs:
           ./tools/build/export.sh all
           ls -la build/
 
+      - name: Install Velopack
+        run: |
+          sudo apt-get install -y -qq squashfs-tools
+          dotnet tool install -g vpk --version "${VPK_VERSION}"
+          echo "${HOME}/.dotnet/tools" >> "$GITHUB_PATH"
+
+      - name: Package with Velopack
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          ./tools/build/velopack.sh
+
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           cat > /tmp/notes.md <<EOF
           ## Descargar
-          - **Windows**: \`VelvetHeist84-${VERSION}-windows.zip\`. Descomprime y abre \`VelvetHeist84.exe\` (SmartScreen avisa porque no está firmado: «Más información» → «Ejecutar de todos modos»).
-          - **Linux**: \`VelvetHeist84-${VERSION}-linux.tar.gz\`. \`tar -xzf\` y \`./linux/VelvetHeist84.x86_64\`.
+          - **Windows**: \`VelvetHeist84-win-Setup.exe\`. Ábrelo: el juego se instala y se abre solo (SmartScreen avisa porque no está firmado: «Más información» → «Ejecutar de todos modos»).
+          - **Linux**: \`VelvetHeist84.AppImage\`. Dale permiso de ejecución (\`chmod +x VelvetHeist84.AppImage\`) y ábrelo.
 
-          Para organizar una partida en red, abre \`servidor.bat\` (Windows) o \`./servidor.sh\` (Linux), que vienen en el paquete, y pasa tu IP y el puerto a los demás. Todos tenéis que usar la misma versión del juego.
+          Cuando salga una versión, el menú principal te avisará y la instalará sin que tengas que bajar nada más.
+
+          Si prefieres no instalar nada: \`VelvetHeist84-${VERSION}-windows.zip\` (descomprime y abre \`VelvetHeist84.exe\`) o \`VelvetHeist84-${VERSION}-linux.tar.gz\` (\`tar -xzf\` y \`./linux/VelvetHeist84.x86_64\`). Estos no se actualizan solos.
+
+          Para organizar una partida en red, abre \`servidor.bat\` (Windows) o \`./servidor.sh\` (Linux), que vienen en los paquetes .zip y .tar.gz, y pasa tu IP y el puerto a los demás. Todos tenéis que usar la misma versión del juego.
           EOF
           PRERELEASE=""
           if [[ "${VERSION}" == *-* ]]; then PRERELEASE="--prerelease"; fi
+          V=build/velopack
           gh release create "v${VERSION}" \
+            "${V}/VelvetHeist84-win-Setup.exe" \
+            "${V}/VelvetHeist84.AppImage" \
+            "${V}/releases.win.json" \
+            "${V}/releases.linux.json" \
+            "${V}"/VelvetHeist84-${VERSION}-*.nupkg \
             build/VelvetHeist84-${VERSION}-linux.tar.gz \
             build/VelvetHeist84-${VERSION}-windows.zip \
             --title "Velvet Heist '84 v${VERSION}" \
