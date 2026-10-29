@@ -63,6 +63,7 @@ El servidor decide; cada cliente solo recibe lo que su jugador ve.
 | Estado de un guardia (posición, giro, linterna) | El ladrón | Solo si R3 lo hace visible. Si no lo ve pero el guardia lleva la linterna encendida, le llega marcado `beam_only` con posición, mirada y linterna: el cliente dibuja **solo el haz**, nunca el cuerpo (P2.1) |
 | Estado del ladrón | Cada guardia | Como hoy: su percepción (FEAT-014) o `cctv_only` (FEAT-017) |
 | Estado de un compañero guardia | Los otros guardias | Siempre |
+| Guardia visto por una cámara (FEAT-042) | El ladrón, sentado ante los monitores | Si alguna cámara lo ve con luz: marcado «solo CCTV», se dibuja solo en las imágenes |
 | Moneda en vuelo (FEAT-038) | El ladrón siempre; cada guardia despierto | Al lanzarse (no fiable), si la salida o la caída están en su zona visible (`CoinFlightPresenter.view_for`). Quien no ve la salida recibe solo el tramo desde donde entra en su vista: sabe de qué lado viene, no desde dónde se lanzó. El ruido va aparte, al caer |
 | Botín, lámparas, relojes, caja fuerte | Todos | Como hoy. La memoria de R2 la aplica el cliente al dibujar (D4). Sin filtro en el servidor en el PoC: hacer trampa con eso vale poco |
 

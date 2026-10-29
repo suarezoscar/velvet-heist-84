@@ -95,8 +95,12 @@ func _update_cctv_feeds() -> void:
 	var hud: HUD84 = _map.hud
 	if hud == null or hud.cctv_feeds == null:
 		return
-	var guard: GuardController3D = _map.local_player as GuardController3D
-	var watching: bool = guard != null and guard.is_watching_monitors()
+	var viewer: PlayerBase3D = _map.local_player
+	var watching: bool = (  # el guardia o el ladrón ante los monitores (FEAT-042)
+		viewer != null
+		and viewer.has_method(&"is_watching_monitors")
+		and viewer.call(&"is_watching_monitors")
+	)
 	if watching and hud.cctv_feeds.panel_count() == 0:
 		var cameras: Array[SecurityCamera3D] = []
 		cameras.assign(get_tree().get_nodes_in_group(&"security_camera"))

@@ -100,6 +100,12 @@ func _update_route(mine: GuardRound) -> void:
 		route_label.text = "Esperando la ronda de la central"
 		next_label.text = ""
 		return
+	if mine.suspended:
+		route_label.text = "ALARMA: olvidaos de la ronda, a por él"
+		route_label.modulate = HUD_PALETTE.color_meter_high
+		next_label.text = ""
+		return
+	route_label.modulate = COLOR_NORMAL
 	var marks: PackedStringArray = []
 	for index: int in range(mine.route.size()):
 		var text: String = "R%d" % mine.route[index]

@@ -238,12 +238,13 @@ func _process_guards_perception(delta: float) -> void:
 func _update_guards_local_visibility(lamps: Array[Lamp3D]) -> void:
 	var viewer: ThiefController3D = local_player as ThiefController3D
 	for guard: GuardController3D in guards:
-		var full: bool = (
-			viewer == null
-			or GameManager.is_match_over()
-			or VisionLogic.thief_sees_guard(viewer, guard, lamps)
+		var view: StringName = (
+			&"full"
+			if viewer == null or GameManager.is_match_over()
+			else VisionLogic.thief_view_of(viewer, guard, lamps)
 		)
-		guard.set_body_visible(full)
+		guard.set_body_visible(view == &"full" or view == &"cctv")
+		CctvLayer.apply(guard.get_node("VisualRoot"), view == &"cctv")  # solo en las pantallas
 
 
 ## Se cayó el servidor o nos echó a media partida: al lobby con el motivo (FEAT-026)

@@ -21,7 +21,7 @@ const REQUIRED_HITS_TO_CAPTURE: int = 2
 const CARRY_ANCHOR_POSITION: Vector3 = Vector3(0.0, 0.85, -0.45)
 
 ## Capa de render que solo dibujan las cámaras CCTV; la cámara principal del mapa la excluye
-const CCTV_ONLY_LAYER: int = 20
+const CCTV_ONLY_LAYER: int = CctvLayer.LAYER
 
 ## Nodo raíz visual del personaje (oculto para guardias fuera de visión)
 @export var visual_root: Node3D
@@ -45,6 +45,8 @@ var baton_hits_taken: int = 0
 var is_detected_by_guard: bool = false
 
 ## FEAT-034: va por la ventilación (VentTravel): nadie lo ve ni lo toca y no se mueve
+## Mirando los monitores de la garita, como un guardia (FEAT-042)
+var monitor_watch: GuardMonitorWatch = GuardMonitorWatch.new()
 var in_vent: bool = false:
 	set(value):
 		in_vent = value
@@ -76,6 +78,7 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	monitor_watch.tick(self, delta)
 	run_tick(delta)
 
 
@@ -90,6 +93,9 @@ func _process_local_actions() -> void:
 func perform_action(action: StringName) -> bool:
 	if in_vent:
 		return _vent_action(action)
+	if monitor_watch.is_active() and action == &"interact":
+		stop_watching()  # FEAT-042: también mira los monitores
+		return true
 	var result: bool = false
 	match action:
 		&"interact":
@@ -200,36 +206,15 @@ func set_view_mode(mode: ViewMode) -> void:
 	set_visible_to_local_viewer(mode != ViewMode.HIDDEN)
 	for root: Node3D in [visual_root, carry_anchor]:
 		if root != null:
-			_apply_cctv_layer(root, mode == ViewMode.CCTV)
-
-
-static func _apply_cctv_layer(node: Node, cctv: bool) -> void:
-	var geometry: GeometryInstance3D = node as GeometryInstance3D
-	if geometry != null:
-		if not geometry.has_meta(&"world_layers"):
-			geometry.set_meta(&"world_layers", geometry.layers)
-			geometry.set_meta(&"world_shadow", geometry.cast_shadow)
-		geometry.layers = (
-			1 << (CCTV_ONLY_LAYER - 1) if cctv else int(geometry.get_meta(&"world_layers"))
-		)
-		geometry.cast_shadow = (
-			(
-				GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-				if cctv
-				else geometry.get_meta(&"world_shadow")
-			)
-			as GeometryInstance3D.ShadowCastingSetting
-		)
-	for child: Node in node.get_children():
-		_apply_cctv_layer(child, cctv)
+			CctvLayer.apply(root, mode == ViewMode.CCTV)
 
 
 func _on_carried_entered(node: Node) -> void:
-	_apply_cctv_layer(node, view_mode == ViewMode.CCTV)
+	CctvLayer.apply(node, view_mode == ViewMode.CCTV)
 
 
 func _on_carried_exiting(node: Node) -> void:
-	_apply_cctv_layer(node, false)
+	CctvLayer.apply(node, false)
 
 
 ## Consulta autoritativa: si un equipo concreto puede ver al ladrón
@@ -266,7 +251,16 @@ func apply_input(input_data: Dictionary) -> void:
 		input_data = input_data.duplicate()
 		input_data["movement_vector"] = Vector2.ZERO
 		input_data["is_sprinting"] = false
-	super.apply_input(input_data)
+	super.apply_input(monitor_watch.filter_input(self, input_data))
+
+
+## Sentado ante los monitores de la garita (FEAT-042)
+func is_watching_monitors() -> bool:
+	return monitor_watch.state == GuardMonitorWatch.State.WATCHING
+
+
+func stop_watching() -> void:
+	monitor_watch.stop(self)
 
 
 ## true si está girando el dial de una caja fuerte

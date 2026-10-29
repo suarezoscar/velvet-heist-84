@@ -244,3 +244,44 @@ func test_safe_private_state_only_reaches_thief() -> void:
 	assert_true(
 		NetPrivateStates.for_role(collected, &"thief").has("Props/SafeBox3D#private"), "Ladrón: sí"
 	)
+
+
+## FEAT-042: con la alarma se acaba fichar. Las faltas de antes se quedan, no se apuntan más y
+## nadie llega tarde (el final por tiempo no lo castiga)
+func test_alarm_suspends_the_round() -> void:
+	var round_node: GuardRound = GuardRound.of(_guard([1, 2], 10.0))
+	round_node.step(10.0 + 10.0 + 1.0)  # tarde: dos faltas
+	var before: int = round_node.faults
+	assert_true(round_node.late)
+	assert_gt(before, 0)
+	round_node.suspend()
+	assert_true(round_node.suspended)
+	assert_false(round_node.late, "Con alarma nadie llega tarde")
+	assert_false(RoundRules.any_expired([round_node], 0.1), "El final por tiempo no lo cuenta")
+	assert_eq(round_node.faults, before, "Las faltas de antes se quedan")
+	var state: Dictionary = round_node.get_net_state_private()
+	assert_true(bool(state["off"]), "A los guardias les llega que no hay ronda")
+
+
+func test_alarm_round_in_a_real_match() -> void:
+	var map: HeistMap3D = (
+		(load("res://scenes/maps/museum_v2.tscn") as PackedScene).instantiate() as HeistMap3D
+	)
+	add_child_autofree(map)
+	await wait_physics_frames(3)
+	var round_node: GuardRound = GuardRound.of(map.guards[0])
+	assert_false(round_node.suspended)
+	AlertDirector.of(get_tree()).raise(AlertDirector.Level.ALARM)
+	await wait_physics_frames(2)
+	assert_true(round_node.suspended, "Suena la alarma: se acabó fichar")
+
+
+func test_legs_have_more_room() -> void:
+	assert_almost_eq(RoundPlanner.leg_seconds(40.0), 40.0 / 4.2 * 2.3 + 25.0, 0.01)
+
+
+func test_arrow_follows_the_path() -> void:
+	var path: Array[Vector3] = [Vector3(0.5, 0, 0), Vector3(5, 0, 0), Vector3(5, 0, 8)]
+	assert_eq(RoundArrow3D.next_point(path, Vector3.ZERO), Vector3(5, 0, 0), "Salta lo alcanzado")
+	assert_almost_eq(RoundArrow3D.path_length(path, Vector3.ZERO), 13.0, 0.01)
+	assert_eq(RoundArrow3D.next_point([] as Array[Vector3], Vector3.ONE), Vector3.ONE)

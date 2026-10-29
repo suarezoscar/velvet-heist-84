@@ -53,6 +53,7 @@ static func build(data: LevelData, props: Node3D, targets: Array) -> void:
 	props.add_child(MatchRecorder.new())  # FEAT-041: cuenta de la partida para el informe
 	props.add_child(CoinFlightPresenter.new())  # FEAT-038: la moneda en vuelo y su mira
 	props.add_child(CoinAim3D.new())
+	props.add_child(RoundArrow3D.new())  # FEAT-042: adónde ir para fichar
 
 
 ## La cafetera de la garita y el sueño de cada guardia de la escena (heist.md R5)

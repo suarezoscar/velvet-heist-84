@@ -1,5 +1,6 @@
 ## @file guard_monitor_watch.gd
-## Estado «mirando monitores» de un guardia (interaction.md M1 y M3): sentarse tarda
+## Estado «mirando monitores» de un guardia o del ladrón (interaction.md M1 y M3; el ladrón
+## desde FEAT-042): sentarse tarda
 ## monitor_enter_time; sentado no se mueve y mira fijo a la mesa. El primer input de
 ## movimiento, interact o el fin de la partida lo levantan.
 class_name GuardMonitorWatch
@@ -28,7 +29,7 @@ func start(target_desk: CCTVDesk3D) -> void:
 
 
 ## Se levanta y libera la mesa
-func stop(guard: GuardController3D) -> void:
+func stop(guard: PlayerBase3D) -> void:
 	if desk != null:
 		desk.release(guard)
 	desk = null
@@ -37,7 +38,7 @@ func stop(guard: GuardController3D) -> void:
 
 
 ## Avanza el tiempo de sentarse; la partida terminada lo levanta
-func tick(guard: GuardController3D, delta: float) -> void:
+func tick(guard: PlayerBase3D, delta: float) -> void:
 	if state == State.NONE:
 		return
 	if GameManager.current_state != GameManager.MatchState.IN_PROGRESS:
@@ -53,7 +54,7 @@ func tick(guard: GuardController3D, delta: float) -> void:
 
 ## Input que llega al guardia: sentado no se mueve y mira a la mesa. Un movimiento lo
 ## levanta, pero ese mismo input no lo mueve todavía
-func filter_input(guard: GuardController3D, input_data: Dictionary) -> Dictionary:
+func filter_input(guard: PlayerBase3D, input_data: Dictionary) -> Dictionary:
 	if state == State.NONE:
 		return input_data
 	var move: Vector2 = input_data.get("movement_vector", Vector2.ZERO) as Vector2
