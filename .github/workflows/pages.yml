@@ -1,0 +1,50 @@
+name: Pages
+
+# Publica la web del juego (site/) en GitHub Pages: https://suarezoscar.github.io/velvet-heist-84/
+# Se lanza con cada integración en master que toque site/ o este archivo, o desde la pestaña
+# Actions («Run workflow»). Las imágenes van en Git LFS: se bajan solo las de site/, para no
+# gastar la cuota de descarga con los assets del juego.
+
+on:
+  push:
+    branches: [ master ]
+    paths: [ "site/**", ".github/workflows/pages.yml" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Una publicación detrás de otra; si llega una nueva, la que estaba en cola sobra
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Publish Site
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: site
+
+      - name: Pull Site Images
+        run: git lfs pull --include="site/**"
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
