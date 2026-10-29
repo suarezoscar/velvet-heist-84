@@ -36,9 +36,7 @@ static func update_goal(goal_label: Label, detail_label: Label) -> void:
 	var cur: int = GameManager.current_loot_value
 	var target: int = GameManager.quota_target
 	_paint(
-		goal_label,
-		"BOTIN: $%d / $%d" % [cur, target],
-		DONE_COLOR if cur >= target else PENDING_COLOR
+		goal_label, "BOTÍN: %d / %d" % [cur, target], DONE_COLOR if cur >= target else PENDING_COLOR
 	)
 	if GameManager.has_masterpiece:
 		_paint(detail_label, "[★] PIEZA MAESTRA: ASEGURADA", Color(1.0, 0.84, 0.0))

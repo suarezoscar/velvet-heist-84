@@ -1,7 +1,7 @@
 ## @file options_panel.gd
-## Panel de opciones del menú principal: pantalla completa, sincronía vertical, volúmenes
-## (general, música y efectos) y panel de rendimiento. Cada cambio se aplica y se guarda al
-## momento.
+## Panel de opciones del menú principal: nombre del jugador, pantalla completa, sincronía
+## vertical, volúmenes (general, música y efectos) y datos de la conexión. Cada cambio se
+## aplica y se guarda al momento.
 class_name OptionsPanel
 extends PanelContainer
 
@@ -17,6 +17,7 @@ var volume_slider: HSlider = null
 var music_slider: HSlider = null
 var sfx_slider: HSlider = null
 var perf_check: CheckButton = null
+var name_edit: LineEdit = null
 var controls_button: Button = null
 var back_button: Button = null
 var _settings_path: String = GameSettings.DEFAULT_PATH
@@ -31,6 +32,11 @@ func setup(current: GameSettings, path: String = GameSettings.DEFAULT_PATH) -> v
 	box.add_theme_constant_override("separation", 14)
 	add_child(box)
 	box.add_child(MenuTheme84.label("OPCIONES", MenuTheme84.FONT_DISPLAY, 64, MenuTheme84.TEXT))
+	box.add_child(_section("TU NOMBRE"))
+	name_edit = NamePanel.name_field(settings.player_name)
+	name_edit.text_submitted.connect(func(_text: String) -> void: _on_name())
+	name_edit.focus_exited.connect(_on_name)
+	box.add_child(name_edit)
 	box.add_child(_section("PANTALLA"))
 	fullscreen_check = _check(box, "Pantalla completa", settings.fullscreen)
 	fullscreen_check.toggled.connect(_on_fullscreen)
@@ -40,10 +46,10 @@ func setup(current: GameSettings, path: String = GameSettings.DEFAULT_PATH) -> v
 	volume_slider = _slider(box, "Volumen general", settings.master_volume, &"master_volume")
 	music_slider = _slider(box, "Música", settings.music_volume, &"music_volume")
 	sfx_slider = _slider(box, "Efectos", settings.sfx_volume, &"sfx_volume")
-	box.add_child(_section("DEPURACIÓN"))
+	box.add_child(_section("CONEXIÓN"))
 	perf_check = _check(
 		box,
-		"Panel de rendimiento y red (%s)" % ControlsCatalog.keys(&"toggle_perf_overlay"),
+		"Datos de la conexión (%s)" % ControlsCatalog.keys(&"toggle_perf_overlay"),
 		settings.show_perf
 	)
 	perf_check.toggled.connect(_on_perf)
@@ -111,6 +117,17 @@ func _on_fullscreen(on: bool) -> void:
 
 func _on_vsync(on: bool) -> void:
 	settings.vsync = on
+	_commit()
+
+
+func _on_name() -> void:
+	var cleaned: String = PlayerName.clean(name_edit.text)
+	if cleaned.is_empty() and not name_edit.text.strip_edges().is_empty():
+		name_edit.text = settings.player_name  # no vale: se queda el que había
+		return
+	settings.player_name = cleaned
+	settings.name_asked = true
+	name_edit.text = settings.player_name
 	_commit()
 
 

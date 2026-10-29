@@ -42,7 +42,7 @@ func get_interaction_text(actor: Node3D = null) -> String:
 		return "Dejar los monitores [E]"
 	if _occupied:
 		return "Monitores ocupados"
-	return "Mirar monitores [E]"
+	return "Mirar los monitores [E]"
 
 
 ## El guardia se sienta si la mesa está libre (el servidor ya validó el alcance)

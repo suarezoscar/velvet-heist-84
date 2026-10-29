@@ -72,7 +72,7 @@ func can_interact(_actor: Node3D = null) -> bool:
 func get_interaction_text(_actor: Node3D = null) -> String:
 	match current_state:
 		SafeState.OPENED:
-			return "Caja Fuerte (Abierta)"
+			return "Caja fuerte abierta"
 		SafeState.CRACKING:
 			return ""
 		_:

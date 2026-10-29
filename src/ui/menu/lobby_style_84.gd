@@ -10,8 +10,8 @@ const COLUMNS_TOP: float = 250.0
 const COLUMNS_HEIGHT: float = 540.0
 const ACTIONS_TOP: float = 830.0
 const HELP: String = (
-	"El anfitrión arranca tools/net/run_server.sh y abre el puerto UDP 7777 en su router."
-	+ " Los demás se unen con su IP pública."
+	"Quien organiza la partida te da su IP y su puerto."
+	+ " Escríbelos, pulsa Unirse y elige bando."
 )
 
 
@@ -29,13 +29,15 @@ static func apply(view: Control) -> void:
 	for panel_name: String in widths:
 		var panel: Control = columns.get_node(panel_name)
 		panel.custom_minimum_size = Vector2(widths[panel_name], COLUMNS_HEIGHT)
-	_section(view, "ColumnsHBox/ConnectionPanel/VBox/SectionTitle", "CONECTAR A UN SERVIDOR")
+	_section(view, "ColumnsHBox/ConnectionPanel/VBox/SectionTitle", "UNIRSE A UNA PARTIDA")
 	_section(view, "ColumnsHBox/RolesPanel/VBox/RolesTitle", "ELIGE BANDO")
 	_section(view, "ColumnsHBox/PlayersPanel/VBox/PlayersTitle", "JUGADORES")
 	_small(view, "ColumnsHBox/ConnectionPanel/VBox/IpLabel", "Dirección IP")
 	_small(view, "ColumnsHBox/ConnectionPanel/VBox/PortLabel", "Puerto")
 	_small(
-		view, "ColumnsHBox/RolesPanel/VBox/RolesSubtitle", "El ladrón contra el equipo de seguridad"
+		view,
+		"ColumnsHBox/RolesPanel/VBox/RolesSubtitle",
+		"Un ladrón contra la patrulla de vigilantes"
 	)
 	var help: Label = view.get_node("ColumnsHBox/ConnectionPanel/VBox/ConnectionLogLabel")
 	help.text = HELP

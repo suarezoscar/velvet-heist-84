@@ -28,7 +28,7 @@ func _process(_delta: float) -> void:
 	var any_cut: bool = false
 	for node: Node in get_tree().get_nodes_in_group(&"power_boxes"):
 		var box: PowerBox3D = node as PowerBox3D
-		lines.append("● %s: %s" % [box.wing_name, "SIN CORRIENTE" if box.is_cut else "OK"])
+		lines.append("● %s: %s" % [box.wing_name, "SIN CORRIENTE" if box.is_cut else "EN SERVICIO"])
 		any_cut = any_cut or box.is_cut
 	label.text = "\n".join(PackedStringArray(lines))
 	label.modulate = CUT_COLOR if any_cut else OK_COLOR

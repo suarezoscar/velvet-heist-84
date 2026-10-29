@@ -108,10 +108,19 @@ func refresh() -> void:
 		)
 	)
 	var elapsed: float = GameManager.match_duration_seconds - GameManager.match_timer
-	var allowed: int = GameManager.CLOCK_RULES.allowed_misses
+	var allowed: int = RoundRules.allowed_faults(
+		get_tree().get_nodes_in_group(&"guard_round"), GameManager.CLOCK_RULES.allowed_misses
+	)
 	if GameManager.heist != null:
 		stats_label.text = MatchSummary.heist_stats(
 			GameManager.heist, elapsed, GameManager.round_faults, allowed
+		)
+		stats_label.text += (
+			"\n"
+			+ MatchSummary.players_line(
+				NetManager.get_connected_players() if NetManager.is_online() else {},
+				GameSettings.load_saved().player_name
+			)
 		)
 	else:
 		stats_label.text = MatchSummary.stats(

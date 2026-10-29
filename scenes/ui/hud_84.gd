@@ -224,37 +224,46 @@ func _update_header_stats() -> void:
 func _check_game_over_state() -> void:
 	var sheet: String = (
 		"Hoja de ronda: %d faltas de %d toleradas."
-		% [GameManager.round_faults, GameManager.CLOCK_RULES.allowed_misses]
+		% [
+			GameManager.round_faults,
+			RoundRules.allowed_faults(
+				get_tree().get_nodes_in_group(&"guard_round"),
+				GameManager.CLOCK_RULES.allowed_misses
+			)
+		]
 	)
 	match GameManager.current_state:
 		GameManager.MatchState.THIEF_ESCAPED:
 			_show_game_over_modal(
 				"¡EL LADRÓN HA ESCAPADO!",
-				"El botin de 1984 esta a salvo. ¡Golpe maestro completado!",
+				(
+					"La colección tiene huecos y la ciudad, una leyenda nueva. «Con mis respetos, %s»"
+					% PlayerName.thief_signature(get_tree())
+				),
 				Color(0.25, 1.0, 0.4)
 			)
 		GameManager.MatchState.THIEF_CAPTURED:
 			_show_game_over_modal(
-				"¡EL LADRÓN HA SIDO CAPTURADO!",
-				"La seguridad privada neutralizo la infiltracion.",
+				"¡LADRÓN CAPTURADO!",
+				"Dos golpes de porra y el caballero acaba en el furgón. La central da parte: sin novedad.",
 				Color(1.0, 0.25, 0.25)
 			)
 		GameManager.MatchState.TIME_EXPIRED:
 			_show_game_over_modal(
-				"¡TIEMPO AGOTADO!",
-				"La ronda estaba al dia y la policia aseguro el perimetro.\n" + sheet,
+				"SE ACABÓ LA NOCHE",
+				"La ronda estaba al día y el ladrón no salió con su encargo.\n" + sheet,
 				Color(1.0, 0.55, 0.1)
 			)
 		GameManager.MatchState.TIME_EXPIRED_BREACH:
 			_show_game_over_modal(
-				"¡LA RONDA FALLO!",
-				"La central no cubrio a los guardias y la Pieza Maestra se fue.\n" + sheet,
+				"LA RONDA FALLÓ",
+				"Los vigilantes dejaron la ronda y el ladrón se salió con la suya.\n" + sheet,
 				Color(0.25, 1.0, 0.4)
 			)
 		GameManager.MatchState.TIME_EXPIRED_DRAW:
 			_show_game_over_modal(
 				"EMPATE",
-				"La ronda fallo, pero el ladron no llego a escapar con el golpe.\n" + sheet,
+				"La ronda se rompió, pero el ladrón no llegó a salir con el encargo.\n" + sheet,
 				Color(0.9, 0.9, 0.9)
 			)
 

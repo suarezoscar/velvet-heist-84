@@ -7,7 +7,7 @@
 **Un caballero nunca deja huellas.**
 
 Sigilo táctico asimétrico multijugador en 1984.<br>
-Un ladrón de guante blanco frente a una patrulla de guardias, en red o en solitario contra la IA.
+Un ladrón de guante blanco frente a una patrulla de guardias, en red o en solitario contra el ordenador.
 
 [![Última versión](https://img.shields.io/github/v/release/suarezoscar/velvet-heist-84?label=descargar&style=for-the-badge&color=ff3d9a)](https://github.com/suarezoscar/velvet-heist-84/releases/latest)
 &nbsp;
@@ -22,7 +22,7 @@ Un ladrón de guante blanco frente a una patrulla de guardias, en red o en solit
 ---
 
 ## El juego
-Es de noche en el Museo Velvet. El **ladrón**, un caballero al estilo de Arsène Lupin que roba con guante blanco y jamás recurre a la violencia, trae el encargo de un coleccionista: varias piezas concretas entre las veinte candidatas del museo. Tiene doce minutos para robarlas y salir por cualquier puerta exterior sin que lo atrapen. Los **guardias** han recibido su carta, *«Esta noche me llevaré tres piezas de su colección»*, pero no saben cuáles. Patrullan con linterna, fichan en los relojes de ronda y vigilan las cámaras desde la garita.
+Es 1984 y es de noche en el Museo Velvet. El **ladrón**, un caballero al estilo de Arsène Lupin que roba con guante blanco y jamás recurre a la violencia, trae el encargo de un coleccionista: varias piezas concretas entre las veinte que hay en el punto de mira. Tiene doce minutos para robarlas y salir por cualquier puerta exterior sin que lo atrapen. Los **guardias**, vigilantes jurados de una empresa de seguridad, han recibido su carta, *«Esta noche me llevaré tres piezas de su colección. Con mis respetos, —V.»*, pero no saben cuáles. Patrullan con linterna, fichan cada uno en su ronda de relojes y vigilan el circuito cerrado desde la garita.
 
 Nadie lo ve todo:
 - **El sonido es información.** Cada paso sobre mármol, parqué o alfombra suena distinto, y cada interruptor, caja fuerte o reloj deja un rastro que el otro bando puede oír.
@@ -55,8 +55,8 @@ Nadie lo ve todo:
    - **Windows**: descomprime el `.zip` y abre `VelvetHeist84.exe`. El ejecutable no está firmado: en el aviso de SmartScreen pulsa «Más información» y luego «Ejecutar de todos modos».
    - **Linux**: `tar -xzf VelvetHeist84-*-linux.tar.gz` y después `./linux/VelvetHeist84.x86_64`.
 2. Elige un modo:
-   - **Un jugador**: eres el ladrón y la IA lleva a dos guardias.
-   - **Multijugador**: escribe la IP del servidor, pulsa Unirse, elige bando y empezad. Al acabar, si todos pulsan **Revancha**, se juega otra con los mismos bandos sin salir del juego.
+   - **Un jugador**: eres el ladrón, y a dos guardias los lleva el ordenador.
+   - **Multijugador**: escribe la IP y el puerto de la partida, pulsa Unirse, elige bando y empieza la partida. Al acabar, si todos pulsan **Revancha**, se juega otra con los mismos bandos sin salir del juego.
 
 | Acción | Tecla |
 |---|---|
@@ -66,16 +66,16 @@ Nadie lo ve todo:
 | Plano del museo | <kbd>M</kbd> o <kbd>Tab</kbd> |
 | Linterna · porra (guardias) | <kbd>F</kbd> · clic izquierdo |
 | Moneda (ladrón) · walkie · luces de alarma (guardias) | clic derecho · <kbd>T</kbd> · <kbd>Q</kbd> |
-| Panel de rendimiento y red | <kbd>F9</kbd> |
+| Datos de la conexión | <kbd>F9</kbd> |
 | Pausa: controles y salir | <kbd>Esc</kbd> |
 | Revancha · volver al menú (al acabar) | <kbd>R</kbd> · <kbd>Esc</kbd> |
 
 La lista completa está en el juego, en **Opciones → Ver controles**.
 
 ## Jugar en red
-Un PC hace de **servidor dedicado**. Es el mismo ejecutable, sin ventana: `servidor.bat` en Windows o `./servidor.sh` en Linux, ambos incluidos en el paquete. Abre el puerto **UDP 7777** en el router y pasa tu IP pública a tus amigos. Caben un ladrón y hasta tres guardias, y para empezar hace falta el ladrón y al menos un guardia.
+Una persona organiza la partida en su PC con `servidor.bat` (Windows) o `./servidor.sh` (Linux), que vienen en el paquete y abren el juego sin ventana. Abre el puerto **7777** (UDP) en su router y pasa su IP pública y el puerto a los demás. Caben un ladrón y hasta tres guardias, y para empezar hace falta el ladrón y al menos un guardia.
 
-Todos deben usar la misma versión, que se ve abajo a la izquierda del menú; si no coincide, el lobby avisa de cuál necesitas. Con <kbd>F9</kbd> verás el ping y la pérdida de paquetes de cada jugador.
+Todos deben usar la misma versión, que se ve abajo a la izquierda del menú; si no coincide, la sala de espera avisa de cuál necesitas. Con <kbd>F9</kbd> verás el ping y la pérdida de paquetes de cada jugador.
 
 La guía completa, con el router, el cortafuegos, CGNAT y cómo compilar desde el código, está en **[docs/manual-compilacion.md](docs/manual-compilacion.md)**.
 

@@ -250,7 +250,8 @@ func _update_guards_local_visibility(lamps: Array[Lamp3D]) -> void:
 func _on_server_lost() -> void:
 	if is_inside_tree():
 		MenuReturn.to_main_menu(
-			get_tree(), "Se perdió la conexión con el servidor durante la partida."
+			get_tree(),
+			"Se cortó la comunicación con la partida. Vuelve a unirte cuando esté lista."
 		)
 
 

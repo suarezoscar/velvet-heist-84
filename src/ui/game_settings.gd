@@ -1,6 +1,6 @@
 ## @file game_settings.gd
 ## Ajustes del jugador (pantalla completa, sincronía vertical, volúmenes general, de música y
-## de efectos, y panel de rendimiento), guardados en user://settings.cfg. El menú principal
+## de efectos, datos de la conexión y nombre), guardados en user://settings.cfg. El menú principal
 ## los carga y aplica al arrancar. La música y los efectos van a sus buses (default_bus_layout).
 class_name GameSettings
 extends RefCounted
@@ -16,8 +16,12 @@ var master_volume: float = 0.8
 var music_volume: float = 0.4
 ## Efectos: ruidos, pasos, interfaz
 var sfx_volume: float = 0.8
-## Panel de rendimiento y red (FEAT-021), también con F9
+## Datos de la conexión (FEAT-021), también con F9
 var show_perf: bool = false
+## Nombre del jugador (FEAT-035; PlayerName); "" = sin nombre, firma «—V.»
+var player_name: String = ""
+## Ya se le preguntó el nombre al abrir el juego por primera vez
+var name_asked: bool = false
 
 
 ## Lee los ajustes guardados; los que falten (o el archivo entero) quedan por defecto
@@ -29,6 +33,8 @@ static func load_saved(path: String = DEFAULT_PATH) -> GameSettings:
 	settings.fullscreen = bool(config.get_value(SECTION, "fullscreen", settings.fullscreen))
 	settings.vsync = bool(config.get_value(SECTION, "vsync", settings.vsync))
 	settings.show_perf = bool(config.get_value(SECTION, "show_perf", settings.show_perf))
+	settings.player_name = PlayerName.clean(String(config.get_value(SECTION, "player_name", "")))
+	settings.name_asked = bool(config.get_value(SECTION, "name_asked", settings.name_asked))
 	for field: String in ["master_volume", "music_volume", "sfx_volume"]:
 		settings.set(
 			field, clampf(float(config.get_value(SECTION, field, settings.get(field))), 0.0, 1.0)
@@ -45,6 +51,8 @@ func save(path: String = DEFAULT_PATH) -> Error:
 	config.set_value(SECTION, "music_volume", music_volume)
 	config.set_value(SECTION, "sfx_volume", sfx_volume)
 	config.set_value(SECTION, "show_perf", show_perf)
+	config.set_value(SECTION, "player_name", player_name)
+	config.set_value(SECTION, "name_asked", name_asked)
 	return config.save(path)
 
 

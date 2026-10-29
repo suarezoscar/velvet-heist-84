@@ -136,4 +136,4 @@ func test_replica_table_does_not_hide_a_piece_and_hints() -> void:
 		var piece: TargetPiece3D = node as TargetPiece3D
 		assert_gt(piece.global_position.distance_to(table.global_position), 2.0, piece.piece_name)
 		assert_ne(ContractList84.hint(piece), "", "Cada pieza dice cómo robarla")
-	assert_eq(ContractList84.hint(_piece(&"pressure")), "pieza de pega de una mesa de réplicas")
+	assert_eq(ContractList84.hint(_piece(&"pressure")), "cambiazo con una réplica")

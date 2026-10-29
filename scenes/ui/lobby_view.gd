@@ -70,7 +70,7 @@ func refresh() -> void:
 		lobby_status_lbl.text = "Sin conectar"
 		lobby_status_lbl.modulate = COLOR_DIM
 	else:
-		lobby_status_lbl.text = "Conectado al servidor"
+		lobby_status_lbl.text = "Conectado a la partida"
 		lobby_status_lbl.modulate = COLOR_CYAN
 	start_match_btn.disabled = not NetRoleRegistry.can_start(NetManager.get_connected_players())
 	start_match_btn.tooltip_text = "Hace falta un ladrón y al menos un guardia"
@@ -98,7 +98,10 @@ func _on_join_pressed() -> void:
 	conn_log_lbl.text = "Conectando con %s:%d…" % [ip, port]
 	var err: Error = NetManager.join_server(ip, port)
 	if err != OK:
-		conn_log_lbl.text = "No se pudo conectar con %s:%d: %s" % [ip, port, error_string(err)]
+		conn_log_lbl.text = (
+			"No hay respuesta en %s:%d. Comprueba la IP y el puerto e inténtalo de nuevo."
+			% [ip, port]
+		)
 	refresh()
 
 
@@ -131,7 +134,7 @@ func _on_connection_succeeded() -> void:
 
 
 func _on_connection_failed() -> void:
-	conn_log_lbl.text = "No se pudo conectar con el servidor."
+	conn_log_lbl.text = "No hay respuesta de la partida. Comprueba la IP y el puerto."
 	refresh()
 
 
@@ -141,7 +144,7 @@ func _on_server_disconnected() -> void:
 			NetVersion.rejection, GameVersion.current()
 		)
 	else:
-		conn_log_lbl.text = "Se perdió la conexión con el servidor."
+		conn_log_lbl.text = "Se cortó la comunicación con la partida."
 	refresh()
 
 
@@ -153,7 +156,7 @@ func show_notice(text: String) -> void:
 
 func _on_version_accepted(server_version: String) -> void:
 	conn_log_lbl.modulate = Color.WHITE
-	conn_log_lbl.text = "Conectado (servidor v%s). Elige bando." % server_version
+	conn_log_lbl.text = "Conectado (versión %s). Elige bando." % server_version
 
 
 func _on_version_rejected(server_version: String, own_version: String) -> void:
@@ -182,7 +185,7 @@ func _update_role_button(btn: Button, role: StringName, role_label: String) -> v
 	else:
 		var pid: int = _get_role_occupant(role)
 		var info: Dictionary = NetManager.get_connected_players().get(pid, {})
-		var occupant: String = info.get("name", "Agente_%d" % pid) if pid != 0 else "otro jugador"
+		var occupant: String = info.get("name", "Jugador %d" % pid) if pid != 0 else "otro jugador"
 		btn.text = "✕  %s  ·  %s" % [role_label, occupant]
 		btn.modulate = COLOR_RED
 		btn.disabled = true
@@ -224,9 +227,9 @@ func _build_player_row(pid: int, info: Dictionary, is_me: bool) -> PanelContaine
 	hbox.add_child(indicator)
 
 	var name_lbl: Label = Label.new()
-	var host_tag: String = " [HOST]" if pid == 1 else ""
+	var host_tag: String = " [ANFITRIÓN]" if pid == 1 else ""
 	var me_tag: String = " [TÚ]" if is_me else ""
-	name_lbl.text = "%s%s%s" % [info.get("name", "Agente_%d" % pid), host_tag, me_tag]
+	name_lbl.text = "%s%s%s" % [info.get("name", "Jugador %d" % pid), host_tag, me_tag]
 	name_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_lbl.modulate = COLOR_AMBER if is_me else COLOR_TEXT
 	hbox.add_child(name_lbl)

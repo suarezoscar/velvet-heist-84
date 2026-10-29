@@ -17,7 +17,7 @@ Desde el 2026-10-24 todo el trabajo lo hace Claude: la sesión principal (Opus) 
 - Técnicas: `netcode` (red), `/asset` (modelos con Blender), `/verify` (definición de hecho), `/review` (revisión), `/spec` (nota de FEAT) y `/next` (cola de trabajo).
 
 ## Reglas de dominio
-Las de `.agents/rules/` no se cargan solas aquí: léelas cuando el trabajo toque su dominio (01 GDScript, 02 assets, 03 red, 04 VFX/UI, 05 verificación).
+Las de `.agents/rules/` no se cargan solas aquí: léelas cuando el trabajo toque su dominio (01 GDScript, 02 assets, 03 red, 04 VFX/UI, 05 verificación, 06 textos para el jugador).
 
 ## MCP
 - `github`: registrado en ámbito local del proyecto (token del usuario, fuera del repositorio). Para PR, estado del CI y logs de Actions.

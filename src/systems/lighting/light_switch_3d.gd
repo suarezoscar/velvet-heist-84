@@ -52,7 +52,7 @@ func interact(actor: Node3D) -> void:
 
 ## Texto descriptivo para la acción en el HUD
 func get_interaction_text(_actor: Node3D = null) -> String:
-	return "Interruptor"
+	return "Encender o apagar la luz [E]"
 
 
 func _complete_switch(actor: PlayerBase3D) -> void:

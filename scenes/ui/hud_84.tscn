@@ -19,15 +19,15 @@ alignment = 1
 
 [node name="LootLabel" type="Label" parent="TopBar/HBox" unique_id=1242726205]
 layout_mode = 2
-text = "BOTIN: $0 / $10000"
+text = ""
 
 [node name="MasterpieceLabel" type="Label" parent="TopBar/HBox" unique_id=553538127]
 layout_mode = 2
-text = "[ ] PIEZA MAESTRA: PENDIENTE"
+text = ""
 
 [node name="TimerLabel" type="Label" parent="TopBar/HBox" unique_id=981286259]
 layout_mode = 2
-text = "TIEMPO: 10:00"
+text = "TIEMPO: 12:00"
 
 [node name="ExposurePanel" type="PanelContainer" parent="." unique_id=381928371]
 visible = false
@@ -75,7 +75,7 @@ offset_bottom = -80.0
 
 [node name="PromptLabel" type="Label" parent="PromptPanel" unique_id=292844606]
 layout_mode = 2
-text = "Presiona [E] para interactuar"
+text = ""
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -104,7 +104,7 @@ horizontal_alignment = 1
 
 [node name="SubLabel" type="Label" parent="GameOverPanel/VBox" unique_id=1134132368]
 layout_mode = 2
-text = "Detalle del resultado..."
+text = ""
 horizontal_alignment = 1
 
 [node name="BlueprintMapOverlay" parent="." instance=ExtResource("2_bmap")]
