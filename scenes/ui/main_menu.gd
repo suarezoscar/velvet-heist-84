@@ -44,6 +44,7 @@ func _ready() -> void:
 	_play_intro()
 	if not settings.name_asked:
 		_open(name_panel)  # la primera vez, ¿cómo te llamas? (FEAT-035)
+		name_panel.field.grab_focus.call_deferred()
 	var notice: String = MenuReturn.take_notice()
 	if notice != "":  # volvemos de una partida que se cortó (FEAT-026)
 		open_section(&"multi")

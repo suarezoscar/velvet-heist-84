@@ -10,12 +10,14 @@ const MIN_LENGTH: int = 2
 const MAX_LENGTH: int = 16
 const FALLBACK_SIGNATURE: String = "—V."
 const EXTRA_CHARACTERS: String = " -_"
+## Lo más largo que se llega a mirar de lo que escribe alguien (evita trabajo con textos enormes)
+const MAX_INPUT: int = 64
 
 
 ## Quita lo que no vale y recorta a MAX_LENGTH ("" si no queda un nombre válido)
 static func clean(raw: String) -> String:
 	var kept: String = ""
-	for character: String in raw:
+	for character: String in raw.left(MAX_INPUT):
 		if (
 			_is_letter(character)
 			or character.is_valid_int()

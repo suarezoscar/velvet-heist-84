@@ -224,7 +224,13 @@ func _update_header_stats() -> void:
 func _check_game_over_state() -> void:
 	var sheet: String = (
 		"Hoja de ronda: %d faltas de %d toleradas."
-		% [GameManager.round_faults, GameManager.CLOCK_RULES.allowed_misses]
+		% [
+			GameManager.round_faults,
+			RoundRules.allowed_faults(
+				get_tree().get_nodes_in_group(&"guard_round"),
+				GameManager.CLOCK_RULES.allowed_misses
+			)
+		]
 	)
 	match GameManager.current_state:
 		GameManager.MatchState.THIEF_ESCAPED:

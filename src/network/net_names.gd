@@ -11,6 +11,20 @@ extends Node
 func _ready() -> void:
 	name = "NetNames"
 	NetManager.connection_succeeded.connect(_send_own_name)
+	NetManager.player_connected.connect(_on_player_connected)
+
+
+## Servidor: quien entra se llama «Jugador N» (su número de llegada) hasta que mande su nombre
+func _on_player_connected(peer: int, _info: Dictionary) -> void:
+	var players: Dictionary = NetManager.connected_players
+	if multiplayer.has_multiplayer_peer() and multiplayer.is_server() and players.has(peer):
+		var taken: Array = []
+		for other: int in players:
+			if other != peer:
+				taken.append(String((players[other] as Dictionary).get("name", "")))
+		if String(players[peer].get("name", "")).begins_with("Jugador "):
+			players[peer]["name"] = PlayerName.unique("Jugador %d" % players.size(), taken)
+			NetManager._broadcast_players()
 
 
 func _send_own_name() -> void:
@@ -24,9 +38,14 @@ func _set_name_server(raw: String) -> void:
 		return
 	var peer: int = multiplayer.get_remote_sender_id()
 	var players: Dictionary = NetManager.connected_players
-	if not players.has(peer):
+	if raw.length() > PlayerName.MAX_INPUT or not players.has(peer):
 		return
+	if not NetVersion.is_verified(peer) or NetManager.match_in_progress():
+		return  # solo en la sala de espera y con la versión comprobada
+	var before: Dictionary = (players[peer] as Dictionary).duplicate()
 	apply_name(players, peer, raw)
+	if players[peer] == before:
+		return  # el mismo nombre otra vez: nada que repartir
 	NetManager._broadcast_players()
 	NetManager.player_list_updated.emit()
 
@@ -38,6 +57,8 @@ static func apply_name(players: Dictionary, peer: int, raw: String) -> void:
 	for other: int in players:
 		if other != peer:
 			taken.append(String((players[other] as Dictionary).get("name", "")))
-	var shown: String = chosen if not chosen.is_empty() else "Jugador %d" % peer
-	players[peer]["name"] = PlayerName.unique(shown, taken)
+	if chosen.is_empty():
+		players[peer]["chosen_name"] = ""
+		return  # sin nombre válido se queda con el «Jugador N» que le tocó al entrar
+	players[peer]["name"] = PlayerName.unique(chosen, taken)
 	players[peer]["chosen_name"] = chosen

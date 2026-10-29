@@ -121,7 +121,11 @@ func _on_vsync(on: bool) -> void:
 
 
 func _on_name() -> void:
-	settings.player_name = PlayerName.clean(name_edit.text)
+	var cleaned: String = PlayerName.clean(name_edit.text)
+	if cleaned.is_empty() and not name_edit.text.strip_edges().is_empty():
+		name_edit.text = settings.player_name  # no vale: se queda el que había
+		return
+	settings.player_name = cleaned
 	settings.name_asked = true
 	name_edit.text = settings.player_name
 	_commit()

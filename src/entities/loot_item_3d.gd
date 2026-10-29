@@ -17,7 +17,7 @@ extends Area3D
 ## Si es verdadero, corresponde a la Pieza Maestra requerida para ganar
 @export var is_masterpiece: bool = false
 
-@export var prompt_message: String = "Recoger Botín"
+@export var prompt_message: String = "Coger el botín"
 
 var is_collected: bool = false
 var is_deposited: bool = false
@@ -50,7 +50,7 @@ func can_interact(actor: Node3D = null) -> bool:
 ## Devuelve el texto descriptivo para el tooltip del HUD
 func get_interaction_text(_actor: Node3D = null) -> String:
 	var type_desc: String = "Pesado" if is_heavy else "Ligero"
-	return "%s (%s - $%d) [E]" % [loot_name, type_desc, loot_value]
+	return "Coger %s (%s, %d) [E]" % [loot_name, type_desc, loot_value]
 
 
 ## Ejecuta la recolección o transporte del botín

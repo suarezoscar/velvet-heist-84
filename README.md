@@ -56,7 +56,7 @@ Nadie lo ve todo:
    - **Linux**: `tar -xzf VelvetHeist84-*-linux.tar.gz` y después `./linux/VelvetHeist84.x86_64`.
 2. Elige un modo:
    - **Un jugador**: eres el ladrón, y a dos guardias los lleva el ordenador.
-   - **Multijugador**: escribe la IP y el puerto de la partida, pulsa Unirse, elige bando y empezad. Al acabar, si todos pulsan **Revancha**, se juega otra con los mismos bandos sin salir del juego.
+   - **Multijugador**: escribe la IP y el puerto de la partida, pulsa Unirse, elige bando y empieza la partida. Al acabar, si todos pulsan **Revancha**, se juega otra con los mismos bandos sin salir del juego.
 
 | Acción | Tecla |
 |---|---|

@@ -34,8 +34,16 @@ func test_repeated_names_get_a_number() -> void:
 	assert_eq(players[3]["name"], "Diego 2")
 	assert_eq(players[3]["chosen_name"], "Diego", "La firma sale del nombre elegido")
 	NetNames.apply_name(players, 4, "!!")
-	assert_eq(players[4]["name"], "Jugador 4", "Sin nombre válido, «Jugador N»")
+	assert_eq(players[4]["name"], "x", "Sin nombre válido, se queda el que tenía")
 	assert_eq(players[4]["chosen_name"], "")
+
+
+func test_huge_names_are_cheap() -> void:
+	var huge: String = "a".repeat(1000000)
+	var start: int = Time.get_ticks_msec()
+	var cleaned: String = PlayerName.clean(huge)
+	assert_lt(Time.get_ticks_msec() - start, 50, "Un nombre enorme no congela a nadie")
+	assert_eq(cleaned.length(), PlayerName.MAX_LENGTH)
 
 
 func test_letter_and_summary_use_the_names() -> void:
