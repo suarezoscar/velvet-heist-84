@@ -22,7 +22,7 @@ Un ladrón de guante blanco frente a una patrulla de guardias, en red o en solit
 ---
 
 ## El juego
-Es de noche en el Museo Velvet. El **ladrón**, un caballero al estilo de Arsène Lupin que roba con guante blanco y jamás recurre a la violencia, trae el encargo de un coleccionista: varias piezas concretas entre las candidatas del museo. Tiene diez minutos para robarlas y salir por cualquier puerta exterior sin que lo atrapen. Los **guardias** han recibido su carta, *«Esta noche me llevaré tres piezas de su colección»*, pero no saben cuáles. Patrullan con linterna, fichan en los relojes de ronda y vigilan las cámaras desde la garita.
+Es de noche en el Museo Velvet. El **ladrón**, un caballero al estilo de Arsène Lupin que roba con guante blanco y jamás recurre a la violencia, trae el encargo de un coleccionista: varias piezas concretas entre las veinte candidatas del museo. Tiene doce minutos para robarlas y salir por cualquier puerta exterior sin que lo atrapen. Los **guardias** han recibido su carta, *«Esta noche me llevaré tres piezas de su colección»*, pero no saben cuáles. Patrullan con linterna, fichan en los relojes de ronda y vigilan las cámaras desde la garita.
 
 Nadie lo ve todo:
 - **El sonido es información.** Cada paso sobre mármol, parqué o alfombra suena distinto, y cada interruptor, caja fuerte o reloj deja un rastro que el otro bando puede oír.
@@ -33,19 +33,19 @@ Nadie lo ve todo:
 
 <table>
 <tr>
-<td width="50%"><img src="docs/img/ladron-niebla.jpg" alt="El ladrón en la rotonda del museo; fuera de su vista, las salas quedan en penumbra"></td>
-<td width="50%"><img src="docs/img/garita-guardias.jpg" alt="Tres guardias en la garita de seguridad, junto a los monitores de las cámaras"></td>
+<td width="50%"><img src="docs/img/ladron-niebla.jpg" alt="El ladrón en la Gran Galería de Escultura, entre bustos, columnas y cuadros"></td>
+<td width="50%"><img src="docs/img/garita-guardias.jpg" alt="Dos guardias en la garita de seguridad, junto a la pared de monitores; la pared delantera se ve con tramado"></td>
 </tr>
 <tr>
-<td><b>El ladrón.</b> Lo que no ve queda en penumbra, y a un guardia tras un muro solo se le delata la linterna.</td>
-<td><b>Los guardias.</b> Salen de la garita, donde los monitores muestran lo que ven las cámaras del museo.</td>
+<td><b>El ladrón.</b> Su encargo está entre 20 obras de 22 salas. Las paredes que lo tapan se ven con tramado, y la ventilación le abre atajos.</td>
+<td><b>Los guardias.</b> Salen de la garita, con su puerta y su pared de monitores, cada uno con su propia ruta de relojes.</td>
 </tr>
 <tr>
-<td><img src="docs/img/caja-fuerte.jpg" alt="Panel de la caja fuerte con un dial de cien marcas en el número 37"></td>
+<td><img src="docs/img/caja-fuerte.jpg" alt="Panel de la caja fuerte con el dial en el número 11 y la flecha en ámbar, cerca del número"></td>
 <td valign="top">
-<b>La caja fuerte.</b> Gira el dial con las flechas y prueba cada número con <kbd>E</kbd>. Cada intento suena, y fallar suena más: los guardias pueden oírte trabajar.
+<b>La caja fuerte.</b> Gira el dial con las flechas y escucha: cerca del número suena un clic y la flecha se pone ámbar; en el número, un golpe sordo. Prueba con <kbd>E</kbd>. Los guardias pueden oírte trabajar.
 <br><br>
-<b>La ronda.</b> Cada reloj de fichar debe marcarse antes de que se agote su tiempo. Si los guardias se dejan demasiados, la ronda se rompe y ya solo les vale atrapar al ladrón.
+<b>La ronda.</b> Cada guardia tiene una ruta de cuatro relojes y debe fichar el siguiente a tiempo. Si el equipo acumula demasiadas faltas, la ronda se rompe y ya solo les vale atrapar al ladrón.
 </td>
 </tr>
 </table>

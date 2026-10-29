@@ -27,4 +27,4 @@ Pendiente de la división de `docs/gdd/MASTER_GSD.md`. Reparto propuesto:
 ## Pendiente de diseño
 - **Disfraz de guardia**: mecánica pedida por el usuario. Va antes de la spec de red autoritativa porque cambia el filtro de visibilidad del ladrón.
 - **Posturas de FEAT-005**: resuelto en `stealth.md` (aprobado).
-- **Nivel nuevo**: rediseño del museo con `/level` (base: `museum_velvet_84`). Propuesta en `docs/gdd/levels/museum_v2.md` (propuesto, 2026-10-24).
+- **Nivel**: el único mapa es `museum_v2` (`docs/gdd/levels/museum_v2.md`, ampliado en FEAT-034). El museo de 1984 y la mansión se retiraron el 2026-10-29.

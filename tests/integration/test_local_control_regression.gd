@@ -9,8 +9,6 @@
 extends GutTest
 
 const MUSEUM_V2_PATH: String = "res://scenes/maps/museum_v2.tscn"
-const MANSION_PATH: String = "res://scenes/maps/mansion_belmonte.tscn"
-const MUSEUM_PATH: String = "res://scenes/maps/museum_velvet_84.tscn"
 const LAYER_CHARACTERS: int = 2
 const LAYER_WORLD_SOLID: int = 1
 ## Distancia (m) por debajo de la cual un personaje se considera quieto
@@ -75,14 +73,6 @@ func test_museum_v2_local_control_and_physics() -> void:
 	await _check_map(MUSEUM_V2_PATH)
 
 
-func test_mansion_local_control_and_physics() -> void:
-	await _check_map(MANSION_PATH)
-
-
-func test_museum_local_control_and_physics() -> void:
-	await _check_map(MUSEUM_PATH)
-
-
 func test_debug_switch_transfers_control() -> void:
 	var map: HeistMap3D = await _load_map(MUSEUM_V2_PATH)
 	var guard: GuardController3D = map.guards[0]
@@ -102,11 +92,12 @@ func test_debug_switch_transfers_control() -> void:
 
 
 func test_museum_ai_guard_finds_thief_and_patrols_on_floor() -> void:
-	var map: HeistMap3D = await _load_map(MUSEUM_PATH)
-	var guard: GuardController3D = map.get_node("GuardPlayer2")
+	var map: HeistMap3D = await _load_map(MUSEUM_V2_PATH)
+	var guard: GuardController3D = map.guards[1]
 	var ai: GuardAI3D = guard.get_node("GuardAI")
-	assert_true(guard.is_ai_controlled, "GuardPlayer2 es de IA sin red")
+	assert_true(guard.is_ai_controlled, "El segundo guardia es de IA sin red")
 	assert_eq(ai._thief, map.thief, "La IA localiza al ladrón")
+	GameManager.start_match()  # FEAT-034: la patrulla sale de su ronda al empezar
 	var start: Vector3 = guard.global_position
 	await wait_physics_frames(60)
 	assert_gt(guard.global_position.distance_to(start), 0.5, "La IA patrulla")
