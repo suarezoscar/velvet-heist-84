@@ -26,6 +26,16 @@ Tarda unos 5 minutos. La versión se graba en el juego: sale abajo a la izquierd
 Necesitas, en Linux:
 - **Godot 4.7.2** como orden `godot` en el PATH. Es la versión fijada en `tools/ci/godot_version.env`; compruébalo con `godot --version`.
 - `curl`, `unzip`, `tar` y `python3`, que suelen venir instalados.
+- **Git LFS** (`git-lfs`): los modelos, las texturas y los sonidos se guardan en LFS desde el 2026-10-29. Después de clonar:
+
+  ```bash
+  git config core.hooksPath .githooks
+  git lfs install --local
+  git lfs pull
+  ```
+
+  Sin LFS, los `.glb`, `.png`, `.jpg` y `.ogg` del repositorio son punteros de texto y el juego no importa.
+- Los originales de Mixamo (`assets/models/raw/*.fbx`, sus texturas y `raw/animations/`) **no están en git**: sus condiciones no permiten redistribuirlos. Solo hacen falta para volver a montar los personajes con Blender.
 
 Instala las plantillas de exportación de Godot. Son unos 1 GB y van a `~/.local/share/godot/export_templates/4.7.2.stable/`:
 
