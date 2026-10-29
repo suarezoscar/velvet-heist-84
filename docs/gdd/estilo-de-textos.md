@@ -50,6 +50,7 @@ Las referencias son para el vocabulario y el ritmo, nunca para copiar frases.
   - puntos suspensivos con un solo carácter «…»;
   - coma decimal (1,5 s).
 - **Anglicismos**: fuera si hay palabra española, por ejemplo «revancha» y no «rematch». Se quedan los que se decían en 1984: walkie.
+- **Es la primera versión**: el juego aún no ha salido. Nada de «ampliado», «nuevo», «ahora», «ya no», «v2» ni comparaciones con versiones anteriores; el juego se describe tal como es.
 - **Errores y avisos del sistema**: primero qué ha pasado y qué hacer, en una frase clara. Después, si cabe, un toque del mundo que no estorbe. Nunca códigos.
 
 ## 6. Glosario

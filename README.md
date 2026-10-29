@@ -81,7 +81,7 @@ Todos deben usar la misma versión, que se ve abajo a la izquierda del menú; si
 La guía completa, con el router, el cortafuegos, CGNAT y cómo compilar desde el código, está en **[docs/manual-compilacion.md](docs/manual-compilacion.md)**.
 
 ## Estado
-Es un **prototipo** (v0.x) con un mapa: el museo, con 22 salas y 20 piezas en el punto de mira. Ya se juega con:
+Es la **primera versión** (v0.x), todavía en desarrollo, con un mapa: el museo, con 22 salas y 20 piezas en el punto de mira. Se juega con:
 - sigilo, sonido, luz y niebla de guerra;
 - tres formas de proteger cada pieza (dial, cambiazo con réplica y corte de corriente);
 - ventilación para el ladrón;
