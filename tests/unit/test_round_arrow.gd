@@ -5,6 +5,17 @@ extends GutTest
 
 const MAP_SCENE: PackedScene = preload("res://scenes/maps/museum_v2.tscn")
 
+var _saved_state: GameManager.MatchState
+
+
+func before_each() -> void:
+	_saved_state = GameManager.current_state
+
+
+## El mapa deja la partida en curso: los tests que vienen detrás (red) no deben heredarla
+func after_each() -> void:
+	GameManager.current_state = _saved_state
+
 
 ## La flecha de verdad: el camino pasa por las puertas y con la alarma se esconde
 func test_arrow_in_the_museum() -> void:
