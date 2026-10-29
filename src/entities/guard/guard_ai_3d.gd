@@ -80,6 +80,8 @@ func _physics_process(_delta: float) -> void:
 	if _thief != null and _guard.check_detection_on_thief(_thief):
 		current_state = AIState.CHASE
 	_punch_nearby_clocks()
+	if current_state != AIState.PATROL:
+		_stuck_time = 0.0
 
 	match current_state:
 		AIState.IDLE:

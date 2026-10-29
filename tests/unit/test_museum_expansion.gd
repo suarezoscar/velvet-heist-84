@@ -138,6 +138,8 @@ func test_inside_the_vent_nothing_else_works() -> void:
 	thief.in_vent = true
 	assert_false(thief.perform_action(&"throw_coin"), "Sin monedas desde el conducto")
 	assert_false(thief.perform_action(&"force"), "Ni robos a lo bruto")
+	GameManager.current_state = GameManager.MatchState.IN_PROGRESS
+	assert_false(HeistActions.handle(thief, &"throw_coin"), "Ni por la vía de las monedas")
 	var camera: SecurityCamera3D = get_tree().get_first_node_in_group(&"security_camera")
 	thief.global_position = (
 		camera.mount.global_position
