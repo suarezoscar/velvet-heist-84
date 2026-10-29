@@ -130,6 +130,12 @@ func test_guard_that_only_sees_the_landing_does_not_learn_the_origin() -> void:
 	assert_true(VisionLogic.sees_point(guard, shown), "El tramo empieza dentro de su vista")
 	assert_gt(shown.x, landing.x, "Pero sí de qué lado viene")
 	assert_lt(float(view["flight"]), 0.5, "Vuelo acortado para caer a la vez")
+	assert_almost_eq(
+		shown.y, landing.y + CoinThrow.HAND_HEIGHT, 0.01, "La altura no delata el origen"
+	)
+	assert_almost_eq(
+		float(view["delay"]) + float(view["flight"]), 0.5, 0.001, "Empieza a verla cuando entra"
+	)
 	var near: Vector3 = Vector3(3.0, 1.2, 1.0)
 	assert_eq(
 		CoinFlightPresenter.view_for(guard, near, landing, 0.3)["from"], near, "Si ve salir, entera"

@@ -287,8 +287,11 @@ func _on_coin_thrown(from: Vector3, landing: Vector3, flight_time: float) -> voi
 		if viewer == null:
 			continue
 		var view: Dictionary = CoinFlightPresenter.view_for(viewer, from, landing, flight_time)
-		if not view.is_empty():  # recortada: quien no ve la salida no sabe desde dónde se lanzó
-			_session.send_coin(peer, view["from"], landing, view["flight"])
+		if view.is_empty():
+			continue
+		# Recortada: quien no ve la salida recibe el tramo cuando entra en su vista
+		var send: Callable = _session.send_coin.bind(peer, view["from"], landing, view["flight"])
+		_session.get_tree().create_timer(float(view.get("delay", 0.0))).timeout.connect(send)
 
 
 func _log_world(peer: int, changes: Dictionary) -> void:

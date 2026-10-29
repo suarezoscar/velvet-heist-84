@@ -20,10 +20,11 @@ static func visible_to(actor: Node3D, from: Vector3, landing: Vector3) -> bool:
 	return VisionLogic.sees_point(actor, from) or VisionLogic.sees_point(actor, landing)
 
 
-## Qué ve actor de una moneda: {} si nada; si no, {"from", "flight"} con el tramo que ve. Quien
-## ve la salida (el ladrón siempre) ve el arco entero; un guardia que solo ve la caída recibe el
-## arco desde donde entra en su zona visible, con el vuelo acortado para que caiga a la vez:
-## sabe de qué lado viene, no desde dónde se lanzó
+## Qué ve actor de una moneda: {} si nada; si no, {"from", "flight"} con el tramo que ve y, si
+## es solo un tramo, "delay": cuándo empieza a verlo. Quien ve la salida (el ladrón siempre) ve
+## el arco entero; un guardia que solo ve la caída recibe el tramo desde donde entra en su zona
+## visible, a la altura de la mano y cuando entra, así que cae a la vez que suena: sabe de qué
+## lado viene, no desde dónde se lanzó
 static func view_for(actor: Node3D, from: Vector3, landing: Vector3, flight: float) -> Dictionary:
 	if not visible_to(actor, from, landing):
 		return {}
@@ -32,9 +33,11 @@ static func view_for(actor: Node3D, from: Vector3, landing: Vector3, flight: flo
 	for step: int in range(1, VIEW_STEPS + 1):
 		var t: float = float(step) / VIEW_STEPS
 		var point: Vector3 = CoinThrow.arc_point(from, landing, t)
-		if VisionLogic.sees_point(actor, point):
-			return {"from": point, "flight": flight * (1.0 - t)}
-	return {"from": landing, "flight": 0.0}
+		# A la altura de la mano: la del arco dejaría calcular la distancia del lanzamiento
+		var entry: Vector3 = Vector3(point.x, landing.y + CoinThrow.HAND_HEIGHT, point.z)
+		if VisionLogic.sees_point(actor, entry):
+			return {"from": entry, "flight": flight * (1.0 - t), "delay": flight * t}
+	return {"from": landing, "flight": 0.0, "delay": flight}
 
 
 ## El presentador del mapa actual (null si no hay)
@@ -60,8 +63,12 @@ func _on_coin_thrown(from: Vector3, landing: Vector3, flight_time: float) -> voi
 		return  # con red, cada cliente recibe solo las que ve
 	var actor: PlayerBase3D = _local_actor()
 	var view: Dictionary = view_for(actor, from, landing, flight_time) if actor != null else {}
-	if not view.is_empty():
-		show_coin(view["from"], landing, view["flight"])
+	if view.is_empty():
+		return
+	var delay: float = float(view.get("delay", 0.0))
+	if delay > 0.0:
+		await get_tree().create_timer(delay, false).timeout
+	show_coin(view["from"], landing, view["flight"])
 
 
 func _local_actor() -> PlayerBase3D:
