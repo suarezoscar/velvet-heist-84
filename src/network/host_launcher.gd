@@ -29,6 +29,9 @@ var upnp_done: bool = false
 var upnp_ok: bool = false
 var _pid: int = 0
 var _upnp: UPNP = null
+## Lo que encuentra el hilo de UPnP: solo él escribe aquí hasta que acaba
+var _found_ok: bool = false
+var _found_ip: String = ""
 var _thread: Thread = null
 
 
@@ -113,7 +116,7 @@ func close() -> void:
 		OS.kill(_pid)
 	_pid = 0
 	_join_upnp()
-	if _upnp != null and upnp_ok:
+	if _upnp != null and _found_ok:
 		_upnp.delete_port_mapping(port, "UDP")
 	upnp_ok = false
 	queue_free()
@@ -144,18 +147,20 @@ func _open_port() -> void:
 	var external: String = ""
 	if upnp.discover() == UPNP.UPNP_RESULT_SUCCESS and upnp.get_gateway() != null:
 		if upnp.get_gateway().is_valid_gateway():
-			upnp_ok = (
+			_found_ok = (
 				upnp.add_port_mapping(port, port, UPNP_DESCRIPTION, "UDP")
 				== UPNP.UPNP_RESULT_SUCCESS
 			)
 			external = upnp.query_external_address()
+	_found_ip = external if is_public(external) else ""
 	_upnp = upnp
-	public_ip = external if is_public(external) else ""
 	_upnp_result.call_deferred()
 
 
 func _upnp_result() -> void:
 	_join_upnp()
+	upnp_ok = _found_ok
+	public_ip = _found_ip
 	upnp_done = true
 	upnp_finished.emit(upnp_ok)
 
