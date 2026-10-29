@@ -52,8 +52,18 @@ se cierra, se instala y vuelve a abrirse. Solo GitHub Releases; avisa sin obliga
 
 ## Riesgos y decisiones abiertas
 - Windows: Update no puede mover `current/` si es su carpeta de trabajo, heredada del juego. Se
-  lanza con `cmd /c cd /d <instalación> && Update.exe apply …` en una sola línea sin comillas
-  (Godot entrecomilla los argumentos con `&`). Un nombre de usuario con `&` o `^` la rompería.
+  lanza con `cmd /v:on /c cd /d !VELVET_UPDATE_DIR! && Update.exe apply …`: la carpeta va en una
+  variable que cmd expande después de leer la orden, así que la ruta no inyecta nada (solo una
+  `!` en la ruta la rompería). Godot entrecomilla los argumentos con `&`, por eso va en una línea.
+- El índice decide nombres de archivo y versiones que acaban en rutas y en esa orden:
+  `UpdatePlan.is_safe` descarta lo que no sea `[A-Za-z0-9._-]+.nupkg` y `X.Y.Z[-algo]`. El
+  SHA256 viene del propio índice: detecta descargas dañadas, no un índice manipulado (eso lo
+  cubre el HTTPS de GitHub).
+- Linux: `/var/tmp/velopack/<id>/packages` la impone Velopack y es compartida entre usuarios de
+  la máquina; otro usuario podría cambiar un paquete entre la comprobación y la instalación.
+  Riesgo heredado y poco probable entre los jugadores de prueba.
+- Si se empieza una partida mientras Update monta las diferencias (unos 10 s), el cambio de
+  escena espera a que acabe. Si se entra en la sala de espera, se instala al volver al menú.
 - Encadenar un `apply` por versión no funciona: cada Update cierra los procesos de la carpeta,
   incluido el otro Update. Por eso se suman las diferencias con `patch`.
 - Bajo Wine, `--waitPid` no puede esperar al juego («Acceso denegado») y sigue; en Windows real

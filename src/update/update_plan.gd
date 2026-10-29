@@ -2,8 +2,24 @@
 ## Qué bajar para actualizar el juego (FEAT-036) a partir del índice de Velopack
 ## (releases.<canal>.json): los paquetes de diferencias desde la versión instalada si están
 ## todos, pesan menos y está su paquete completo como base; si no, el paquete completo.
+## Las entradas con un nombre de archivo o una versión fuera de lo normal se descartan: acaban
+## en rutas y en la orden que instala la actualización.
 class_name UpdatePlan
 extends RefCounted
+
+const FILE_PATTERN: String = "^[A-Za-z0-9._-]+\\.nupkg$"
+const VERSION_PATTERN: String = "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.]+)?$"
+
+
+## true si la entrada del índice tiene un nombre de archivo y una versión de fiar
+static func is_safe(item: Dictionary) -> bool:
+	var file_name: String = String(item.get("FileName", ""))
+	var version: String = String(item.get("Version", ""))
+	return (
+		RegEx.create_from_string(FILE_PATTERN).search(file_name) != null
+		and RegEx.create_from_string(VERSION_PATTERN).search(version) != null
+		and not file_name.contains("..")
+	)
 
 
 ## a > b en versiones «X.Y.Z» (lo que va tras un «-» no cuenta)
@@ -25,7 +41,9 @@ static func make(feed: Dictionary, current: String, has_base: bool) -> Array[Dic
 	var fulls: Dictionary = {}
 	var deltas: Dictionary = {}
 	for entry: Variant in feed.get("Assets", []):
-		var item: Dictionary = entry as Dictionary
+		if not (entry is Dictionary) or not is_safe(entry):
+			continue
+		var item: Dictionary = entry
 		var version: String = String(item.get("Version", ""))
 		if String(item.get("Type", "")) == "Full":
 			fulls[version] = item

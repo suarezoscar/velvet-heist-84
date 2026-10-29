@@ -11,6 +11,8 @@ var title: Label = null
 var detail: Label = null
 var bar: ProgressBar = null
 var action: Button = null
+## Descargada y lista: se instala en cuanto el menú principal esté a la vista
+var _ready_to_install: bool = false
 
 
 func _ready() -> void:
@@ -38,7 +40,8 @@ func _ready() -> void:
 	updater.update_found.connect(_on_found)
 	updater.progress.connect(func(fraction: float) -> void: bar.value = fraction)
 	updater.preparing.connect(func() -> void: action.text = "PREPARANDO…")
-	updater.ready_to_apply.connect(updater.apply)
+	updater.ready_to_apply.connect(_on_ready_to_apply)
+	visibility_changed.connect(_apply_when_visible)
 	updater.failed.connect(_on_failed)
 	updater.check()
 
@@ -56,7 +59,21 @@ func _on_action() -> void:
 	updater.download()
 
 
+## Solo se cierra para instalar con el menú principal a la vista: si el jugador ha entrado en
+## la sala de espera mientras tanto, espera a que vuelva
+func _apply_when_visible() -> void:
+	if _ready_to_install and is_visible_in_tree():
+		updater.apply()
+
+
+func _on_ready_to_apply() -> void:
+	_ready_to_install = true
+	action.text = "INSTALANDO…"
+	_apply_when_visible()
+
+
 func _on_failed(reason: String) -> void:
+	_ready_to_install = false
 	detail.text = reason
 	action.disabled = false
 	action.text = "VOLVER A INTENTARLO"

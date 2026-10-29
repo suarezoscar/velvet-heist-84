@@ -29,9 +29,9 @@ mkdir -p "${OUT}"
 if [[ -n "${GITHUB_TOKEN:-}" ]]; then
 	echo "==> Última release (para las diferencias)"
 	vpk "[win]" download github --repoUrl "${REPO_URL}" --token "${GITHUB_TOKEN}" \
-		--channel win --outputDir "${OUT}" || echo "Sin paquetes de Windows anteriores"
+		--channel win --outputDir "${OUT}" || echo "::warning::Sin paquetes de Windows de la última release: esta va sin diferencias"
 	vpk "[linux]" download github --repoUrl "${REPO_URL}" --token "${GITHUB_TOKEN}" \
-		--channel linux --outputDir "${OUT}" || echo "Sin paquetes de Linux anteriores"
+		--channel linux --outputDir "${OUT}" || echo "::warning::Sin paquetes de Linux de la última release: esta va sin diferencias"
 fi
 
 echo "==> Windows"
