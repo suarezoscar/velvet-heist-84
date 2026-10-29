@@ -102,6 +102,13 @@ Desaparece el caso «ronda rota y el ladrón tenía la Pieza Maestra = gana el l
 - La alerta **nunca baja** durante la partida.
 - Todos la ven, el ladrón también: sabe que le han descubierto, y la tensión sube.
 
+### R11. Informe de la noche (FEAT-041)
+- Al acabar la partida, todos los personajes se quedan quietos y el informe ocupa la pantalla: primero un sello 1,5 s («ESCAPADO», «CAPTURADO» o «AMANECE»), después el veredicto y una ficha por jugador.
+- **Ladrón**: cada pieza del encargo con ✔/✘ y cómo se robó (abriendo el dial, a lo bruto, con el cambiazo, con la corriente cortada), alarmas que hizo saltar, monedas, veces que lo vieron y la hora de la huida.
+- **Cada guardia**: relojes fichados, faltas, veces que vio al ladrón (cuenta cuando empieza a verlo; perderlo menos de 2 s no cuenta otra vez; las cámaras no cuentan), golpes de porra, captura y cabezadas.
+- **Puntos** (`score_rules.tres`, no cambian el juego, solo lo valoran): ladrón +100 por pieza, +150 por huir, −25 por alarma, −10 por cada vez que lo ven; guardia +10 por reloj, −20 por falta, +25 por cada vez que lo ve, +50 por golpe, +150 por la captura, −15 por cabezada. El que más tiene lleva el sello «MEJOR DE LA NOCHE».
+- **Acciones**: «REVANCHA» (todos votan, mismos bandos), «VOLVER A LA SALA» (con red: cualquiera con bando lleva a todos a la sala sin desconectar, para cambiar de bandos) y «SALIR».
+
 ### R8. Una herramienta por bando
 - **Ladrón: monedas.**
   - Tiene `coins` por partida.

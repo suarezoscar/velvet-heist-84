@@ -71,7 +71,7 @@ func _ready() -> void:
 	else:
 		_setup_offline_control()
 	if hud != null and not NetManager.is_dedicated_server:
-		MatchEndMenu84.new().setup(self)  # revancha y vuelta al menú (FEAT-024)
+		MatchReport84.new().setup(self)  # informe de la noche y acciones (FEAT-041)
 		PauseMenu84.new().setup(self)  # pausa con Esc (FEAT-026)
 		RoleBriefing84.new().setup(self)  # objetivo al empezar (FEAT-027)
 	if NetManager.is_online() and not NetManager.is_dedicated_server:

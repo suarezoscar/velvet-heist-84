@@ -17,6 +17,8 @@ var targets: Array[StringName] = []
 var contract_size: int = 0
 ## Ids de las piezas del encargo ya robadas (privado del ladrón)
 var stolen: Array[StringName] = []
+## Cómo se robó cada pieza del encargo: id → &"dial", &"brute", &"swap" o &"power" (FEAT-041)
+var stolen_how: Dictionary = {}
 ## Monedas que le quedan al ladrón (heist.md R8; privado del ladrón)
 var coins_left: int = RULES.coins
 ## Lleva una pieza de pega del taller (heist.md R9; privado del ladrón)
@@ -74,9 +76,10 @@ func is_complete() -> bool:
 
 
 ## Lo llama la pieza en el servidor al robarse
-func mark_stolen(piece_id: StringName) -> void:
+func mark_stolen(piece_id: StringName, how: StringName = &"dial") -> void:
 	if is_in_contract(piece_id) and not stolen.has(piece_id):
 		stolen.append(piece_id)
+		stolen_how[piece_id] = how
 		print("[HeistDirector] Robada %s (%d/%d)" % [piece_id, stolen.size(), contract_size])
 
 

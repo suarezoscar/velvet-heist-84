@@ -150,6 +150,8 @@ func compute_step_radius() -> float:
 
 ## Simulación física isométrica de movimiento
 func simulate_movement(delta: float) -> void:
+	if GameManager.is_match_over():
+		current_input_dir = Vector2.ZERO  # con la partida acabada nadie se mueve (FEAT-041)
 	var raw_dir: Vector3 = Vector3(current_input_dir.x, 0.0, current_input_dir.y)
 	var move_dir: Vector3 = raw_dir.rotated(Vector3.UP, deg_to_rad(45.0)).normalized()
 

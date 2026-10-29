@@ -148,6 +148,18 @@ func force(actor: Node3D) -> bool:
 	return true
 
 
+## Cómo se ha robado (para el informe final, FEAT-041): a lo bruto, con el cambiazo, con la
+## corriente cortada (sensor) o abriendo el dial
+static func steal_method(
+	brute: bool, fake: TargetPieceLook.Flaw, piece_protection: StringName
+) -> StringName:
+	if brute:
+		return &"brute"
+	if fake != TargetPieceLook.Flaw.NONE:
+		return &"swap"
+	return &"power" if piece_protection == &"sensor" else &"dial"
+
+
 ## Autoridad: la pieza sale del pedestal y cuenta para el encargo
 func steal(brute: bool, fake: TargetPieceLook.Flaw = TargetPieceLook.Flaw.NONE) -> void:
 	if stolen:
@@ -159,7 +171,7 @@ func steal(brute: bool, fake: TargetPieceLook.Flaw = TargetPieceLook.Flaw.NONE) 
 		lock.break_open()
 	_apply_stolen()
 	if GameManager.heist != null:
-		GameManager.heist.mark_stolen(piece_id)
+		GameManager.heist.mark_stolen(piece_id, steal_method(brute, fake, protection))
 	var thief: Node3D = get_tree().get_first_node_in_group(&"thief") as Node3D
 	var kind: StringName = NoiseEmit.MECHANISM if brute else NoiseEmit.IMPACT
 	var radius: float = RULES.brute_radius if brute else SILENT_RADIUS

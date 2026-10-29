@@ -19,7 +19,7 @@ CONTROLES
   Clic izquierdo: porra (guardias) · E en la cafetera de la garita: café (quita el sueño)
   Caja fuerte: flechas o A/D giran el dial (mantener para girar seguido), E prueba, Esc sale
   Esc: pausa (controles y salir) · F9: panel de rendimiento y red
-  Al acabar: R revancha, Esc menú principal
+  Al acabar: informe de la noche; R revancha, Esc salir (en red, también volver a la sala)
   Lista completa en el juego: Opciones > Ver controles
 
 CREAR UNA PARTIDA PARA TUS AMIGOS
