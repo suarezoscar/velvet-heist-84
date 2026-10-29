@@ -15,6 +15,8 @@ config/description="Sigilo tactico / Accion asimetrica multijugador ambientado e
 config/version="0.1.0"
 run/main_scene="res://scenes/ui/main_menu.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
+config/icon="res://assets/ui/icon/velvet_icon.png"
+config/windows_native_icon="res://assets/ui/icon/velvet_icon.ico"
 
 [autoload]
 
