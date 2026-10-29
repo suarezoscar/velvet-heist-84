@@ -6,7 +6,7 @@ extends GutTest
 ## Espejo tipado de GameManager.MatchState para verificaciones asertivas
 enum GameState {LOBBY = 0, IN_PROGRESS = 1, THIEF_ESCAPED = 2, THIEF_CAPTURED = 3, TIME_EXPIRED = 4}
 
-const MAP_SCENE_PATH: String = "res://scenes/maps/museum_velvet_84.tscn"
+const MAP_SCENE_PATH: String = "res://scenes/maps/museum_v2.tscn"
 
 
 func before_each() -> void:
@@ -122,15 +122,15 @@ func test_06_multiplayer_integration_on_map() -> void:
 
 	# Todos los actores pertenecen al servidor (peer 1) y este los simula
 	assert_eq(map.thief.get_multiplayer_authority(), 1, "Thief con autoridad del servidor")
-	assert_eq(map.guard_1.get_multiplayer_authority(), 1, "Guard 1 con autoridad del servidor")
-	assert_eq(map.guard_2.get_multiplayer_authority(), 1, "Guard 2 con autoridad del servidor")
+	assert_eq(map.guards[0].get_multiplayer_authority(), 1, "Guard 1 con autoridad del servidor")
+	assert_eq(map.guards[1].get_multiplayer_authority(), 1, "Guard 2 con autoridad del servidor")
 
 	assert_true(map.thief.is_multiplayer_authority(), "El servidor simula al Thief")
-	assert_true(map.guard_1.is_multiplayer_authority(), "El servidor simula al Guard 1")
-	assert_true(map.guard_2.is_multiplayer_authority(), "El servidor simula al Guard 2")
+	assert_true(map.guards[0].is_multiplayer_authority(), "El servidor simula al Guard 1")
+	assert_true(map.guards[1].is_multiplayer_authority(), "El servidor simula al Guard 2")
 
-	assert_false(map.guard_1.is_ai_controlled, "Guard 1 ocupado por humano: sin IA")
-	assert_false(map.guard_2.is_ai_controlled, "Guard 2 ocupado por humano: sin IA")
+	assert_false(map.guards[0].is_ai_controlled, "Guard 1 ocupado por humano: sin IA")
+	assert_false(map.guards[1].is_ai_controlled, "Guard 2 ocupado por humano: sin IA")
 	assert_null(map.local_player, "El servidor dedicado no controla a ningún actor")
 
 	net_mgr.disconnect_network()
@@ -194,10 +194,10 @@ func test_08_headless_performance_benchmark() -> void:
 		map._physics_process(1.0 / 60.0)
 		if map.thief != null:
 			map.thief._physics_process(1.0 / 60.0)
-		if map.guard_1 != null:
-			map.guard_1._physics_process(1.0 / 60.0)
-		if map.guard_2 != null:
-			map.guard_2._physics_process(1.0 / 60.0)
+		if map.guards[0] != null:
+			map.guards[0]._physics_process(1.0 / 60.0)
+		if map.guards[1] != null:
+			map.guards[1]._physics_process(1.0 / 60.0)
 		var t_elapsed_ms: float = (Time.get_ticks_usec() - t_start) / 1000.0
 
 		frame_times.append(t_elapsed_ms)

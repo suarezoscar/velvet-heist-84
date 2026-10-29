@@ -4,7 +4,7 @@
 ## guardias, la asignación de autoridad del servidor y el handshake por loopback.
 extends GutTest
 
-const MAP_SCENE_PATH: String = "res://scenes/maps/museum_velvet_84.tscn"
+const MAP_SCENE_PATH: String = "res://scenes/maps/museum_v2.tscn"
 
 
 func before_each() -> void:

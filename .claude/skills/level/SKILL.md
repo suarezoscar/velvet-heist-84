@@ -16,7 +16,7 @@ La ejecuta `game-designer`. El resultado es `docs/gdd/levels/<nivel>.md` aprobad
    - Rutas: ruta crítica del ladrón y cada ruta alternativa, con su tiempo andando y su riesgo.
    - Patrullas: recorrido que imponen los relojes de fichar y su duración frente al ciclo de ronda.
 5. **Comprobación**: pasa `references/level-checklist.md` y corrige hasta que no quede ningún punto en rojo.
-6. **Datos**: si existe el formato `data/levels/*.tres` del generador (`FloorplanBlueprint`), escribe el recurso desde las tablas. Si aún no existe, las tablas son la fuente y propones la FEAT del generador.
+6. **Datos**: el nivel es un JSON en `data/levels/` (`LevelData`; los construyen `LevelArchitectureBuilder`, `LevelEntitiesBuilder` y `LevelDressingBuilder`). Escribe o ajusta ese JSON desde las tablas.
 7. **Aprobación**: resumen, puntos de la checklist en tensión y preguntas abiertas. Con el visto bueno del usuario, estado `aprobado`.
 
 Hecho cuando: todas las tablas completas, la checklist sin puntos en rojo y el usuario ha aprobado.
