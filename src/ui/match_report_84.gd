@@ -20,6 +20,7 @@ var _root: Control = null
 var _content: VBoxContainer = null
 var _over_time: float = 0.0
 var _shown_report: Dictionary = {}
+var _filled: bool = false
 
 
 ## Se añade al mapa, oculto hasta que acaba la partida
@@ -137,7 +138,8 @@ func _refresh() -> void:
 	)
 	var recorder: MatchRecorder = MatchRecorder.of(get_tree())
 	var report: Dictionary = recorder.report if recorder != null else {}
-	if report != _shown_report:
+	if not _filled or report != _shown_report:
+		_filled = true
 		_shown_report = report.duplicate(true)
 		_fill_cards(report)
 

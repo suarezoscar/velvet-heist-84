@@ -11,6 +11,8 @@ extends VBoxContainer
 ## Segundos tras el final en que R y Esc no hacen nada: un Esc por reflejo (salir de la caja
 ## fuerte) no debe sacarte al menú y romper la revancha de todos
 const INPUT_GRACE: float = 0.75
+## Segundos tras pedir «VOLVER A LA SALA» en que el botón espera respuesta
+const LOBBY_RETRY: float = 2.0
 
 var rematch_button: Button = null
 var lobby_button: Button = null
@@ -82,6 +84,12 @@ func back_to_lobby() -> void:
 	if vote != null:
 		lobby_button.disabled = true
 		vote.back_to_lobby()
+		# Si el servidor no lo acepta (por ejemplo, alguien aún no estaba listo), se puede repetir
+		get_tree().create_timer(LOBBY_RETRY).timeout.connect(
+			func() -> void:
+				if is_instance_valid(lobby_button):
+					lobby_button.disabled = false
+		)
 
 
 ## Sale de la red, si la hay, y vuelve al menú principal

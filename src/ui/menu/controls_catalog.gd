@@ -76,7 +76,7 @@ static func groups() -> Array[Dictionary]:
 		},
 		{
 			"title": "FIN DE LA PARTIDA",
-			"rows": [["Revancha", keys(&"rematch")], ["Volver al menú", "Esc"]],
+			"rows": [["Revancha", keys(&"rematch")], ["Salir", "Esc"]],
 		},
 	]
 

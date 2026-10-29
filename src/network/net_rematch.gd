@@ -114,7 +114,10 @@ func return_to_lobby(peer: int) -> bool:
 		return false
 	var who: String = String(players[peer].get("name", ""))
 	voters.clear()
-	_client_lobby.rpc(who if not who.is_empty() else "Alguien")
+	var connected: PackedInt32Array = multiplayer.get_peers()
+	for in_map_peer: int in voters_expected(players, _present()):
+		if connected.has(in_map_peer):  # los de la sala no tienen este nodo
+			_client_lobby.rpc_id(in_map_peer, who if not who.is_empty() else "Alguien")
 	_leave("")
 	return true
 

@@ -20,11 +20,11 @@ red no se podía volver a la sala para cambiar de bandos (solo revancha o descon
 | # | Criterio | Evidencia |
 |---|---|---|
 | 1 | Cómo se robó cada pieza | `test_match_report.gd` (`test_how_each_piece_was_stolen`) |
-| 2 | La cuenta de la partida (piezas, alarmas, veces visto sin repetir, cabezadas) | `test_recorder_counts_the_match` |
+| 2 | La cuenta de la partida (piezas, alarmas, veces visto sin repetir, cabezadas) | `test_recorder_counts_the_match`, `test_alarms_count_each_trigger_once` |
 | 3 | Puntos con desglose y mejor de la noche | `test_points_with_breakdown`, `test_best_of_the_night` |
 | 4 | Nadie se mueve con la partida acabada | `test_nobody_moves_once_the_match_is_over` |
 | 5 | El informe ocupa la pantalla: sello y después fichas | `test_report_screen_stamp_then_cards`, capturas |
-| 6 | Volver a la sala: solo al acabar, desde quien tiene bando, sin desconectar, cancela la revancha | `test_rematch_controls.gd` (`test_back_to_lobby_takes_everyone_without_disconnecting`) |
+| 6 | Volver a la sala: solo al acabar, desde quien tiene bando, sin desconectar, cancela la revancha | `test_rematch_controls.gd` (`test_back_to_lobby_takes_everyone_without_disconnecting`); prueba de red de la revisión (servidor y dos clientes, dos rondas) |
 
 ## Contratos
 - `MatchRecorder` (props, grupo `net_state`): `report`, `track(key, seeing, nodding, now)`,
@@ -37,8 +37,9 @@ red no se podía volver a la sala para cambiar de bandos (solo revancha o descon
 - `MatchReport84` (CanvasLayer 60) con `MatchReportCard84` y `MatchEndMenu84`.
 
 ## Riesgos y decisiones abiertas
-- «Alarmas» cuenta lo que hace saltar la alarma (una situación seguida, una vez), porque el
-  nivel de alerta nunca baja.
+- «Alarmas» cuenta lo que hace saltar la alarma (una situación seguida, una vez, con el reloj
+  de física), porque el nivel de alerta nunca baja. Los rastros cuentan una vez, al llegar al
+  umbral.
 - El informe llega a los clientes con el estado del final: puede tardar un instante (se ve
   «Recogiendo el informe…»).
 - Los puntos son una primera propuesta: se ajustan con `/balance` tras el playtest.

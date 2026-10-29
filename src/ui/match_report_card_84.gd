@@ -75,7 +75,7 @@ func add_score(score: Dictionary) -> void:
 			)
 		)
 	var total: Label = MenuTheme84.label(
-		"%d PUNTOS" % int(score.get("total", 0)), MenuTheme84.FONT_DISPLAY, 40, MenuTheme84.AMBER
+		points_text(int(score.get("total", 0))), MenuTheme84.FONT_DISPLAY, 40, MenuTheme84.AMBER
 	)
 	total.name = "Total"
 	box.add_child(total)
@@ -108,6 +108,11 @@ static func _card(player: String, side: String, color: Color, best: bool) -> Mat
 		header.add_child(stamp)
 	box.add_child(MenuTheme84.label(player, MenuTheme84.FONT_DISPLAY, 38, MenuTheme84.TEXT))
 	return card
+
+
+## «1 PUNTO», «-15 PUNTOS»
+static func points_text(total: int) -> String:
+	return "%d PUNTO" % total if absi(total) == 1 else "%d PUNTOS" % total
 
 
 static func _body(text: String, color: Color) -> Label:

@@ -27,6 +27,8 @@ var flood_cooldown_left: float = 0.0
 ## Veces que algo hizo saltar la alarma (FEAT-041); una situación seguida cuenta una vez
 var alarm_triggers: int = 0
 var _last_alarm_call: float = -INF
+## Reloj de la partida (s de física): la pausa no cuenta
+var _clock: float = 0.0
 var _timer: float = 0.0
 var _flood_left: float = 0.0
 var _flooded: Dictionary = {}
@@ -44,6 +46,7 @@ static func of(tree: SceneTree) -> AlertDirector:
 
 
 func _physics_process(delta: float) -> void:
+	_clock += delta
 	_age_pings(delta)
 	if not GameManager.is_simulating():
 		return
@@ -80,18 +83,17 @@ func scan() -> void:
 	if thief_seen or (watching and SecurityCamera3D.any_detects(self)):
 		raise(Level.ALARM)
 	var traces: int = discovered_count()
-	if traces >= RULES.alarm_traces:
-		raise(Level.ALARM)
+	if traces >= RULES.alarm_traces and level < Level.ALARM:
+		raise(Level.ALARM)  # los rastros hacen saltar la alarma una vez, al llegar al umbral
 	elif traces >= 1:
 		raise(Level.SUSPICION)
 
 
 func raise(new_level: Level) -> void:
 	if new_level == Level.ALARM:
-		var now: float = Time.get_ticks_msec() / 1000.0
-		if now - _last_alarm_call > ALARM_GAP:
+		if _clock - _last_alarm_call > ALARM_GAP:
 			alarm_triggers += 1
-		_last_alarm_call = now
+		_last_alarm_call = _clock
 	if new_level > level:
 		level = new_level
 		print("[AlertDirector] Alerta: %s" % Level.keys()[level])

@@ -127,3 +127,22 @@ func test_report_screen_stamp_then_cards() -> void:
 	assert_true(map.hud.game_over_panel == null or not map.hud.game_over_panel.visible)
 	assert_eq(MatchReport84.stamp_for(GameManager.MatchState.THIEF_ESCAPED)[0], "ESCAPADO")
 	assert_eq(MatchReport84.stamp_for(GameManager.MatchState.TIME_EXPIRED)[0], "AMANECE")
+
+
+func test_alarms_count_each_trigger_once() -> void:
+	var alert: AlertDirector = AlertDirector.new()
+	add_child_autofree(alert)
+	alert.raise(AlertDirector.Level.ALARM)
+	alert.raise(AlertDirector.Level.ALARM)  # la misma situación, seguida
+	assert_eq(alert.alarm_triggers, 1)
+	alert._clock += AlertDirector.ALARM_GAP + 0.1
+	alert.raise(AlertDirector.Level.ALARM)  # otra, pasado un rato
+	assert_eq(alert.alarm_triggers, 2)
+	alert.raise(AlertDirector.Level.SUSPICION)
+	assert_eq(alert.alarm_triggers, 2, "La sospecha no es una alarma")
+
+
+func test_points_text_singular() -> void:
+	assert_eq(MatchReportCard84.points_text(1), "1 PUNTO")
+	assert_eq(MatchReportCard84.points_text(-15), "-15 PUNTOS")
+	assert_eq(MatchReportCard84.points_text(0), "0 PUNTOS")
