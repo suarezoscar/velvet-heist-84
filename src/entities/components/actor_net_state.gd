@@ -20,7 +20,9 @@ static func read(actor: PlayerBase3D) -> Dictionary:
 		state["last_seen_pos"] = guard.last_seen_position
 		state["perceiving"] = guard.is_perceiving_thief
 		state["stamina"] = guard.stamina
-		state["watch"] = int(guard.monitor_watch.state)
+	var watch: GuardMonitorWatch = actor.get(&"monitor_watch") as GuardMonitorWatch
+	if watch != null:  # guardias y ladrón (FEAT-042)
+		state["watch"] = int(watch.state)
 	return state
 
 
@@ -45,5 +47,6 @@ static func write(actor: PlayerBase3D, state: Dictionary) -> void:
 		guard.is_perceiving_thief = bool(state.get("perceiving", guard.is_perceiving_thief))
 		guard.last_seen_position = state.get("last_seen_pos", guard.last_seen_position) as Vector3
 		guard.last_seen_time_left = float(state.get("last_seen_left", guard.last_seen_time_left))
-		if state.has("watch"):
-			guard.monitor_watch.state = int(state["watch"]) as GuardMonitorWatch.State
+	var watch: GuardMonitorWatch = actor.get(&"monitor_watch") as GuardMonitorWatch
+	if watch != null and state.has("watch"):
+		watch.state = int(state["watch"]) as GuardMonitorWatch.State

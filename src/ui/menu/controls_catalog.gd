@@ -50,6 +50,10 @@ static func groups() -> Array[Dictionary]:
 				["Moneda: no lanzarla mientras apuntas", keys(&"strike")],
 				["Caja fuerte: girar el dial", "← → / A D  (mantener: gira seguido)"],
 				["Caja fuerte: probar número · salir", keys(&"interact") + " · Esc"],
+				[
+					"Mirar los monitores · levantarse",
+					keys(&"interact") + " en la mesa de monitores"
+				],
 			],
 		},
 		{

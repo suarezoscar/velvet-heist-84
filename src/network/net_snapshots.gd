@@ -65,6 +65,8 @@ static func mark_for(peer_role: StringName, role: StringName, views: Dictionary)
 		match (views["thief"] as Dictionary).get(role, &""):
 			&"full":
 				return &""
+			&"cctv":
+				return &"cctv_only"
 			&"beam":
 				return &"beam_only"
 		return &"hidden"

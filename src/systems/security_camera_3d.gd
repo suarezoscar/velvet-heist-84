@@ -90,6 +90,24 @@ static func any_detects(context: Node) -> bool:
 	return false
 
 
+## true si alguna cámara ve al guardia (FEAT-042: el ladrón ante los monitores): en su cono y
+## alcance, sin muros de por medio y con luz (una lámpara o su propia linterna), como M5
+static func any_sees_guard(context: Node, guard: GuardController3D, lamps: Array[Lamp3D]) -> bool:
+	if context == null or guard == null or not context.is_inside_tree():
+		return false
+	var chest: Vector3 = guard.global_position + Vector3(0.0, 1.0, 0.0)
+	var lit: bool = (
+		guard.flashlight_on
+		or LightingRules.is_point_lit(guard.get_world_3d().direct_space_state, chest, lamps)
+	)
+	if not lit:
+		return false
+	for node: Node in context.get_tree().get_nodes_in_group(&"security_camera"):
+		if (node as SecurityCamera3D).sees_point(chest):
+			return true
+	return false
+
+
 ## Enciende o apaga el piloto rojo de grabación
 func set_recording(on: bool) -> void:
 	is_recording = on

@@ -62,12 +62,15 @@ static func thief_sees_guard(
 	return LightingRules.is_point_lit(space, point, lamps)
 
 
-## Cómo ve el ladrón a cada guardia: &"full", &"beam" (solo el haz) o &"" (nada)
+## Cómo ve el ladrón a cada guardia: &"full", &"cctv" (solo en las pantallas, si está ante los
+## monitores), &"beam" (solo el haz) o &"" (nada)
 static func thief_view_of(
 	thief: ThiefController3D, guard: GuardController3D, lamps: Array[Lamp3D]
 ) -> StringName:
 	if thief_sees_guard(thief, guard, lamps):
 		return &"full"
+	if thief.is_watching_monitors() and SecurityCamera3D.any_sees_guard(thief, guard, lamps):
+		return &"cctv"  # FEAT-042: lo ve solo en las imágenes de las cámaras
 	return &"beam" if guard.flashlight_on else &""
 
 
