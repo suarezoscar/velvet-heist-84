@@ -9,3 +9,4 @@ hatch_radius = 4.0
 travel_speed = 2.0
 open_time = 20.0
 rumble_radius = 5.0
+max_inside = 20.0

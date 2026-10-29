@@ -11,5 +11,7 @@ extends Resource
 @export var travel_speed: float = 2.0
 ## Segundos que una rejilla usada se queda abierta (un rastro que los guardias pueden cerrar)
 @export var open_time: float = 20.0
+## Segundos que puede pasar dentro eligiendo salida; después sale solo por donde entró
+@export var max_inside: float = 20.0
 ## Radio (m) del retumbar que suena en las rejillas de la red mientras el ladrón la recorre
 @export var rumble_radius: float = 5.0
