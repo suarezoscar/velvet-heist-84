@@ -236,7 +236,7 @@ func update_perception(thief: ThiefController3D, lamps: Array[Lamp3D], delta: fl
 
 ## Valida de forma autoritativa en el servidor si un golpe cuerpo a cuerpo es legítimo
 func validate_melee_hit(target_thief: ThiefController3D) -> bool:
-	if target_thief == null:
+	if target_thief == null or target_thief.in_vent:
 		return false
 	if perception == null:
 		perception = load(PERCEPTION_PROFILE_PATH)

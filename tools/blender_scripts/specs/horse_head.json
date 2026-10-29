@@ -1,0 +1,22 @@
+{
+  "name": "horse_head",
+  "feat": "FEAT-034",
+  "description": "Cabeza de caballo de mármol: pieza del encargo en el Vestíbulo.",
+  "dimensions": [
+    0.215,
+    0.334,
+    0.418
+  ],
+  "pivot": "bottom_center",
+  "max_triangles": 5000,
+  "materials": [
+    "horse_head"
+  ],
+  "collision": false,
+  "source": {
+    "origin": "polyhaven",
+    "url": "https://polyhaven.com/a/horse_head",
+    "license": "CC0",
+    "author": "Tina"
+  }
+}

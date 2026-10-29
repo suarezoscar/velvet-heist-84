@@ -20,6 +20,8 @@ static func handle(actor: PlayerBase3D, action: StringName) -> bool:
 		return false
 	if GameManager.current_state != GameManager.MatchState.IN_PROGRESS:
 		return false
+	if actor is ThiefController3D and (actor as ThiefController3D).in_vent:
+		return false  # FEAT-034: desde el conducto no se lanza nada
 	var heist: HeistDirector = GameManager.heist
 	var alert: AlertDirector = AlertDirector.of(actor.get_tree())
 	if heist == null or alert == null:

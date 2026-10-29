@@ -1,0 +1,22 @@
+{
+  "name": "antique_vase",
+  "feat": "FEAT-034",
+  "description": "Jarrón Ming: pieza del encargo en la Galería de Arte Oriental (vitrina).",
+  "dimensions": [
+    0.255,
+    0.255,
+    0.44
+  ],
+  "pivot": "bottom_center",
+  "max_triangles": 5000,
+  "materials": [
+    "antique_ceramic_vase_01"
+  ],
+  "collision": false,
+  "source": {
+    "origin": "polyhaven",
+    "url": "https://polyhaven.com/a/antique_ceramic_vase_01",
+    "license": "CC0",
+    "author": "James Ray Cock"
+  }
+}

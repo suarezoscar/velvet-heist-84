@@ -2,7 +2,9 @@
 ## Coloca el golpe de un nivel por datos (heist.md): el HeistDirector, las piezas candidatas
 ## (sección «targets», con su protección y su variante: pedestal, vitrina o caja fuerte), las
 ## salidas exteriores («exits»), los cuadros eléctricos de cada ala («wings»), la mesa de
-## réplicas («replica_table») y el panel de pilotos («pilot_panel»). Lo llama
+## réplicas («replica_tables», o una sola en «replica_table») y el panel de pilotos
+## («pilot_panel»). Cada pieza lleva su modelo, o un cuadro (PaintingArt), con su tamaño y su
+## tinte. Lo llama
 ## LevelEntitiesBuilder.
 class_name HeistBuilder
 extends RefCounted
@@ -24,9 +26,14 @@ static func build(data: LevelData, props: Node3D, targets: Array) -> void:
 		for box: PowerBox3D in boxes:
 			if piece.protection == &"sensor" and box.contains(piece.position):
 				piece.power_box = box
+	var tables: Array = data.section("replica_tables").duplicate()
 	if not data.entry("replica_table").is_empty():
+		tables.append(data.entry("replica_table"))
+	for index: int in range(tables.size()):
 		var table: ReplicaTable3D = ReplicaTable3D.create()
-		table.position = data.to_world(data.entry("replica_table")["pos"])
+		if index > 0:
+			table.name = "%s%d" % [table.name, index + 1]
+		table.position = data.to_world(tables[index]["pos"])
 		props.add_child(table)
 	if not data.entry("pilot_panel").is_empty():
 		var panel: PilotPanel3D = PilotPanel3D.new()
@@ -87,15 +94,29 @@ static func _add_wings(data: LevelData, props: Node3D) -> Array[PowerBox3D]:
 	return boxes
 
 
+## Modelo de una pieza: un cuadro («painting») o un .glb de assets/models
+static func _target_model(target: Dictionary) -> Node3D:
+	var model: String = String(target.get("model", "loot_cash"))
+	if model == "painting":
+		return PaintingArt.create(String(target.get("painting", "")), 1.0)
+	var scene: PackedScene = load("res://assets/models/%s.glb" % model) as PackedScene
+	return scene.instantiate() as Node3D if scene != null else null
+
+
 static func _add_target(data: LevelData, props: Node3D, target: Dictionary) -> TargetPiece3D:
 	var variant: StringName = StringName(target.get("variant", "pedestal"))
-	var model_path: String = "res://assets/models/%s.glb" % target.get("model", "loot_cash")
 	var piece: TargetPiece3D = TargetPiece3D.create(
 		StringName(target["id"]),
 		String(target["name"]),
 		StringName(target.get("protection", "combination")),
-		load(model_path) as PackedScene,
+		null,
 		variant
+	)
+	TargetPieceLook.attach_model(
+		piece,
+		_target_model(target),
+		float(target.get("size", 1.0)),
+		Color(String(target.get("tint", "#ffffff")))
 	)
 	piece.room_name = room_name_at(data, target["pos"])
 	piece.position = data.to_world(target["pos"])

@@ -113,10 +113,11 @@ func _physics_process(delta: float) -> void:
 
 ## R4: resultado al acabar el tiempo según la hoja de ronda y la Pieza Maestra
 func time_expired_state() -> MatchState:
-	var clocks: Array = _clocks()
-	var faults: int = RoundRules.team_faults(clocks)
-	var expired_now: bool = RoundRules.any_expired(clocks, get_physics_process_delta_time())
-	if RoundRules.is_on_time(faults, expired_now, CLOCK_RULES.allowed_misses):
+	var rounds: Array = _rounds()
+	var faults: int = RoundRules.team_faults(rounds)
+	var expired_now: bool = RoundRules.any_expired(rounds, get_physics_process_delta_time())
+	var allowed: int = RoundRules.allowed_faults(rounds, CLOCK_RULES.allowed_misses)
+	if RoundRules.is_on_time(faults, expired_now, allowed):
 		return MatchState.TIME_EXPIRED
 	if heist != null:
 		return MatchState.TIME_EXPIRED_DRAW  # heist.md R4: para ganar, el ladrón siempre escapa
@@ -142,7 +143,7 @@ func start_match() -> void:
 
 ## Finaliza la partida con el estado correspondiente
 func end_match(final_state: MatchState) -> void:
-	round_faults = RoundRules.team_faults(_clocks())
+	round_faults = RoundRules.team_faults(_rounds())
 	current_state = final_state
 	print("[GameManager] Fin de la partida. Estado final: %s" % MatchState.keys()[final_state])
 
@@ -173,6 +174,12 @@ func can_thief_escape() -> bool:
 	if heist != null:
 		return heist.is_complete()
 	return current_loot_value >= quota_target and has_masterpiece
+
+
+func _rounds() -> Array:
+	if not is_inside_tree():
+		return []
+	return get_tree().get_nodes_in_group(&"guard_round")
 
 
 func _clocks() -> Array:

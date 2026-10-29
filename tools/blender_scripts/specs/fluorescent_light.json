@@ -1,0 +1,23 @@
+{
+  "name": "fluorescent_light",
+  "feat": "FEAT-034",
+  "description": "Fluorescentes de techo de la garita (decorado).",
+  "dimensions": [
+    0.912,
+    0.645,
+    0.037
+  ],
+  "pivot": "top_center",
+  "max_triangles": 2000,
+  "materials": [
+    "mounted_fluorescent_lights",
+    "mounted_fluorescent_lights_glass"
+  ],
+  "collision": false,
+  "source": {
+    "origin": "polyhaven",
+    "url": "https://polyhaven.com/a/mounted_fluorescent_lights",
+    "license": "CC0",
+    "author": "Ulan Cabanilla"
+  }
+}
