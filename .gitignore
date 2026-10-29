@@ -31,3 +31,6 @@ assets/models/raw/*.fbx
 assets/models/raw/crypto_*
 assets/models/raw/swat_*
 assets/models/raw/animations/
+
+# CI: lista de objetos LFS para la caché
+.lfs-assets-id

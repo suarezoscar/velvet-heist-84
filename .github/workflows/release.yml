@@ -35,8 +35,22 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
         with:
-          lfs: true
           fetch-depth: 0
+
+      # Los binarios van en Git LFS: se guardan en caché para no gastar la cuota de descarga
+      # de GitHub en cada ejecución; solo se bajan de nuevo si cambia algún asset
+      - name: List LFS Objects
+        run: git lfs ls-files --long | cut -d ' ' -f1 | sort > .lfs-assets-id
+
+      - name: Restore LFS Cache
+        uses: actions/cache@v4
+        with:
+          path: .git/lfs
+          key: lfs-${{ hashFiles('.lfs-assets-id') }}
+          restore-keys: lfs-
+
+      - name: Pull LFS Objects
+        run: git lfs pull
 
       - name: Load Pinned Versions
         run: |
