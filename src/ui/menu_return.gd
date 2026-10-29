@@ -17,6 +17,7 @@ static func to_main_menu(tree: SceneTree, message: String = "") -> void:
 	LocalInput3D.blocked = false
 	if NetManager.is_online():
 		NetManager.disconnect_network()
+	HostPanel84.close_hosted(tree)  # la partida creada en este equipo se cierra (FEAT-040)
 	tree.change_scene_to_file(MAIN_MENU_SCENE)
 
 

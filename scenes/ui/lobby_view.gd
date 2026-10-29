@@ -35,7 +35,7 @@ var role_guard3_btn: Button = null
 
 
 func _ready() -> void:
-	host_btn.visible = false  # start_host devuelve ERR_UNAVAILABLE: solo servidor dedicado
+	HostPanel84.attach(host_btn, port_edit, conn_log_lbl)  # «CREAR PARTIDA» (FEAT-040)
 	role_guard3_btn = role_guard2_btn.duplicate() as Button
 	role_guard3_btn.name = "RoleGuard3Button"
 	role_guard2_btn.add_sibling(role_guard3_btn)
@@ -108,6 +108,7 @@ func _on_join_pressed() -> void:
 func _on_disconnect_pressed() -> void:
 	conn_log_lbl.modulate = Color.WHITE
 	NetManager.disconnect_network()
+	HostPanel84.close_hosted(get_tree())  # si la creaste tú, se cierra
 	conn_log_lbl.text = "Desconectado."
 	refresh()
 
@@ -125,6 +126,7 @@ func _on_start_match_pressed() -> void:
 
 func _on_back_pressed() -> void:
 	NetManager.disconnect_network()
+	HostPanel84.close_hosted(get_tree())
 	back_requested.emit()
 
 
@@ -134,7 +136,8 @@ func _on_connection_succeeded() -> void:
 
 
 func _on_connection_failed() -> void:
-	conn_log_lbl.text = "No hay respuesta de la partida. Comprueba la IP y el puerto."
+	if HostLauncher.current(get_tree()) == null:  # creándola, HostPanel84 lo reintenta
+		conn_log_lbl.text = "No hay respuesta de la partida. Comprueba la IP y el puerto."
 	refresh()
 
 
