@@ -37,9 +37,11 @@ fi
 echo "==> Windows"
 vpk "[win]" pack --runtime win-x64 --packId "${PACK_ID}" --packVersion "${VERSION}" \
 	--packDir build/windows --mainExe VelvetHeist84.exe --packTitle "${TITLE}" \
+	--icon assets/ui/icon/velvet_icon.ico \
 	--outputDir "${OUT}"
 echo "==> Linux"
 vpk "[linux]" pack --runtime linux-x64 --packId "${PACK_ID}" --packVersion "${VERSION}" \
 	--packDir build/linux --mainExe VelvetHeist84.x86_64 --packTitle "${TITLE}" \
+	--icon assets/ui/icon/velvet_icon.png \
 	--outputDir "${OUT}"
 ls -la "${OUT}"
