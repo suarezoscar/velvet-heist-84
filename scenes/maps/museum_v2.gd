@@ -8,6 +8,14 @@ extends HeistMap3D
 
 const LEVEL_DATA_PATH: String = "res://data/levels/museum_v2.json"
 
+## Duración de partida de antes de este mapa (se devuelve al salir)
+var _saved_duration: float = -1.0
+
+
+func _exit_tree() -> void:
+	if _saved_duration > 0.0:
+		GameManager.match_duration_seconds = _saved_duration
+
 
 func _ready() -> void:
 	var data: LevelData = LevelData.load_json(LEVEL_DATA_PATH)
@@ -18,5 +26,6 @@ func _ready() -> void:
 		LevelDressingBuilder.build(data, self)
 		offline_guard_count = int(data.raw.get("offline_guards", data.section("patrols").size()))
 		if data.raw.has("match_minutes"):
+			_saved_duration = GameManager.match_duration_seconds
 			GameManager.match_duration_seconds = float(data.raw["match_minutes"]) * 60.0
 	super._ready()

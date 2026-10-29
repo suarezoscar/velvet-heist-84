@@ -113,8 +113,8 @@ func interact(actor: Node3D) -> void:
 		return
 	if actor is ThiefController3D:
 		_task = TimedTask.start(actor, RULES.pick_time, HEIST_RULES.task_leash, _finish_pick)
-	else:
-		set_open(not is_open)
+	elif not is_open or not _doorway_busy():
+		set_open(not is_open)  # con alguien en el hueco no se cierra
 
 
 ## Autoridad: abre (cruje y empieza la cuenta para cerrarse) o cierra

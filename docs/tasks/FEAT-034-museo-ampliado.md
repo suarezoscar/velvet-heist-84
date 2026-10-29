@@ -32,7 +32,12 @@ Un museo más bonito y más rejugable:
 - Red: `Door3D` público `{"open"}`; `Vent3D` público `{"open"}`; `VentTravel` privado al ladrón; `GuardRound` privado a los guardias; `TimeClock3D` público `{"expired"}`.
 
 ## Riesgos y decisiones abiertas
-- Sin navmesh: la IA va de puerta en puerta en línea recta y puede rozar muebles.
+- Sin navmesh: la IA va de puerta en puerta, y dentro de cada sala rodea los muebles con A* sobre una rejilla de 0,25 m (`RoomNav`). Además, si lleva 1,5 s atascada, pasa al siguiente punto. Revisión: en la primera versión, la IA se quedaba atascada en las estanterías del Archivo; `test_ai_rounds.gd` lo cubre ahora.
+- Dentro del conducto, el ladrón solo puede usar la rejilla: no tira monedas, no roba a lo bruto y no toca interruptores.
+- Mapas antiguos (mansión, museo de 1984): sin rondas (sus relojes son decorado). Al backlog si se vuelven a usar.
+- Los focos de las piezas son solo decorado: no cuentan como luz ni se apagan con el corte de corriente. Al backlog.
+- Tamaño del repositorio: los originales de Poly Haven (74 MB) van en git como antes; plantear Git LFS en el backlog.
+- Pendiente de decidir: un tiempo máximo dentro del conducto.
 - Sorteo de seguridad por partida (salidas, cámaras): sigue en el backlog.
 - El plano (M) se rehace aquí, con los datos del nivel (Q20).
 

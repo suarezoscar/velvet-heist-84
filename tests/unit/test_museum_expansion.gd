@@ -123,8 +123,28 @@ func test_vent_state_only_reaches_the_thief() -> void:
 	await wait_physics_frames(2)
 	var travel: VentTravel = VentTravel.of(get_tree())
 	assert_true(travel.get_net_state().is_empty(), "Nada público")
-	assert_eq(travel.net_private_audience(), &"thief")
-	assert_not_null(map)
+	var collected: Dictionary = NetPrivateStates.new().collect({"Props/Vents": travel}, true)
+	assert_true(NetPrivateStates.for_role(collected, &"guard_1").is_empty(), "Guardias: nada")
+	assert_true(NetPrivateStates.for_role(collected, &"thief").has("Props/Vents#private"))
+	travel.apply_net_state({"phase": 1, "entry": "V_TAL", "choices": ["V_TAL", "V_MNT"], "sel": 1})
+	assert_true(map.thief.in_vent, "En el cliente del ladrón, dentro del conducto")
+	assert_eq(travel.choices.size(), 2)
+
+
+func test_inside_the_vent_nothing_else_works() -> void:
+	var map: HeistMap3D = _map()
+	await wait_physics_frames(2)
+	var thief: ThiefController3D = map.thief
+	thief.in_vent = true
+	assert_false(thief.perform_action(&"throw_coin"), "Sin monedas desde el conducto")
+	assert_false(thief.perform_action(&"force"), "Ni robos a lo bruto")
+	var camera: SecurityCamera3D = get_tree().get_first_node_in_group(&"security_camera")
+	thief.global_position = (
+		camera.mount.global_position
+		+ (-camera.mount.global_transform.basis.z * 3.0 + Vector3.DOWN * 2.0)
+	)
+	assert_false(camera._check_line_of_sight(thief), "Las cámaras no lo ven")
+	thief.in_vent = false
 
 
 func test_paintings_have_images_and_credits() -> void:
