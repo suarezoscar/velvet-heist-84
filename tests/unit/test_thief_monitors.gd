@@ -85,3 +85,22 @@ func test_guard_on_camera_shows_only_on_the_screens() -> void:
 	thief.monitor_watch.state = GuardMonitorWatch.State.NONE
 	await wait_physics_frames(3)
 	assert_ne(mesh.layers, 1 << (CctvLayer.LAYER - 1), "Al levantarse, fuera de las pantallas")
+
+
+## Con red: el guardia que llega marcado «cctv_only» se dibuja solo en las pantallas, sin la
+## marca vuelve a sus capas y si no llega se esconde
+func test_network_marks_put_the_guard_on_the_screens() -> void:
+	var map: HeistMap3D = _map()
+	await wait_physics_frames(2)
+	var guard: GuardController3D = map.guards[0]
+	var body: Node3D = guard.get_node("VisualRoot") as Node3D
+	var mesh: GeometryInstance3D = body.find_children("*", "GeometryInstance3D", true, false)[0]
+	var world_layers: int = mesh.layers
+	var pos: Vector3 = guard.global_position
+	NetViewModes.apply(map, &"thief", {&"guard_1": {"pos": pos, "cctv_only": true}})
+	assert_true(body.visible)
+	assert_eq(mesh.layers, 1 << (CctvLayer.LAYER - 1), "Solo en las cámaras")
+	NetViewModes.apply(map, &"thief", {&"guard_1": {"pos": pos}})
+	assert_eq(mesh.layers, world_layers, "Vuelve a verse en el mundo")
+	NetViewModes.apply(map, &"thief", {})
+	assert_false(body.visible, "Sin estado, oculto")
