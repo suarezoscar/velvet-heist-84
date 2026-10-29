@@ -154,7 +154,7 @@ jobs:
 
           Si prefieres no instalar nada: \`VelvetHeist84-${VERSION}-windows.zip\` (descomprime y abre \`VelvetHeist84.exe\`) o \`VelvetHeist84-${VERSION}-linux.tar.gz\` (\`tar -xzf\` y \`./linux/VelvetHeist84.x86_64\`). Estos no se actualizan solos.
 
-          Para organizar una partida en red, abre \`servidor.bat\` (Windows) o \`./servidor.sh\` (Linux), que vienen en los paquetes .zip y .tar.gz, y pasa tu IP y el puerto a los demás. Todos tenéis que usar la misma versión del juego.
+          Para jugar en red con tus amigos: Multijugador → CREAR PARTIDA, y pásales la IP y el puerto que te enseña el juego. Todos tenéis que usar la misma versión del juego.
           EOF
           PRERELEASE=""
           if [[ "${VERSION}" == *-* ]]; then PRERELEASE="--prerelease"; fi

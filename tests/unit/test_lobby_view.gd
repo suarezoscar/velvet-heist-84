@@ -17,7 +17,8 @@ func after_each() -> void:
 
 func test_hay_boton_de_guardia_3() -> void:
 	assert_not_null(_menu.find_child("RoleGuard3Button", true, false), "botón de guard_3")
-	assert_false(_menu.lobby_view.host_btn.visible, "Host oculto")
+	assert_true(_menu.lobby_view.host_btn.visible, "Se puede crear partida (FEAT-040)")
+	assert_eq(_menu.lobby_view.host_btn.text, "CREAR PARTIDA")
 
 
 func test_iniciar_partida_exige_ladron_y_guardia() -> void:

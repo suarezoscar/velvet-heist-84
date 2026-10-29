@@ -22,15 +22,13 @@ CONTROLES
   Al acabar: R revancha, Esc menú principal
   Lista completa en el juego: Opciones > Ver controles
 
-SER EL ANFITRIÓN (servidor)
-  1. Arranca el servidor en un PC que se quede encendido durante la partida:
-       Linux:   ./servidor.sh          (o ./servidor.sh 7777)
-       Windows: servidor.bat           (o servidor.bat 7777)
-     El servidor no abre ventana; se cierra con Ctrl+C.
-  2. Abre el puerto UDP 7777 en el router hacia ese PC (redirección de puertos) y en su
-     cortafuegos.
-  3. Tus amigos se unen con tu IP pública (búscala en https://ifconfig.me). Tú, desde el mismo
-     PC, con 127.0.0.1; desde otro PC de tu casa, con la IP local del servidor.
+CREAR UNA PARTIDA PARA TUS AMIGOS
+  1. Multijugador > CREAR PARTIDA. El juego monta la partida en tu PC, intenta abrir el
+     puerto en tu router y te enseña qué pasar a tus amigos (pulsa COPIAR). Si Windows
+     pregunta, pulsa Permitir.
+  2. Si dice que el router no ha dejado abrir el puerto, ábrelo tú: UDP 7777 hacia tu PC.
+  3. Tus amigos se unen con esa IP y ese puerto. La partida se cierra cuando sales de la sala.
+  Para dejar una partida en un PC sin jugar en él: servidor.sh o servidor.bat (Ctrl+C cierra).
 
 CRÉDITOS
   Un juego de Óscar Suárez.

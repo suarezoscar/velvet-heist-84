@@ -36,6 +36,7 @@ func _ready() -> void:
 	if VelopackInstall.is_hook():
 		get_tree().quit()  # Velopack avisa de una instalación o actualización: no se abre nada
 		return
+	HostWatch.attach_if_requested(get_tree())  # servidor de «Crear partida» (FEAT-040)
 	settings = GameSettings.load_saved()
 	settings.apply()
 	theme = MenuTheme84.build()
