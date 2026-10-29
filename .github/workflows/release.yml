@@ -6,7 +6,8 @@ name: Release
 #     tools/build/next_version.sh (sube el último número; cambiar config/version da el salto);
 #   - al subir a mano una etiqueta vX.Y.Z;
 #   - desde la pestaña Actions («Run workflow») indicando la versión.
-# La versión se graba en el juego (menú, panel F9, LEEME y nombre del paquete).
+# La versión se graba en el juego (menú, panel F9, LEEME y nombre del paquete). La web (site/)
+# no lanza una release: la publica pages.yml.
 # Velopack (FEAT-036) añade el instalador de Windows, el AppImage de Linux y los paquetes e
 # índices con los que el juego se actualiza desde el menú (tools/build/velopack.sh).
 
@@ -14,7 +15,7 @@ on:
   push:
     branches: [ master ]
     tags: [ "v[0-9]+.[0-9]+.[0-9]+*" ]
-    paths-ignore: [ "docs/**", "**/*.md" ]
+    paths-ignore: [ "docs/**", "**/*.md", "site/**", ".github/workflows/pages.yml" ]
   workflow_dispatch:
     inputs:
       version:

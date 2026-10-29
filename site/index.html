@@ -1,0 +1,962 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Velvet Heist '84: sigilo asimétrico en un museo de noche. Un ladrón de guante blanco contra una patrulla de guardias, en red o en solitario. Manual, mecánicas y descarga.">
+<meta property="og:title" content="Velvet Heist '84">
+<meta property="og:description" content="Velvet Heist '84: sigilo asimétrico en un museo de noche. Un ladrón de guante blanco contra una patrulla de guardias, en red o en solitario. Manual, mecánicas y descarga.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://suarezoscar.github.io/velvet-heist-84/img/ladron-niebla.jpg">
+<meta name="theme-color" content="#07080d">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<title>Velvet Heist '84</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700&family=Mr+Dafoe&family=Share+Tech+Mono&display=swap">
+<style>
+/* Layout: un expediente de noche. Portada con la calle mojada, luego el dossier en una columna
+   ancha con dos bandos enfrentados (rosa el ladrón, cian la patrulla) y el dial como pieza central. */
+:root {
+  --ink: #07080d;
+  --night: #0e1018;
+  --panel: #141722;
+  --line: #262a38;
+  --text: #ece4d6;
+  --dim: #8a8f9c;
+  --thief: #ff3d9a;
+  --guard: #3de0e0;
+  --amber: #f2b84b;
+  --ok: #4be38a;
+  --bad: #ff4a3d;
+  --f-display: "Bebas Neue", "Oswald", Impact, "Arial Narrow", sans-serif;
+  --f-body: "Barlow Condensed", "Roboto Condensed", "Arial Narrow", sans-serif;
+  --f-script: "Mr Dafoe", "Brush Script MT", cursive;
+  --f-mono: "Share Tech Mono", "Consolas", ui-monospace, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { background: var(--ink); }
+body {
+  background: var(--ink);
+  color: var(--text);
+  font-family: var(--f-body);
+  font-weight: 500;
+  font-size: 1.15rem;
+  line-height: 1.5;
+}
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+
+.wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+/* ---------- Portada ---------- */
+.hero {
+  position: relative;
+  min-height: min(720px, 92vh);
+  display: flex;
+  align-items: flex-end;
+  background:
+    linear-gradient(180deg, rgba(7, 8, 13, 0.25) 0%, rgba(7, 8, 13, 0.55) 45%, var(--ink) 100%),
+    url("img/menu.jpg") center 35% / cover no-repeat,
+    var(--night);
+  border-bottom: 1px solid var(--line);
+}
+.hero .wrap { width: 100%; padding-block: 64px 56px; }
+.case-no {
+  font-family: var(--f-mono);
+  font-size: 0.85rem;
+  letter-spacing: 0.22em;
+  color: var(--amber);
+  text-transform: uppercase;
+}
+.hero h1 {
+  font-family: var(--f-display);
+  font-weight: 400;
+  font-size: clamp(4rem, 13vw, 9.5rem);
+  line-height: 0.86;
+  margin: 10px 0 0;
+  letter-spacing: 0.01em;
+  color: var(--text);
+  text-shadow: 0 0 2px rgba(255, 61, 154, 0.9), 0 0 22px rgba(255, 61, 154, 0.55), 0 0 60px rgba(255, 61, 154, 0.25);
+  text-wrap: balance;
+}
+.hero h1 .yr { color: var(--thief); }
+.motto {
+  font-family: var(--f-script);
+  font-size: clamp(1.9rem, 4.5vw, 2.9rem);
+  color: var(--amber);
+  margin: 14px 0 0;
+  line-height: 1.1;
+}
+.pitch {
+  max-width: 58ch;
+  font-size: 1.3rem;
+  margin: 18px 0 0;
+  color: var(--text);
+}
+.cta-row { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 28px; align-items: center; }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--f-display);
+  font-size: 1.5rem;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  padding: 10px 22px 8px;
+  border: 2px solid var(--thief);
+  color: var(--ink);
+  background: var(--thief);
+  box-shadow: 0 0 24px rgba(255, 61, 154, 0.45);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.btn:hover { transform: translateY(-2px); box-shadow: 0 0 36px rgba(255, 61, 154, 0.7); }
+.btn.ghost { background: transparent; color: var(--text); border-color: var(--line); box-shadow: none; }
+.btn.ghost:hover { border-color: var(--text); }
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  margin-top: 26px;
+  font-family: var(--f-mono);
+  font-size: 0.9rem;
+  color: var(--dim);
+  letter-spacing: 0.04em;
+}
+.facts b { color: var(--text); font-weight: 400; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero h1 { animation: neon 2.4s ease-out 1; }
+  @keyframes neon {
+    0%, 8% { opacity: 0.2; text-shadow: none; }
+    9% { opacity: 1; }
+    11% { opacity: 0.3; }
+    13%, 100% { opacity: 1; }
+  }
+}
+
+/* ---------- Secciones ---------- */
+section { padding-block: 72px 8px; }
+.eyebrow {
+  font-family: var(--f-mono);
+  font-size: 0.82rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+h2 {
+  font-family: var(--f-display);
+  font-weight: 400;
+  font-size: clamp(2.6rem, 6vw, 4rem);
+  line-height: 0.95;
+  margin: 6px 0 14px;
+  letter-spacing: 0.01em;
+  text-wrap: balance;
+}
+h3 {
+  font-family: var(--f-display);
+  font-weight: 400;
+  font-size: 1.75rem;
+  letter-spacing: 0.03em;
+  margin: 0 0 6px;
+  line-height: 1;
+}
+.lede { max-width: 64ch; color: var(--text); margin: 0; }
+.muted { color: var(--dim); }
+.t { color: var(--thief); }
+.g { color: var(--guard); }
+.a { color: var(--amber); }
+kbd {
+  font-family: var(--f-mono);
+  font-size: 0.85em;
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  padding: 0 6px;
+  border-radius: 3px;
+  background: var(--panel);
+  color: var(--text);
+  white-space: nowrap;
+}
+
+/* ---------- La noche del golpe (secuencia real) ---------- */
+.steps {
+  list-style: none;
+  padding: 0;
+  margin: 28px 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0;
+  border-top: 1px solid var(--line);
+}
+.steps li {
+  padding: 18px 20px 22px 0;
+  border-bottom: 1px solid var(--line);
+  min-width: 0;
+}
+.steps li + li { padding-left: 20px; border-left: 1px solid var(--line); }
+.steps .n {
+  font-family: var(--f-mono);
+  color: var(--amber);
+  font-size: 0.85rem;
+  letter-spacing: 0.15em;
+}
+.steps p { margin: 6px 0 0; font-size: 1.05rem; }
+@media (max-width: 560px) {
+  .steps li + li { padding-left: 0; border-left: 0; }
+}
+
+/* ---------- Museo ---------- */
+.gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-top: 26px; }
+@media (max-width: 760px) { .gallery { grid-template-columns: 1fr; } }
+
+/* ---------- Dos bandos ---------- */
+.sides {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  margin-top: 30px;
+}
+@media (max-width: 860px) { .sides { grid-template-columns: 1fr; } }
+.side { min-width: 0; }
+.side-head {
+  display: grid;
+  grid-template-columns: 1fr;
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  overflow: hidden;
+}
+.side-head img { display: block; width: 100%; aspect-ratio: 16 / 7; object-fit: cover; max-width: 100%; }
+.side-title {
+  padding: 16px 20px 14px;
+  border-top: 3px solid currentColor;
+  background: var(--panel);
+}
+.side-title .role { font-family: var(--f-display); font-size: 2.6rem; line-height: 0.9; letter-spacing: 0.02em; }
+.side-title .who { font-family: var(--f-mono); font-size: 0.85rem; color: var(--dim); letter-spacing: 0.08em; }
+.side.thief .side-title { color: var(--thief); }
+.side.guards .side-title { color: var(--guard); }
+.moves { border: 1px solid var(--line); border-top: 0; background: var(--night); }
+.group { padding: 16px 20px 6px; border-top: 1px solid var(--line); }
+.group h4 {
+  margin: 0 0 8px;
+  font-family: var(--f-mono);
+  font-weight: 400;
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.group dl { margin: 0; display: grid; gap: 10px; padding-bottom: 12px; }
+.group dt { font-weight: 700; color: var(--text); }
+.group dd { margin: 0; color: #c9c2b5; font-size: 1.02rem; }
+.side.thief dt::before, .side.guards dt::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 9px;
+  transform: translateY(-2px) rotate(45deg);
+}
+.side.thief dt::before { background: var(--thief); }
+.side.guards dt::before { background: var(--guard); }
+
+/* ---------- Protecciones ---------- */
+.scroll { overflow-x: auto; margin-top: 26px; border: 1px solid var(--line); }
+table { border-collapse: collapse; width: 100%; min-width: 720px; font-size: 1.02rem; }
+th, td { text-align: left; vertical-align: top; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+thead th {
+  font-family: var(--f-mono);
+  font-weight: 400;
+  font-size: 0.8rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--dim);
+  background: var(--panel);
+}
+tbody th { font-family: var(--f-display); font-weight: 400; font-size: 1.4rem; letter-spacing: 0.03em; color: var(--text); white-space: nowrap; }
+tbody tr:last-child td, tbody tr:last-child th { border-bottom: 0; }
+tr.brute th { color: var(--bad); }
+
+/* ---------- Alerta ---------- */
+.alert-track {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 26px;
+  border: 1px solid var(--line);
+}
+@media (max-width: 700px) { .alert-track { grid-template-columns: 1fr; } }
+.lvl { padding: 18px 20px 20px; min-width: 0; border-top: 4px solid var(--c); background: linear-gradient(180deg, color-mix(in srgb, var(--c) 10%, transparent), transparent 70%); }
+.lvl + .lvl { border-left: 1px solid var(--line); }
+@media (max-width: 700px) { .lvl + .lvl { border-left: 0; } }
+.lvl .name { font-family: var(--f-display); font-size: 2.2rem; color: var(--c); line-height: 1; }
+.lvl .how { font-family: var(--f-mono); font-size: 0.85rem; color: var(--dim); margin: 4px 0 10px; letter-spacing: 0.03em; }
+.lvl p { margin: 0; font-size: 1.02rem; }
+.calm { --c: #7d8aa6; }
+.susp { --c: var(--amber); }
+.alarm { --c: var(--bad); }
+
+/* ---------- Sueño ---------- */
+.sleep-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 28px; margin-top: 26px; align-items: start; }
+@media (max-width: 860px) { .sleep-grid { grid-template-columns: 1fr; } }
+.sleep-grid > * { min-width: 0; }
+.meter { border: 1px solid var(--line); background: var(--night); padding: 20px; }
+.meter-bar {
+  position: relative;
+  height: 18px;
+  margin: 30px 0 34px;
+  background: linear-gradient(90deg, #2b6f9c 0%, #3c8fb8 45%, var(--amber) 50%, #e27b3a 80%, var(--bad) 100%);
+}
+.tick { position: absolute; top: -26px; transform: translateX(-50%); font-family: var(--f-mono); font-size: 0.78rem; color: var(--dim); white-space: nowrap; }
+.tick::after { content: ""; position: absolute; left: 50%; top: 20px; height: 26px; border-left: 1px dashed var(--text); opacity: 0.6; }
+.tick.end { transform: translateX(-100%); }
+.tick.end::after { left: 100%; }
+.stage-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+@media (max-width: 520px) { .stage-row { grid-template-columns: 1fr; } }
+.stage-row div { min-width: 0; }
+.stage-row b { display: block; font-family: var(--f-display); font-weight: 400; font-size: 1.45rem; letter-spacing: 0.03em; }
+.stage-row span { font-size: 0.98rem; color: #c9c2b5; }
+.swing { margin-top: 18px; display: grid; gap: 10px; }
+.swing p { margin: 0; padding: 10px 14px; border-left: 3px solid var(--c); background: var(--panel); font-size: 1.02rem; }
+.figure { margin: 0; border: 1px solid var(--line); background: var(--night); }
+.figure img { display: block; width: 100%; max-width: 100%; }
+.figure figcaption { padding: 10px 14px; font-size: 0.98rem; color: var(--dim); }
+
+/* ---------- Dial ---------- */
+.safe-zone {
+  display: grid;
+  grid-template-columns: minmax(0, 380px) 1fr;
+  gap: 36px;
+  align-items: center;
+  margin-top: 26px;
+  padding: 28px;
+  border: 1px solid var(--line);
+  background: radial-gradient(120% 90% at 20% 30%, #171b28 0%, var(--night) 60%);
+}
+@media (max-width: 820px) { .safe-zone { grid-template-columns: 1fr; padding: 20px; } }
+.safe-zone > * { min-width: 0; }
+.dial-box { display: grid; justify-items: center; gap: 14px; }
+#dial { width: 100%; max-width: 340px; aspect-ratio: 1; height: auto; touch-action: none; cursor: grab; }
+#dial:active { cursor: grabbing; }
+.dial-status { font-family: var(--f-display); font-size: 1.6rem; letter-spacing: 0.05em; color: var(--guard); min-height: 1.4em; text-align: center; }
+.pips { font-size: 1.6rem; color: var(--amber); letter-spacing: 0.35em; }
+.dial-ctrls { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.dial-ctrls button {
+  font-family: var(--f-display);
+  font-size: 1.35rem;
+  letter-spacing: 0.06em;
+  padding: 8px 18px 6px;
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--line);
+  cursor: pointer;
+}
+.dial-ctrls button:hover { border-color: var(--text); }
+.dial-ctrls button.try { background: var(--amber); color: var(--ink); border-color: var(--amber); }
+.legend { list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 10px; }
+.legend li { display: grid; grid-template-columns: 112px 1fr; gap: 14px; align-items: baseline; }
+.legend .where { font-family: var(--f-mono); font-size: 0.85rem; color: var(--dim); letter-spacing: 0.04em; }
+.sw { display: inline-block; width: 10px; height: 10px; margin-right: 8px; transform: rotate(45deg) translateY(-1px); }
+.note { font-size: 0.98rem; color: var(--dim); margin-top: 16px; }
+
+/* ---------- Controles ---------- */
+.keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 26px; border: 1px solid var(--line); }
+@media (max-width: 860px) { .keys { grid-template-columns: 1fr; } }
+.keys > div { padding: 18px 20px; min-width: 0; }
+.keys > div + div { border-left: 1px solid var(--line); }
+@media (max-width: 860px) { .keys > div + div { border-left: 0; border-top: 1px solid var(--line); } }
+.keys h3 { font-size: 1.6rem; }
+.keys ul { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 8px; }
+.keys li { display: flex; justify-content: space-between; gap: 12px; font-size: 1.02rem; align-items: baseline; }
+.keys li span:last-child { text-align: right; flex-shrink: 0; }
+
+/* ---------- Contrajuego ---------- */
+.duel { display: grid; gap: 0; margin-top: 26px; border: 1px solid var(--line); }
+.duel-row { display: grid; grid-template-columns: 1fr 24px 1fr; gap: 14px; padding: 14px 18px; border-top: 1px solid var(--line); align-items: start; }
+.duel-row:first-child { border-top: 0; }
+.duel-row > div { min-width: 0; font-size: 1.02rem; }
+.duel-row .vs { font-family: var(--f-mono); color: var(--dim); text-align: center; padding-top: 2px; }
+@media (max-width: 640px) {
+  .duel-row { grid-template-columns: 1fr; gap: 4px; }
+  .duel-row .vs { text-align: left; }
+}
+
+/* ---------- Números ---------- */
+.ledger { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0; margin-top: 26px; border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+.ledger div { padding: 12px 16px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 12px; min-width: 0; }
+.ledger span:first-child { color: #c9c2b5; font-size: 1rem; }
+.ledger span:last-child { font-family: var(--f-mono); color: var(--amber); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+footer { margin-top: 80px; border-top: 1px solid var(--line); }
+footer .wrap { padding-block: 36px 48px; display: flex; flex-wrap: wrap; gap: 18px 40px; justify-content: space-between; align-items: end; }
+footer .sig { font-family: var(--f-script); font-size: 2.2rem; color: var(--amber); line-height: 1; }
+footer p { margin: 0; color: var(--dim); font-size: 0.98rem; max-width: 60ch; }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <div class="case-no">Expediente del golpe · Museo · 1984</div>
+    <h1>Velvet Heist <span class="yr">'84</span></h1>
+    <p class="motto">«Un caballero nunca deja huellas.»</p>
+    <p class="pitch">Un ladrón de guante blanco frente a una patrulla de guardias, en red o en solitario contra el ordenador. Sigilo asimétrico en un museo de noche: uno roba sin ser visto, los demás tienen que adivinar qué se va a llevar.</p>
+    <div class="cta-row">
+      <a class="btn" href="#instalar">Descargar e instalar</a>
+      <a class="btn ghost" href="https://github.com/suarezoscar/velvet-heist-84">Código en GitHub</a>
+    </div>
+    <div class="facts">
+      <span><b>1</b> ladrón contra <b>1–3</b> guardias</span>
+      <span>Partidas de <b>12</b> minutos</span>
+      <span><b>20</b> obras · <b>22</b> salas</span>
+      <span>Linux y Windows</span>
+      <span>Partidas en red</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section id="noche">
+    <div class="wrap">
+      <div class="eyebrow">Cómo va una partida</div>
+      <h2>La noche del golpe</h2>
+      <p class="lede">En el museo hay veinte piezas en el punto de mira. El ladrón tiene un encargo secreto con algunas de ellas; la patrulla solo sabe cuántas. Gana quien lea mejor al otro.</p>
+      <ol class="steps">
+        <li><div class="n">PASO 1</div><h3>El encargo</h3><p>Se sortean las piezas: <b class="t">4, 3 o 2</b> según jueguen 1, 2 o 3 guardias. El ladrón las ve en su lista. Los guardias reciben una carta: «Esta noche me llevaré 3 piezas».</p></li>
+        <li><div class="n">PASO 2</div><h3>La ronda</h3><p>Cada guardia sigue su propia ruta de relojes y vigila el circuito cerrado desde la garita. Quedarse plantado da sueño.</p></li>
+        <li><div class="n">PASO 3</div><h3>El robo</h3><p>Cada pieza tiene su protección. El ladrón decide: desactivarla y robar en silencio, o a lo bruto y que salte la alarma.</p></li>
+        <li><div class="n">PASO 4</div><h3>La huida</h3><p>Con el encargo completo, cruza cualquiera de las cuatro salidas exteriores y gana. Dos golpes de porra antes, y gana la patrulla.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="museo">
+    <div class="wrap">
+      <div class="eyebrow">El escenario</div>
+      <h2>El Museo Velvet</h2>
+      <p class="lede">Veintidós salas: galerías de retratos y de pintura, la rotonda de escultura, la cámara acorazada, la zona de servicio con la garita y un ala oriental con Arte Oriental, Joyas y Relojes, la Biblioteca, el Patio de Esculturas y la Sala de Tapices. Las paredes son altas; cuando tapan a tu personaje, se vuelven transparentes con un tramado de puntos.</p>
+      <div class="gallery">
+        <figure class="figure"><img src="img/paredes-tramado.jpg" alt="El ladrón en la Antesala; la pared que lo tapa se ve con un tramado de puntos" loading="lazy"><figcaption>Las paredes que tapan a tu personaje se ven con tramado.</figcaption></figure>
+        <figure class="figure"><img src="img/patio-esculturas.jpg" alt="Patio de Esculturas con columnas, una fuente y dos esculturas sobre pedestales" loading="lazy"><figcaption>Patio de Esculturas: el Caballo de bronce y el Gato de Bastet.</figcaption></figure>
+        <figure class="figure"><img src="img/arte-oriental.jpg" alt="Galería de Arte Oriental con biombo, vitrinas, la Katana del shogun y grabados japoneses" loading="lazy"><figcaption>Arte Oriental: el Jarrón Ming, la Katana del shogun y Hokusai en la pared.</figcaption></figure>
+        <figure class="figure"><img src="img/plano-guardia.jpg" alt="Plano azul del museo visto por un guardia, con las piezas en el punto de mira y su ruta de relojes" loading="lazy"><figcaption>El plano (M) de un guardia: piezas en el punto de mira, rastros y su ruta.</figcaption></figure>
+      </div>
+      <p class="note">Las pinturas son obras de dominio público de la colección Open Access del Metropolitan Museum of Art (Velázquez, Vermeer, Van Gogh, Rembrandt, Sargent, Hokusai…). Las esculturas y el mobiliario son modelos CC0 de Poly Haven.</p>
+    </div>
+  </section>
+
+  <section id="bandos">
+    <div class="wrap">
+      <div class="eyebrow">Mecánicas de cada bando</div>
+      <h2>Dos maneras de jugar la misma noche</h2>
+      <div class="sides">
+        <article class="side thief">
+          <div class="side-head">
+            <img src="img/ladron-niebla.jpg" alt="El ladrón en la Gran Galería de Escultura, entre bustos, columnas y cuadros" loading="lazy">
+            <div class="side-title"><div class="role">El ladrón</div><div class="who">Un jugador · roba sin ser visto</div></div>
+          </div>
+          <div class="moves">
+            <div class="group"><h4>Moverse y esconderse</h4><dl>
+              <dt>Cuatro pasos</dt><dd>Andar, correr (rápido y ruidoso), sigilo y agacharse, lo más silencioso.</dd>
+              <dt>Suelos que suenan</dt><dd>Moqueta, madera o piedra: cada suelo hace más o menos ruido. Un vúmetro le dice cuánto se le oye.</dd>
+              <dt>La oscuridad</dt><dd>Apagar una luz en su interruptor le esconde, aunque a oscuras también ve menos.</dd>
+              <dt>Peso del botín</dt><dd>Cada pieza le quita un 5 % de velocidad, hasta un mínimo del 70 %.</dd>
+              <dt>Ventilación</dt><dd>Tres redes de rejillas. Se cuela en 1,5 s, elige la salida y viaja sin que nadie lo vea ni lo toque. Tiene 20 s para elegir; si no, sale por donde entró.</dd>
+            </dl></div>
+            <div class="group"><h4>Robar</h4><dl>
+              <dt>Desactivar la protección</dt><dd>Combinación, cambiazo o corte de corriente, según la pieza. Robo en silencio.</dd>
+              <dt>A lo bruto</dt><dd>Instantáneo, pero suena la campana y la alerta salta a «alarma».</dd>
+            </dl></div>
+            <div class="group"><h4>Engañar</h4><dl>
+              <dt>Monedas</dt><dd>Tres por partida. Caen donde apunta el ratón y suenan como cualquier otro ruido.</dd>
+              <dt>Somnífero</dt><dd>Una dosis en la cafetera de la garita. El siguiente guardia que se sirva café se duerme 8 s.</dd>
+            </dl></div>
+            <div class="group"><h4>Lo que sabe</h4><dl>
+              <dt>Su firma</dt><dd>La primera vez que abres el juego eliges tu nombre. Si te toca ser el ladrón, la carta y la victoria llevan tu inicial: «Con mis respetos, —D.».</dd>
+              <dt>Oído fino</dt><dd>Oye los bostezos de un guardia con sueño y la cafetera cuando alguien deja su puesto.</dd>
+              <dt>Ve la alerta</dt><dd>Sabe cuándo le han descubierto, y ve el «Zzz» de un guardia que se ha quedado dormido.</dd>
+            </dl></div>
+          </div>
+        </article>
+
+        <article class="side guards">
+          <div class="side-head">
+            <img src="img/garita-guardias.jpg" alt="Dos guardias en la garita de seguridad, junto a la pared de monitores" loading="lazy">
+            <div class="side-title"><div class="role">La patrulla</div><div class="who">De uno a tres guardias · deducen y cierran el cerco</div></div>
+          </div>
+          <div class="moves">
+            <div class="group"><h4>Vigilar</h4><dl>
+              <dt>Linterna y vista</dt><dd>Ven al ladrón en el haz de la linterna, en una sala iluminada o a menos de 1,8 m (salvo justo a su espalda).</dd>
+              <dt>Porra</dt><dd>Dos golpes y el ladrón queda detenido.</dd>
+              <dt>Su ronda</dt><dd>Cada guardia tiene su ruta de 4 relojes, distinta de la de sus compañeros, y solo cuenta el siguiente. Cada tramo da el tiempo de ir andando y algo más. Dos faltas por guardia y la ronda se rompe: al acabar el tiempo, empate.</dd>
+            </dl></div>
+            <div class="group"><h4>La garita</h4><dl>
+              <dt>La puerta</dt><dd>La garita tiene una sola puerta. Cerrada, desde dentro no se ve el pasillo. Cruje al abrirse y se cierra sola; el ladrón la puede forzar en 2 s.</dd>
+              <dt>Circuito cerrado</dt><dd>Cinco cámaras con su monitor. Solo detectan al ladrón y los pedestales vacíos si alguien está mirando.</dd>
+              <dt>Panel de pilotos</dt><dd>Una luz roja por ala avisa de un corte de corriente.</dd>
+              <dt>Cafetera</dt><dd>Un café quita el sueño y deja despejado 120 s. Suena, y el ladrón lo oye.</dd>
+            </dl></div>
+            <div class="group"><h4>Investigar</h4><dl>
+              <dt>Rastros</dt><dd>Un pedestal vacío a la vista sube la alerta y tacha esa pieza en el plano del equipo. Una rejilla de ventilación abierta también delata al ladrón: se cierra con E.</dd>
+              <dt>Examinar</dt><dd>2 s junto a una pieza: «Auténtica» o «¡Es una falsificación!».</dd>
+              <dt>Restablecer la corriente</dt><dd>3 s en el cuadro del ala cortada.</dd>
+              <dt>Walkie</dt><dd>Marca un punto en el plano de todos durante 8 s. Su chasquido se oye.</dd>
+              <dt>Luces de alarma</dt><dd>Solo en «alarma»: enciende de golpe toda una zona durante 30 s.</dd>
+            </dl></div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="protecciones">
+    <div class="wrap">
+      <div class="eyebrow">Cómo se roba cada pieza</div>
+      <h2>Tres protecciones y una mala idea</h2>
+      <p class="lede">Siete de combinación, siete de presión y seis de sensor. Desactivar la protección lleva tiempo; robar a lo bruto, ninguno, pero toda la patrulla lo oye.</p>
+      <div class="scroll">
+        <table>
+          <thead><tr><th scope="col">Protección</th><th scope="col">Cómo se desactiva</th><th scope="col">Qué deja</th><th scope="col">Qué puede hacer la patrulla</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Combinación</th><td>Girar el dial de la vitrina o de la caja fuerte hasta los tres números.</td><td>La vitrina vacía: un rastro normal.</td><td>Verla vacía. La caja fuerte no se puede forzar.</td></tr>
+            <tr><th scope="row">Presión</th><td>El cambiazo: coger una réplica en una de las dos mesas de réplicas y cambiarla por el original (2 s).</td><td>Una copia casi igual, con un fallo de color, tamaño o pose.</td><td>Compararla con la ficha y examinarla. Sin examinar, no cuenta como rastro.</td></tr>
+            <tr><th scope="row">Sensor</th><td>Cortar la corriente del ala en su cuadro eléctrico (3 s).</td><td>El ala a oscuras y un piloto rojo en la garita.</td><td>Ver el piloto o la oscuridad, y restablecer la corriente.</td></tr>
+            <tr class="brute"><th scope="row">A lo bruto</th><td>Nada que desactivar: <kbd>Q</kbd>, o <kbd>E</kbd> sin la protección quitada.</td><td>La campana de la sala y la alerta en «alarma».</td><td>Ir todos hacia allí.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="alerta">
+    <div class="wrap">
+      <div class="eyebrow">El nivel de alerta</div>
+      <h2>La alerta nunca baja</h2>
+      <p class="lede">La ven los dos bandos. Cada rastro descubierto acerca a la patrulla a la alarma, y la alarma cambia el ritmo de la partida.</p>
+      <div class="alert-track">
+        <div class="lvl calm"><div class="name">Calma</div><div class="how">Al empezar</div><p>Ronda normal. Nadie sabe nada.</p></div>
+        <div class="lvl susp"><div class="name">Sospecha</div><div class="how">1 rastro descubierto</div><p>Los rastros aparecen en el plano de todo el equipo.</p></div>
+        <div class="lvl alarm"><div class="name">Alarma</div><div class="how">2 rastros · ver al ladrón · robo a lo bruto</div><p>Luces de alarma disponibles. Adrenalina: el sueño de todos vuelve a cero y deja de subir.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="sueno">
+    <div class="wrap">
+      <div class="eyebrow">Contra el campeo</div>
+      <h2>Quien se planta, se duerme</h2>
+      <p class="lede">Esperar al ladrón delante de una pieza no sale gratis. El juego mide cuánto tiempo pasa cada guardia dentro de un círculo de 8 m; dar pasitos adelante y atrás no le engaña.</p>
+      <div class="sleep-grid">
+        <div class="meter">
+          <div class="meter-bar" role="img" aria-label="Barra de sueño: somnoliento desde el 50 %, agotado al 100 %">
+            <span class="tick" style="left:0%">0 %</span>
+            <span class="tick" style="left:50%">50 %</span>
+            <span class="tick" style="left:60%; top:auto; bottom:-26px">bajón 60 %</span>
+            <span class="tick end" style="left:100%">100 %</span>
+          </div>
+          <div class="stage-row">
+            <div><b style="color:#5fb0dc">Despierto</b><span>Sin efectos.</span></div>
+            <div><b class="a">Somnoliento</b><span>Bosteza (se oye) y ve un 20 % menos.</span></div>
+            <div><b style="color:var(--bad)">Agotado</b><span>Cabezadas de 1,5 s sin ver nada, con «Zzz» a la vista.</span></div>
+          </div>
+          <div class="swing">
+            <p style="--c:var(--ok)"><b>Café</b> en la garita: sueño a cero y 120 s despejado.</p>
+            <p style="--c:var(--bad)"><b>Adrenalina</b> al saltar la alarma: sueño a cero.</p>
+            <p style="--c:var(--amber)"><b>Bajón</b> cuando se apagan las luces de alarma: el sueño de todos sube al 60 %.</p>
+            <p style="--c:var(--thief)"><b>Somnífero</b> del ladrón: el siguiente café duerme al guardia 8 s.</p>
+          </div>
+        </div>
+        <figure class="figure">
+          <img src="img/guardia-dormido.jpg" alt="El ladrón, marcado como TÚ, junto a un guardia dormido con «Zzz» sobre la cabeza" loading="lazy">
+          <figcaption>Un guardia dando una cabezada. El ladrón pasa a su lado.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <section id="caja">
+    <div class="wrap">
+      <div class="eyebrow">Pruébalo aquí</div>
+      <h2>Abre la caja fuerte</h2>
+      <p class="lede">Gira el dial y escucha. Cada número de la combinación tiene su sonido. Encuentra los tres y la caja se abre.</p>
+      <div class="safe-zone">
+        <div class="dial-box">
+          <canvas id="dial" width="680" height="680" tabindex="0" aria-label="Dial de la caja fuerte. Flechas izquierda y derecha para girar, E o Intro para probar el número"></canvas>
+          <div class="dial-status" id="dialStatus" aria-live="polite">NÚMERO 1 DE 3</div>
+          <div class="pips" id="pips">○ ○ ○</div>
+          <div class="dial-ctrls">
+            <button type="button" id="left" aria-label="Girar a la izquierda">◀ Girar</button>
+            <button type="button" id="try" class="try">Probar · E</button>
+            <button type="button" id="right" aria-label="Girar a la derecha">Girar ▶</button>
+          </div>
+        </div>
+        <div>
+          <h3>Escucha el mecanismo</h3>
+          <ul class="legend">
+            <li><span class="where"><span class="sw" style="background:#6d6a62"></span>Lejos</span><span>Un tic seco en cada marca.</span></li>
+            <li><span class="where"><span class="sw" style="background:var(--amber)"></span>A 2 pasos</span><span>Un clic metálico.</span></li>
+            <li><span class="where"><span class="sw" style="background:var(--amber)"></span>A 1 paso</span><span>El clic, más fuerte y más grave.</span></li>
+            <li><span class="where"><span class="sw" style="background:var(--ok)"></span>En el número</span><span>Un golpe sordo: el pestillo cae.</span></li>
+            <li><span class="where">Al probar</span><span>Un acorde si aciertas; un traqueteo si fallas, y vuelta al primer número.</span></li>
+          </ul>
+          <p class="note">En el juego, <kbd>←</kbd> <kbd>→</kbd> o <kbd>A</kbd> <kbd>D</kbd> giran el dial (mantener gira seguido), <kbd>E</kbd> prueba el número y <kbd>Esc</kbd> sale. Aquí, haz clic en el dial y usa las flechas, arrástralo o pulsa los botones. Activa el sonido. Los guardias cercanos también oyen el dial.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="controles">
+    <div class="wrap">
+      <div class="eyebrow">Manual</div>
+      <h2>Controles</h2>
+      <div class="keys">
+        <div>
+          <h3>Todos</h3>
+          <ul>
+            <li><span>Moverse</span><span><kbd>W A S D</kbd> / flechas</span></li>
+            <li><span>Mirar</span><span>Ratón</span></li>
+            <li><span>Correr</span><span><kbd>Mayús</kbd></span></li>
+            <li><span>Sigilo</span><span><kbd>C</kbd></span></li>
+            <li><span>Interactuar</span><span><kbd>E</kbd></span></li>
+            <li><span>Plano del museo</span><span><kbd>M</kbd> / <kbd>Tab</kbd></span></li>
+            <li><span>Datos de la conexión</span><span><kbd>F9</kbd></span></li>
+            <li><span>Pausa y controles</span><span><kbd>Esc</kbd></span></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="t">Ladrón</h3>
+          <ul>
+            <li><span>Agacharse</span><span><kbd>Ctrl</kbd></span></li>
+            <li><span>Robar a lo bruto</span><span><kbd>Q</kbd></span></li>
+            <li><span>Lanzar una moneda</span><span>Clic derecho</span></li>
+            <li><span>Dial: girar</span><span><kbd>←</kbd> <kbd>→</kbd> / <kbd>A</kbd> <kbd>D</kbd></span></li>
+            <li><span>Dial: probar · salir</span><span><kbd>E</kbd> · <kbd>Esc</kbd></span></li>
+            <li><span>Somnífero, cambiazo, cuadro</span><span><kbd>E</kbd></span></li>
+            <li><span>Ventilación: entrar · ir</span><span><kbd>E</kbd></span></li>
+            <li><span>Ventilación: elegir salida</span><span><kbd>←</kbd> <kbd>→</kbd></span></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="g">Guardias</h3>
+          <ul>
+            <li><span>Linterna</span><span><kbd>F</kbd></span></li>
+            <li><span>Porra</span><span>Clic izquierdo</span></li>
+            <li><span>Walkie</span><span><kbd>T</kbd></span></li>
+            <li><span>Luces de alarma</span><span><kbd>Q</kbd></span></li>
+            <li><span>Monitores, café, examinar</span><span><kbd>E</kbd></span></li>
+            <li><span>Fichar, puerta, cerrar rejilla</span><span><kbd>E</kbd></span></li>
+            <li><span>Revancha (al acabar)</span><span><kbd>R</kbd></span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contrajuego">
+    <div class="wrap">
+      <div class="eyebrow">Jugada y respuesta</div>
+      <h2>Cada truco tiene su contra</h2>
+      <div class="duel">
+        <div class="duel-row"><div><b class="g">Un guardia acampa</b> junto a una pieza.</div><div class="vs">→</div><div>Le entra sueño y bosteza. El ladrón roba las otras o espera a que vaya a por café.</div></div>
+        <div class="duel-row"><div><b class="t">El ladrón droga la cafetera.</b></div><div class="vs">→</div><div>Nadie lo nota hasta que alguien cae dormido. Pasar por la garita de vez en cuando lo evita.</div></div>
+        <div class="duel-row"><div><b class="t">El ladrón lanza una moneda.</b></div><div class="vs">→</div><div>Suena como cualquier ruido. Mejor mandar a uno solo a mirar, con el walkie.</div></div>
+        <div class="duel-row"><div><b class="t">El ladrón da el cambiazo.</b></div><div class="vs">→</div><div>La copia tiene un fallo. Compararla con la ficha y examinarla, sin perder el tiempo examinándolo todo.</div></div>
+        <div class="duel-row"><div><b class="t">El ladrón corta la corriente.</b></div><div class="vs">→</div><div>Se enciende un piloto rojo en la garita y el ala se queda a oscuras. Restablecerla protege lo que queda.</div></div>
+        <div class="duel-row"><div><b class="g">La patrulla enciende las luces de alarma.</b></div><div class="vs">→</div><div>30 s sin sombras. Después llega el bajón: el ladrón espera y aprovecha.</div></div>
+        <div class="duel-row"><div><b class="t">El ladrón va hacia la salida.</b></div><div class="vs">→</div><div>Nada lo delata antes de cruzar, y hay cuatro salidas para cubrir.</div></div>
+        <div class="duel-row"><div><b class="t">El ladrón se mete en la ventilación.</b></div><div class="vs">→</div><div>Se oye la rejilla y el conducto retumba. Las dos rejillas quedan abiertas 20 s: hay que mirar cerca de las otras rejillas de esa red.</div></div>
+        <div class="duel-row"><div><b class="g">Un guardia se encierra en la garita.</b></div><div class="vs">→</div><div>No ve el pasillo, y cada vez que alguien abre la puerta, cruje. El ladrón sabe cuándo sale.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="numeros">
+    <div class="wrap">
+      <div class="eyebrow">Para afinar después del playtest</div>
+      <h2>Los números de esta noche</h2>
+      <div class="ledger">
+        <div><span>Duración de la partida</span><span>12:00</span></div>
+        <div><span>Piezas en el punto de mira</span><span>20</span></div>
+        <div><span>Piezas con 1 · 2 · 3 guardias</span><span>4 · 3 · 2</span></div>
+        <div><span>Golpes para capturar</span><span>2</span></div>
+        <div><span>Relojes por ruta</span><span>4 de 8</span></div>
+        <div><span>Tramo de ronda</span><span>andando × 1,8 + 15 s</span></div>
+        <div><span>Faltas permitidas</span><span>2 por guardia</span></div>
+        <div><span>Ventilación</span><span>2 m/s · 20 s para elegir</span></div>
+        <div><span>Forzar la garita</span><span>2 s</span></div>
+        <div><span>Radio de acampada</span><span>8 m</span></div>
+        <div><span>Acampando, hasta somnoliento</span><span>≈ 45 s</span></div>
+        <div><span>Café despejado</span><span>120 s</span></div>
+        <div><span>Siesta del somnífero</span><span>8 s</span></div>
+        <div><span>Monedas del ladrón</span><span>3</span></div>
+        <div><span>Campana a lo bruto</span><span>15 m</span></div>
+        <div><span>Luces de alarma</span><span>30 s · espera 60 s</span></div>
+        <div><span>Cambiazo · examinar</span><span>2 s · 2 s</span></div>
+        <div><span>Cortar · restablecer</span><span>3 s · 3 s</span></div>
+        <div><span>Peso del botín</span><span>−5 % por pieza</span></div>
+        <div><span>Proximidad del guardia</span><span>1,8 m</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="instalar">
+    <div class="wrap">
+      <div class="eyebrow">Antes de la primera noche</div>
+      <h2>Cómo instalarlo</h2>
+      <p class="lede">Se descarga una vez y se mantiene al día solo: cuando sale una versión, el menú principal te avisa y la instala con un botón.</p>
+      <ol class="steps">
+        <li><div class="n">WINDOWS</div><h3>El instalador</h3><p>Descarga <a href="https://github.com/suarezoscar/velvet-heist-84/releases/latest/download/VelvetHeist84-win-Setup.exe"><b>VelvetHeist84-win-Setup.exe</b></a> y ábrelo: el juego se instala y se abre solo. No está firmado: en el aviso de SmartScreen pulsa «Más información» y luego «Ejecutar de todos modos».</p></li>
+        <li><div class="n">LINUX</div><h3>El AppImage</h3><p>Descarga <a href="https://github.com/suarezoscar/velvet-heist-84/releases/latest/download/VelvetHeist84.AppImage"><b>VelvetHeist84.AppImage</b></a>, dale permiso de ejecución (<code>chmod +x VelvetHeist84.AppImage</code>) y ábrelo.</p></li>
+        <li><div class="n">AL DÍA</div><h3>Ha llegado la versión…</h3><p>Abajo a la derecha del menú aparece el aviso. Pulsa «Actualizar y reiniciar»: el juego descarga lo justo, se cierra un momento y vuelve a abrirse. Nunca salta en mitad de una partida.</p></li>
+      </ol>
+      <p class="note">Para jugar en red, todos tenéis que tener la misma versión. Si prefieres no instalar nada, en la <a href="https://github.com/suarezoscar/velvet-heist-84/releases/latest">página de descargas</a> están también el .zip (Windows) y el .tar.gz (Linux); esos no se actualizan solos.</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <div class="sig">Con mis respetos. —V.</div>
+      <p>Velvet Heist '84 está en su primera versión, hecha con Godot 4.7. Cafetera: CoffeeCart de Poly Haven (CC0). Música y efectos con sus créditos en el repositorio.</p>
+    </div>
+    <a class="btn ghost" href="https://github.com/suarezoscar/velvet-heist-84/releases/latest">Última versión</a>
+  </div>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+  var canvas = document.getElementById("dial");
+  var ctx = canvas.getContext("2d");
+  var statusEl = document.getElementById("dialStatus");
+  var pipsEl = document.getElementById("pips");
+  var NEAR = 2;
+  var combo = [];
+  var stage = 0;
+  var value = 0;
+  var shown = 0;
+  var flash = null;
+  var flashT = 0;
+
+  function newCombo() {
+    combo = [];
+    while (combo.length < 3) {
+      var n = Math.floor(Math.random() * 100);
+      if (combo.indexOf(n) < 0 && n !== 0) combo.push(n);
+    }
+    stage = 0;
+  }
+  newCombo();
+
+  function distance() {
+    if (stage >= combo.length) return 100;
+    var d = Math.abs(value - combo[stage]) % 100;
+    return Math.min(d, 100 - d);
+  }
+
+  // ----- Sonido: los mismos sonidos que el juego (DialSounds), sintetizados -----
+  var audio = null;
+  var buffers = {};
+  function tone(t, f) { return Math.sin(2 * Math.PI * f * t); }
+  var shapes = {
+    tick: [0.014, function (t, n) { return (n * 0.5 + tone(t, 4200) * 0.5) * Math.exp(-t * 500) * 0.22; }],
+    near2: [0.04, function (t, n) { return (tone(t, 2400) * 0.6 + tone(t, 3600) * 0.3 + n * 0.3) * Math.exp(-t * 160) * 0.45; }],
+    near1: [0.05, function (t, n) { return (tone(t, 1700) * 0.6 + tone(t, 2550) * 0.35 + n * 0.3) * Math.exp(-t * 110) * 0.7; }],
+    exact: [0.16, function (t, n) {
+      var thump = tone(t, 140) * 0.8 + tone(t, 280) * 0.35;
+      var snap = (n * 0.6 + tone(t, 1300) * 0.4) * Math.exp(-t * 220);
+      return thump * Math.exp(-t * 28) * 0.6 + snap * 0.35;
+    }],
+    correct: [0.32, function (t) {
+      var first = tone(t, 880) * Math.exp(-t * 14);
+      var second = t >= 0.1 ? tone(t, 1320) * Math.exp(-(t - 0.1) * 12) : 0;
+      return (first * 0.35 + second * 0.4) * 0.8;
+    }],
+    wrong: [0.28, function (t, n) {
+      var r = 0;
+      [0, 0.05, 0.1].forEach(function (s) { if (t >= s) r += n * Math.exp(-(t - s) * 160); });
+      return r * 0.45 + tone(t, 95) * Math.exp(-t * 9) * 0.45;
+    }]
+  };
+  function ensureAudio() {
+    if (audio) return;
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    try { audio = new AC(); } catch (e) { audio = null; return; }
+    Object.keys(shapes).forEach(function (k) {
+      var secs = shapes[k][0], fn = shapes[k][1];
+      var len = Math.floor(secs * audio.sampleRate);
+      var buf = audio.createBuffer(1, len, audio.sampleRate);
+      var data = buf.getChannelData(0);
+      for (var i = 0; i < len; i++) {
+        var v = fn(i / audio.sampleRate, Math.random() * 2 - 1);
+        data[i] = Math.max(-1, Math.min(1, v));
+      }
+      buffers[k] = buf;
+    });
+  }
+  function play(name) {
+    ensureAudio();
+    if (!audio || !buffers[name]) return;
+    if (audio.state === "suspended") audio.resume();
+    var src = audio.createBufferSource();
+    src.buffer = buffers[name];
+    var gain = audio.createGain();
+    gain.gain.value = 0.9;
+    src.connect(gain).connect(audio.destination);
+    src.start();
+  }
+  function soundFor(d) {
+    if (d === 0) return "exact";
+    if (d === 1) return "near1";
+    if (d <= NEAR) return "near2";
+    return "tick";
+  }
+
+  // ----- Lógica del dial -----
+  function step(dir) {
+    if (stage >= combo.length) { newCombo(); updateText(); }
+    value = (value + dir + 100) % 100;
+    play(soundFor(distance()));
+  }
+  function tryNumber() {
+    if (stage >= combo.length) { newCombo(); value = 0; updateText(); return; }
+    if (value === combo[stage]) {
+      stage += 1;
+      flash = "#4be38a"; flashT = 1;
+      play("correct");
+    } else {
+      stage = 0;
+      flash = "#ff4a3d"; flashT = 1;
+      play("wrong");
+    }
+    updateText();
+  }
+  function updateText() {
+    var marks = [];
+    for (var i = 0; i < combo.length; i++) marks.push(i < stage ? "●" : "○");
+    pipsEl.textContent = marks.join(" ");
+    if (stage >= combo.length) {
+      statusEl.textContent = "¡ABIERTA! PULSA PROBAR PARA OTRA";
+      statusEl.style.color = "var(--ok)";
+    } else {
+      statusEl.textContent = "NÚMERO " + (stage + 1) + " DE " + combo.length;
+      statusEl.style.color = "var(--guard)";
+    }
+  }
+
+  // ----- Dibujo (como SafeDial84) -----
+  function pointerColor() {
+    var d = distance();
+    if (stage >= combo.length) return "#4be38a";
+    if (d === 0) return "#4be38a";
+    if (d <= NEAR) return "#f2b84b";
+    return "#6d6a62";
+  }
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function draw() {
+    var diff = ((value - shown + 150) % 100) - 50;
+    shown = reduce ? value : (shown + diff * 0.3 + 100) % 100;
+    var W = canvas.width, c = W / 2, R = W / 2 - 46;
+    ctx.clearRect(0, 0, W, W);
+    var tip = R + 8;
+    ctx.fillStyle = pointerColor();
+    ctx.beginPath();
+    ctx.moveTo(c - 22, c - tip - 30);
+    ctx.lineTo(c + 22, c - tip - 30);
+    ctx.lineTo(c, c - tip + 16);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath(); ctx.arc(c, c, R, 0, Math.PI * 2); ctx.fillStyle = "#16181e"; ctx.fill();
+    ctx.lineWidth = 12; ctx.strokeStyle = "#b9b4a8"; ctx.stroke();
+    if (flashT > 0 && flash) {
+      ctx.globalAlpha = flashT;
+      ctx.lineWidth = 10; ctx.strokeStyle = flash;
+      ctx.beginPath(); ctx.arc(c, c, R + 16, 0, Math.PI * 2); ctx.stroke();
+      ctx.globalAlpha = 1;
+      flashT = Math.max(0, flashT - 0.035);
+    }
+    ctx.font = "40px 'Bebas Neue', Impact, sans-serif";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    for (var i = 0; i < 100; i++) {
+      var a = (i - shown) * Math.PI * 2 / 100 - Math.PI / 2;
+      var dx = Math.cos(a), dy = Math.sin(a);
+      var len = i % 10 === 0 ? 40 : (i % 5 === 0 ? 26 : 13);
+      ctx.lineWidth = i % 10 === 0 ? 5 : 2.5;
+      ctx.strokeStyle = "rgba(185,180,168,0.9)";
+      ctx.beginPath();
+      ctx.moveTo(c + dx * (R - 24), c + dy * (R - 24));
+      ctx.lineTo(c + dx * (R - 24 - len), c + dy * (R - 24 - len));
+      ctx.stroke();
+      if (i % 10 === 0) {
+        ctx.fillStyle = "#b9b4a8";
+        ctx.fillText(String(i), c + dx * (R - 100), c + dy * (R - 100) + 2);
+      }
+    }
+    ctx.beginPath(); ctx.arc(c, c, R * 0.38, 0, Math.PI * 2); ctx.fillStyle = "#0c0d11"; ctx.fill();
+    ctx.lineWidth = 3; ctx.strokeStyle = "rgba(185,180,168,0.5)"; ctx.stroke();
+    ctx.fillStyle = "#ece4d6";
+    ctx.font = "150px 'Bebas Neue', Impact, sans-serif";
+    ctx.fillText((value < 10 ? "0" : "") + value, c, c + 8);
+    requestAnimationFrame(draw);
+  }
+
+  // ----- Entrada -----
+  var holdTimer = null;
+  function hold(dir) {
+    step(dir);
+    var interval = 120;
+    var start = Date.now();
+    function again() {
+      step(dir);
+      var held = (Date.now() - start) / 1000;
+      interval = Math.max(35, 120 - held * 70);
+      holdTimer = setTimeout(again, interval);
+    }
+    holdTimer = setTimeout(again, 300);
+  }
+  function release() { clearTimeout(holdTimer); holdTimer = null; }
+  [["left", -1], ["right", 1]].forEach(function (pair) {
+    var b = document.getElementById(pair[0]);
+    b.addEventListener("pointerdown", function (e) { e.preventDefault(); hold(pair[1]); });
+    ["pointerup", "pointerleave", "pointercancel"].forEach(function (ev) { b.addEventListener(ev, release); });
+    b.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); step(pair[1]); } });
+  });
+  document.getElementById("try").addEventListener("click", tryNumber);
+  canvas.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") { e.preventDefault(); step(-1); }
+    else if (e.key === "ArrowRight" || e.key === "d" || e.key === "D") { e.preventDefault(); step(1); }
+    else if (e.key === "e" || e.key === "E" || e.key === "Enter") { e.preventDefault(); tryNumber(); }
+  });
+  // Arrastrar: cada 3,6° de giro es una marca
+  var dragAngle = null, dragAcc = 0;
+  function angleOf(e) {
+    var r = canvas.getBoundingClientRect();
+    return Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2));
+  }
+  canvas.addEventListener("pointerdown", function (e) { canvas.focus(); canvas.setPointerCapture(e.pointerId); dragAngle = angleOf(e); dragAcc = 0; ensureAudio(); });
+  canvas.addEventListener("pointermove", function (e) {
+    if (dragAngle === null) return;
+    var a = angleOf(e);
+    var d = a - dragAngle;
+    if (d > Math.PI) d -= Math.PI * 2;
+    if (d < -Math.PI) d += Math.PI * 2;
+    dragAngle = a;
+    dragAcc += d * 100 / (Math.PI * 2);
+    while (dragAcc >= 1) { step(-1); dragAcc -= 1; }
+    while (dragAcc <= -1) { step(1); dragAcc += 1; }
+  });
+  ["pointerup", "pointercancel"].forEach(function (ev) { canvas.addEventListener(ev, function () { dragAngle = null; }); });
+
+  updateText();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () {});
+  requestAnimationFrame(draw);
+})();
+</script>
+</body>
+</html>
