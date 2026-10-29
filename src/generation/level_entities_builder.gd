@@ -38,6 +38,7 @@ static func build(data: LevelData, map: Node3D) -> Node3D:
 	var props: Node3D = Node3D.new()
 	props.name = "Props"
 	map.add_child(props)
+	props.add_child(FallGuard.new())  # nadie cae sin fin por un hueco del mapa
 	for lamp: Dictionary in data.section("lamps"):
 		_add_lamp(data, props, lamp)
 	for switch_data: Dictionary in data.section("switches"):

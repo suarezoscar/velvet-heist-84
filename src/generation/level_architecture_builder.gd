@@ -63,6 +63,7 @@ static func build(data: LevelData, parent: Node3D) -> Node3D:
 		)
 	for cover: Dictionary in data.section("covers"):
 		_add_cover(data, root, cover)
+	LevelBoundsBuilder.build(data, root)  # cierres de las zonas exteriores
 	return root
 
 
