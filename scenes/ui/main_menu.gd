@@ -60,9 +60,11 @@ func _ready() -> void:
 		_open(name_panel)  # la primera vez, ¿cómo te llamas? (FEAT-035)
 		name_panel.field.grab_focus.call_deferred()
 	var notice: String = MenuReturn.take_notice()
-	if notice != "":  # volvemos de una partida que se cortó (FEAT-026)
+	var back_to_lobby: bool = MenuReturn.take_lobby()  # vuelta a la sala (FEAT-041)
+	if notice != "" or back_to_lobby:  # o volvemos de una partida que se cortó (FEAT-026)
 		open_section(&"multi")
-		lobby_view.show_notice(notice)
+		if notice != "":
+			lobby_view.show_notice(notice)
 
 
 func _unhandled_input(event: InputEvent) -> void:

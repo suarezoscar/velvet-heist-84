@@ -93,3 +93,26 @@ func test_players_in_lobby_do_not_block_rematch() -> void:
 	GameManager.current_state = GameManager.MatchState.THIEF_CAPTURED
 	assert_false(vote.register_vote(5, true), "Desde el lobby no se vota")
 	assert_eq(vote.voters.size(), 0)
+
+
+## «VOLVER A LA SALA» (FEAT-041): solo con la partida acabada y desde quien tiene bando en el
+## mapa; borra los votos de revancha y no desconecta a nadie
+func test_back_to_lobby_takes_everyone_without_disconnecting() -> void:
+	NetManager.start_dedicated_server(7777)
+	NetManager.register_player(2, "Ana", &"thief")
+	NetManager.register_player(3, "Luis", &"guard_1")
+	NetManager.connected_players[4] = {"peer_id": 4, "role": &"", "name": "S"}
+	var vote: NetRematch = NetRematch.new()
+	var left: Array[String] = []
+	vote.leave = func(message: String) -> void: left.append(message)
+	add_child_autofree(vote)
+	GameManager.current_state = GameManager.MatchState.IN_PROGRESS
+	assert_false(vote.return_to_lobby(2), "En juego no")
+	GameManager.current_state = GameManager.MatchState.THIEF_ESCAPED
+	assert_false(vote.return_to_lobby(4), "Sin bando no")
+	vote.register_vote(3, true)
+	assert_true(vote.return_to_lobby(2))
+	assert_eq(left, [""] as Array[String], "El servidor vuelve a su menú, sin aviso")
+	assert_eq(vote.voters.size(), 0, "Se cancela la revancha")
+	assert_true(NetManager.is_online(), "Nadie se desconecta")
+	assert_eq(NetRematch.lobby_notice("Ana"), "Ana ha vuelto a la sala para cambiar de bandos.")

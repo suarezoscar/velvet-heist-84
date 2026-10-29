@@ -4,7 +4,8 @@
 ## bando que está en el mapa vota (o retira su voto); el servidor reparte el recuento y, cuando
 ## han votado todos y sigue habiendo ladrón y al menos un guardia, vuelve a lanzar el mapa con
 ## los mismos bandos. Es el único camino para relanzar con el mapa cargado: NetManager rechaza
-## las peticiones de «empezar» que llegan entonces desde el lobby.
+## las peticiones de «empezar» que llegan entonces desde el lobby. También lleva a todos de
+## vuelta a la sala de espera (FEAT-041) sin desconectar a nadie.
 class_name NetRematch
 extends Node
 
@@ -17,6 +18,8 @@ var voters: Array[int] = []
 var needed: int = 0
 ## Peers que han cargado el mapa (los da NetSession); null: todos los conectados (tests)
 var in_map: Callable = Callable()
+## Cómo se va a la sala: MenuReturn.to_lobby (los tests lo cambian para no salir del árbol)
+var leave: Callable = Callable()
 
 
 func _ready() -> void:
@@ -93,6 +96,50 @@ func _present() -> Array[int]:
 func _on_left(_peer: int) -> void:
 	if GameManager.is_match_over():
 		_check.call_deferred(NetManager.get_connected_players())
+
+
+## Lleva a todos a la sala de espera para cambiar de bandos (FEAT-041), desde este cliente
+func back_to_lobby() -> void:
+	_server_lobby.rpc_id(1)
+
+
+## Lógica del servidor: con la partida acabada, cualquiera con bando que esté en el mapa lleva
+## a todos a la sala sin desconectar a nadie; el servidor vuelve a su menú para poder empezar
+## otra. true si lo hace
+func return_to_lobby(peer: int) -> bool:
+	if not GameManager.is_match_over():
+		return false
+	var players: Dictionary = NetManager.get_connected_players()
+	if not voters_expected(players, _present()).has(peer):
+		return false
+	var who: String = String(players[peer].get("name", ""))
+	voters.clear()
+	_client_lobby.rpc(who if not who.is_empty() else "Alguien")
+	_leave("")
+	return true
+
+
+## Aviso de la sala al volver
+static func lobby_notice(who: String) -> String:
+	return "%s ha vuelto a la sala para cambiar de bandos." % who
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _server_lobby() -> void:
+	if multiplayer.is_server():
+		return_to_lobby(multiplayer.get_remote_sender_id())
+
+
+@rpc("authority", "call_remote", "reliable")
+func _client_lobby(who: String) -> void:
+	_leave(lobby_notice(who))
+
+
+func _leave(message: String) -> void:
+	if leave.is_valid():
+		leave.call(message)
+	else:
+		MenuReturn.to_lobby(get_tree(), message)
 
 
 @rpc("any_peer", "call_remote", "reliable")
