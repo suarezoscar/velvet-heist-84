@@ -12,7 +12,8 @@ Recibes una rama (o su worktree) y su FEAT.
 2. Sigue `.agents/skills/review/SKILL.md`.
 3. Ejecuta tú: `./tools/ci/import.sh`, `./tools/ci/check_scripts.sh <archivos .gd cambiados>`, `./tools/ci/lint.sh`, `./tools/ci/check_patterns.sh` y `./tools/ci/run_tests.sh`.
 4. Comprueba que el código cumple la FEAT (valores, contratos, autoridad de red), no solo que los tests pasan. Si puedes, pruébalo de verdad (headless, o servidor y clientes en red).
-5. Céntrate en lo que rompe el juego o la seguridad. Lo cosmético va como sugerencia, no como bloqueante: el objetivo es un PoC jugable.
+5. Si el diff toca textos que lee el jugador, compruébalos con `.agents/rules/06-textos.md`: glosario, tratamiento, tecnicismos y ortografía.
+6. Céntrate en lo que rompe el juego o la seguridad. Lo cosmético va como sugerencia, no como bloqueante: el objetivo es un PoC jugable.
 
 ## Modo auditoría
 Recibes una o varias FEAT marcadas como hechas. Para cada criterio de aceptación, busca en el código actual de `master` la implementación y el test que lo demuestran, y ejecuta la suite.

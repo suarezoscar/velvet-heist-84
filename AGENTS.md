@@ -64,4 +64,4 @@ Los modelos de Mixamo miran a +Z: `VisualRoot` los gira 180° para que el frente
 - Cada cambio se queda dentro del alcance de su FEAT; lo demás va al backlog.
 
 ## Reglas por dominio (se cargan según su descripción)
-`.agents/rules/`: 01 arquitectura GDScript · 02 assets · 03 red · 04 VFX, shaders y UI · 05 verificación.
+`.agents/rules/`: 01 arquitectura GDScript · 02 assets · 03 red · 04 VFX, shaders y UI · 05 verificación · 06 textos para el jugador (`docs/gdd/estilo-de-textos.md`).
