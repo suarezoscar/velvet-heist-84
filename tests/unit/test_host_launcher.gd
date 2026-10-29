@@ -6,9 +6,14 @@ extends GutTest
 const PORT: int = 7811
 
 
+func before_each() -> void:
+	HostLauncher.upnp_enabled = false  # los tests no tocan el router de verdad
+
+
 func after_each() -> void:
 	HostPanel84.close_hosted(get_tree())
 	NetManager.disconnect_network()
+	HostLauncher.upnp_enabled = true
 
 
 func test_server_args_include_port_and_hosted() -> void:
@@ -91,3 +96,48 @@ func test_create_join_and_close_a_real_match() -> void:
 	HostPanel84.close_hosted(get_tree())
 	await wait_frames(2)
 	assert_null(HostLauncher.current(get_tree()), "Ya no hay partida creada")
+
+
+func test_ports_and_public_ips() -> void:
+	assert_true(HostLauncher.valid_port(7777))
+	for bad: int in [-5, 0, 80, 99999]:
+		assert_false(HostLauncher.valid_port(bad), "Puerto %d" % bad)
+	assert_true(HostLauncher.is_public("83.45.12.9"))
+	for not_public: String in ["192.168.1.1", "10.2.3.4", "100.64.1.1", "127.0.0.1", "", "x"]:
+		assert_false(HostLauncher.is_public(not_public), "No es pública: %s" % not_public)
+
+
+## Si el puerto está ocupado, el servidor creado desde el juego se cierra enseguida
+func test_hosted_server_closes_when_port_is_taken() -> void:
+	var first: int = OS.create_process(OS.get_executable_path(), HostLauncher.server_args(PORT + 2))
+	await wait_seconds(3.0)
+	var second: int = OS.create_process(
+		OS.get_executable_path(), HostLauncher.server_args(PORT + 2)
+	)
+	var closed: bool = false
+	for check: int in range(16):
+		await wait_seconds(0.5)
+		if not OS.is_process_running(second):
+			closed = true
+			break
+	assert_true(closed, "Con el puerto ocupado se cierra solo")
+	for pid: int in [first, second]:
+		if OS.is_process_running(pid):
+			OS.kill(pid)
+
+
+## Si el servidor creado desaparece, la sala vuelve a dejar unirse y crear
+func test_lobby_recovers_when_the_server_is_gone() -> void:
+	var menu: Node = (load("res://scenes/ui/main_menu.tscn") as PackedScene).instantiate()
+	add_child_autofree(menu)
+	await wait_frames(5)
+	var panel: HostPanel84 = menu.find_child("HostPanel", true, false) as HostPanel84
+	var dead: HostLauncher = HostLauncher.new()  # sin proceso: como un servidor que se cayó
+	dead.name = HostLauncher.NODE_NAME
+	get_tree().root.add_child(dead)
+	await wait_frames(3)
+	assert_null(HostLauncher.current(get_tree()), "Se olvida de la partida muerta")
+	assert_false(panel.host_button.disabled, "Se puede crear otra")
+	var join: Control = panel.host_button.get_parent().get_node("JoinButton") as Control
+	assert_true(join.visible, "Y unirse a otra")
+	assert_string_contains(panel.log_label.text, "La partida se ha cerrado")

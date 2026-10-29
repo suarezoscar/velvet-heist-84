@@ -76,7 +76,7 @@ Nadie lo ve todo:
 La lista completa está en el juego, en **Opciones → Ver controles**.
 
 ## Jugar en red
-Una persona pulsa **Multijugador → CREAR PARTIDA**: el juego monta la partida en su PC, intenta abrir el puerto **7777** (UDP) en su router y le enseña la IP y el puerto que tiene que pasar a los demás, con un botón para copiarlos. Si el router no deja abrir el puerto solo, hay que abrirlo a mano. La partida se cierra cuando quien la creó sale de la sala. Para dejar una partida montada en un PC sin jugar en él siguen estando `servidor.bat` y `./servidor.sh` en los paquetes .zip y .tar.gz. Caben un ladrón y hasta tres guardias, y para empezar hace falta el ladrón y al menos un guardia.
+Una persona pulsa **Multijugador → CREAR PARTIDA**: el juego monta la partida en su PC, intenta abrir el puerto **7777** (UDP) en su router y le enseña la IP y el puerto que tiene que pasar a los demás, con un botón para copiarlos. Si el router no deja abrir el puerto solo, hay que abrirlo a mano. La partida se cierra cuando quien la creó sale de la sala o vuelve al menú. Para dejar una partida montada en un PC sin jugar en él siguen estando `servidor.bat` y `./servidor.sh` en los paquetes .zip y .tar.gz. Caben un ladrón y hasta tres guardias, y para empezar hace falta el ladrón y al menos un guardia.
 
 Todos deben usar la misma versión, que se ve abajo a la izquierda del menú; si no coincide, la sala de espera avisa de cuál necesitas. Con <kbd>F9</kbd> verás el ping y la pérdida de paquetes de cada jugador.
 

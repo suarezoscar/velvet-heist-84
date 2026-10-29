@@ -44,7 +44,9 @@ func _ready() -> void:
 	_build_home()
 	_build_panels()
 	var update_notice: UpdateNotice = UpdateNotice.new()
-	home.add_child(update_notice)
+	update_notice.visible = false
+	if not NetManager.is_dedicated_server:  # un servidor no busca actualizaciones
+		home.add_child(update_notice)
 	update_notice.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
 	update_notice.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	update_notice.grow_vertical = Control.GROW_DIRECTION_BEGIN

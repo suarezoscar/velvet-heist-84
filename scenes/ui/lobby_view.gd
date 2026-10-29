@@ -136,7 +136,8 @@ func _on_connection_succeeded() -> void:
 
 
 func _on_connection_failed() -> void:
-	conn_log_lbl.text = "No hay respuesta de la partida. Comprueba la IP y el puerto."
+	if HostLauncher.current(get_tree()) == null:  # creándola, HostPanel84 lo reintenta
+		conn_log_lbl.text = "No hay respuesta de la partida. Comprueba la IP y el puerto."
 	refresh()
 
 

@@ -29,6 +29,8 @@ instaladas quedaba escondido.
 | 3 | IP de casa, texto para los amigos y lo que se copia | `test_host_launcher.gd` |
 | 4 | UPnP abre el puerto y da la IP pública | Captura del 2026-10-29 con un router real |
 | 5 | No queda ningún servidor suelto tras los tests | `pgrep` vacío tras ejecutarlos |
+| 6 | Con el puerto ocupado, el servidor se cierra solo y la sala lo dice | `test_hosted_server_closes_when_port_is_taken`; `HostPanel84._could_not_start` |
+| 7 | Si el servidor desaparece, la sala vuelve a dejar unirse y crear | `test_lobby_recovers_when_the_server_is_gone`; `MenuReturn` cierra la creada |
 
 ## Contratos
 - `HostLauncher` (en la raíz): `start(tree, port)`, `current(tree)`, `close()`, `server_args`,
@@ -42,5 +44,9 @@ instaladas quedaba escondido.
 - Con CGNAT del proveedor, UPnP abre el puerto del router pero no llega desde internet: eso es
   jugar por internet (H2).
 - Si quien la creó vuelve al menú, la partida se cierra para todos.
+- Aceptado para el PoC (revisión): `HostPanel84` toca hermanos de la sala por nombre; al
+  cerrar, `OS.kill` corta el cierre limpio del servidor y los amigos lo notan por el tiempo de
+  espera de ENet; cerrar mientras se busca el router espera hasta unos 2 s; con varias copias
+  del juego en el mismo PC, el anfitrión es la primera que se conecta desde 127.0.0.1.
 
 ## Cierre

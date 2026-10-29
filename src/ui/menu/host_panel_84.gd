@@ -10,6 +10,8 @@ extends VBoxContainer
 const FIRST_TRY: float = 2.5
 const RETRY: float = 2.0
 const MAX_TRIES: int = 6
+## Segundos que el botón dice «COPIADO»
+const COPIED_SECONDS: float = 2.0
 const HIDDEN_WHILE_HOSTING: PackedStringArray = ["IpLabel", "IpEdit", "JoinButton"]
 
 var host_button: Button = null
@@ -40,7 +42,7 @@ static func close_hosted(tree: SceneTree) -> void:
 
 ## Texto para los amigos: dónde conectarse
 static func friends_text(public_ip: String, local_ips: PackedStringArray, port: int) -> String:
-	var lines: PackedStringArray = ["Pásale esto a tu amigo:"]
+	var lines: PackedStringArray = ["Pásales esto a tus amigos:"]
 	if not public_ip.is_empty():
 		lines.append("Por internet: %s · puerto %d" % [public_ip, port])
 	if not local_ips.is_empty():
@@ -83,7 +85,11 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	var hosting: bool = HostLauncher.current(get_tree()) != null
+	var launcher: HostLauncher = HostLauncher.current(get_tree())
+	if launcher != null and not launcher.is_running():
+		_stopped(launcher)  # el servidor ya no está (se cerró solo o se cayó)
+		launcher = null
+	var hosting: bool = launcher != null
 	host_button.disabled = NetManager.is_online() or hosting
 	# Con la partida creada aquí, la IP y «UNIRSE» sobran: queda sitio para lo de los amigos
 	for sibling: String in HIDDEN_WHILE_HOSTING:
@@ -96,9 +102,14 @@ func _process(_delta: float) -> void:
 
 
 func _on_create_pressed() -> void:
-	var port: int = (
-		int(port_edit.text) if port_edit.text.is_valid_int() else NetManager.DEFAULT_PORT
-	)
+	var text: String = port_edit.text.strip_edges()
+	var port: int = int(text) if text.is_valid_int() else NetManager.DEFAULT_PORT
+	if not HostLauncher.valid_port(port):
+		log_label.text = (
+			"Ese puerto no vale: usa uno entre %d y %d."
+			% [HostLauncher.MIN_PORT, HostLauncher.MAX_PORT]
+		)
+		return
 	var launcher: HostLauncher = HostLauncher.start(get_tree(), port)
 	if launcher == null:
 		log_label.text = "No se pudo crear la partida. Inténtalo de nuevo."
@@ -113,9 +124,8 @@ func _try_join() -> void:
 	var launcher: HostLauncher = HostLauncher.current(get_tree())
 	if launcher == null or NetManager.is_online():
 		return
-	if not launcher.is_running():
-		log_label.text = "La partida no ha podido arrancar. Prueba con otro puerto."
-		launcher.close()
+	if not launcher.is_running() or _tries >= MAX_TRIES:
+		_could_not_start(launcher)
 		return
 	_tries += 1
 	NetManager.join_server("127.0.0.1", launcher.port)
@@ -126,8 +136,36 @@ func _on_connected() -> void:
 
 
 func _on_failed() -> void:
-	if HostLauncher.current(get_tree()) != null and _tries < MAX_TRIES:
+	var launcher: HostLauncher = HostLauncher.current(get_tree())
+	if launcher == null:
+		return
+	if _tries < MAX_TRIES:
 		_retry_timer.start(RETRY)  # el servidor aún estaba arrancando
+	else:
+		_could_not_start(launcher)
+
+
+func _could_not_start(launcher: HostLauncher) -> void:
+	_retry_timer.stop()
+	launcher.close()
+	_hide_info()
+	log_label.text = "La partida no ha podido arrancar. Prueba con otro puerto."
+
+
+## El servidor creado ya no está: la sala vuelve a dejar unirse o crear otra
+func _stopped(launcher: HostLauncher) -> void:
+	if _retry_timer.time_left > 0.0:
+		_could_not_start(launcher)  # aún se estaba creando: no ha llegado a arrancar
+		return
+	launcher.close()
+	_hide_info()
+	log_label.text = "La partida se ha cerrado."
+
+
+func _hide_info() -> void:
+	info_label.visible = false
+	copy_button.visible = false
+	copy_button.text = "COPIAR"
 
 
 func _show_launcher(launcher: HostLauncher) -> void:
@@ -168,3 +206,8 @@ func _on_copy_pressed() -> void:
 			copy_text(launcher.public_ip, launcher.local_ips, launcher.port)
 		)
 		copy_button.text = "COPIADO"
+		get_tree().create_timer(COPIED_SECONDS).timeout.connect(
+			func() -> void:
+				if is_instance_valid(copy_button):
+					copy_button.text = "COPIAR"
+		)

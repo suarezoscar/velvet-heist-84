@@ -13,6 +13,12 @@ signal upnp_finished(ok: bool)
 
 const NODE_NAME: String = "HostLauncher"
 const UPNP_DESCRIPTION: String = "Velvet Heist '84"
+## Puertos que se pueden usar para una partida
+const MIN_PORT: int = 1024
+const MAX_PORT: int = 65535
+
+## Probar UPnP con el router (los tests lo apagan para no tocar el router de verdad)
+static var upnp_enabled: bool = true
 
 var port: int = 0
 ## IP pública que da el router por UPnP ("" si no la da)
@@ -60,17 +66,40 @@ static func server_args(server_port: int) -> PackedStringArray:
 static func private_ips(addresses: PackedStringArray) -> PackedStringArray:
 	var found: PackedStringArray = []
 	for address: String in addresses:
-		var parts: PackedStringArray = address.split(".")
-		if parts.size() != 4 or not address.is_valid_ip_address():
-			continue
-		var second: int = int(parts[1])
-		if (
-			address.begins_with("192.168.")
-			or address.begins_with("10.")
-			or (parts[0] == "172" and second >= 16 and second <= 31)
-		):
+		if is_private(address):
 			found.append(address)
 	return found
+
+
+static func is_private(address: String) -> bool:
+	var parts: PackedStringArray = address.split(".")
+	if parts.size() != 4 or not address.is_valid_ip_address():
+		return false
+	var second: int = int(parts[1])
+	return (
+		address.begins_with("192.168.")
+		or address.begins_with("10.")
+		or (parts[0] == "172" and second >= 16 and second <= 31)
+	)
+
+
+## true si la dirección sirve para que te encuentren por internet: ni privada, ni de la red
+## compartida de los proveedores (CGNAT, 100.64.0.0/10), ni la del propio equipo
+static func is_public(address: String) -> bool:
+	var parts: PackedStringArray = address.split(".")
+	if parts.size() != 4 or not address.is_valid_ip_address() or is_private(address):
+		return false
+	var second: int = int(parts[1])
+	return not (
+		(parts[0] == "100" and second >= 64 and second <= 127)
+		or parts[0] == "127"
+		or parts[0] == "0"
+	)
+
+
+## true si el puerto vale para una partida
+static func valid_port(value: int) -> bool:
+	return value >= MIN_PORT and value <= MAX_PORT
 
 
 func is_running() -> bool:
@@ -100,33 +129,35 @@ func _spawn() -> bool:
 	_pid = OS.create_process(OS.get_executable_path(), server_args(port))
 	if _pid <= 0:
 		return false
+	if not upnp_enabled:
+		upnp_done = true
+		return true
 	_thread = Thread.new()
 	_thread.start(_open_port)
 	return true
 
 
-## En otro hilo: busca el router, abre el puerto y pregunta la IP pública
+## En otro hilo: busca el router, abre el puerto y pregunta la IP pública. Deja el resultado
+## en los campos (se leen tras wait_to_finish), así que close() siempre sabe si hay que cerrarlo
 func _open_port() -> void:
 	var upnp: UPNP = UPNP.new()
-	var ok: bool = false
 	var external: String = ""
 	if upnp.discover() == UPNP.UPNP_RESULT_SUCCESS and upnp.get_gateway() != null:
 		if upnp.get_gateway().is_valid_gateway():
-			ok = (
+			upnp_ok = (
 				upnp.add_port_mapping(port, port, UPNP_DESCRIPTION, "UDP")
 				== UPNP.UPNP_RESULT_SUCCESS
 			)
 			external = upnp.query_external_address()
-	_upnp_result.call_deferred(upnp, ok, external)
-
-
-func _upnp_result(upnp: UPNP, ok: bool, external: String) -> void:
-	_join_upnp()
 	_upnp = upnp
-	upnp_ok = ok
-	public_ip = external if external.is_valid_ip_address() else ""
+	public_ip = external if is_public(external) else ""
+	_upnp_result.call_deferred()
+
+
+func _upnp_result() -> void:
+	_join_upnp()
 	upnp_done = true
-	upnp_finished.emit(ok)
+	upnp_finished.emit(upnp_ok)
 
 
 func _join_upnp() -> void:

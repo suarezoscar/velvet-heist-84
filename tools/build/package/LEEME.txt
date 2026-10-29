@@ -27,7 +27,7 @@ CREAR UNA PARTIDA PARA TUS AMIGOS
      puerto en tu router y te enseña qué pasar a tus amigos (pulsa COPIAR). Si Windows
      pregunta, pulsa Permitir.
   2. Si dice que el router no ha dejado abrir el puerto, ábrelo tú: UDP 7777 hacia tu PC.
-  3. Tus amigos se unen con esa IP y ese puerto. La partida se cierra cuando sales de la sala.
+  3. Tus amigos se unen con esa IP y ese puerto. La partida se cierra cuando sales de la sala o vuelves al menú.
   Para dejar una partida en un PC sin jugar en él: servidor.sh o servidor.bat (Ctrl+C cierra).
 
 CRÉDITOS
