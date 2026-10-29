@@ -1,6 +1,6 @@
 # FEAT-042 — Rondas holgadas con flecha y monitores CCTV para el ladrón
 
-- **Estado**: hecha
+- **Estado**: en curso
 - **Diseño**: `docs/gdd/systems/interaction.md` M1b, R2b, R6b; `docs/gdd/systems/vision.md` (acordado el 2026-10-29)
 - **Hito del PoC**: H4 (legibilidad y bucle de juego en museo v2)
 - **Rama**: `feat/042-rondas-y-monitores`
