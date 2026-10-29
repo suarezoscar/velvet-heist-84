@@ -4,3 +4,24 @@
 .agy-runs/
 __pycache__/
 /build/
+
+# Godot: exportaciones y restos de editores
+*.tmp
+*.translation
+.mono/
+data_*/
+mono_crash.*.json
+.vscode/
+.idea/
+
+# Blender: copias de seguridad
+*.blend1
+*.blend2
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Claude Code: ajustes locales de cada usuario
+.claude/settings.local.json
