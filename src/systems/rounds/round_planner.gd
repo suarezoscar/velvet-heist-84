@@ -16,6 +16,19 @@ var _planned: bool = false
 
 func _ready() -> void:
 	name = "Rounds"
+	add_to_group(&"round_planner")
+
+
+## El planificador del mapa (null si no hay rondas)
+static func of(tree: SceneTree) -> RoundPlanner:
+	return tree.get_first_node_in_group(&"round_planner") as RoundPlanner
+
+
+## Camino por las salas y sus puertas entre dos puntos del mundo (FEAT-042: la flecha)
+func walk_between(from: Vector3, to: Vector3) -> Array[Vector3]:
+	if graph == null:
+		return [to]
+	return _walk(_design(from), _design(to))
 
 
 func _physics_process(_delta: float) -> void:

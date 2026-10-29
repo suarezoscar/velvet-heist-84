@@ -28,8 +28,8 @@ static func allowed_faults(rounds: Array, allowed_per_guard: int) -> int:
 static func any_expired(rounds: Array, margin: float = 0.0) -> bool:
 	for node: Node in rounds:
 		var round_node: GuardRound = node as GuardRound
-		if round_node != null and not round_node.route.is_empty():
-			if round_node.late or round_node.time_left <= margin:
+		if round_node != null and not round_node.route.is_empty() and not round_node.suspended:
+			if round_node.late or round_node.time_left <= margin:  # con alarma no hay ronda
 				return true
 	return false
 

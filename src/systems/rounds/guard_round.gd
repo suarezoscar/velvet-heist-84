@@ -22,6 +22,8 @@ var faults: int = 0
 var punched: int = 0
 ## El tramo actual va con retraso
 var late: bool = false
+## Con la alarma ya no hay ronda (FEAT-042): no se apuntan faltas ni se llega tarde
+var suspended: bool = false
 var _late_time: float = 0.0
 var _episode_faults: int = 0
 var _bell_timer: float = 0.0
@@ -70,7 +72,22 @@ func _physics_process(delta: float) -> void:
 		return
 	if GameManager.current_state != GameManager.MatchState.IN_PROGRESS:
 		return
+	var alert: AlertDirector = AlertDirector.of(get_tree())
+	if alert != null and alert.level == AlertDirector.Level.ALARM:
+		suspend()
+		return
 	step(delta)
+
+
+## La alarma ha sonado: la ronda se acaba hasta el final (las faltas de antes se quedan)
+func suspend() -> void:
+	if suspended:
+		return
+	suspended = true
+	late = false
+	_late_time = 0.0
+	_bell_timer = 0.0
+	print("[GuardRound] %s: alarma, se acabó fichar" % guard.name)
 
 
 ## Un tick de la cuenta atrás del tramo (lo usan los tests)
@@ -141,6 +158,7 @@ func get_net_state_private() -> Dictionary:
 		"left": snappedf(time_left, 0.1),
 		"faults": faults,
 		"late": late,
+		"off": suspended,
 	}
 
 
@@ -157,3 +175,4 @@ func apply_net_state(state: Dictionary) -> void:
 	time_left = float(state.get("left", time_left))
 	faults = int(state.get("faults", faults))
 	late = bool(state.get("late", late))
+	suspended = bool(state.get("off", suspended))

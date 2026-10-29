@@ -11,5 +11,5 @@ punch_noise_radius = 5.5
 alarm_noise_radius = 14.0
 alarm_pulse_interval = 3.0
 route_length = 4
-leg_walk_factor = 1.8
-leg_margin = 15.0
+leg_walk_factor = 2.3
+leg_margin = 25.0
