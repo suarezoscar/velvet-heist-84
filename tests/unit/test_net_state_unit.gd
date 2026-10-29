@@ -234,7 +234,6 @@ func test_roundtrip_time_clock() -> void:
 	add_child_autofree(clock1)
 	add_child_autofree(clock2)
 
-	clock1.time_left = 33.5
 	clock1.is_expired = true
 	var s: Dictionary = clock1.get_net_state()
 	clock2.apply_net_state(s)

@@ -28,11 +28,7 @@ static func build(piece: TargetPiece3D, model_scene: PackedScene) -> void:
 	if piece.variant == &"pedestal":
 		piece.add_child(_pedestal())
 	if model_scene != null:
-		piece.model = model_scene.instantiate() as Node3D
-		piece.model.name = "Piece"
-		piece.add_child(piece.model)
-		_fit(piece.model)
-		piece.model.visible = piece.variant != &"safe"
+		attach_model(piece, model_scene.instantiate() as Node3D)
 	piece.marker = Label3D.new()
 	piece.marker.name = "Marker"
 	piece.marker.text = "◆"
@@ -44,6 +40,22 @@ static func build(piece: TargetPiece3D, model_scene: PackedScene) -> void:
 	piece.marker.position = Vector3(0.0, MARKER_HEIGHT, 0.0)
 	piece.marker.visible = false
 	piece.add_child(piece.marker)
+
+
+## Pone el modelo de la pieza sobre su pedestal: size escala MODEL_SIZE (las estatuas y los
+## cuadros son mayores) y tint tiñe sus materiales (un busto de bronce con el modelo de mármol)
+static func attach_model(
+	piece: TargetPiece3D, node: Node3D, size: float = 1.0, tint: Color = Color.WHITE
+) -> void:
+	if node == null:
+		return
+	piece.model = node
+	piece.model.name = "Piece"
+	piece.add_child(piece.model)
+	if tint != Color.WHITE:
+		_tint(piece.model, tint)
+	_fit(piece.model, MODEL_SIZE * size)
+	piece.model.visible = piece.variant != &"safe"
 
 
 ## Aplica el fallo de una pieza de pega al modelo (sobre su escala y giro originales)
@@ -105,8 +117,20 @@ static func _pedestal() -> StaticBody3D:
 	return pedestal
 
 
-## Escala el modelo a MODEL_SIZE y lo apoya sobre el pedestal
-static func _fit(model: Node3D) -> void:
+static func _tint(model: Node3D, tint: Color) -> void:
+	for node: Node in model.find_children("*", "MeshInstance3D", true, false):
+		var mesh_node: MeshInstance3D = node as MeshInstance3D
+		for surface: int in range(mesh_node.mesh.get_surface_count()):
+			var source: BaseMaterial3D = mesh_node.get_active_material(surface) as BaseMaterial3D
+			if source == null:
+				continue
+			var tinted: BaseMaterial3D = source.duplicate() as BaseMaterial3D
+			tinted.albedo_color = source.albedo_color * tint
+			mesh_node.set_surface_override_material(surface, tinted)
+
+
+## Escala el modelo a target_size (su mayor medida) y lo apoya sobre el pedestal
+static func _fit(model: Node3D, target_size: float = MODEL_SIZE) -> void:
 	var bounds: AABB = AABB()
 	var first: bool = true
 	for node: Node in model.find_children("*", "MeshInstance3D", true, false):
@@ -117,6 +141,6 @@ static func _fit(model: Node3D) -> void:
 	if first:
 		return
 	var biggest: float = maxf(bounds.size.x, maxf(bounds.size.y, bounds.size.z))
-	var factor: float = MODEL_SIZE / biggest if biggest > 0.0 else 1.0
+	var factor: float = target_size / biggest if biggest > 0.0 else 1.0
 	model.scale = Vector3.ONE * factor
 	model.position = Vector3(0.0, PEDESTAL_SIZE.y - bounds.position.y * factor, 0.0)

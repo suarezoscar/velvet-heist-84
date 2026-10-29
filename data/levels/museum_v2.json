@@ -1,7 +1,7 @@
 {
   "name": "museum_v2",
   "offset": [-24, -18],
-  "wall": {"height": 3.2, "thickness": 0.3, "low_height": 1.2},
+  "wall": {"height": 3.2, "thickness": 0.3},
   "rooms": [
     {"id": "VES", "name": "Vestíbulo", "rect": [16, 26, 16, 10], "surface": "marble", "exterior": false},
     {"id": "ROT", "name": "Gran Galería de Escultura (rotonda)", "rect": [16, 14, 16, 12], "surface": "wood_parquet", "exterior": false},
@@ -18,7 +18,13 @@
     {"id": "GAR", "name": "Garita de Seguridad", "rect": [34, 24, 8, 6], "surface": "linoleum", "exterior": false},
     {"id": "VEST", "name": "Vestuario de Personal", "rect": [42, 24, 6, 6], "surface": "linoleum", "exterior": false},
     {"id": "DOCK", "name": "Muelle de Carga", "rect": [32, 30, 16, 6], "surface": "linoleum", "exterior": false},
-    {"id": "ALY", "name": "Callejón", "rect": [-4, 36, 56, 8], "surface": "asphalt", "exterior": true}
+    {"id": "EPS", "name": "Pasillo de Servicio Este", "rect": [48, 14, 2, 22], "surface": "linoleum", "exterior": false},
+    {"id": "ORI", "name": "Galería de Arte Oriental", "rect": [48, 0, 18, 14], "surface": "wood_parquet", "exterior": false},
+    {"id": "JOY", "name": "Sala de Joyas y Relojes", "rect": [50, 14, 8, 10], "surface": "carpet", "exterior": false},
+    {"id": "BIB", "name": "Biblioteca de Manuscritos", "rect": [58, 14, 8, 10], "surface": "wood_parquet", "exterior": false},
+    {"id": "PAT", "name": "Patio de Esculturas", "rect": [50, 24, 10, 12], "surface": "marble", "exterior": false},
+    {"id": "TAP", "name": "Sala de Tapices", "rect": [60, 24, 6, 12], "surface": "carpet", "exterior": false},
+    {"id": "ALY", "name": "Callejón", "rect": [-4, 36, 74, 8], "surface": "asphalt", "exterior": true}
   ],
   "doors": [
     {"id": "P01", "a": "ALY", "b": "VES", "pos": [24, 36], "width": 2.4},
@@ -40,11 +46,23 @@
     {"id": "P17", "a": "OFF", "b": "MNT", "pos": [44, 14], "width": 1.2},
     {"id": "P18", "a": "PS", "b": "TAL", "pos": [34, 17], "width": 1.2},
     {"id": "P19", "a": "TAL", "b": "MNT", "pos": [40, 19], "width": 1.2},
-    {"id": "P20", "a": "PS", "b": "GAR", "pos": [34, 25], "width": 1.2},
-    {"id": "P21", "a": "GAR", "b": "VEST", "pos": [42, 27], "width": 1.2},
+    {"id": "P20", "a": "PS", "b": "GAR", "pos": [34, 25], "width": 1.2, "leaf": {"kind": "garita"}},
     {"id": "P22", "a": "MNT", "b": "VEST", "pos": [45, 24], "width": 1.2},
     {"id": "P23", "a": "PS", "b": "DOCK", "pos": [33, 30], "width": 2.0},
-    {"id": "P24", "a": "GAR", "b": "DOCK", "pos": [38, 30], "width": 1.2}
+    {"id": "P25", "a": "OFF", "b": "ORI", "pos": [48, 10], "width": 1.2},
+    {"id": "P26", "a": "ORI", "b": "EPS", "pos": [49, 14], "width": 1.2},
+    {"id": "P27", "a": "ORI", "b": "JOY", "pos": [54, 14], "width": 2.0},
+    {"id": "P28", "a": "ORI", "b": "BIB", "pos": [62, 14], "width": 1.2},
+    {"id": "P29", "a": "JOY", "b": "EPS", "pos": [50, 19], "width": 1.2},
+    {"id": "P30", "a": "JOY", "b": "BIB", "pos": [58, 20], "width": 1.2},
+    {"id": "P31", "a": "JOY", "b": "PAT", "pos": [55, 24], "width": 2.4},
+    {"id": "P32", "a": "BIB", "b": "TAP", "pos": [63, 24], "width": 1.2},
+    {"id": "P33", "a": "PAT", "b": "TAP", "pos": [60, 30], "width": 2.0},
+    {"id": "P34", "a": "PAT", "b": "EPS", "pos": [50, 31], "width": 1.2},
+    {"id": "P35", "a": "MNT", "b": "EPS", "pos": [48, 21], "width": 1.2},
+    {"id": "P36", "a": "VEST", "b": "EPS", "pos": [48, 27], "width": 1.2},
+    {"id": "P37", "a": "DOCK", "b": "EPS", "pos": [48, 33], "width": 2.0},
+    {"id": "P38", "a": "ALY", "b": "PAT", "pos": [55, 36], "width": 2.4}
   ],
   "windows": [
     {"id": "V1", "from": [34, 27], "to": [34, 29], "sill": 1.0}
@@ -52,7 +70,8 @@
   "partitions": [
     {"id": "GW_tabique", "from": [3, 19], "to": [13, 19], "height": 2.4},
     {"id": "GSW_tabique_1", "from": [3, 28], "to": [7, 28], "height": 2.4},
-    {"id": "GSW_tabique_2", "from": [9, 32], "to": [13, 32], "height": 2.4}
+    {"id": "GSW_tabique_2", "from": [9, 32], "to": [13, 32], "height": 2.4},
+    {"id": "ORI_tabique", "from": [55, 4], "to": [55, 9], "height": 2.4}
   ],
   "covers": [
     {"id": "VES_mostrador", "pos": [20, 29], "size": [3.0, 0.8, 1.1], "rot_deg": 0, "kind": "counter"},
@@ -130,7 +149,28 @@
     {"id": "ALY_basura_2", "pos": [32, 42], "size": [1.8, 1.0, 1.3], "rot_deg": 0, "kind": "trash_bin"},
     {"id": "ALY_basura_3", "pos": [40, 40], "size": [1.8, 1.0, 1.3], "rot_deg": 0, "kind": "trash_bin"},
     {"id": "ALY_caja_1", "pos": [20, 40.5], "size": [1.0, 1.0, 1.0], "rot_deg": 0, "kind": "crate"},
-    {"id": "ALY_caja_2", "pos": [36, 38.5], "size": [1.0, 1.0, 1.0], "rot_deg": 0, "kind": "crate"}
+    {"id": "ALY_caja_2", "pos": [36, 38.5], "size": [1.0, 1.0, 1.0], "rot_deg": 0, "kind": "crate"},
+    {"id": "ORI_biombo", "pos": [59, 9.5], "size": [2.4, 0.4, 1.8], "rot_deg": 0, "kind": "screen"},
+    {"id": "ORI_vitrina_1", "pos": [51, 4], "size": [1.2, 0.6, 1.0], "rot_deg": 0, "kind": "vitrine"},
+    {"id": "ORI_banco", "pos": [58, 4.5], "size": [1.6, 0.5, 0.45], "rot_deg": 0, "kind": "bench"},
+    {"id": "ORI_jarron", "pos": [50.5, 12.4], "size": [0.6, 0.6, 1.0], "rot_deg": 0, "kind": "jar_pedestal"},
+    {"id": "JOY_vitrina_1", "pos": [52.5, 21], "size": [1.2, 0.6, 1.0], "rot_deg": 0, "kind": "vitrine"},
+    {"id": "JOY_vitrina_2", "pos": [55.5, 17.5], "size": [1.2, 0.6, 1.0], "rot_deg": 90, "kind": "vitrine"},
+    {"id": "JOY_reloj_pie", "pos": [57.4, 14.6], "size": [0.6, 0.5, 2.2], "rot_deg": 0, "kind": "grandfather_clock"},
+    {"id": "BIB_estanteria_1", "pos": [59.8, 14.6], "size": [2.0, 0.4, 2.2], "rot_deg": 0, "kind": "shelf"},
+    {"id": "BIB_estanteria_2", "pos": [64.6, 14.6], "size": [2.0, 0.4, 2.2], "rot_deg": 0, "kind": "shelf"},
+    {"id": "BIB_estanteria_3", "pos": [65.6, 17.5], "size": [2.0, 0.4, 2.2], "rot_deg": 90, "kind": "shelf"},
+    {"id": "BIB_mesa", "pos": [63.5, 20.5], "size": [1.6, 0.9, 0.78], "rot_deg": 0, "kind": "table"},
+    {"id": "PAT_columna_1", "pos": [51.5, 25.5], "size": [0.6, 0.6, 3.0], "rot_deg": 0, "kind": "column"},
+    {"id": "PAT_columna_2", "pos": [58.5, 25.5], "size": [0.6, 0.6, 3.0], "rot_deg": 0, "kind": "column"},
+    {"id": "PAT_columna_3", "pos": [51.5, 34.2], "size": [0.6, 0.6, 3.0], "rot_deg": 0, "kind": "column"},
+    {"id": "PAT_columna_4", "pos": [58.5, 34.2], "size": [0.6, 0.6, 3.0], "rot_deg": 0, "kind": "column"},
+    {"id": "PAT_fuente", "pos": [55, 30], "size": [2.0, 2.0, 0.8], "rot_deg": 0, "kind": "fountain"},
+    {"id": "PAT_banco", "pos": [52, 31.5], "size": [1.6, 0.5, 0.45], "rot_deg": 90, "kind": "bench"},
+    {"id": "TAP_banco", "pos": [63, 27.5], "size": [1.6, 0.5, 0.45], "rot_deg": 90, "kind": "bench"},
+    {"id": "EPS_caja", "pos": [49, 35.2], "size": [1.0, 1.0, 1.0], "rot_deg": 0, "kind": "crate"},
+    {"id": "GAR_taquillas", "pos": [35.2, 29.6], "size": [1.6, 0.5, 1.9], "rot_deg": 0, "kind": "locker"},
+    {"id": "GAR_mesita", "pos": [37, 29.5], "size": [1.0, 0.6, 0.76], "rot_deg": 0, "kind": "table"}
   ],
   "lamps": [
     {"id": "C1_a", "pos": [20, 31], "type": "ceiling", "circuit": 1, "on": true},
@@ -157,9 +197,20 @@
     {"id": "C13_a", "pos": [36, 7], "type": "ceiling", "circuit": 13, "on": false},
     {"id": "C14_a", "pos": [40, 33], "type": "ceiling", "circuit": 14, "on": true},
     {"id": "C15_a", "pos": [45, 27], "type": "ceiling", "circuit": 15, "on": false},
+    {"id": "C16_a", "pos": [53, 7], "type": "ceiling", "circuit": 16, "on": true},
+    {"id": "C16_b", "pos": [61, 7], "type": "ceiling", "circuit": 16, "on": true},
+    {"id": "C17_a", "pos": [54, 19], "type": "ceiling", "circuit": 17, "on": true},
+    {"id": "C18_a", "pos": [61, 18], "type": "ceiling", "circuit": 18, "on": false},
+    {"id": "C18_flexo", "pos": [63.5, 20.5], "type": "desk", "circuit": 18, "on": true},
+    {"id": "C19_a", "pos": [55, 27], "type": "ceiling", "circuit": 19, "on": true},
+    {"id": "C19_b", "pos": [55, 33], "type": "ceiling", "circuit": 19, "on": true},
+    {"id": "C20_a", "pos": [63, 30], "type": "ceiling", "circuit": 20, "on": true},
+    {"id": "C21_a", "pos": [49, 20], "type": "ceiling", "circuit": 21, "on": true},
+    {"id": "C21_b", "pos": [49, 30], "type": "ceiling", "circuit": 21, "on": true},
     {"id": "ALY_farola_1", "pos": [12, 37.5], "type": "street", "circuit": 0, "on": true},
     {"id": "ALY_farola_2", "pos": [24, 37.5], "type": "street", "circuit": 0, "on": true},
-    {"id": "ALY_farola_3", "pos": [44, 37.5], "type": "street", "circuit": 0, "on": true}
+    {"id": "ALY_farola_3", "pos": [44, 37.5], "type": "street", "circuit": 0, "on": true},
+    {"id": "ALY_farola_4", "pos": [58, 37.5], "type": "street", "circuit": 0, "on": true}
   ],
   "switches": [
     {"id": "SW_C1_P04", "pos": [26.2, 26.2], "circuit": 1},
@@ -179,54 +230,149 @@
     {"id": "SW_C12_P17", "pos": [45.6, 14.2], "circuit": 12},
     {"id": "SW_C12_P19", "pos": [40.2, 20.6], "circuit": 12},
     {"id": "SW_C13_P15", "pos": [34.6, 13.8], "circuit": 13},
-    {"id": "SW_C14_P24", "pos": [39.6, 30.2], "circuit": 14},
-    {"id": "SW_C15_P21", "pos": [42.2, 28.6], "circuit": 15},
     {"id": "SW_C1_MNT", "pos": [47.8, 19.0], "circuit": 1},
     {"id": "SW_C2_MNT", "pos": [47.8, 19.5], "circuit": 2},
     {"id": "SW_C5_MNT", "pos": [47.8, 20.0], "circuit": 5},
-    {"id": "SW_C7_MNT", "pos": [47.8, 20.5], "circuit": 7}
+    {"id": "SW_C7_MNT", "pos": [47.8, 20.5], "circuit": 7},
+    {"id": "SW_C14_DOCK", "pos": [33.8, 31.6], "circuit": 14},
+    {"id": "SW_C15_P36", "pos": [47.8, 28.4], "circuit": 15},
+    {"id": "SW_C16_P25", "pos": [48.4, 11.4], "circuit": 16},
+    {"id": "SW_C17_P27", "pos": [55.6, 14.4], "circuit": 17},
+    {"id": "SW_C18_P28", "pos": [62.8, 14.4], "circuit": 18},
+    {"id": "SW_C19_P31", "pos": [56.6, 24.4], "circuit": 19},
+    {"id": "SW_C20_P33", "pos": [60.4, 31.4], "circuit": 20},
+    {"id": "SW_C21_P26", "pos": [49.8, 15.0], "circuit": 21}
   ],
   "targets": [
-    {"id": "T1", "name": "La Dama de Terciopelo", "pos": [24, 4], "protection": "pressure", "variant": "pedestal", "model": "loot_masterpiece"},
-    {"id": "T2", "name": "Retrato del Duque", "pos": [8, 19], "protection": "sensor", "variant": "pedestal", "model": "picture_frame"},
+    {"id": "T1", "name": "La Dama de Terciopelo", "pos": [24, 4], "protection": "pressure", "variant": "pedestal", "model": "painting", "painting": "dama_terciopelo", "size": 1.1},
+    {"id": "T2", "name": "Juan de Pareja", "pos": [8, 19], "protection": "sensor", "variant": "pedestal", "model": "painting", "painting": "juan_de_pareja", "size": 1.0},
     {"id": "T3", "name": "Ánfora griega", "pos": [8, 2], "protection": "combination", "variant": "case", "model": "ceramic_vase", "combination": [12, 47, 83]},
-    {"id": "T4", "name": "Busto de bronce", "pos": [36, 4], "protection": "pressure", "variant": "pedestal", "model": "marble_bust"},
-    {"id": "T5", "name": "Miniatura de la reina", "pos": [37, 20], "protection": "sensor", "variant": "pedestal", "model": "picture_frame"},
-    {"id": "T6", "name": "Collar de la condesa", "pos": [46, 12], "protection": "combination", "variant": "safe", "model": "loot_cash", "combination": [30, 65, 15]}
+    {"id": "T4", "name": "Busto de bronce", "pos": [36, 4], "protection": "pressure", "variant": "pedestal", "model": "marble_bust", "tint": "#b07a3c"},
+    {"id": "T5", "name": "Miniatura de Jacometto", "pos": [37, 20], "protection": "sensor", "variant": "pedestal", "model": "painting", "painting": "jacometto_dama", "size": 0.6},
+    {"id": "T6", "name": "Collar de la condesa", "pos": [46, 12], "protection": "combination", "variant": "safe", "model": "loot_cash", "combination": [30, 65, 15]},
+    {"id": "T7", "name": "Reloj de bolsillo del zar", "pos": [52, 16], "protection": "combination", "variant": "case", "model": "pocket_watch", "combination": [8, 54, 77]},
+    {"id": "T8", "name": "Diadema de zafiros", "pos": [56.5, 22.5], "protection": "combination", "variant": "safe", "model": "loot_cash", "combination": [91, 23, 60]},
+    {"id": "T9", "name": "Códice iluminado", "pos": [62, 17.5], "protection": "combination", "variant": "case", "model": "codex_book", "combination": [5, 38, 72]},
+    {"id": "T10", "name": "Jarrón Ming", "pos": [53, 9], "protection": "combination", "variant": "case", "model": "antique_vase", "combination": [44, 19, 87]},
+    {"id": "T11", "name": "Ánfora de bronce", "pos": [4.5, 7], "protection": "combination", "variant": "case", "model": "brass_vase", "combination": [66, 9, 33]},
+    {"id": "T12", "name": "Virgen gótica", "pos": [24, 22.5], "protection": "pressure", "variant": "pedestal", "model": "gothic_statue", "size": 1.2},
+    {"id": "T13", "name": "Katana del shogun", "pos": [62, 4], "protection": "pressure", "variant": "pedestal", "model": "katana_stand", "size": 0.9},
+    {"id": "T14", "name": "Caballo de bronce", "pos": [53, 27.5], "protection": "pressure", "variant": "pedestal", "model": "horse_statue", "size": 0.9},
+    {"id": "T15", "name": "Gato de Bastet", "pos": [57, 32.5], "protection": "pressure", "variant": "pedestal", "model": "cat_statue", "size": 0.7},
+    {"id": "T16", "name": "Cabeza de caballo", "pos": [30, 31], "protection": "pressure", "variant": "pedestal", "model": "horse_head", "size": 0.7},
+    {"id": "T17", "name": "Campo de trigo con cipreses", "pos": [13.5, 28.5], "protection": "sensor", "variant": "pedestal", "model": "painting", "painting": "campo_trigo_cipreses", "size": 1.0},
+    {"id": "T18", "name": "El unicornio en el jardín", "pos": [63, 32], "protection": "sensor", "variant": "pedestal", "model": "painting", "painting": "unicornio_jardin", "size": 1.3},
+    {"id": "T19", "name": "Aristóteles con el busto de Homero", "pos": [60, 22.5], "protection": "sensor", "variant": "pedestal", "model": "painting", "painting": "aristoteles_homero", "size": 1.0},
+    {"id": "T20", "name": "Ritón del toro", "pos": [9.5, 12], "protection": "sensor", "variant": "pedestal", "model": "bull_head", "size": 0.7}
   ],
   "coffee": {"pos": [40.3, 29.3], "rot_deg": 180},
   "wings": [
     {"id": "OESTE", "name": "Ala oeste", "rooms": ["GW", "GSW"], "circuits": [6, 7], "box": {"pos": [0.3, 30], "rot_deg": 90}},
-    {"id": "SERVICIO", "name": "Ala de servicio", "rooms": ["TAL", "MNT"], "circuits": [11, 12], "box": {"pos": [47.7, 15.6], "rot_deg": 270}}
+    {"id": "SERVICIO", "name": "Ala de servicio", "rooms": ["TAL", "MNT"], "circuits": [11, 12], "box": {"pos": [47.7, 15.6], "rot_deg": 270}},
+    {"id": "ESTE", "name": "Ala este", "rooms": ["BIB", "TAP"], "circuits": [18, 20], "box": {"pos": [65.7, 21.5], "rot_deg": 270}},
+    {"id": "ANTIGUEDADES", "name": "Ala de antigüedades", "rooms": ["ANT"], "circuits": [5], "box": {"pos": [0.3, 10.5], "rot_deg": 90}}
   ],
-  "replica_table": {"pos": [35.4, 16.0]},
   "pilot_panel": {"pos": [34.4, 26.2]},
   "exits": [
     {"id": "P01", "pos": [24, 36], "size": [3.2, 2.0]},
     {"id": "P02", "pos": [6, 36], "size": [2.0, 2.0]},
-    {"id": "P03", "pos": [44, 36], "size": [3.8, 2.0]}
+    {"id": "P03", "pos": [44, 36], "size": [3.8, 2.0]},
+    {"id": "P38", "pos": [55, 36], "size": [3.2, 2.0]}
   ],
   "clocks": [
-    {"id": 1, "pos": [36, 24.2], "rot_deg": 180},
-    {"id": 2, "pos": [0.2, 6], "rot_deg": 90},
-    {"id": 3, "pos": [47.8, 2], "rot_deg": 270},
-    {"id": 4, "pos": [0.2, 26], "rot_deg": 90}
+    {"id": 1, "pos": [36, 24.2], "rot_deg": 180, "zone": "centro"},
+    {"id": 2, "pos": [0.2, 6], "rot_deg": 90, "zone": "oeste"},
+    {"id": 3, "pos": [47.8, 2], "rot_deg": 270, "zone": "este"},
+    {"id": 4, "pos": [0.2, 26], "rot_deg": 90, "zone": "oeste"},
+    {"id": 5, "pos": [31.8, 33], "rot_deg": 270, "zone": "centro"},
+    {"id": 6, "pos": [57, 0.2], "rot_deg": 180, "zone": "este"},
+    {"id": 7, "pos": [65.8, 28], "rot_deg": 270, "zone": "este"},
+    {"id": 8, "pos": [16.2, 23], "rot_deg": 90, "zone": "oeste"}
   ],
   "cameras": [
     {"id": "CAM-1", "pos": [31.5, 26.5], "yaw_deg": 225, "label": "VESTÍBULO"},
     {"id": "CAM-2", "pos": [16.5, 25.5], "yaw_deg": 45, "label": "ROTONDA"},
-    {"id": "CAM-3", "pos": [31.5, 10.5], "yaw_deg": 270, "label": "ANTESALA"}
+    {"id": "CAM-3", "pos": [31.5, 10.5], "yaw_deg": 270, "label": "ANTESALA"},
+    {"id": "CAM-4", "pos": [50.5, 24.5], "yaw_deg": 135, "label": "PATIO"},
+    {"id": "CAM-5", "pos": [65.5, 0.5], "yaw_deg": 225, "label": "ORIENTAL"}
   ],
   "cctv_desk": {"pos": [41.5, 26.5], "rot_deg": 270},
   "monitors": [
-    {"camera": "CAM-1", "pos": [41.5, 25], "rot_deg": 270},
-    {"camera": "CAM-2", "pos": [41.5, 26.5], "rot_deg": 270},
-    {"camera": "CAM-3", "pos": [41.5, 28], "rot_deg": 270}
+    {"camera": "CAM-1", "pos": [41.5, 24.9], "rot_deg": 270},
+    {"camera": "CAM-2", "pos": [41.5, 25.9], "rot_deg": 270},
+    {"camera": "CAM-3", "pos": [41.5, 26.9], "rot_deg": 270},
+    {"camera": "CAM-4", "pos": [41.5, 27.9], "rot_deg": 270},
+    {"camera": "CAM-5", "pos": [41.5, 28.9], "rot_deg": 270}
   ],
   "car": {"pos": [3, 40], "rot_deg": 90},
   "spawns": {"thief": [8, 40], "guards": [[37, 26], [39, 26], [36, 28.5]]},
-  "patrols": [
-    [[37, 26], [34, 25], [33, 25], [33, 18], [32, 18], [16, 19], [12, 24], [1, 26], [12, 24], [14, 21], [14, 17], [3, 14], [1.5, 12], [1, 6], [16, 12], [23, 12], [24, 14], [24, 18], [32, 18], [33, 18], [33, 25], [34, 25], [37, 26]],
-    [[39, 26], [36, 25], [40.5, 27], [42, 27], [45, 24], [44, 14], [47, 2], [44.5, 7], [40, 7], [36, 6.2], [32, 3], [24, 10], [24, 14], [24, 17.5], [22.6, 19.5], [22.6, 22.5], [24, 24], [24, 26], [32, 28], [33, 28], [34, 25], [36, 25], [39, 26]]
+  "offline_guards": 2,
+  "match_minutes": 12,
+  "replica_tables": [
+    {"pos": [35.4, 16.0]},
+    {"pos": [64.6, 2.0]}
+  ],
+  "vents": [
+    {"network": "servicio", "id": "V_TAL", "pos": [35, 24], "rot_deg": 0},
+    {"network": "servicio", "id": "V_MNT", "pos": [48, 15], "rot_deg": 270},
+    {"network": "servicio", "id": "V_DOCK", "pos": [33, 36], "rot_deg": 0},
+    {"network": "oeste", "id": "V_GW", "pos": [0, 23.2], "rot_deg": 90},
+    {"network": "oeste", "id": "V_GSW", "pos": [14.6, 36], "rot_deg": 0},
+    {"network": "oeste", "id": "V_ANT", "pos": [0, 13.2], "rot_deg": 90},
+    {"network": "oeste", "id": "V_ARC", "pos": [39.4, 0], "rot_deg": 180},
+    {"network": "este", "id": "V_ORI", "pos": [66, 13.2], "rot_deg": 270},
+    {"network": "este", "id": "V_PAT", "pos": [59.2, 36], "rot_deg": 0},
+    {"network": "este", "id": "V_VES", "pos": [31.2, 36], "rot_deg": 0},
+    {"network": "este", "id": "V_BIB", "pos": [66, 23.2], "rot_deg": 270}
+  ],
+  "art": [
+    {"painting": "bronzino_joven", "pos": [8, 14], "rot_deg": 180, "rope": true},
+    {"painting": "storie_hombre", "pos": [12.5, 14], "rot_deg": 180},
+    {"painting": "storie_dama", "pos": [6, 24], "rot_deg": 0, "rope": true},
+    {"painting": "renoir_hijas", "pos": [0, 17], "rot_deg": 90},
+    {"painting": "van_gogh_cipreses", "pos": [5, 24], "rot_deg": 180, "rope": true},
+    {"painting": "seurat_circo", "pos": [11, 36], "rot_deg": 0, "height": 1.2, "rope": true},
+    {"painting": "van_gogh_berceuse", "pos": [0, 31], "rot_deg": 90},
+    {"painting": "van_gogh_roulin", "pos": [16, 27], "rot_deg": 270},
+    {"painting": "church_andes", "pos": [19.5, 26], "rot_deg": 180, "height": 1.4, "rope": true},
+    {"painting": "turner_venecia", "pos": [29, 26], "rot_deg": 180},
+    {"painting": "courbet_loro", "pos": [32, 30.8], "rot_deg": 270},
+    {"painting": "david_socrates", "pos": [19.5, 14], "rot_deg": 180, "height": 1.4, "rope": true},
+    {"painting": "bruegel_segadores", "pos": [28.5, 14], "rot_deg": 180, "height": 1.4, "rope": true},
+    {"painting": "ruisdael_trigo", "pos": [32, 22.5], "rot_deg": 270},
+    {"painting": "manet_barca", "pos": [32, 16], "rot_deg": 270},
+    {"painting": "memling_anunciacion", "pos": [20, 10], "rot_deg": 180},
+    {"painting": "lippi_virgen", "pos": [28, 10], "rot_deg": 180},
+    {"painting": "vermeer_jarra", "pos": [19, 0], "rot_deg": 180, "rope": true},
+    {"painting": "van_gogh_sombrero", "pos": [29, 0], "rot_deg": 180, "rope": true},
+    {"painting": "corot_lectora", "pos": [40, 4], "rot_deg": 90},
+    {"painting": "cezanne_bodegon", "pos": [48, 6], "rot_deg": 270},
+    {"painting": "hokusai_ola", "pos": [51.5, 0], "rot_deg": 180, "rope": true},
+    {"painting": "korin_lirios", "pos": [62, 0], "rot_deg": 180, "height": 1.1},
+    {"painting": "sesson_gibones", "pos": [48, 4.5], "rot_deg": 90, "height": 1.0},
+    {"painting": "hoefnagel_bodegon", "pos": [58, 16.5], "rot_deg": 90},
+    {"painting": "degas_mujer", "pos": [50, 16], "rot_deg": 90},
+    {"painting": "unicornio_agua", "pos": [60, 26.5], "rot_deg": 90, "height": 1.8, "y": 0.7},
+    {"painting": "cazadores_tapiz", "pos": [66, 33], "rot_deg": 270, "height": 1.3, "y": 1.0},
+    {"painting": "la_farge_nocturno", "pos": [40, 16.5], "rot_deg": 270}
+  ],
+  "decor": [
+    {"id": "ORI_armario", "model": "chinese_cabinet", "pos": [65.3, 8], "rot_deg": 270, "scale": 0.8},
+    {"id": "ORI_elefante", "model": "wooden_elephant", "pos": [50.5, 12.4], "rot_deg": 0, "y": 1.0, "scale": 2.5},
+    {"id": "VES_jardinera_1", "model": "planter", "pos": [17.2, 27], "rot_deg": 90},
+    {"id": "VES_jardinera_2", "model": "planter", "pos": [30.8, 35.3], "rot_deg": 0},
+    {"id": "PAT_jardinera_1", "model": "planter", "pos": [59.2, 28], "rot_deg": 90},
+    {"id": "PAT_jardinera_2", "model": "planter", "pos": [50.8, 28], "rot_deg": 90},
+    {"id": "GAR_fluorescente_1", "model": "fluorescent_light", "pos": [36.5, 27], "rot_deg": 0, "y": 3.15},
+    {"id": "GAR_fluorescente_2", "model": "fluorescent_light", "pos": [39.5, 27], "rot_deg": 0, "y": 3.15},
+    {"id": "GAR_reloj", "model": "wall_clock", "pos": [38, 24.17], "rot_deg": 180, "y": 2.2},
+    {"id": "GAR_telefono", "model": "rotary_phone_84", "pos": [37, 29.5], "rot_deg": 180, "y": 0.76},
+    {"id": "ANT_jarron", "model": "brass_vase", "pos": [3, 10], "rot_deg": 0, "y": 1.0, "scale": 1.6},
+    {"id": "ROT_busto_1", "model": "marble_bust", "pos": [21.5, 16], "rot_deg": 0, "y": 2.0, "scale": 1.2},
+    {"id": "ROT_busto_2", "model": "marble_bust", "pos": [26.5, 16], "rot_deg": 0, "y": 2.0, "scale": 1.2},
+    {"id": "ROT_busto_3", "model": "marble_bust", "pos": [21.5, 24], "rot_deg": 0, "y": 2.0, "scale": 1.2},
+    {"id": "ROT_busto_4", "model": "marble_bust", "pos": [26.5, 24], "rot_deg": 0, "y": 2.0, "scale": 1.2},
+    {"id": "ANTE_jarron_1", "model": "antique_vase", "pos": [21.5, 10.8], "rot_deg": 0, "y": 1.0},
+    {"id": "ANTE_jarron_2", "model": "antique_vase", "pos": [26.5, 10.8], "rot_deg": 0, "y": 1.0}
   ]
 }

@@ -106,7 +106,7 @@ static func light_point_lit(thief: ThiefController3D, lamps: Array[Lamp3D]) -> b
 
 
 static func _is_detection_valid(guard: GuardController3D, thief: ThiefController3D) -> bool:
-	if guard == null or thief == null:
+	if guard == null or thief == null or thief.in_vent:
 		return false
 	if not guard.is_inside_tree() or not thief.is_inside_tree():
 		return false

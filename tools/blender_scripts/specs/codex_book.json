@@ -1,0 +1,16 @@
+{
+  "name": "codex_book",
+  "feat": "FEAT-034",
+  "description": "Códice iluminado cerrado: tapas de piel granate, bloque de páginas y dos cierres de latón. Pieza del encargo en la Biblioteca de Manuscritos (vitrina).",
+  "dimensions": [0.32, 0.286, 0.08],
+  "pivot": "bottom_center",
+  "max_triangles": 400,
+  "materials": ["CarpetWine", "PaperWhite", "BrassGold"],
+  "collision": false,
+  "source": {
+    "origin": "procedural",
+    "url": "tools/blender_scripts/gen_heist_art.py",
+    "license": "propia",
+    "author": "velvet-heist-84"
+  }
+}

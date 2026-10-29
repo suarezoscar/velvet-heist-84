@@ -58,7 +58,7 @@ func test_museum_contract_and_who_knows_what() -> void:
 	await wait_physics_frames(2)
 	var heist: HeistDirector = GameManager.heist
 	assert_not_null(heist, "El museo tiene encargo")
-	assert_eq(heist.candidates().size(), 6)
+	assert_eq(heist.candidates().size(), 20, "FEAT-034: 20 obras candidatas")
 	assert_eq(heist.contract_size, 3, "Sin red: 2 guardias, 3 piezas")
 	assert_false(GameManager.can_thief_escape(), "Sin piezas no hay salida")
 	var public: Dictionary = heist.get_net_state()
@@ -177,8 +177,10 @@ func test_dial_reachable_through_the_piece() -> void:
 func test_time_out_with_broken_round_is_a_draw() -> void:
 	var map: HeistMap3D = _map()
 	await wait_physics_frames(2)
-	var clock: TimeClock3D = get_tree().get_nodes_in_group(&"time_clock")[0] as TimeClock3D
-	clock.faults = GameManager.CLOCK_RULES.allowed_misses + 1
+	var rounds: Array = get_tree().get_nodes_in_group(&"guard_round")
+	for node: Node in rounds:
+		(node as GuardRound).assign([1] as Array[int], [90.0] as Array[float])
+	(rounds[0] as GuardRound).faults = GameManager.CLOCK_RULES.allowed_misses * rounds.size() + 1
 	GameManager.has_masterpiece = true
 	assert_eq(GameManager.time_expired_state(), GameManager.MatchState.TIME_EXPIRED_DRAW)
 	GameManager.has_masterpiece = false

@@ -1,0 +1,22 @@
+{
+  "name": "katana_stand",
+  "feat": "FEAT-034",
+  "description": "Katana del shogun con su soporte: pieza del encargo en la Galería de Arte Oriental.",
+  "dimensions": [
+    0.296,
+    0.053,
+    0.182
+  ],
+  "pivot": "bottom_center",
+  "max_triangles": 5000,
+  "materials": [
+    "katana_stand_01"
+  ],
+  "collision": false,
+  "source": {
+    "origin": "polyhaven",
+    "url": "https://polyhaven.com/a/katana_stand_01",
+    "license": "CC0",
+    "author": "Rico Cilliers"
+  }
+}

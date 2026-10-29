@@ -60,7 +60,9 @@ func test_floors_read_noise_multiplier_from_surface_tres() -> void:
 	assert_almost_eq(float(arch.get_node("Floor_OUT").get_meta("noise_multiplier")), 1.0, 0.001)
 
 
-func test_wall_collision_full_and_low_visual_except_north_west() -> void:
+## FEAT-034: los muros se ven a toda su altura y usan el material que se recorta delante del
+## jugador local (WallXRay)
+func test_walls_full_height_with_xray_material() -> void:
 	var root: Node3D = await _build_architecture()
 	for child: Node in root.get_node("Architecture").get_children():
 		var wall_name: String = String(child.name)
@@ -69,12 +71,10 @@ func test_wall_collision_full_and_low_visual_except_north_west() -> void:
 		var shape: BoxShape3D = (child.get_node("CollisionShape3D") as CollisionShape3D).shape
 		var mesh: BoxMesh = (child.get_node("Mesh") as MeshInstance3D).mesh
 		assert_almost_eq(shape.size.y, 3.2, 0.001, "%s colisiona a 3,2 m" % wall_name)
-		var tall: bool = (
-			wall_name.begins_with("Wall_H_0_00") or wall_name.begins_with("Wall_V_0_00")
-		)
-		assert_almost_eq(
-			mesh.size.y, 3.2 if tall else 1.2, 0.001, "Altura visible de %s" % wall_name
-		)
+		assert_almost_eq(mesh.size.y, 3.2, 0.001, "Altura visible de %s" % wall_name)
+		var mat: ShaderMaterial = mesh.material as ShaderMaterial
+		assert_not_null(mat, "%s usa el material de WallXRay" % wall_name)
+		assert_eq(mat.shader, WallXRay.SHADER)
 
 
 func test_entities_and_actor_placement() -> void:
@@ -90,7 +90,9 @@ func test_entities_and_actor_placement() -> void:
 	assert_true(masterpiece.is_masterpiece and masterpiece.is_heavy, "M es la Pieza Maestra")
 	assert_eq((props.get_node("Loot_L1") as LootItem3D).loot_value, 700)
 	assert_eq((props.get_node("Switch_SW1") as LightSwitch3D).circuit_id, 1)
-	assert_eq((props.get_node("TimeClock_01") as TimeClock3D).round_duration, 90.0)
+	assert_eq((props.get_node("TimeClock_01") as TimeClock3D).clock_id, 1)
+	assert_not_null(GuardRound.of(guard), "FEAT-034: cada guardia lleva su ronda")
+	assert_not_null(props.get_node_or_null("Rounds"), "Y hay quien reparte las rutas")
 	assert_not_null(props.get_node_or_null("SafeBox3D"))
 	assert_not_null(props.get_node_or_null("EscapeCar3D"))
 	assert_not_null(props.get_node_or_null("Camera_CAM_1"))
@@ -117,21 +119,29 @@ func test_build_is_deterministic() -> void:
 func test_museum_v2_data_matches_design() -> void:
 	var data: LevelData = LevelData.load_json(MUSEUM_V2_PATH)
 	assert_not_null(data, "museum_v2.json se lee")
-	assert_eq(data.section("rooms").size(), 16, "15 salas y el callejón")
-	assert_eq(data.section("doors").size(), 24, "P01–P24")
+	assert_eq(data.section("rooms").size(), 22, "FEAT-034: 21 salas con el ala este y el callejón")
+	assert_eq(data.section("doors").size(), 36, "P01–P38 sin P21 ni P24 (la garita tiene una)")
 	assert_eq(data.section("windows").size(), 1, "V1")
-	assert_eq(data.section("clocks").size(), 4, "R1–R4")
-	assert_eq(data.section("cameras").size(), 3, "CAM-1..3")
-	assert_eq(data.section("monitors").size(), 3, "Un monitor por cámara")
+	assert_eq(data.section("clocks").size(), 8, "R1–R8")
+	assert_eq(data.section("cameras").size(), 5, "CAM-1..5")
+	assert_eq(data.section("monitors").size(), 5, "Un monitor por cámara")
 	assert_eq((data.entry("spawns").get("guards", []) as Array).size(), 3, "Tres guardias")
-	# heist.md: 6 candidatas (2 de cada protección) y 3 salidas exteriores; sin cuota
+	# FEAT-034: 20 candidatas (7 combinación, 7 presión, 6 sensor) y 4 salidas exteriores
 	var kinds: Dictionary = {}
 	for target: Dictionary in data.section("targets"):
 		kinds[target["protection"]] = int(kinds.get(target["protection"], 0)) + 1
-	assert_eq(data.section("targets").size(), 6, "Seis piezas candidatas")
-	assert_eq(kinds, {"combination": 2, "pressure": 2, "sensor": 2}, "Dos de cada protección")
-	assert_eq(data.section("exits").size(), 3, "P01, P02 y P03")
+	assert_eq(data.section("targets").size(), 20, "Veinte piezas candidatas")
+	assert_eq(kinds, {"combination": 7, "pressure": 7, "sensor": 6}, "Reparto de protecciones")
+	assert_eq(data.section("exits").size(), 4, "P01, P02, P03 y P38")
+	assert_eq(data.section("wings").size(), 4, "Cuatro alas con cuadro eléctrico")
+	assert_eq(data.section("vents").size(), 11, "Tres redes de ventilación")
 	assert_true(data.section("loot").is_empty(), "Sin botín suelto")
+	var garita_doors: int = 0
+	for door: Dictionary in data.section("doors"):
+		if "GAR" in [door["a"], door["b"]]:
+			garita_doors += 1
+			assert_true(door.has("leaf"), "La puerta de la garita tiene hoja")
+	assert_eq(garita_doors, 1, "La garita tiene una sola puerta")
 
 
 func _child_names(node: Node) -> Array[String]:
