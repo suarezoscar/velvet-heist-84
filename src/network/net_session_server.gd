@@ -279,12 +279,16 @@ func _on_noise_event(
 		NetTestHooks.log_event({"event": "noise", "peer": peer})
 
 
-## La moneda en vuelo, solo a quien la ve (FEAT-038; el ruido va aparte, al caer)
+## La moneda en vuelo, solo a quien la ve y solo el tramo que ve (FEAT-038; el ruido va
+## aparte, al caer)
 func _on_coin_thrown(from: Vector3, landing: Vector3, flight_time: float) -> void:
 	for peer: int in _ready_peers:
 		var viewer: PlayerBase3D = _session.actor_for_role(NetManager.get_role_for_peer(peer))
-		if viewer != null and CoinFlightPresenter.visible_to(viewer, from, landing):
-			_session.send_coin(peer, from, landing, flight_time)
+		if viewer == null:
+			continue
+		var view: Dictionary = CoinFlightPresenter.view_for(viewer, from, landing, flight_time)
+		if not view.is_empty():  # recortada: quien no ve la salida no sabe desde dónde se lanzó
+			_session.send_coin(peer, view["from"], landing, view["flight"])
 
 
 func _log_world(peer: int, changes: Dictionary) -> void:

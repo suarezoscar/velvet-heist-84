@@ -116,3 +116,21 @@ func test_coin_stops_short_of_a_wall() -> void:
 	var landing: Vector3 = CoinThrow.landing(thief, Vector3(13.0, 0.0, 1.0))
 	assert_lt(landing.x, 8.0, "No atraviesa el muro de x = 8")
 	assert_gt(landing.x, 7.0, "Cae junto al muro")
+
+
+func test_guard_that_only_sees_the_landing_does_not_learn_the_origin() -> void:
+	var guard: GuardController3D = _level_with(GUARD_SCENE) as GuardController3D
+	await wait_physics_frames(2)
+	var landing: Vector3 = Vector3(4.0, 0.0, 1.0)
+	var far_origin: Vector3 = Vector3(2.0 + 30.0, 1.2, 1.0)
+	var view: Dictionary = CoinFlightPresenter.view_for(guard, far_origin, landing, 0.5)
+	assert_false(view.is_empty(), "Ve la moneda caer")
+	var shown: Vector3 = view["from"]
+	assert_ne(shown, far_origin, "No recibe desde dónde se lanzó")
+	assert_true(VisionLogic.sees_point(guard, shown), "El tramo empieza dentro de su vista")
+	assert_gt(shown.x, landing.x, "Pero sí de qué lado viene")
+	assert_lt(float(view["flight"]), 0.5, "Vuelo acortado para caer a la vez")
+	var near: Vector3 = Vector3(3.0, 1.2, 1.0)
+	assert_eq(
+		CoinFlightPresenter.view_for(guard, near, landing, 0.3)["from"], near, "Si ve salir, entera"
+	)

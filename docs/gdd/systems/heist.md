@@ -108,7 +108,7 @@ Desaparece el caso «ronda rota y el ladrón tenía la Pieza Maestra = gana el l
   - Se apunta manteniendo el botón de lanzar: el ladrón ve el arco, un aro donde caerá (el punto del ratón, a `throw_range` m como máximo) y, tenue y discontinuo, hasta dónde se oirá (`coin_radius`). Al soltar se lanza; el clic izquierdo cancela sin gastarla (FEAT-038).
   - Vuela en arco `coin_flight_time` s a todo el alcance (menos si cae más cerca), por encima de los muebles bajos y por los vanos; se para contra muros y puertas cerradas.
   - Suena al caer, con radio `coin_radius`, y brilla en el suelo `coin_glint_time` s antes de desaparecer.
-  - La moneda en vuelo la ve el ladrón y cualquier guardia que tenga la salida o la caída en su zona visible (`vision.md` R1): verla volar delata el señuelo y de dónde viene.
+  - La moneda en vuelo la ve el ladrón y cualquier guardia que tenga la salida o la caída en su zona visible (`vision.md` R1): verla volar delata el señuelo y de qué lado viene. Quien solo ve la caída ve el arco desde donde entra en su vista, no desde dónde se lanzó.
   - Los guardias la oyen como cualquier ruido. Nadie distingue una moneda de un paso.
 - **Guardias: walkie.**
   - Con su tecla marca un punto en el plano de todo el equipo durante `ping_time` s.
