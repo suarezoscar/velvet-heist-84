@@ -12,18 +12,10 @@ signal back_requested
 const MAPS: Array[Dictionary] = [
 	{
 		"title": "MUSEO '84",
-		"tag": "RECOMENDADO  ·  CCTV  ·  TRES RUTAS",
-		"desc":
-		"Dos alas, tres rutas y una cámara acorazada. Roba tu encargo y sal por cualquier puerta.",
+		"tag": "20 OBRAS  ·  VENTILACIÓN  ·  CUATRO SALIDAS",
+		"desc": "Veintidós salas y un ala oriental. Roba tu encargo y sal por cualquier puerta.",
 		"scene": "res://scenes/maps/museum_v2.tscn",
 		"thumb": "res://assets/ui/thumb_museum_v2.png",
-	},
-	{
-		"title": "VILLA BELMONTE",
-		"tag": "CAJA FUERTE  ·  MÁRMOL Y PARQUÉ",
-		"desc": "Mansión de mármol y parqué con una caja fuerte de combinación.",
-		"scene": "res://scenes/maps/mansion_belmonte.tscn",
-		"thumb": "res://assets/ui/thumb_mansion.png",
 	},
 ]
 
