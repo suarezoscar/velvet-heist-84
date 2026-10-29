@@ -44,9 +44,9 @@ var baton_hits_taken: int = 0
 ## Estado de detección por parte de guardias
 var is_detected_by_guard: bool = false
 
-## FEAT-034: va por la ventilación (VentTravel): nadie lo ve ni lo toca y no se mueve
 ## Mirando los monitores de la garita, como un guardia (FEAT-042)
 var monitor_watch: GuardMonitorWatch = GuardMonitorWatch.new()
+## FEAT-034: va por la ventilación (VentTravel): nadie lo ve ni lo toca y no se mueve
 var in_vent: bool = false:
 	set(value):
 		in_vent = value
@@ -78,7 +78,6 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	monitor_watch.tick(self, delta)
 	run_tick(delta)
 
 
@@ -126,6 +125,7 @@ func perform_action(action: StringName) -> bool:
 
 ## Simulación física del ladrón con penalización autoritativa por botín pesado
 func simulate_movement(delta: float) -> void:
+	monitor_watch.tick(self, delta)  # FEAT-042: el tiempo de sentarse, como el guardia
 	if in_vent:
 		velocity = Vector3.ZERO
 		return

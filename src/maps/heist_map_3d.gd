@@ -193,9 +193,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	var index: int = DEBUG_SWITCH_KEYS.find(key_event.keycode)
 	var actors: Array[PlayerBase3D] = get_actors()
 	if index >= 0 and index < actors.size():
+		if local_player != null and local_player.has_method(&"stop_watching"):
+			local_player.call(&"stop_watching")
 		var previous: GuardController3D = local_player as GuardController3D
 		if previous != null:
-			previous.stop_watching()
 			previous.is_ai_controlled = _ai_defaults.get(previous, false)
 		set_local_player(actors[index])
 		_update_thief_local_visibility()
@@ -244,7 +245,7 @@ func _update_guards_local_visibility(lamps: Array[Lamp3D]) -> void:
 			else VisionLogic.thief_view_of(viewer, guard, lamps)
 		)
 		guard.set_body_visible(view == &"full" or view == &"cctv")
-		CctvLayer.apply(guard.get_node("VisualRoot"), view == &"cctv")  # solo en las pantallas
+		CctvLayer.set_mode(guard.get_node_or_null("VisualRoot"), view == &"cctv")  # en pantallas
 
 
 ## Se cayó el servidor o nos echó a media partida: al lobby con el motivo (FEAT-026)

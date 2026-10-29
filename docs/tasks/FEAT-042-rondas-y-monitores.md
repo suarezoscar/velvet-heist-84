@@ -23,9 +23,9 @@ Resolver dos problemas clave de ritmo y juego asimétrico:
 |---|---|---|
 | 1 | Más margen de tiempo en los tramos de ronda | `test_round_rules.gd` (`test_legs_have_more_room`) |
 | 2 | Alarma suspende la ronda sin faltas ni expiración por tiempo | `test_round_rules.gd` (`test_alarm_suspends_the_round`, `test_alarm_round_in_a_real_match`) |
-| 3 | Flecha guía en el suelo con camino real entre puertas | `test_round_rules.gd` (`test_arrow_follows_the_path`) |
+| 3 | Flecha guía en el suelo con camino real entre puertas | `test_round_rules.gd` (`test_arrow_follows_the_path`), `test_round_arrow.gd` |
 | 4 | El ladrón puede interactuar y sentarse en la mesa libre de monitores | `test_thief_monitors.gd` (`test_thief_sits_at_the_desk_when_free`) |
-| 5 | El ladrón ve a guardias iluminados en cámaras solo en las pantallas | `test_thief_monitors.gd` (`test_thief_marks_cctv_guards`, `test_guard_on_camera_shows_only_on_the_screens`) |
+| 5 | El ladrón ve a guardias iluminados en cámaras solo en las pantallas | `test_thief_monitors.gd` (`test_thief_marks_cctv_guards`, `test_guard_on_camera_shows_only_on_the_screens`, `test_network_marks_put_the_guard_on_the_screens`) |
 | 6 | Controles y HUD reflejan el estado | `round_sheet_84.gd`, `controls_catalog.gd`, `site/index.html` |
 
 ## Contratos
@@ -41,6 +41,10 @@ Resolver dos problemas clave de ritmo y juego asimétrico:
 ## Riesgos y decisiones abiertas
 - La alarma por cámara solo suma sospecha si es un guardia quien mira; el ladrón mirando monitores no activa alarmas de cámara sobre sí mismo ni sobre guardias.
 - Si una cámara está en penumbra total, no ve nada (fiel a 1984, pilar 1).
+- Con el ladrón sentado se encienden los pilotos de grabación (M4) y la mesa sale ocupada: un
+  guardia que no ve a ningún compañero en la mesa puede deducir que es el ladrón. Pendiente de
+  decisión del usuario (mantenerlo como rastro o encenderlos solo con un guardia).
+- Si el ladrón se desconecta sentado, se levanta (la mesa queda libre).
 
 ## Cierre
-2026-10-29. 354 tests pasando (100% verde).
+

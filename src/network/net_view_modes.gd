@@ -29,4 +29,5 @@ static func apply(map: HeistMap3D, local_role: StringName, states: Dictionary) -
 			var state: Dictionary = present[role]
 			guard.set_body_visible(not bool(state.get("beam_only", false)))
 			# FEAT-042: el ladrón ante los monitores lo ve solo en las imágenes
-			CctvLayer.apply(guard.get_node("VisualRoot"), bool(state.get("cctv_only", false)))
+			var cctv: bool = bool(state.get("cctv_only", false))
+			CctvLayer.set_mode(guard.get_node_or_null("VisualRoot"), cctv)

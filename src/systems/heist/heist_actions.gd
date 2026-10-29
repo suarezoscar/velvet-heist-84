@@ -22,6 +22,9 @@ static func handle(actor: PlayerBase3D, action: StringName) -> bool:
 		return false
 	if actor is ThiefController3D and (actor as ThiefController3D).in_vent:
 		return false  # FEAT-034: desde el conducto no se lanza nada
+	if actor is ThiefController3D and (actor as ThiefController3D).monitor_watch.is_active():
+		(actor as ThiefController3D).stop_watching()  # FEAT-042: primero se levanta
+		return false
 	var heist: HeistDirector = GameManager.heist
 	var alert: AlertDirector = AlertDirector.of(actor.get_tree())
 	if heist == null or alert == null:

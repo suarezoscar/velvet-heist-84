@@ -8,6 +8,14 @@ extends RefCounted
 const LAYER: int = 20
 
 
+## Como apply, pero solo si cambia (se llama en cada fotograma o snapshot)
+static func set_mode(root: Node, cctv: bool) -> void:
+	if root == null or bool(root.get_meta(&"cctv_mode", false)) == cctv:
+		return
+	root.set_meta(&"cctv_mode", cctv)
+	apply(root, cctv)
+
+
 ## Pone node y todo lo que cuelga de él en LAYER (cctv) o en sus capas de siempre
 static func apply(node: Node, cctv: bool) -> void:
 	var geometry: GeometryInstance3D = node as GeometryInstance3D
