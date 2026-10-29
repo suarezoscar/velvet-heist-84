@@ -128,7 +128,7 @@ Cada candidata tiene una protección. El ladrón elige entre **desactivarla y ro
 ### R10. Ventilación (FEAT-034)
 - Tres redes de rejillas (servicio, oeste y este), de 3 o 4 rejillas cada una. Ninguna en la Cámara de la Pieza Maestra ni en la Garita.
 - **Solo el ladrón** se cuela: E en una rejilla, `enter_time` s, con un ruido metálico de radio `hatch_radius`.
-- Dentro **elige la salida** entre las rejillas de su red con izquierda y derecha, y va con E. Elegir la de entrada es volver a salir por ahí.
+- Dentro **elige la salida** entre las rejillas de su red con izquierda y derecha, y va con E. Elegir la de entrada es volver a salir por ahí. Tiene `max_inside` s para elegir; después sale solo por donde entró (decisión del usuario, 2026-10-29).
 - **Viaje**: la distancia en línea recta entre las dos rejillas a `travel_speed`, un `loot_slow` más lento por pieza. Mientras viaja, nadie lo ve (guardias ni cámaras) ni lo puede golpear, y las rejillas de la red retumban (`rumble_radius`).
 - Al salir suena igual que al entrar. Las dos rejillas quedan **abiertas** `open_time` s: un rastro que cualquier guardia cierra con E.
 
@@ -156,7 +156,7 @@ Viven en un recurso nuevo, `data/balance/heist_rules.tres` (`HeistRules`). Son v
 | Somnífero | `drug_doses` / `drug_time` / `drug_nap_time` | ritmo | 1-2 / 2-5 s / 5-12 s | 1 / 3 s / 8 s |
 | Bajón tras las luces de alarma | `crash_level` | ritmo | 0,5-0,8 | 0,6 |
 | Peso del botín | `loot_slow` / `loot_min_speed` (`heist_rules.tres`) | ritmo | 0,03-0,1 / 0,6-0,85 | 0,05 por pieza / 0,7 |
-| Ventilación | `enter_time` / `hatch_radius` / `travel_speed` / `open_time` / `rumble_radius` (`vent_rules.tres`) | ritmo | — | 1,5 s / 4 m / 2 m/s / 20 s / 5 m |
+| Ventilación | `enter_time` / `hatch_radius` / `travel_speed` / `open_time` / `rumble_radius` (`vent_rules.tres`) | ritmo | — | 1,5 s / 4 m / 2 m/s / 20 s / 5 m; `max_inside` 20 s |
 | Puerta de la garita | `pick_time` / `creak_radius` / `auto_close` (`door_rules.tres`) | ritmo | — | 2 s / 6 m / 6 s |
 | Duración de la partida | `match_minutes` (nivel) | ritmo | 10-15 | 12 en el museo ampliado |
 | Monedas | `coins` / `throw_range` / `coin_radius` | ritmo | 2-5 / 6-14 m / 6-12 m | 3 / 10 / 9 |

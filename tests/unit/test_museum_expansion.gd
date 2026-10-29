@@ -191,3 +191,17 @@ func test_guards_see_a_counter_and_the_map_has_the_level() -> void:
 	heist.piece(heist.candidates()[0]).discovered = true
 	assert_string_contains(ContractList84.guards_line(heist), "CANDIDATAS 19 · RASTROS 1")
 	assert_true(map.get_meta(&"level_data") is LevelData, "El plano (M) tiene los datos")
+
+
+func test_vent_has_a_time_limit() -> void:
+	var map: HeistMap3D = _map()
+	await wait_physics_frames(2)
+	var thief: ThiefController3D = map.thief
+	var travel: VentTravel = VentTravel.of(get_tree())
+	var entry: Vent3D = travel.get_node("Vent_V_GW") as Vent3D
+	thief.global_position = entry.exit_point()
+	travel.enter(thief, entry)
+	assert_string_contains(entry.get_interaction_text(thief), "%d s" % int(VENT_RULES.max_inside))
+	_tick(travel, VENT_RULES.max_inside + 0.2)
+	assert_false(thief.in_vent, "Se acabó el tiempo: fuera")
+	assert_almost_eq(thief.global_position.x, entry.exit_point().x, 0.2, "Por donde entró")
