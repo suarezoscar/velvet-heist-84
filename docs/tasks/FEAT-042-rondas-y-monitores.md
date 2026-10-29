@@ -42,8 +42,9 @@ Resolver dos problemas clave de ritmo y juego asimétrico:
 - La alarma por cámara solo suma sospecha si es un guardia quien mira; el ladrón mirando monitores no activa alarmas de cámara sobre sí mismo ni sobre guardias.
 - Si una cámara está en penumbra total, no ve nada (fiel a 1984, pilar 1).
 - Con el ladrón sentado se encienden los pilotos de grabación (M4) y la mesa sale ocupada: un
-  guardia que no ve a ningún compañero en la mesa puede deducir que es el ladrón. Pendiente de
-  decisión del usuario (mantenerlo como rastro o encenderlos solo con un guardia).
+  guardia que no ve a ningún compañero en la mesa puede deducir que es el ladrón. Decisión del
+  usuario (2026-10-30): las cámaras se comportan igual las use quien las use; es el riesgo de
+  esa jugada.
 - Si el ladrón se desconecta sentado, se levanta (la mesa queda libre).
 
 ## Cierre
