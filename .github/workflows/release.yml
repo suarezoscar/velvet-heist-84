@@ -135,7 +135,7 @@ jobs:
           - **Windows**: \`VelvetHeist84-${VERSION}-windows.zip\`. Descomprime y abre \`VelvetHeist84.exe\` (SmartScreen avisa porque no está firmado: «Más información» → «Ejecutar de todos modos»).
           - **Linux**: \`VelvetHeist84-${VERSION}-linux.tar.gz\`. \`tar -xzf\` y \`./linux/VelvetHeist84.x86_64\`.
 
-          El servidor dedicado es el mismo ejecutable: \`servidor.bat\` o \`./servidor.sh\` dentro del paquete. Todos los jugadores y el servidor deben usar la misma versión.
+          Para organizar una partida en red, abre \`servidor.bat\` (Windows) o \`./servidor.sh\` (Linux), que vienen en el paquete, y pasa tu IP y el puerto a los demás. Todos tenéis que usar la misma versión del juego.
           EOF
           PRERELEASE=""
           if [[ "${VERSION}" == *-* ]]; then PRERELEASE="--prerelease"; fi

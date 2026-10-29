@@ -24,4 +24,5 @@ La guía completa, con glosario y ejemplos, está en `docs/gdd/estilo-de-textos.
 - **Ortografía**: tildes, «¿?», «¡!», comillas «», «…» de un carácter y coma decimal. Nada de anglicismos evitables.
 - **Glosario**: usa los términos de la guía (encargo, piezas en el punto de mira, réplica o falsificación, a lo bruto, rastro, alerta, ronda, circuito cerrado, la central…).
 - **Errores**: qué ha pasado y qué hacer; nunca códigos.
+- **Primera versión**: el juego aún no ha salido. Nada de «ampliado», «nuevo», «ahora», «ya no» ni comparaciones con versiones anteriores.
 - **Firma del ladrón**: «—» más la inicial de su nombre y un punto; «—V.» si no hay nombre.
