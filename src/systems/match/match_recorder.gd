@@ -11,6 +11,8 @@ extends Node
 const HITS_META: StringName = &"match_baton_hits"
 const CAPTURE_META: StringName = &"match_capture"
 const HEIST_RULES: HeistRules = preload("res://data/balance/heist_rules.tres")
+## Nombre de un guardia que lleva el ordenador
+const AI_NAME: String = "El ordenador"
 ## Segundos sin ver al ladrón para que volver a verlo cuente como otra vez
 const SEEN_GAP: float = 2.0
 const HOW_TEXT: Dictionary = {
@@ -153,8 +155,8 @@ func _thief_name() -> String:
 
 func _guard_name(number: int) -> String:
 	if not NetManager.is_online():
-		return "Guardia %d (ordenador)" % number
-	return _player_name(StringName("guard_%d" % number), "Guardia %d (ordenador)" % number)
+		return AI_NAME
+	return _player_name(StringName("guard_%d" % number), AI_NAME)
 
 
 func _player_name(role: StringName, fallback: String) -> String:

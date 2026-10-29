@@ -59,7 +59,7 @@ Nadie lo ve todo:
 2. La primera vez, el juego te pregunta cómo te llamas. Así te verán en la sala de espera y, si te toca ser el ladrón, la carta y la victoria llevarán tu inicial: *«Con mis respetos, —D.»*. Se cambia en **Opciones**.
 3. Elige un modo:
    - **Un jugador**: eres el ladrón, y a dos guardias los lleva el ordenador.
-   - **Multijugador**: escribe la IP y el puerto de la partida, pulsa Unirse, elige bando y empieza la partida. Al acabar, si todos pulsan **Revancha**, se juega otra con los mismos bandos sin salir del juego.
+   - **Multijugador**: escribe la IP y el puerto de la partida, pulsa Unirse, elige bando y empieza la partida. Al acabar sale el informe de la noche: qué se robó y cómo, los fichajes y golpes de cada guardia, los puntos de cada uno y el mejor de la noche. Si todos pulsan **Revancha**, se juega otra con los mismos bandos; con **Volver a la sala**, todos vuelven a la sala de espera para cambiar de bandos.
 
 | Acción | Tecla |
 |---|---|
@@ -71,7 +71,7 @@ Nadie lo ve todo:
 | Moneda (ladrón) · walkie · luces de alarma (guardias) | clic derecho · <kbd>T</kbd> · <kbd>Q</kbd> |
 | Datos de la conexión | <kbd>F9</kbd> |
 | Pausa: controles y salir | <kbd>Esc</kbd> |
-| Revancha · volver al menú (al acabar) | <kbd>R</kbd> · <kbd>Esc</kbd> |
+| Revancha · salir (al acabar) | <kbd>R</kbd> · <kbd>Esc</kbd> |
 
 La lista completa está en el juego, en **Opciones → Ver controles**.
 

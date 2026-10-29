@@ -106,3 +106,24 @@ func test_nobody_moves_once_the_match_is_over() -> void:
 		await wait_physics_frames(1)
 	var moved: Vector3 = thief.global_position - start
 	assert_lt(Vector2(moved.x, moved.z).length(), 0.05, "Se queda quieto")
+
+
+func test_report_screen_stamp_then_cards() -> void:
+	var map: HeistMap3D = _map()
+	await wait_physics_frames(3)
+	var screen: MatchReport84 = map.find_child("MatchReport", true, false) as MatchReport84
+	assert_not_null(screen, "El informe está montado")
+	await wait_process_frames(2)
+	assert_false(screen.get_child(0).visible, "En juego no se ve")
+	map.guards[0].set_meta(MatchRecorder.CAPTURE_META, true)
+	GameManager.end_match(GameManager.MatchState.THIEF_CAPTURED)
+	await wait_process_frames(3)
+	assert_true(screen.get_child(0).visible, "Al acabar ocupa la pantalla")
+	assert_eq(screen.stamp_label.text, "CAPTURADO")
+	assert_false(screen.cards.is_visible_in_tree(), "Primero el sello")
+	await wait_seconds(MatchReport84.STAMP_TIME + 0.2)
+	assert_true(screen.cards.is_visible_in_tree(), "Después el informe")
+	assert_not_null(screen.find_child("BestStamp", true, false), "El mejor de la noche")
+	assert_true(map.hud.game_over_panel == null or not map.hud.game_over_panel.visible)
+	assert_eq(MatchReport84.stamp_for(GameManager.MatchState.THIEF_ESCAPED)[0], "ESCAPADO")
+	assert_eq(MatchReport84.stamp_for(GameManager.MatchState.TIME_EXPIRED)[0], "AMANECE")
