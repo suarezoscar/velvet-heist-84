@@ -30,6 +30,17 @@ static func wall_free(space: PhysicsDirectSpaceState3D, from: Vector3, to: Vecto
 	return space.intersect_ray(query).is_empty()
 
 
+## true si point está en la zona visible del actor (R1): dentro de su radio y sin muros entre
+## sus ojos y el punto
+static func sees_point(actor: Node3D, point: Vector3) -> bool:
+	if actor == null or not actor.is_inside_tree():
+		return false
+	if PerceptionRules.horizontal_distance(actor.global_position, point) > view_radius(actor):
+		return false
+	var space: PhysicsDirectSpaceState3D = actor.get_world_3d().direct_space_state
+	return wall_free(space, eye(actor), point + Vector3(0.0, 0.3, 0.0))
+
+
 ## R3: el ladrón ve al guardia si está en su zona visible y además iluminado, con la linterna
 ## encendida o a dark_sight_radius o menos
 static func thief_sees_guard(

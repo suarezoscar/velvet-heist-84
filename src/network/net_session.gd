@@ -95,6 +95,11 @@ func send_noise(
 	_client_noise.rpc_id(peer, pos, radius, team, category, emitter_role, surface_mult)
 
 
+## Envía una moneda en vuelo que ve el actor de ese peer (FEAT-038)
+func send_coin(peer: int, from: Vector3, landing: Vector3, flight_time: float) -> void:
+	_client_coin.rpc_id(peer, from, landing, flight_time)
+
+
 ## Envía el input del cliente al servidor
 func send_input(tick: int, move: Vector2, sprint: bool, sneak: bool, look: Vector3) -> void:
 	_server_input.rpc_id(1, tick, move, sprint, sneak, look)
@@ -166,6 +171,12 @@ func _client_noise(
 ) -> void:
 	if _client != null:
 		_client.on_noise(pos, radius, team, category, emitter_role, surface_mult)
+
+
+@rpc("authority", "call_remote", "unreliable")
+func _client_coin(from: Vector3, landing: Vector3, flight_time: float) -> void:
+	if _client != null:
+		_client.on_coin(from, landing, flight_time)
 
 
 func _physics_process(delta: float) -> void:

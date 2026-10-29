@@ -105,7 +105,10 @@ Desaparece el caso «ronda rota y el ladrón tenía la Pieza Maestra = gana el l
 ### R8. Una herramienta por bando
 - **Ladrón: monedas.**
   - Tiene `coins` por partida.
-  - Con el botón de lanzar, la moneda vuela al punto del ratón, a `throw_range` m como máximo, y suena al caer con radio `coin_radius`.
+  - Se apunta manteniendo el botón de lanzar: el ladrón ve el arco, un aro donde caerá (el punto del ratón, a `throw_range` m como máximo) y, tenue y discontinuo, hasta dónde se oirá (`coin_radius`). Al soltar se lanza; el clic izquierdo cancela sin gastarla (FEAT-038).
+  - Vuela en arco `coin_flight_time` s a todo el alcance (menos si cae más cerca), por encima de los muebles bajos y por los vanos; se para contra muros y puertas cerradas.
+  - Suena al caer, con radio `coin_radius`, y brilla en el suelo `coin_glint_time` s antes de desaparecer.
+  - La moneda en vuelo la ve el ladrón y cualquier guardia que tenga la salida o la caída en su zona visible (`vision.md` R1): verla volar delata el señuelo y de dónde viene.
   - Los guardias la oyen como cualquier ruido. Nadie distingue una moneda de un paso.
 - **Guardias: walkie.**
   - Con su tecla marca un punto en el plano de todo el equipo durante `ping_time` s.
@@ -160,6 +163,7 @@ Viven en un recurso nuevo, `data/balance/heist_rules.tres` (`HeistRules`). Son v
 | Puerta de la garita | `pick_time` / `creak_radius` / `auto_close` (`door_rules.tres`) | ritmo | — | 2 s / 6 m / 6 s |
 | Duración de la partida | `match_minutes` (nivel) | ritmo | 10-15 | 12 en el museo ampliado |
 | Monedas | `coins` / `throw_range` / `coin_radius` | ritmo | 2-5 / 6-14 m / 6-12 m | 3 / 10 / 9 |
+| Vuelo y brillo de la moneda | `coin_flight_time` / `coin_glint_time` | sensación | 0,3-0,8 s / 1-5 s | 0,5 / 3 |
 | Walkie | `ping_time` / `walkie_radius` / `walkie_cooldown` | ritmo | — | 8 s / 6 m / 10 s |
 | Robo a lo bruto | `brute_radius` | sensación | 12-20 m | 15 |
 | Cambiazo / examinar | `swap_time` / `inspect_time` | ritmo | 1-4 s / 1-3 s | 2 / 2 |

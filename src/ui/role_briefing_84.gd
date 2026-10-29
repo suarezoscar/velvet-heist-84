@@ -50,7 +50,9 @@ func _refresh_lines() -> void:
 		)
 	else:
 		lines = objectives(_is_thief, GameManager.quota_target, _minutes(), clocks)
-	lines_label.text = "\n".join(PackedStringArray(lines))
+	var text: String = "\n".join(PackedStringArray(lines))
+	if lines_label.text != text:
+		lines_label.text = text
 
 
 ## Líneas con encargo: el ladrón ve sus piezas y dónde están; los guardias, la carta
@@ -63,9 +65,14 @@ static func heist_objectives(
 	signature: String = PlayerName.FALLBACK_SIGNATURE
 ) -> Array[String]:
 	if is_thief:
-		var listed: String = ", ".join(PackedStringArray(pieces)) if not pieces.is_empty() else "…"
+		var contract: String = "• El encargo del coleccionista: llegando…"
+		if size > 0 and not pieces.is_empty():
+			contract = (
+				"• El encargo del coleccionista (%d piezas): %s."
+				% [size, ", ".join(PackedStringArray(pieces))]
+			)
 		return [
-			"• El encargo del coleccionista (%d piezas): %s." % [size, listed],
+			contract,
 			"• Con todas encima, sal por cualquier puerta exterior antes de %d minutos." % minutes,
 			(
 				"• Vitrinas y cajas fuertes se abren con el dial."
@@ -120,8 +127,8 @@ func _process(delta: float) -> void:
 	if _panel == null or _closing:
 		return
 	_time_left -= delta
-	if GameManager.heist != null and _is_thief and GameManager.heist.targets.is_empty():
-		_refresh_lines()  # con red, el encargo llega al poco de cargar el mapa
+	if GameManager.heist != null:
+		_refresh_lines()  # el encargo se sortea (o llega por red) justo después de abrirse
 	if GameManager.is_match_over():
 		queue_free()  # sin fundido: no debe tapar el panel de fin
 	elif _time_left <= 0.0:

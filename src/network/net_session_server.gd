@@ -36,6 +36,8 @@ func setup(session: NetSession) -> void:
 		map.guards[index].is_ai_controlled = not taken
 	if not SignalBus.noise_event_3d.is_connected(_on_noise_event):
 		SignalBus.noise_event_3d.connect(_on_noise_event)
+	if not SignalBus.coin_thrown.is_connected(_on_coin_thrown):
+		SignalBus.coin_thrown.connect(_on_coin_thrown)
 	if not _session.multiplayer.peer_disconnected.is_connected(_on_peer_disconnected):
 		_session.multiplayer.peer_disconnected.connect(_on_peer_disconnected)
 	for role: StringName in NetConfig.ROLES:
@@ -275,6 +277,14 @@ func _on_noise_event(
 			continue
 		_session.send_noise(peer, pos, radius, team, category, emitter_role, surface_mult)
 		NetTestHooks.log_event({"event": "noise", "peer": peer})
+
+
+## La moneda en vuelo, solo a quien la ve (FEAT-038; el ruido va aparte, al caer)
+func _on_coin_thrown(from: Vector3, landing: Vector3, flight_time: float) -> void:
+	for peer: int in _ready_peers:
+		var viewer: PlayerBase3D = _session.actor_for_role(NetManager.get_role_for_peer(peer))
+		if viewer != null and CoinFlightPresenter.visible_to(viewer, from, landing):
+			_session.send_coin(peer, from, landing, flight_time)
 
 
 func _log_world(peer: int, changes: Dictionary) -> void:

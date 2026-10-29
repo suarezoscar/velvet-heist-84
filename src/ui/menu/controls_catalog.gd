@@ -46,7 +46,10 @@ static func groups() -> Array[Dictionary]:
 			[
 				["Agacharse", keys(&"crouch")],
 				["Robar a lo bruto (salta la alarma)", keys(&"force")],
-				["Lanzar una moneda (para despistar)", keys(&"throw_coin")],
+				[
+					"Moneda: mantén para apuntar, suelta para lanzar",
+					keys(&"throw_coin") + " (" + keys(&"strike") + ": no lanzar)"
+				],
 				["Caja fuerte: girar el dial", "← → / A D  (mantener: gira seguido)"],
 				["Caja fuerte: probar número · salir", keys(&"interact") + " · Esc"],
 			],
