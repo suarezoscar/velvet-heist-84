@@ -54,7 +54,8 @@ Nadie lo ve todo:
 1. Descarga el paquete de tu sistema desde la **[última versión](https://github.com/suarezoscar/velvet-heist-84/releases/latest)**:
    - **Windows**: descomprime el `.zip` y abre `VelvetHeist84.exe`. El ejecutable no está firmado: en el aviso de SmartScreen pulsa «Más información» y luego «Ejecutar de todos modos».
    - **Linux**: `tar -xzf VelvetHeist84-*-linux.tar.gz` y después `./linux/VelvetHeist84.x86_64`.
-2. Elige un modo:
+2. La primera vez, el juego te pregunta cómo te llamas. Así te verán en la sala de espera y, si te toca ser el ladrón, la carta y la victoria llevarán tu inicial: *«Con mis respetos, —D.»*. Se cambia en **Opciones**.
+3. Elige un modo:
    - **Un jugador**: eres el ladrón, y a dos guardias los lleva el ordenador.
    - **Multijugador**: escribe la IP y el puerto de la partida, pulsa Unirse, elige bando y empieza la partida. Al acabar, si todos pulsan **Revancha**, se juega otra con los mismos bandos sin salir del juego.
 
@@ -80,7 +81,14 @@ Todos deben usar la misma versión, que se ve abajo a la izquierda del menú; si
 La guía completa, con el router, el cortafuegos, CGNAT y cómo compilar desde el código, está en **[docs/manual-compilacion.md](docs/manual-compilacion.md)**.
 
 ## Estado
-Es un **prototipo** (v0.x): un mapa, el museo, y las mecánicas base de sigilo, sonido, luz, cámaras, relojes de ronda, caja fuerte y niebla de guerra. Cada cambio que se integra en `master` publica una versión nueva automáticamente.
+Es un **prototipo** (v0.x) con un mapa: el museo, con 22 salas y 20 piezas en el punto de mira. Ya se juega con:
+- sigilo, sonido, luz y niebla de guerra;
+- tres formas de proteger cada pieza (dial, cambiazo con réplica y corte de corriente);
+- ventilación para el ladrón;
+- la garita con su puerta y el circuito cerrado;
+- una ronda de relojes propia para cada guardia, y el sueño y el café.
+
+Cada cambio que se integra en `master` publica una versión nueva automáticamente.
 
 ## Para desarrollar
 - Motor: **Godot 4.7.2** (Forward+), GDScript con tipado estático.
