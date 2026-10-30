@@ -1,17 +1,17 @@
 # Relevo: #114 Miniondas de ruido: ver de dónde viene lo que oyes
 
 - **Rama**: `feat/114-miniondas-ruido` · **PR**: sin abrir · **Tarjeta**: En curso
-- **Última herramienta**: Antigravity (Claude Opus), 2026-10-30
+- **Última herramienta**: Claude Code (Opus), 2026-10-30 (relevo de Antigravity)
 
 ## Hecho
 - Issue leído, tarjeta movida a «En curso», rama creada desde `master` (6f166c0).
 - Explorado: `NoiseAudioPresenter.handle_noise` ya aplica la regla de quién oye qué, sin red y en el cliente (el servidor filtra con la misma regla y el cliente llama a `handle_noise`). Es el punto de enganche de las ondas.
 
+- (Antigravity) Reglas puras `NoiseWaveRules` y números en `noise_feedback.tres`.
+- (Claude Code) Shader `noise_wave.gdshader`, `NoiseWave3D`, `NoiseWavePool` (12 ondas) y enganche en `NoiseAudioPresenter.handle_noise`.
+
 ## Falta
-- Reglas puras (`NoiseWaveRules`): quién ve la onda y su tamaño según el radio.
-- VFX: shader `noise_wave.gdshader`, `NoiseWave3D`, `NoiseWavePool` (pool fijo) y escena aislada.
-- Números en `noise_feedback.tres` (duración 0,6 s, escala, mínimo y máximo).
-- Enganche en `NoiseAudioPresenter`, tests, `stealth.md` P2.4 y verificación completa.
+- Escena aislada de la onda, tests, `stealth.md` P2.4, capturas para el usuario (es sensación: enseñar antes de pulir) y verificación completa.
 
 ## Decisiones tomadas
 - (agente) La onda solo sale para ruidos del bando contrario que alcanzan al jugador local: los guardias ven los del ladrón y el ladrón los de los guardias. Lo propio y lo del propio bando no hace onda (el issue lo dice así).

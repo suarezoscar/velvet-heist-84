@@ -1,10 +1,13 @@
 ## @file noise_audio_presenter.gd
 ## Presentador de audio de ruido posicional, vúmetro y chevron fuera de pantalla.
-## Reproduce ruidos perceptibles por el jugador local con atenuación y pitch variable.
+## Reproduce ruidos perceptibles por el jugador local con atenuación y pitch variable, y lanza
+## una minionda en el origen de los del bando contrario (#114).
 class_name NoiseAudioPresenter
 extends Node
 
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+## Miniondas en el origen de lo que oye el jugador local (#114)
+var waves: NoiseWavePool = null
 var _map: HeistMap3D = null
 var _feedback: NoiseFeedbackProfile = null
 var _mix: NoiseMix = null
@@ -19,6 +22,8 @@ func setup(map: HeistMap3D, feedback: NoiseFeedbackProfile, mix: NoiseMix) -> vo
 	_mix = mix
 
 	if _listener == null:
+		waves = NoiseWavePool.new()
+		add_child(waves)
 		_listener = AudioListener3D.new()
 		_listener.name = "NoiseAudioListener"
 		add_child(_listener)
@@ -108,6 +113,10 @@ func handle_noise(
 			local, pos, radius, team, _feedback.thief_hearing_mult
 		):
 			return
+		if NoiseWaveRules.should_show(
+			local, pos, radius, team, emitter, _feedback.thief_hearing_mult
+		):
+			waves.spawn(pos, NoiseWaveRules.wave_radius(radius, _feedback), _feedback.wave_time)
 
 		if not streams.is_empty():
 			var player_3d: AudioStreamPlayer3D = AudioStreamPlayer3D.new()
