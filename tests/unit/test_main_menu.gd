@@ -81,3 +81,40 @@ func test_settings_roundtrip_and_options_save() -> void:
 	var master: int = AudioServer.get_bus_index(&"Master")
 	assert_almost_eq(AudioServer.get_bus_volume_db(master), linear_to_db(0.35), 0.01, "Y se aplica")
 	GameSettings.new().apply()
+
+
+func test_last_address_and_host_port_roundtrip() -> void:
+	var settings: GameSettings = GameSettings.new()
+	assert_eq(settings.last_address, "")
+	assert_eq(settings.host_port, NetManagerNode.DEFAULT_PORT)
+	settings.last_address = "83.45.120.7:9000"
+	settings.host_port = 8123
+	settings.save(TEMP_SETTINGS)
+	var loaded: GameSettings = GameSettings.load_saved(TEMP_SETTINGS)
+	assert_eq(loaded.last_address, "83.45.120.7:9000")
+	assert_eq(loaded.host_port, 8123)
+	var config: ConfigFile = ConfigFile.new()
+	config.set_value(GameSettings.SECTION, "host_port", 80)
+	config.save(TEMP_SETTINGS)
+	assert_eq(
+		GameSettings.load_saved(TEMP_SETTINGS).host_port,
+		NetManagerNode.DEFAULT_PORT,
+		"Un puerto inválido vuelve al de por defecto"
+	)
+	DirAccess.remove_absolute(TEMP_SETTINGS)
+
+
+func test_options_name_is_synced_when_shown() -> void:
+	var path: String = "user://test_opts.cfg"
+	var settings: GameSettings = GameSettings.new()
+	var panel: OptionsPanel = OptionsPanel.new()
+	add_child_autofree(panel)
+	panel.setup(settings, path)
+	settings.player_name = "Vera"
+	panel.visible = false
+	panel.visible = true
+	assert_eq(panel.name_edit.text, "Vera", "Al mostrarse, el nombre se vuelve a leer")
+	panel.name_edit.focus_exited.emit()
+	assert_eq(settings.player_name, "Vera")
+	if FileAccess.file_exists(path):
+		DirAccess.remove_absolute(path)

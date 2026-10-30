@@ -1,5 +1,5 @@
 ## @file lobby_view.gd
-## Vista del lobby online: conexión por IP y puerto a un servidor dedicado,
+## Vista del lobby online: conexión por dirección (IP:puerto) a un servidor dedicado,
 ## elección de rol, lista de jugadores e inicio de partida.
 class_name LobbyView
 extends Control
@@ -16,6 +16,8 @@ const COLOR_TEXT: Color = Color(0.9, 0.95, 1.0, 1.0)
 
 ## Copia del botón de GUARDIA 2 creada en _ready (FEAT-022)
 var role_guard3_btn: Button = null
+## Dirección escrita al pulsar «Unirse»; se guarda solo si la conexión se acepta (#110)
+var _pending_address: String = ""
 
 @onready var lobby_title_lbl: Label = $HeaderBox/LobbyTitleLabel
 @onready var lobby_status_lbl: Label = $HeaderBox/LobbyStatusLabel
@@ -35,6 +37,9 @@ var role_guard3_btn: Button = null
 
 
 func _ready() -> void:
+	var saved: GameSettings = GameSettings.load_saved()
+	ip_edit.text = saved.last_address
+	port_edit.text = str(saved.host_port)
 	HostPanel84.attach(host_btn, port_edit, conn_log_lbl)  # «CREAR PARTIDA» (FEAT-040)
 	role_guard3_btn = role_guard2_btn.duplicate() as Button
 	role_guard3_btn.name = "RoleGuard3Button"
@@ -90,17 +95,21 @@ func refresh() -> void:
 
 
 func _on_join_pressed() -> void:
-	var ip: String = ip_edit.text.strip_edges()
-	if ip.is_empty():
-		ip = "127.0.0.1"
-	var port: int = _get_port_input()
 	conn_log_lbl.modulate = Color.WHITE
+	var address: Dictionary = JoinAddress.parse(ip_edit.text)
+	if not address["ok"]:
+		conn_log_lbl.text = address["error"]
+		refresh()
+		return
+	var ip: String = address["ip"]
+	var port: int = address["port"]
+	_pending_address = ip_edit.text.strip_edges()
 	conn_log_lbl.text = "Conectando con %s:%d…" % [ip, port]
 	var err: Error = NetManager.join_server(ip, port)
 	if err != OK:
+		_pending_address = ""
 		conn_log_lbl.text = (
-			"No hay respuesta en %s:%d. Comprueba la IP y el puerto e inténtalo de nuevo."
-			% [ip, port]
+			"No hay respuesta en %s:%d. Comprueba la dirección e inténtalo de nuevo." % [ip, port]
 		)
 	refresh()
 
@@ -136,8 +145,9 @@ func _on_connection_succeeded() -> void:
 
 
 func _on_connection_failed() -> void:
+	_pending_address = ""
 	if HostLauncher.current(get_tree()) == null:  # creándola, HostPanel84 lo reintenta
-		conn_log_lbl.text = "No hay respuesta de la partida. Comprueba la IP y el puerto."
+		conn_log_lbl.text = "No hay respuesta de la partida. Comprueba la dirección."
 	refresh()
 
 
@@ -158,11 +168,17 @@ func show_notice(text: String) -> void:
 
 
 func _on_version_accepted(server_version: String) -> void:
+	if not _pending_address.is_empty():
+		var saved: GameSettings = GameSettings.load_saved()
+		saved.last_address = _pending_address
+		saved.save()
+		_pending_address = ""
 	conn_log_lbl.modulate = Color.WHITE
 	conn_log_lbl.text = "Conectado (versión %s). Elige bando." % server_version
 
 
 func _on_version_rejected(server_version: String, own_version: String) -> void:
+	_pending_address = ""
 	conn_log_lbl.modulate = COLOR_AMBER
 	conn_log_lbl.text = NetVersionNode.mismatch_text(server_version, own_version)
 
@@ -248,9 +264,3 @@ func _build_player_row(pid: int, info: Dictionary, is_me: bool) -> PanelContaine
 
 func _format_role_name(role: StringName) -> String:
 	return NetStatsNode.role_label(role)
-
-
-func _get_port_input() -> int:
-	var port_str: String = port_edit.text.strip_edges()
-	var port: int = port_str.to_int() if not port_str.is_empty() else NetManagerNode.DEFAULT_PORT
-	return port if port > 0 else NetManagerNode.DEFAULT_PORT
