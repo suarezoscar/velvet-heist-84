@@ -13,7 +13,7 @@ uniform vec4 trough_color : source_color = vec4(0.35, 0.38, 0.42, 1.0);
 /// Avance de la onda: 0 al nacer, 1 al desaparecer
 uniform float progress : hint_range(0.0, 1.0) = 0.0;
 /// Opacidad máxima de una cresta
-uniform float max_alpha : hint_range(0.0, 1.0) = 0.6;
+uniform float max_alpha : hint_range(0.0, 1.0) = 0.38;
 /// Circunferencias y separación entre ellas (en fracción del radio)
 uniform int ring_count : hint_range(1, 6) = 3;
 uniform float ring_spacing : hint_range(0.0, 0.5) = 0.2;
