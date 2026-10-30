@@ -15,7 +15,7 @@ Un ladrón de guante blanco frente a una patrulla de guardias, en red o en solit
 &nbsp;
 ![Godot 4.7](https://img.shields.io/badge/Godot-4.7-478cbf?style=for-the-badge&logo=godotengine&logoColor=white)
 
-**[⬇ Descargar la última versión](https://github.com/suarezoscar/velvet-heist-84/releases/latest)** · **[📖 Manual del juego](https://suarezoscar.github.io/velvet-heist-84/)**
+**[⬇ Descargar la última versión](https://github.com/suarezoscar/velvet-heist-84/releases/latest)** · **[📖 Manual del juego](https://suarezoscar.github.io/velvet-heist-84/)** · **[🗂 Tablero de mejoras](https://github.com/users/suarezoscar/projects/1)**
 
 </div>
 
