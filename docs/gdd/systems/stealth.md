@@ -71,8 +71,8 @@ No hay representación del ruido en el mundo (P2.4, 2026-10-23); el radio emitid
 - `melee_range` < `proximity_radius`: un guardia nunca golpea a quien no podría percibir de frente.
 - **Solo delante (2026-10-30, #112)**: además, el ladrón tiene que estar dentro de `melee_half_angle_deg` (75°, un arco de 150°) respecto a hacia dónde mira el guardia: hacia donde anda o, si barre con la linterna, hacia el ratón. A la espalda no se golpea.
 
-### Orientación (2026-10-30, #112)
-- Ambos bandos miran hacia donde andan; parados mantienen el último lado. El ratón solo cuenta al apuntar la moneda (ladrón) o al barrer con la linterna (guardia).
+### Orientación (2026-10-30, #112 y #113)
+- Ambos bandos miran hacia donde andan; parados mantienen el último lado. El ratón solo cambia la orientación al apuntar la moneda (ladrón) o al barrer con la linterna (guardia). El cursor también desempata el objeto de una interacción, pero sin girar al personaje.
 
 ### Interacciones
 - **Botín pesado**: multiplica la velocidad en todos los modos y no cambia el ruido (pendiente de `loot.md`). Se puede ir agachado con botín pesado.

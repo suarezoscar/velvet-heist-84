@@ -101,6 +101,16 @@ Alcance (9,5 m), FOV (52°) y barrido (65°) siguen siendo datos de cada cámara
 4. Mirando, ningún input de movimiento mueve al guardia; el primero lo saca del estado.
 5. Piloto encendido ⇔ algún guardia mirando.
 
+# Selección de interactivos (2026-10-30, #113)
+
+- **E en abanico**: la E actúa sobre un objeto interactivo válido a menos de 2 m y dentro de un abanico total de 120° delante del personaje. El alcance se mide en horizontal hasta el punto cercano del área interactiva, no hasta su centro. Sin preferencia de cursor gana el más cercano.
+- **Cursor**: si hay varios candidatos válidos, gana aquel al que apunta el cursor. Esta preferencia no cambia la orientación corporal definida en `stealth.md`. El cliente envía el punto del cursor junto a la intención fiable de E; el servidor lo sanea y vuelve a validar alcance, abanico, estado y muros antes de ejecutarla.
+- **Oclusión**: los muros y tabiques siguen bloqueando; los muebles no. La comprobación llega al punto cercano del área para que la propia hoja de una puerta o el muro posterior a una rejilla no impidan usarlas.
+- **Puertas**: su área cubre todo el hueco y 1,1 m a cada lado, incluidos los extremos. Vale para ladrón y guardias, respetando el `can_interact` de cada objeto.
+- **Foco visible**: el objeto elegido muestra un contorno suave ámbar además del texto de interacción. Texto y contorno consultan el mismo foco y desaparecen al perderlo o al cambiar de personaje local. El contorno no atraviesa muros ni sustituye los materiales de las piezas.
+
+Los números comunes viven en `data/balance/interaction_rules.tres`: `reach_distance = 2,0` y `fan_angle_degrees = 120,0`.
+
 # Común
 ## Contrajuego
 | Acción | Quién | Qué percibe el otro | Respuesta |
