@@ -32,8 +32,9 @@ func setup(session: NetSession) -> void:
 		actor.is_locally_controlled = false
 	for index: int in range(map.guards.size()):
 		var role: StringName = _guard_role(index)
-		var taken: bool = role != &"" and NetManager.get_peer_id_for_role(role) != 0
-		map.guards[index].is_ai_controlled = not taken
+		map.guards[index].is_ai_controlled = (
+			role == &"" or NetManager.get_peer_id_for_role(role) == 0
+		)
 	if not SignalBus.noise_event_3d.is_connected(_on_noise_event):
 		SignalBus.noise_event_3d.connect(_on_noise_event)
 	if not SignalBus.coin_thrown.is_connected(_on_coin_thrown):
@@ -74,23 +75,27 @@ func on_input(
 	peer: int, tick: int, move: Vector2, sprint: bool, sneak: bool, look: Vector3
 ) -> void:
 	var actor: PlayerBase3D = _actor_for_peer(peer)
-	if actor == null:
-		return
-	if tick <= int(_last_tick.get(peer, -1)):
+	if actor == null or tick <= int(_last_tick.get(peer, -1)):
 		return
 	_last_tick[peer] = tick
 	actor.apply_input(NetInputRules.sanitize(actor, move, sprint, sneak, look))
 
 
 ## Ejecuta una acción discreta validada del peer sobre su propio actor
-func on_action(peer: int, action: StringName) -> void:
+func on_action(peer: int, action: StringName, interaction_cursor: Vector3 = Vector3.INF) -> void:
 	if not NetInputRules.is_valid_action(action):
 		return
 	var actor: PlayerBase3D = _actor_for_peer(peer)
 	if actor == null:
 		return
+	if action == &"interact":
+		actor.interaction_cursor_position = NetInputRules.sanitize_interaction_cursor(
+			actor, interaction_cursor
+		)
 	if not HeistActions.handle(actor, action):  # moneda, walkie, luces de alarma
 		actor.perform_action(action)
+	if action == &"interact":
+		actor.interaction_cursor_position = Vector3.INF
 
 
 ## Un cliente ha cargado el mapa: recibe el estado completo y empieza a recibir ticks
@@ -103,20 +108,19 @@ func on_client_ready(peer: int) -> void:
 	_scan_world_nodes()
 	var full: Dictionary = {}
 	for path: String in _world_nodes:
-		var node: Node = _world_nodes[path]
-		if is_instance_valid(node):
-			full[path] = node.get_net_state()
+		if is_instance_valid(_world_nodes[path]):
+			full[path] = _world_nodes[path].get_net_state()
 	for path: String in _removed_paths:
 		full[path] = {"removed": true}
 	if not full.is_empty():
 		_session.send_world_state(peer, full)
 		_log_world(peer, full)
-	var private_state: Dictionary = NetPrivateStates.for_role(
+	var priv: Dictionary = NetPrivateStates.for_role(
 		_private.collect(_world_nodes, true), _peer_roles[peer]
 	)
-	if not private_state.is_empty():
-		_session.send_world_state(peer, private_state)
-		_log_world(peer, private_state)
+	if not priv.is_empty():
+		_session.send_world_state(peer, priv)
+		_log_world(peer, priv)
 	var game_state: Dictionary = GameManager.get_net_state()
 	_last_game_state = game_state
 	_game_timer = 0.0
@@ -128,9 +132,7 @@ func _actor_for_peer(peer: int) -> PlayerBase3D:
 	if _session == null or not _ready_peers.has(peer):
 		return null
 	var role: StringName = NetManager.get_role_for_peer(peer)
-	if role == &"":
-		return null
-	return _session.actor_for_role(role)
+	return _session.actor_for_role(role) if role != &"" else null
 
 
 ## Un peer se va: deja de recibir y su actor se queda quieto (sin sprint ni sigilo)
@@ -140,32 +142,32 @@ func _on_peer_disconnected(peer: int) -> void:
 	var role: StringName = _peer_roles.get(peer, &"")
 	_peer_roles.erase(peer)
 	var actor: PlayerBase3D = _session.actor_for_role(role)
-	if actor != null and actor.has_method(&"stop_watching"):
+	if actor == null:
+		return
+	if actor.has_method(&"stop_watching"):
 		actor.call(&"stop_watching")  # guardia o ladrón sentado ante los monitores
 	if actor is GuardController3D:
 		(actor as GuardController3D).apply_flashlight_state(false)  # sin quien la sostenga
-	if actor != null:
-		actor.apply_input(
-			{"movement_vector": Vector2.ZERO, "is_sprinting": false, "is_sneaking": false}
-		)
+	actor.apply_input(
+		{"movement_vector": Vector2.ZERO, "is_sprinting": false, "is_sneaking": false}
+	)
 
 
 func _guard_role(index: int) -> StringName:
 	var role_index: int = index + 1
-	if role_index >= NetConfig.ROLES.size():
-		return &""
-	return NetConfig.ROLES[role_index]
+	return NetConfig.ROLES[role_index] if role_index < NetConfig.ROLES.size() else &""
 
 
 func _send_own_states() -> void:
 	for peer: int in _ready_peers:
 		var actor: PlayerBase3D = _actor_for_peer(peer)
-		if actor == null:
-			continue
-		var state: Dictionary = actor.get_net_actor_state()
-		_session.send_own_state(peer, state)
-		var pos: Vector3 = state["pos"]
-		NetTestHooks.log_event({"event": "own_state", "peer": peer, "pos": [pos.x, pos.y, pos.z]})
+		if actor != null:
+			var state: Dictionary = actor.get_net_actor_state()
+			_session.send_own_state(peer, state)
+			var pos: Vector3 = state["pos"]
+			NetTestHooks.log_event(
+				{"event": "own_state", "peer": peer, "pos": [pos.x, pos.y, pos.z]}
+			)
 
 
 func _send_snapshots() -> void:
@@ -173,13 +175,12 @@ func _send_snapshots() -> void:
 	var open: bool = GameManager.is_match_over()
 	for peer: int in _ready_peers:
 		var role: StringName = NetManager.get_role_for_peer(peer)
-		if role == &"":
-			continue
-		var states: Dictionary = NetSnapshots.build(_session, role, views, open)
-		_session.send_snapshot(peer, Time.get_ticks_msec() / 1000.0, states)
-		NetTestHooks.log_event(
-			{"event": "sent_snapshot", "peer": peer, "roles": NetSnapshots.log_roles(states)}
-		)
+		if role != &"":
+			var states: Dictionary = NetSnapshots.build(_session, role, views, open)
+			_session.send_snapshot(peer, Time.get_ticks_msec() / 1000.0, states)
+			NetTestHooks.log_event(
+				{"event": "sent_snapshot", "peer": peer, "roles": NetSnapshots.log_roles(states)}
+			)
 
 
 func _send_world_states() -> void:
@@ -230,16 +231,14 @@ func _send_game_state() -> void:
 
 
 func _scan_world_nodes() -> void:
-	var map: HeistMap3D = _session.map
-	for node: Node in map.get_tree().get_nodes_in_group(&"net_state"):
+	for node: Node in _session.map.get_tree().get_nodes_in_group(&"net_state"):
 		if _node_paths.has(node):
 			continue
 		var path: String = _path_of(node)
-		if path.is_empty() or _world_nodes.has(path):
-			continue
-		_world_nodes[path] = node
-		_node_paths[node] = path
-		node.tree_exiting.connect(_on_node_exiting.bind(node, path))
+		if not path.is_empty() and not _world_nodes.has(path):
+			_world_nodes[path] = node
+			_node_paths[node] = path
+			node.tree_exiting.connect(_on_node_exiting.bind(node, path))
 
 
 func _path_of(node: Node) -> String:

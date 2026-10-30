@@ -1,5 +1,5 @@
 ## Lectura del teclado y ratón del jugador local (solo la usa PlayerBase3D.gather_input).
-## El personaje mira hacia donde anda; el ratón solo cuenta al apuntar o barrer (#112).
+## El personaje mira hacia donde anda; el cursor también desempata interacciones sin girarlo.
 class_name LocalInput3D
 extends RefCounted
 
@@ -15,7 +15,7 @@ static var _facing_owner: int = 0
 
 
 ## Diccionario con movement_vector (Vector2), is_sprinting, is_sneaking, crouch
-## (just_pressed) y look_target (Vector3). Usa move_* o ui_* como hoy.
+## (just_pressed), look_target e interaction_cursor (Vector3). Usa move_* o ui_* como hoy.
 static func read(player: PlayerBase3D, cam: Camera3D) -> Dictionary:
 	if blocked:
 		return {
@@ -23,6 +23,8 @@ static func read(player: PlayerBase3D, cam: Camera3D) -> Dictionary:
 			"is_sprinting": false,
 			"is_sneaking": false,
 			"look_target": player.look_target_position if player != null else Vector3.ZERO,
+			"interaction_cursor":
+			player.interaction_cursor_position if player != null else Vector3.INF,
 			"crouch": false,
 		}
 	var left: StringName = &"move_left" if InputMap.has_action("move_left") else &"ui_left"
@@ -44,6 +46,7 @@ static func read(player: PlayerBase3D, cam: Camera3D) -> Dictionary:
 		"is_sprinting": sprint,
 		"is_sneaking": sneak,
 		"look_target": target_pos,
+		"interaction_cursor": project_interaction_cursor(player, cam),
 		"crouch": crouch_pressed,
 	}
 
@@ -96,3 +99,19 @@ static func project_cursor(player: PlayerBase3D, cam: Camera3D) -> Vector3:
 		cam.project_ray_origin(mouse_screen_pos), cam.project_ray_normal(mouse_screen_pos)
 	)
 	return hit as Vector3 if hit != null else player.look_target_position
+
+
+## Cursor para desempatar interactivos. INF indica que no hay una proyección válida y evita
+## inventar una preferencia en servidores headless o pruebas sin cámara.
+static func project_interaction_cursor(player: PlayerBase3D, cam: Camera3D) -> Vector3:
+	if player == null or cam == null or not player.is_inside_tree():
+		return Vector3.INF
+	var viewport: Viewport = player.get_viewport()
+	if viewport == null:
+		return Vector3.INF
+	var mouse_screen_pos: Vector2 = viewport.get_mouse_position()
+	var ground_plane: Plane = Plane(Vector3.UP, player.global_position.y)
+	var hit: Variant = ground_plane.intersects_ray(
+		cam.project_ray_origin(mouse_screen_pos), cam.project_ray_normal(mouse_screen_pos)
+	)
+	return hit as Vector3 if hit != null else Vector3.INF

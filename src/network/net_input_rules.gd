@@ -23,6 +23,13 @@ static func sanitize(
 	}
 
 
+## Sanea el cursor que acompaña a la intención fiable de interactuar (#113)
+static func sanitize_interaction_cursor(actor: PlayerBase3D, cursor: Vector3) -> Vector3:
+	if not cursor.is_finite():
+		return Vector3.INF
+	return _clamp_look(actor, cursor)
+
+
 ## Verdadero si la acción está en el catálogo cerrado de NetConfig.ACTIONS
 static func is_valid_action(action: StringName) -> bool:
 	return NetConfig.ACTIONS.has(action)

@@ -240,7 +240,6 @@ func _setup_carry_anchor() -> void:
 func _setup_interactor() -> void:
 	interactor = Interactor3D.new()
 	interactor.name = "ThiefInteractor"
-	interactor.reach_distance = 1.8
 	add_child(interactor)
 
 

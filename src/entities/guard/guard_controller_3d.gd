@@ -74,7 +74,6 @@ func _ready() -> void:
 	add_to_group(&"guards")
 	interactor = Interactor3D.new()
 	interactor.name = "GuardInteractor"
-	interactor.reach_distance = 1.8
 	add_child(interactor)
 
 	if maglite_light != null and perception != null:
