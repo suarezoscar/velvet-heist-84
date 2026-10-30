@@ -35,3 +35,15 @@ extends Resource
 
 ## Proporción mínima (0..1) del volumen de los pasos propios aunque sean muy silenciosos
 @export var own_step_min_ratio: float = 0.35
+
+## Duración en segundos de la minionda en el origen de un ruido oído (#114)
+@export var wave_time: float = 0.6
+
+## Metros de onda por metro de radio del ruido: más fuerte, más grande
+@export var wave_radius_scale: float = 0.12
+
+## Radio mínimo en metros de la minionda (el ruido más flojo que se oye)
+@export var wave_min_radius: float = 0.35
+
+## Radio máximo en metros de la minionda (sigue siendo pequeña con ruidos muy fuertes)
+@export var wave_max_radius: float = 1.4
