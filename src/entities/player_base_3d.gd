@@ -35,7 +35,7 @@ var net_target_velocity: Vector3 = Vector3.ZERO
 var is_net_interpolating: bool = false
 var current_input_dir: Vector2 = Vector2.ZERO
 var surface_detector: SurfaceDetector3D = null
-var _step_timer: float = 0.0
+var _step_timer: float = INF
 
 
 func _ready() -> void:
@@ -161,7 +161,7 @@ func simulate_movement(delta: float) -> void:
 		_process_footstep_cadence(delta)
 	else:
 		_apply_friction(delta)
-		_step_timer = 0.0
+		_step_timer = INF  # al volver a andar, el primer paso suena al instante
 
 	_apply_gravity(delta)
 	move_and_slide()
@@ -285,8 +285,8 @@ func _apply_gravity(delta: float) -> void:
 
 func _process_footstep_cadence(delta: float) -> void:
 	_step_timer += delta
-	var interval: float = (
-		movement_profile.step_interval_for(get_move_mode()) if movement_profile != null else 0.42
+	var interval: float = CharacterAnimator3D.step_interval(
+		get_move_mode(), velocity.slide(Vector3.UP).length()
 	)
 	if _step_timer >= interval:
 		_step_timer = 0.0

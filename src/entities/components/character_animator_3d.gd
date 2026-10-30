@@ -24,6 +24,13 @@ const ANIMATION_REFERENCE_SPEED: Dictionary = {
 	&"sneak_walk": 1.2,
 	&"crouch_walk": 1.2,
 }
+## Duración (s) de cada ciclo de paso de Mixamo (dos pisadas por ciclo), medida en los .glb del
+## ladrón y del guardia, que comparten animaciones. Los pasos suenan a este ritmo (#109)
+const STEP_CYCLE_LENGTH: Dictionary = {
+	&"walk": 1.0667,
+	&"sneak_walk": 1.10,
+	&"crouch_walk": 1.0667,
+}
 const MIN_PLAYBACK_SPEED: float = 0.6
 const MAX_PLAYBACK_SPEED: float = 3.0
 
@@ -126,10 +133,22 @@ func _apply_state(state: StringName, horizontal_speed: float) -> void:
 	if _current_state != state:
 		animation_player.play(state, BLEND_TIME)
 		_current_state = state
-	animation_player.speed_scale = _playback_speed(state, horizontal_speed)
+	animation_player.speed_scale = playback_speed(state, horizontal_speed)
 
 
-func _playback_speed(anim_name: StringName, horizontal_speed: float) -> float:
+## Segundos entre pasos para que el sonido caiga con cada pie: el ciclo de la animación del modo,
+## a la velocidad a la que se reproduce, entre sus dos pisadas. Lo usa la simulación (también en
+## el servidor, sin animación), así que no lee el AnimationPlayer
+static func step_interval(mode: MovementProfile.Mode, horizontal_speed: float) -> float:
+	var anim: StringName = &"walk"
+	if mode == MovementProfile.Mode.CROUCH:
+		anim = &"crouch_walk"
+	elif mode == MovementProfile.Mode.SNEAK:
+		anim = &"sneak_walk"
+	return float(STEP_CYCLE_LENGTH[anim]) / (2.0 * playback_speed(anim, horizontal_speed))
+
+
+static func playback_speed(anim_name: StringName, horizontal_speed: float) -> float:
 	if not ANIMATION_REFERENCE_SPEED.has(anim_name):
 		return 1.0
 	var ratio: float = horizontal_speed / float(ANIMATION_REFERENCE_SPEED[anim_name])
