@@ -52,18 +52,11 @@ func test_private_ips_are_the_home_network_ones() -> void:
 
 
 func test_friends_text_and_copy() -> void:
-	var text: String = HostPanel84.friends_text(
-		"83.45.12.9", PackedStringArray(["192.168.1.20"]), 7777
-	)
-	assert_string_contains(text, "Por internet: 83.45.12.9 · puerto 7777")
-	assert_string_contains(text, "En tu misma red: 192.168.1.20 · puerto 7777")
-	assert_eq(
-		HostPanel84.copy_text("83.45.12.9", PackedStringArray(["192.168.1.20"]), 7777),
-		"83.45.12.9:7777"
-	)
-	assert_eq(
-		HostPanel84.copy_text("", PackedStringArray(["192.168.1.20"]), 7777), "192.168.1.20:7777"
-	)
+	var text: String = HostPanel84.friends_text("83.45.12.9", 7777)
+	assert_string_contains(text, "83.45.12.9:7777")
+	assert_false(text.contains("red"), "Sin red local")
+	assert_eq(HostPanel84.friends_text("", 7777), "", "Sin IP pública no hay texto")
+	assert_eq(HostPanel84.copy_text("83.45.12.9", 7777), "83.45.12.9:7777")
 
 
 ## De verdad: arranca el servidor en otro proceso, se conecta y al cerrar no queda nada

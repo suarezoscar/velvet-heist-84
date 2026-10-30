@@ -1,7 +1,8 @@
 ## @file game_settings.gd
 ## Ajustes del jugador (pantalla completa, sincronía vertical, volúmenes general, de música y
-## de efectos, datos de la conexión y nombre), guardados en user://settings.cfg. El menú principal
-## los carga y aplica al arrancar. La música y los efectos van a sus buses (default_bus_layout).
+## de efectos, datos de la conexión, nombre y datos de multijugador), guardados en
+## user://settings.cfg. El menú principal los carga y aplica al arrancar. La música y los efectos
+## van a sus buses (default_bus_layout).
 class_name GameSettings
 extends RefCounted
 
@@ -22,6 +23,10 @@ var show_perf: bool = false
 var player_name: String = ""
 ## Ya se le preguntó el nombre al abrir el juego por primera vez
 var name_asked: bool = false
+## Última dirección con la que te uniste bien, tal cual se escribió (#110)
+var last_address: String = ""
+## Último puerto con el que creaste partida (#110)
+var host_port: int = NetManagerNode.DEFAULT_PORT
 
 
 ## Lee los ajustes guardados; los que falten (o el archivo entero) quedan por defecto
@@ -35,6 +40,9 @@ static func load_saved(path: String = DEFAULT_PATH) -> GameSettings:
 	settings.show_perf = bool(config.get_value(SECTION, "show_perf", settings.show_perf))
 	settings.player_name = PlayerName.clean(String(config.get_value(SECTION, "player_name", "")))
 	settings.name_asked = bool(config.get_value(SECTION, "name_asked", settings.name_asked))
+	settings.last_address = String(config.get_value(SECTION, "last_address", "")).strip_edges()
+	var port: int = int(config.get_value(SECTION, "host_port", settings.host_port))
+	settings.host_port = port if HostLauncher.valid_port(port) else NetManagerNode.DEFAULT_PORT
 	for field: String in ["master_volume", "music_volume", "sfx_volume"]:
 		settings.set(
 			field, clampf(float(config.get_value(SECTION, field, settings.get(field))), 0.0, 1.0)
@@ -53,6 +61,8 @@ func save(path: String = DEFAULT_PATH) -> Error:
 	config.set_value(SECTION, "show_perf", show_perf)
 	config.set_value(SECTION, "player_name", player_name)
 	config.set_value(SECTION, "name_asked", name_asked)
+	config.set_value(SECTION, "last_address", last_address)
+	config.set_value(SECTION, "host_port", host_port)
 	return config.save(path)
 
 

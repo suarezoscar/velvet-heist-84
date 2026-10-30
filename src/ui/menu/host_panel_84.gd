@@ -1,7 +1,7 @@
 ## @file host_panel_84.gd
 ## «CREAR PARTIDA» en la sala de espera (FEAT-040). El botón arranca el servidor en este equipo
 ## (HostLauncher), conecta al jugador con él y le enseña qué pasar a sus amigos: la IP pública
-## (si el router la da por UPnP) y la de casa, con el puerto y un botón para copiarlas. Si el
+## (si el router la da por UPnP) con el puerto y un botón para copiarla. Si el
 ## router no deja abrir el puerto solo, lo dice. Al salir de la sala, la partida se cierra.
 class_name HostPanel84
 extends VBoxContainer
@@ -40,24 +40,16 @@ static func close_hosted(tree: SceneTree) -> void:
 		launcher.close()
 
 
-## Texto para los amigos: dónde conectarse
-static func friends_text(public_ip: String, local_ips: PackedStringArray, port: int) -> String:
-	var lines: PackedStringArray = ["Pásales esto a tus amigos:"]
-	if not public_ip.is_empty():
-		lines.append("Por internet: %s · puerto %d" % [public_ip, port])
-	if not local_ips.is_empty():
-		lines.append("En tu misma red: %s · puerto %d" % [local_ips[0], port])
-	return "\n".join(lines)
+## Texto para los amigos: la dirección por internet; "" si no se conoce la IP pública
+static func friends_text(public_ip: String, port: int) -> String:
+	if public_ip.is_empty():
+		return ""
+	return "Pásales esto a tus amigos:\n%s:%d" % [public_ip, port]
 
 
-## Lo que se copia: la dirección por internet si se sabe; si no, la de casa
-static func copy_text(public_ip: String, local_ips: PackedStringArray, port: int) -> String:
-	var ip: String = (
-		public_ip
-		if not public_ip.is_empty()
-		else (local_ips[0] if not local_ips.is_empty() else "127.0.0.1")
-	)
-	return "%s:%d" % [ip, port]
+## Lo que se copia: la IP pública con el puerto (solo se llama si se conoce)
+static func copy_text(public_ip: String, port: int) -> String:
+	return "%s:%d" % [public_ip, port]
 
 
 func _ready() -> void:
@@ -114,6 +106,9 @@ func _on_create_pressed() -> void:
 	if launcher == null:
 		log_label.text = "No se pudo crear la partida. Inténtalo de nuevo."
 		return
+	var saved: GameSettings = GameSettings.load_saved()
+	saved.host_port = port
+	saved.save()
 	log_label.text = "Creando la partida… Si Windows pregunta, pulsa Permitir."
 	_tries = 0
 	_retry_timer.start(FIRST_TRY)
@@ -183,7 +178,7 @@ func _on_upnp(_ok: bool) -> void:
 func _refresh_info(launcher: HostLauncher) -> void:
 	if launcher == null:
 		return
-	var text: String = friends_text(launcher.public_ip, launcher.local_ips, launcher.port)
+	var text: String = friends_text(launcher.public_ip, launcher.port)
 	if not launcher.upnp_done:
 		text += "\nBuscando tu router para abrir el puerto…"
 	elif not launcher.upnp_ok:
@@ -194,17 +189,15 @@ func _refresh_info(launcher: HostLauncher) -> void:
 				% launcher.port
 			)
 		)
-	info_label.text = text
+	info_label.text = text.strip_edges()
 	info_label.visible = true
-	copy_button.visible = true
+	copy_button.visible = not launcher.public_ip.is_empty()
 
 
 func _on_copy_pressed() -> void:
 	var launcher: HostLauncher = HostLauncher.current(get_tree())
 	if launcher != null:
-		DisplayServer.clipboard_set(
-			copy_text(launcher.public_ip, launcher.local_ips, launcher.port)
-		)
+		DisplayServer.clipboard_set(copy_text(launcher.public_ip, launcher.port))
 		copy_button.text = "COPIADO"
 		get_tree().create_timer(COPIED_SECONDS).timeout.connect(
 			func() -> void:

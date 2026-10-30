@@ -65,6 +65,25 @@ func setup(current: GameSettings, path: String = GameSettings.DEFAULT_PATH) -> v
 	back_button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	back_button.pressed.connect(back_requested.emit)
 	box.add_child(back_button)
+	visibility_changed.connect(_on_visibility_changed)
+
+
+func _on_visibility_changed() -> void:
+	if visible:
+		sync_from_settings()
+
+
+## Vuelve a pintar el panel con los ajustes actuales (los deslizadores, si cambian, guardan el
+## mismo valor para refrescar su número). Otro panel (la
+## pregunta del nombre al abrir el juego) puede haberlos cambiado desde que se construyó (#110)
+func sync_from_settings() -> void:
+	name_edit.text = settings.player_name
+	fullscreen_check.set_pressed_no_signal(settings.fullscreen)
+	vsync_check.set_pressed_no_signal(settings.vsync)
+	perf_check.set_pressed_no_signal(settings.show_perf)
+	volume_slider.value = roundf(settings.master_volume * 100.0)
+	music_slider.value = roundf(settings.music_volume * 100.0)
+	sfx_slider.value = roundf(settings.sfx_volume * 100.0)
 
 
 func _section(text: String) -> Label:
