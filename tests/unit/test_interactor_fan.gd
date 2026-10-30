@@ -203,3 +203,18 @@ func test_high_target_behind_wall_is_not_focused() -> void:
 	_spawn_box(_fan_point(0.0, 1.0), Vector3(0.6, 1.5, 0.3), 1.3)
 	var focused: Node3D = await _focused()
 	assert_null(focused, "Un muro entre el personaje y el objetivo alto lo oculta")
+
+
+func test_cursor_gap_corrects_for_object_height() -> void:
+	# Bajo el ratón, un punto a 0,9 m de altura cae en el suelo √2·0,9 m más allá, hacia la cámara
+	var center: Vector3 = Vector3(0.0, 0.9, 0.0)
+	var on_floor: Vector3 = (
+		center + Interactor3D.VIEW_FORWARD_H * 0.9 * Interactor3D.VIEW_RUN_PER_DROP
+	)
+	on_floor.y = 0.0
+	assert_almost_eq(Interactor3D.cursor_gap(on_floor, center), 0.0, 0.01, "Ratón sobre la pieza")
+	assert_gt(
+		Interactor3D.cursor_gap(Vector3(0.0, 0.0, 0.0), center),
+		1.0,
+		"El suelo bajo ella no la señala"
+	)

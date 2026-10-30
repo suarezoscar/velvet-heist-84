@@ -24,6 +24,12 @@ const BROAD_PHASE_HEIGHT: float = 4.0
 ## Máximo de formas devueltas por la búsqueda física de cada tick
 const MAX_BROAD_PHASE_RESULTS: int = 64
 
+## Cámara isométrica fija (AGENTS.md: rotación -35,264°, 45°): hacia dónde mira en el plano y
+## cuánto avanza en horizontal por cada metro que baja (1 / tan 35,264° = √2). Sirve para llevar
+## el cursor, proyectado al suelo, a la altura de cada objeto
+const VIEW_FORWARD_H: Vector3 = Vector3(-0.70710677, 0.0, -0.70710677)
+const VIEW_RUN_PER_DROP: float = 1.4142135
+
 const DEFAULT_RULES: InteractionRules = preload("res://data/balance/interaction_rules.tres")
 
 ## Reglas comunes de alcance y abanico
@@ -165,7 +171,15 @@ func _interaction_hit(
 	return hit
 
 
-## Centro de la primera forma de colisión del objeto (su origen si no tiene ninguna)
+## Distancia en el plano entre el objeto y el punto que el ratón señala a su altura: el cursor
+## llega proyectado al suelo, y un objeto alto se ve bajo el ratón más cerca de la cámara
+static func cursor_gap(cursor: Vector3, center: Vector3) -> float:
+	var aimed: Vector3 = cursor - VIEW_FORWARD_H * (center.y - cursor.y) * VIEW_RUN_PER_DROP
+	return (center - aimed).slide(Vector3.UP).length()
+
+
+## Centro de la primera forma de colisión activa hija directa del objeto (su origen si no tiene
+## ninguna). Con varias formas solo cuenta la primera; hoy todos los interactivos tienen una
 static func target_center(target: Node3D) -> Vector3:
 	for child: Node in target.get_children():
 		var shape: CollisionShape3D = child as CollisionShape3D
@@ -205,7 +219,7 @@ func _best_candidate(actor: Node3D, candidates: Array[Dictionary]) -> Node3D:
 	for candidate: Dictionary in candidates:
 		var gap: float = INF
 		if cursor.is_finite():
-			gap = ((candidate["point"] as Vector3) - cursor).slide(Vector3.UP).length()
+			gap = cursor_gap(cursor, candidate["point"] as Vector3)
 		candidate["cursor_gap"] = gap
 		use_cursor = use_cursor or gap <= rules.cursor_snap_distance
 	var best: Dictionary = {}
