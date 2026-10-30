@@ -6,10 +6,12 @@ class_name WallXRay
 extends Node
 
 const SHADER: Shader = preload("res://assets/shaders/wall_xray.gdshader")
-## Distinto de 0 activa el recorte (su forma, una franja con la silueta, está en el shader) y
+## Distinto de 0 activa el recorte (su forma, una elipse con la silueta, está en el shader) y
 ## altura del centro sobre los pies
 const RADIUS: float = 2.6
-const CENTER_HEIGHT: float = 1.0
+const CENTER_HEIGHT: float = 0.85
+## Agachado el cuerpo es más bajo: la elipse baja para cubrirle los pies
+const CROUCH_CENTER_HEIGHT: float = 0.5
 
 static var _materials: Dictionary = {}
 
@@ -42,7 +44,11 @@ func _process(_delta: float) -> void:
 	if local == null or not is_instance_valid(local):
 		_set_center(Vector3.ZERO, 0.0)
 		return
-	_set_center(local.global_position + Vector3.UP * CENTER_HEIGHT, RADIUS)
+	var player: PlayerBase3D = local as PlayerBase3D
+	var height: float = (
+		CROUCH_CENTER_HEIGHT if player != null and player.is_crouching else CENTER_HEIGHT
+	)
+	_set_center(local.global_position + Vector3.UP * height, RADIUS)
 
 
 func _set_center(center: Vector3, radius: float) -> void:

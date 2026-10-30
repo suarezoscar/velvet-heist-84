@@ -5,7 +5,7 @@ shader_type spatial;
  * Paredes del museo (FEAT-034): opacas, salvo lo que queda entre la cámara y el jugador local.
  * Qué está «entre» se decide en el plano del suelo, a lo largo de la dirección de la cámara y
  * sin mirar la altura: así la parte alta de una pared a tu espalda no se corta (#109). Eso se
- * recorta con un tramado ordenado (Bayer 4×4, retro) solo dentro de una franja con la silueta
+ * recorta con un tramado ordenado (Bayer 4×4, retro) solo dentro de una elipse con la silueta
  * del personaje en pantalla, para verle detrás sin comerse las paredes de al lado (#109).
  * WallXRay pasa el centro cada frame; con xray_radius = 0 no se recorta nada (servidor, menú
  * o sin jugador local).
@@ -15,7 +15,7 @@ uniform vec4 albedo : source_color = vec4(0.62, 0.6, 0.58, 1.0);
 uniform float roughness : hint_range(0.0, 1.0) = 0.9;
 uniform vec3 xray_center = vec3(0.0);
 uniform float xray_radius = 0.0;
-/// Franja con la silueta del personaje, en metros de pantalla: medio ancho y media altura
+/// Elipse con la silueta del personaje, en metros de pantalla: medio ancho y media altura
 /// alrededor del centro (#109: solo lo que tapa el cuerpo, no las paredes de al lado)
 uniform float xray_half_width = 0.6;
 uniform float xray_half_height = 1.15;

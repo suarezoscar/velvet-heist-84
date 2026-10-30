@@ -99,7 +99,7 @@ Los `.tres` marcados como nuevos los crea el paquete B (balance a `.tres`) con l
 | Sigilo / paso | `movement_*.tres` → `sneak_ratio` (nuevo) | sensación | 0,40-0,55 | 0,48 (actual). Lento como para que cueste tiempo de reloj. |
 | Carrera / paso | `movement_*.tres` → `sprint_ratio` (nuevo) | sensación | 1,40-1,60 | 1,5 en ambos bandos (hoy el guardia va a 1,48). |
 | Agachado / paso (ladrón) | `movement_thief.tres` → `crouch_ratio` (nuevo) | sensación | 0,30-0,45, siempre < `sneak_ratio` | 0,40. Paga en velocidad lo que gana en perfil. |
-| Cadencia de pasos | `character_animator_3d.gd` → `STEP_CYCLE_LENGTH`, `ANIMATION_REFERENCE_SPEED` | sensación | sale de la animación | Ya no hay `step_interval_<modo>` en los `.tres` (2026-10-30). Ejemplos: andar a 1,6 m/s ≈ 0,53 s; sigilo a 1,2 m/s 0,55 s; carrera (reproducción saturada) ≈ 0,18 s. |
+| Cadencia de pasos | `character_animator_3d.gd` → `STEP_CYCLE_LENGTH`, `ANIMATION_REFERENCE_SPEED` | sensación | sale de la animación | Ya no hay `step_interval_<modo>` en los `.tres` (2026-10-30). Con las velocidades actuales: ladrón andando o corriendo 0,18 s (la reproducción se satura a ×3, así que anda y corre a la misma cadencia y correr solo se distingue por el radio), en sigilo 0,275 s, agachado 0,32 s; guardia andando 0,20 s, en sigilo o barriendo 0,33 s. |
 | Radio base del paso | `step_noise.tres` → `base_radius` (nuevo) | curva | 2,5-4,5 m | 3,5 (actual). |
 | Ruido en sigilo | `step_noise.tres` → `sneak_mult` | curva | 0,20-0,40 | 0,3 (actual). |
 | Ruido en carrera | `step_noise.tres` → `sprint_mult` | curva | 1,6-2,2, siempre > `sprint_ratio` | 2,0 (actual). Correr hace más ruido por metro que andar. |
