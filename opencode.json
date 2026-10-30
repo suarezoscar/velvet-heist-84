@@ -1,0 +1,47 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [".agents/rules/*.md"],
+  "model": "opencode-go/kimi-k3.1-pro",
+  "small_model": "opencode-go/qwen3.8-flash",
+  "mcp": {
+    "godot-mcp-toolkit": {
+      "type": "local",
+      "command": ["npx", "-y", "@npgamedev/godot-mcp-server"],
+      "environment": {
+        "GODOT_MCP_CONFIG_VERSION": "1"
+      }
+    },
+    "blender": {
+      "type": "local",
+      "command": ["uvx", "mcp-for-blender"]
+    },
+    "github": {
+      "type": "remote",
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+        "Authorization": "Bearer {env:GITHUB_TOKEN}"
+      },
+      "oauth": false
+    }
+  },
+  "permission": {
+    "edit": "allow",
+    "webfetch": "allow",
+    "bash": {
+      "*": "ask",
+      "git *": "allow",
+      "git push --force*": "deny",
+      "git push -f*": "deny",
+      "git push * --force*": "deny",
+      "git push * -f*": "deny",
+      "git push --delete*": "deny",
+      "git push * --delete*": "deny",
+      "git reset --hard*": "deny",
+      "git branch -D*": "deny",
+      "gh *": "allow",
+      "./tools/ci/*": "allow",
+      "godot *": "allow",
+      "python3 tools/agents/sync.py*": "allow"
+    }
+  }
+}
