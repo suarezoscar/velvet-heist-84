@@ -16,7 +16,7 @@ var player: AudioStreamPlayer = null
 var _was_alarm: bool = false
 
 
-## Se cuelga del mapa; no hace nada en el servidor dedicado
+## Se cuelga del mapa (HeistMap3D no lo crea en el servidor dedicado)
 func setup(map: Node) -> AlarmBell84:
 	name = "AlarmBell"
 	map.add_child(self)

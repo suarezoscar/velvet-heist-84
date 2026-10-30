@@ -14,15 +14,15 @@ func after_each() -> void:
 
 func test_coin_streams_follow_the_floor() -> void:
 	var mix: NoiseMix = load(NOISE_MIX_PATH) as NoiseMix
-	assert_eq(mix.streams_for(&"coin", 0.5), mix.coin_soft, "Moqueta: coin_soft")
-	assert_eq(mix.streams_for(&"coin", 1.0), mix.coin_wood, "Madera: coin_wood")
-	assert_eq(mix.streams_for(&"coin", 1.5), mix.coin_hard, "Duro: coin_hard")
+	assert_eq(mix.streams_for(&"clink", 0.5), mix.coin_soft, "Moqueta: coin_soft")
+	assert_eq(mix.streams_for(&"clink", 1.0), mix.coin_wood, "Madera: coin_wood")
+	assert_eq(mix.streams_for(&"clink", 1.5), mix.coin_hard, "Duro: coin_hard")
 	assert_false(mix.coin_soft.is_empty() or mix.coin_wood.is_empty() or mix.coin_hard.is_empty())
-	assert_almost_eq(mix.category_db(&"coin"), -8.0, 0.001, "coin_db vale -8")
+	assert_almost_eq(mix.category_db(&"clink"), -8.0, 0.001, "coin_db vale -8")
 
 
 func test_surface_mult_defaults_to_one() -> void:
-	assert_eq(NoiseSurface.mult_for(null, &"coin", Vector3.ZERO, null), 1.0, "Moneda sin mundo")
+	assert_eq(NoiseSurface.mult_for(null, &"clink", Vector3.ZERO, null), 1.0, "Moneda sin mundo")
 	var actor: PlayerBase3D = autofree(ThiefController3D.new())
 	assert_eq(
 		NoiseSurface.mult_for(actor, &"step", Vector3.ZERO, null), 1.0, "Sin detector de suelo"

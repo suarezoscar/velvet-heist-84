@@ -103,5 +103,5 @@ Cada cambio que se integra en `master` publica una versión nueva automáticamen
 
 <div align="center">
 <sub>Un juego de <b>Óscar Suárez</b> · Tipografías de Google Fonts con licencia <a href="assets/fonts/CREDITS.md">SIL OFL 1.1</a><br>
-Música: «Coffee Black» de grimfrenzy (CC-BY 3.0) y «Espionage» de haeldb (CC0) y «Electric City» de Tsorthan Grove (CC-BY 4.0) · Sonidos: Kenney (CC0), «Yawn» de spookymodem y «coffee cooking» de Christoph (CC-BY 3.0), en <a href="assets/audio/CREDITS.md">créditos de audio</a> · Cafetera: «Coffee Cart 01» de Joe Seabuhr (Poly Haven, CC0)</sub>
+Música: «Coffee Black» de grimfrenzy (CC-BY 3.0), «Espionage» de haeldb (CC0) y «Electric City» de Tsorthan Grove (CC-BY 4.0) · Sonidos: Kenney (CC0), «Yawn» de spookymodem y «coffee cooking» de Christoph (CC-BY 3.0), en <a href="assets/audio/CREDITS.md">créditos de audio</a> · Cafetera: «Coffee Cart 01» de Joe Seabuhr (Poly Haven, CC0)</sub>
 </div>

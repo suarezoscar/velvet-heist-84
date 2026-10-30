@@ -11,7 +11,7 @@ extends Resource
 @export var voice_db: float = -8.0
 ## Cafetera de la garita (FEAT-030)
 @export var coffee_db: float = -8.0
-## Moneda al caer (#111)
+## Tintineo metálico: moneda al caer y coger botín (#111)
 @export var coin_db: float = -8.0
 @export var soft_surface_max: float = 0.7
 @export var hard_surface_min: float = 1.3
@@ -22,7 +22,7 @@ extends Resource
 @export var mechanism: Array[AudioStream] = []
 @export var voice: Array[AudioStream] = []
 @export var coffee: Array[AudioStream] = []
-## Moneda según el suelo donde cae (#111)
+## Tintineo según el suelo donde suena (#111)
 @export var coin_hard: Array[AudioStream] = []
 @export var coin_wood: Array[AudioStream] = []
 @export var coin_soft: Array[AudioStream] = []
@@ -37,7 +37,7 @@ func category_db(category: StringName) -> float:
 		&"dial": mechanism_db,
 		&"voice": voice_db,
 		&"coffee": coffee_db,
-		&"coin": coin_db,
+		&"clink": coin_db,
 	}
 	return float(levels.get(category, 0.0))
 
@@ -60,7 +60,7 @@ func streams_for(category: StringName, surface_mult: float) -> Array[AudioStream
 			streams = voice
 		&"coffee":
 			streams = coffee
-		&"coin":
+		&"clink":
 			streams = coin_wood
 			if surface_mult <= soft_surface_max:
 				streams = coin_soft

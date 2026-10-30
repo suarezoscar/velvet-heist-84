@@ -60,7 +60,7 @@ func test_each_emitter_category() -> void:
 	assert_eq(ev.category, &"impact", "Captura debe tener categoría 'impact'")
 	assert_eq(ev.emitter, guard, "Emisor de captura debe ser el guardia")
 
-	# 5. loot_item_3d.gd (ligero 2.5 m) -> impact, el ladrón
+	# 5. loot_item_3d.gd (ligero 2.5 m) -> clink (suena como la moneda, #111), el ladrón
 	var loot_light: LootItem3D = LootItem3D.new()
 	loot_light.is_heavy = false
 	add_child_autofree(loot_light)
@@ -68,7 +68,7 @@ func test_each_emitter_category() -> void:
 	loot_light.interact(thief)
 	assert_eq(_recorded.size(), n + 1, "Recogida de botín debe emitir 1 ruido")
 	ev = _recorded.back()
-	assert_eq(ev.category, &"impact", "Recogida de botín ligero debe ser 'impact'")
+	assert_eq(ev.category, &"clink", "Recogida de botín ligero debe ser 'clink'")
 	assert_eq(ev.emitter, thief, "Emisor de recogida debe ser el ladrón")
 	assert_almost_eq(ev.radius, 2.5, 0.01, "Radio de recogida ligera debe ser 2.5 m")
 
