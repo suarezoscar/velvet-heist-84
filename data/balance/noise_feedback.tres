@@ -19,3 +19,5 @@ wave_time = 0.8
 wave_radius_scale = 0.14
 wave_min_radius = 0.35
 wave_max_radius = 1.1
+wave_error_ratio = 0.15
+wave_error_max = 1.5

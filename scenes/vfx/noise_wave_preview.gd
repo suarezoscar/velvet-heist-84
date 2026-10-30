@@ -4,7 +4,7 @@
 extends Node3D
 
 ## Radios finales (m) que recorre el bucle: del mínimo al máximo de noise_feedback.tres
-const RADII: Array[float] = [0.35, 0.6, 0.9, 1.4]
+const RADII: Array[float] = [0.35, 0.6, 0.85, 1.1]
 const FEEDBACK: NoiseFeedbackProfile = preload("res://data/balance/noise_feedback.tres")
 
 var _pool: NoiseWavePool = NoiseWavePool.new()

@@ -149,3 +149,30 @@ func test_presenter_spawns_wave_for_enemy_noise_only() -> void:
 		wave.hide()
 	SignalBus.noise_event_3d.emit(Vector3(2, 0, 0), 3.5, &"guard", &"step", guard)
 	assert_eq(_visible_waves(map), 0, "El ruido propio no lanza onda")
+
+
+func test_wave_origin_is_close_to_the_noise_and_grows_with_distance() -> void:
+	var profile: NoiseFeedbackProfile = FEEDBACK
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = 84
+	var noise: Vector3 = Vector3(10.0, 0.0, 0.0)
+	var max_error: float = minf(10.0 * profile.wave_error_ratio, profile.wave_error_max)
+	var farthest: float = 0.0
+	for i: int in 200:
+		var origin: Vector3 = NoiseWaveRules.wave_origin(Vector3.ZERO, noise, profile, rng)
+		assert_almost_eq(origin.y, noise.y, 0.001, "En el suelo del ruido")
+		farthest = maxf(farthest, origin.distance_to(noise))
+	assert_lte(farthest, max_error + 0.001, "Nunca más lejos que el margen")
+	assert_gt(farthest, max_error * 0.5, "Pero se desvía de verdad")
+	var near: Vector3 = NoiseWaveRules.wave_origin(noise, noise, profile, rng)
+	assert_almost_eq(near.distance_to(noise), 0.0, 0.001, "Pegado al ruido, sin margen")
+
+
+func test_wave_error_is_capped() -> void:
+	var profile: NoiseFeedbackProfile = FEEDBACK
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = 7
+	var noise: Vector3 = Vector3(100.0, 0.0, 0.0)
+	for i: int in 100:
+		var origin: Vector3 = NoiseWaveRules.wave_origin(Vector3.ZERO, noise, profile, rng)
+		assert_lte(origin.distance_to(noise), profile.wave_error_max + 0.001, "Tope del margen")

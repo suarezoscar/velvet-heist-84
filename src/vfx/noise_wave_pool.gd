@@ -1,6 +1,6 @@
 ## @file noise_wave_pool.gd
 ## Reserva fija de miniondas de ruido (#114, regla 04: pooling). Usa la primera libre y, si están
-## todas en marcha, reutiliza la más antigua. La crea NoiseAudioPresenter en el jugador local.
+## todas en marcha, las reutiliza por turnos. La crea NoiseAudioPresenter en el jugador local.
 class_name NoiseWavePool
 extends Node3D
 

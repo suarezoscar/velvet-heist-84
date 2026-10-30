@@ -116,7 +116,11 @@ func handle_noise(
 		if NoiseWaveRules.should_show(
 			local, pos, radius, team, emitter, _feedback.thief_hearing_mult
 		):
-			waves.spawn(pos, NoiseWaveRules.wave_radius(radius, _feedback), _feedback.wave_time)
+			waves.spawn(
+				NoiseWaveRules.wave_origin(local.global_position, pos, _feedback, rng),
+				NoiseWaveRules.wave_radius(radius, _feedback),
+				_feedback.wave_time
+			)
 
 		if not streams.is_empty():
 			var player_3d: AudioStreamPlayer3D = AudioStreamPlayer3D.new()

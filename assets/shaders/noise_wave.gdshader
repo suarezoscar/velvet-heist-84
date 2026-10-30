@@ -21,6 +21,12 @@ uniform float ring_spacing : hint_range(0.0, 0.5) = 0.2;
 uniform float ring_width : hint_range(0.005, 0.2) = 0.035;
 /// Cuánto pesa la sombra junto a cada cresta
 uniform float trough_strength : hint_range(0.0, 1.0) = 0.45;
+/// Dónde cae la sombra, por dentro de cada cresta (en grosores de cresta)
+uniform float trough_offset = 1.6;
+/// Tamaño del punto que brilla al nacer (en fracción del radio)
+uniform float dot_size : hint_range(0.01, 0.3) = 0.07;
+/// Avance a partir del cual empieza a desvanecerse
+uniform float fade_start : hint_range(0.0, 1.0) = 0.3;
 
 void fragment() {
 	float r = length(UV * 2.0 - 1.0);
@@ -34,12 +40,12 @@ void fragment() {
 		float weight = 1.0 - float(i) / float(ring_count);
 		float d = (r - at) / ring_width;
 		crest += exp(-d * d) * weight;
-		float dt = d + 1.6;
+		float dt = d + trough_offset;
 		trough += exp(-dt * dt) * weight;
 	}
-	float dot_glow = exp(-pow(r / 0.07, 2.0)) * pow(1.0 - progress, 3.0);
+	float dot_glow = exp(-pow(r / dot_size, 2.0)) * pow(1.0 - progress, 3.0);
 	crest += dot_glow;
-	float fade = 1.0 - smoothstep(0.3, 1.0, progress);
+	float fade = 1.0 - smoothstep(fade_start, 1.0, progress);
 	float total = crest + trough * trough_strength;
 	ALBEDO = mix(trough_color.rgb, crest_color.rgb, clamp(crest / max(total, 0.0001), 0.0, 1.0));
 	ALPHA = clamp(total, 0.0, 1.0) * fade * max_alpha * step(r, 1.0);
