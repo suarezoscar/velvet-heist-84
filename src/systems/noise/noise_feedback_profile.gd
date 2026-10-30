@@ -29,3 +29,9 @@ extends Resource
 
 ## Duración en segundos del indicador chevron para ruidos fuera de pantalla
 @export var offscreen_marker_time: float = 2.0
+
+## Volumen mínimo en dB de cualquier ruido que se oye, para que no se pierda en la mezcla
+@export var min_audible_db: float = -28.0
+
+## Proporción mínima (0..1) del volumen de los pasos propios aunque sean muy silenciosos
+@export var own_step_min_ratio: float = 0.35

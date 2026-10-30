@@ -7,6 +7,8 @@ extends RefCounted
 const STEP: StringName = &"step"
 const IMPACT: StringName = &"impact"
 const MECHANISM: StringName = &"mechanism"
+## Algo pequeño y metálico que cae: la moneda del ladrón (#111). Suena según el suelo
+const COIN: StringName = &"coin"
 
 
 ## Emite noise_emitted_3d(pos, radius, team) y después

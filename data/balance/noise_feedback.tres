@@ -13,3 +13,5 @@ own_step_volume_db = -22.0
 pitch_jitter = 0.06
 thief_hearing_mult = 1.5
 offscreen_marker_time = 2.0
+min_audible_db = -28.0
+own_step_min_ratio = 0.35
