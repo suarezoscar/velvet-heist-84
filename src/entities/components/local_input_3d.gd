@@ -51,8 +51,16 @@ static func read(player: PlayerBase3D, cam: Camera3D) -> Dictionary:
 ## Apunta con el ratón: el ladrón apuntando la moneda o el guardia barriendo con la linterna
 static func aims_with_mouse(player: PlayerBase3D) -> bool:
 	if player is ThiefController3D:  # también el fotograma en que la suelta y sale la moneda
-		return CoinTrigger.aiming or Input.is_action_just_released(CoinTrigger.ACTION)
-	return player is GuardController3D and GuardFlashlight.held
+		return CoinTrigger.aiming or _held_or_released(CoinTrigger.ACTION)
+	if player is GuardController3D:  # barriendo, o apuntando el walkie hasta soltarlo
+		return GuardFlashlight.held or _held_or_released(&"walkie")
+	return false
+
+
+static func _held_or_released(action: StringName) -> bool:
+	if not InputMap.has_action(action):
+		return false
+	return Input.is_action_pressed(action) or Input.is_action_just_released(action)
 
 
 ## Hacia dónde mira (#112): al ratón si apunta; si no, hacia donde anda, y parado sigue

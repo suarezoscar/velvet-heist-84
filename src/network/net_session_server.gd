@@ -142,6 +142,8 @@ func _on_peer_disconnected(peer: int) -> void:
 	var actor: PlayerBase3D = _session.actor_for_role(role)
 	if actor != null and actor.has_method(&"stop_watching"):
 		actor.call(&"stop_watching")  # guardia o ladrón sentado ante los monitores
+	if actor is GuardController3D:
+		(actor as GuardController3D).apply_flashlight_state(false)  # sin quien la sostenga
 	if actor != null:
 		actor.apply_input(
 			{"movement_vector": Vector2.ZERO, "is_sprinting": false, "is_sneaking": false}

@@ -100,3 +100,8 @@ func test_baton_hits_in_front_but_not_behind() -> void:
 	assert_true(guard.validate_melee_hit(front), "Un ladrón a 1 m delante recibe el porrazo")
 	front.global_position = guard.global_position + Vector3(0, 0, 1)
 	assert_false(guard.validate_melee_hit(front), "Uno a 1 m detrás no")
+
+
+func test_walkie_fires_on_release_and_aims_with_mouse() -> void:
+	assert_true(HeistActions.ON_RELEASE.has(&"walkie"), "El walkie sale al soltar la tecla")
+	assert_false(HeistActions.ON_RELEASE.has(&"alarm_lights"), "Las luces siguen al pulsar")

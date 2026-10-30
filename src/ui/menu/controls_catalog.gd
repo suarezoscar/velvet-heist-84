@@ -74,7 +74,7 @@ static func groups() -> Array[Dictionary]:
 					"Examinar una pieza (¿falsificación?) · restablecer la corriente",
 					keys(&"interact")
 				],
-				["Walkie: marcar un punto al equipo", keys(&"walkie")],
+				["Walkie: mantén, apunta y suelta para marcar un punto", keys(&"walkie")],
 				["Luces de alarma (en «alarma»)", keys(&"alarm_lights")],
 			],
 		},

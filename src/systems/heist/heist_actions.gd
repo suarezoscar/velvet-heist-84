@@ -4,7 +4,8 @@
 ## - throw_coin (ladrón): lanza una moneda al punto del ratón (CoinThrow: alcance, muros y
 ##   arco). Vuela en arco y suena al caer como un ruido del ladrón: los guardias no lo
 ##   distinguen de un paso. Quedan RULES.coins por partida (FEAT-038);
-## - walkie (guardia): marca el punto del ratón en el plano del equipo; el chasquido delata a
+## - walkie (guardia): manteniendo la tecla apunta con el ratón y al soltarla marca ese punto
+##   en el plano del equipo; el chasquido delata a
 ##   quien habla. Espera RULES.walkie_cooldown entre usos;
 ## - alarm_lights (guardia, en alarma): enciende las lámparas cercanas (AlertDirector.flood).
 class_name HeistActions
@@ -12,6 +13,8 @@ extends RefCounted
 
 const RULES: HeistRules = preload("res://data/balance/heist_rules.tres")
 const ACTIONS: Array[StringName] = [&"throw_coin", &"walkie", &"alarm_lights"]
+## Se apuntan con el ratón mientras se mantiene la tecla y salen al soltarla (#112)
+const ON_RELEASE: Array[StringName] = [&"walkie"]
 
 
 ## true si la acción es del golpe y se ha ejecutado

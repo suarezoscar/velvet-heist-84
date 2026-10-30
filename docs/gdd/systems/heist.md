@@ -118,7 +118,7 @@ Desaparece el caso «ronda rota y el ladrón tenía la Pieza Maestra = gana el l
   - La moneda en vuelo la ve el ladrón y cualquier guardia que tenga la salida o la caída en su zona visible (`vision.md` R1): verla volar delata el señuelo y de qué lado viene. Quien solo ve la caída ve el arco desde donde entra en su vista, no desde dónde se lanzó.
   - Los guardias la oyen como cualquier ruido. Nadie distingue una moneda de un paso.
 - **Guardias: walkie.**
-  - Con su tecla marca un punto en el plano de todo el equipo durante `ping_time` s.
+  - Manteniendo su tecla apunta con el ratón; al soltarla marca ese punto en el plano de todo el equipo durante `ping_time` s (2026-10-30, #112: antes salía al pulsar).
   - El chasquido suena con radio `walkie_radius` alrededor de quien habla.
   - Espera `walkie_cooldown` s entre usos.
 
