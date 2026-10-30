@@ -3,7 +3,9 @@ shader_type spatial;
 /**
  * wall_xray.gdshader
  * Paredes del museo (FEAT-034): opacas, salvo las que quedan entre la cámara y el jugador
- * local. Esas se recortan con un tramado ordenado (Bayer 4×4, retro) dentro de un radio en el
+ * local. Qué está «entre» se decide en el plano del suelo, a lo largo de la dirección de la
+ * cámara y sin mirar la altura: así la parte alta de una pared a tu espalda no se corta (#109).
+ * Esas se recortan con un tramado ordenado (Bayer 4×4, retro) dentro de un radio en el
  * plano de la pantalla alrededor del jugador, para verle detrás. WallXRay pasa el centro cada
  * frame; con xray_radius = 0 no se recorta nada (servidor, menú o sin jugador local).
  */
@@ -24,8 +26,11 @@ void fragment() {
 	ROUGHNESS = roughness;
 	if (xray_radius > 0.0) {
 		vec3 center = (VIEW_MATRIX * vec4(xray_center, 1.0)).xyz;
-		// En vista, la cámara mira a -Z: más cerca de ella es una z mayor
-		if (VERTEX.z > center.z + 0.4) {
+		vec3 world = (INV_VIEW_MATRIX * vec4(VERTEX, 1.0)).xyz;
+		// +Z de la cámara apunta hacia ella; en el suelo, «hacia la cámara» es su parte horizontal
+		vec2 toward_camera = normalize(INV_VIEW_MATRIX[2].xz);
+		float ahead = dot(world.xz - xray_center.xz, toward_camera);
+		if (ahead > 0.4) {
 			float d = length(VERTEX.xy - center.xy);
 			float cut = (1.0 - smoothstep(xray_radius * xray_core, xray_radius, d)) * xray_strength;
 			ivec2 cell = ivec2(FRAGCOORD.xy) % 4;
