@@ -263,11 +263,9 @@ func _on_noise_event(
 	if _ready_peers.is_empty():
 		return
 	var emitter_role: StringName = _session.role_for_actor(emitter)
-	var surface_mult: float = 1.0
-	if emitter is PlayerBase3D:
-		var detector: SurfaceDetector3D = (emitter as PlayerBase3D).surface_detector
-		if detector != null:
-			surface_mult = detector.get_surface_noise_multiplier()
+	var surface_mult: float = NoiseSurface.mult_for(
+		emitter, category, pos, _session.get_viewport().find_world_3d()
+	)
 	for peer: int in _ready_peers:
 		var listener: PlayerBase3D = _session.actor_for_role(NetManager.get_role_for_peer(peer))
 		var reaches: bool = PerceptionRules.noise_reaches(

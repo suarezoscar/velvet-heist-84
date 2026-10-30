@@ -27,3 +27,14 @@ Descargados de https://opengameart.org. Las pistas de música se copian sin modi
 | `sfx/coffee/coffee_brew.ogg` | «coffee cooking» | Christoph | CC-BY 3.0 | https://opengameart.org/content/coffee-cooking | `276b4a9566e566d285dec37abd82a491cae3205225bf7d0fc2516cacf0e07237` |
 
 Las obras CC-BY 3.0 exigen citar al autor: lo hacen este archivo y los créditos del README.
+
+## Timbre, moneda y música de alarma (#111, 2026-10-30)
+Descargados de https://opengameart.org y convertidos a OGG. La música de tensión es CC-BY 4.0 y exige citar al autor: lo hacen este archivo y los créditos del README.
+
+| Archivo | Obra | Autor | Licencia | URL | Cambios |
+|---|---|---|---|---|---|
+| `sfx/alarm/alarm_bell.ogg` | «Alarm loop 03» (30 CC0 SFX loops) | Rubberduck | CC0 | https://opengameart.org/content/30-cc0-sfx-loops | Bucle de 1 s repetido hasta 4 s, con fundido |
+| `sfx/coin/coin_hard.ogg` | «Coin Drop» | Vinrax | CC0 | https://opengameart.org/content/coin-drop | Recorte a 0,95 s |
+| `sfx/coin/coin_wood.ogg` | «Coin Drop» | Vinrax | CC0 | https://opengameart.org/content/coin-drop | -2 semitonos y paso bajo a 4 kHz |
+| `sfx/coin/coin_carpet.ogg` | «Coin Drop» | Vinrax | CC0 | https://opengameart.org/content/coin-drop | -4 semitonos, paso bajo a 1,2 kHz y recorte a 0,55 s |
+| `music/heist_alarm.ogg` | «Electric City - part 1 (loop)» | Tsorthan Grove | CC-BY 4.0 | https://opengameart.org/content/electric-city | Sin cambios |

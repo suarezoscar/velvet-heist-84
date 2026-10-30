@@ -52,7 +52,7 @@ static func throw_coin(thief: PlayerBase3D, heist: HeistDirector) -> bool:
 	thief.get_tree().create_timer(flight, false).timeout.connect(
 		func() -> void:
 			if GameManager.current_state == GameManager.MatchState.IN_PROGRESS:
-				NoiseEmit.emit(landing, RULES.coin_radius, &"thief", NoiseEmit.MECHANISM, null)
+				NoiseEmit.emit(landing, RULES.coin_radius, &"thief", NoiseEmit.CLINK, null)
 	)
 	return true
 

@@ -61,11 +61,8 @@ func _physics_process(_delta: float) -> void:
 func _on_noise_event_3d(
 	pos: Vector3, radius: float, source_team: StringName, category: StringName, emitter: Node
 ) -> void:
-	var surface_mult: float = 1.0
-	if emitter is PlayerBase3D:
-		var p_base: PlayerBase3D = emitter as PlayerBase3D
-		if p_base.surface_detector != null:
-			surface_mult = p_base.surface_detector.get_surface_noise_multiplier()
+	var world: World3D = _map.get_world_3d() if _map != null else null
+	var surface_mult: float = NoiseSurface.mult_for(emitter, category, pos, world)
 	handle_noise(pos, radius, source_team, category, emitter, surface_mult)
 
 
@@ -99,7 +96,9 @@ func handle_noise(
 		if not streams.is_empty() and category != &"dial":
 			var player_2d: AudioStreamPlayer = AudioStreamPlayer.new()
 			if category == &"step":
-				var ratio: float = clampf(radius / _feedback.meter_full_scale, 0.05, 1.0)
+				var ratio: float = clampf(
+					radius / _feedback.meter_full_scale, _feedback.own_step_min_ratio, 1.0
+				)
 				player_2d.volume_db = _feedback.own_step_volume_db + linear_to_db(ratio)
 			else:
 				player_2d.volume_db = _mix.category_db(category)
@@ -132,6 +131,7 @@ func handle_noise(
 					_map.hud.show_offscreen_noise(pos, _feedback.offscreen_marker_time, role)
 
 	if player != null:
+		player.set("volume_db", maxf(float(player.get("volume_db")), _feedback.min_audible_db))
 		var stream_idx: int = rng.randi_range(0, streams.size() - 1)
 		player.set("stream", streams[stream_idx])
 		player.set(

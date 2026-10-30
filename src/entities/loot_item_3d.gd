@@ -72,7 +72,7 @@ func _collect_light_loot(thief: ThiefController3D) -> void:
 	is_collected = true
 	print("[LootItem3D] Botín ligero '%s' guardado en el maletín (+$%d)" % [loot_name, loot_value])
 	SignalBus.loot_stolen.emit(loot_value, is_masterpiece)
-	NoiseEmit.emit(thief.global_position, 2.5, &"thief", NoiseEmit.IMPACT, thief)
+	NoiseEmit.emit(thief.global_position, 2.5, &"thief", NoiseEmit.CLINK, thief)
 	queue_free()
 
 

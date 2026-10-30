@@ -156,8 +156,10 @@ func test_own_noise_audio() -> void:
 	assert_not_null(p2d, "Debe ser AudioStreamPlayer 2D sin posición")
 	assert_false(players[0] is AudioStreamPlayer3D, "No debe ser 3D")
 
-	var ratio: float = clampf(3.5 / feedback.meter_full_scale, 0.05, 1.0)
-	var exp_db: float = feedback.own_step_volume_db + linear_to_db(ratio)
+	var ratio: float = clampf(3.5 / feedback.meter_full_scale, feedback.own_step_min_ratio, 1.0)
+	var exp_db: float = maxf(
+		feedback.own_step_volume_db + linear_to_db(ratio), feedback.min_audible_db
+	)
 	assert_almost_eq(p2d.volume_db, exp_db, 0.01, "volume_db propio de paso correcto")
 	var p_min: float = 1.0 - feedback.pitch_jitter - 0.001
 	var p_max: float = 1.0 + feedback.pitch_jitter + 0.001

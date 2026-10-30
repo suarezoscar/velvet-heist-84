@@ -72,6 +72,7 @@ func _ready() -> void:
 		_setup_offline_control()
 	if hud != null and not NetManager.is_dedicated_server:
 		MatchReport84.new().setup(self)  # informe de la noche y acciones (FEAT-041)
+		AlarmBell84.new().setup(self)  # timbre y música de tensión al saltar la alarma (#111)
 		PauseMenu84.new().setup(self)  # pausa con Esc (FEAT-026)
 		RoleBriefing84.new().setup(self)  # objetivo al empezar (FEAT-027)
 	if NetManager.is_online() and not NetManager.is_dedicated_server:

@@ -31,6 +31,20 @@ func get_surface_noise_multiplier() -> float:
 	return DEFAULT_NOISE_MULTIPLIER
 
 
+## Multiplicador de la superficie bajo un punto del mundo (donde cae la moneda, #111)
+static func multiplier_at(world: World3D, pos: Vector3) -> float:
+	if world == null:
+		return DEFAULT_NOISE_MULTIPLIER
+	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(
+		pos + Vector3.UP * 0.5, pos + Vector3.DOWN * RAY_LENGTH, ENVIRONMENT_COLLISION_MASK
+	)
+	var hit: Dictionary = world.direct_space_state.intersect_ray(query)
+	var collider: Object = hit.get("collider")
+	if collider != null and collider.has_meta("noise_multiplier"):
+		return float(collider.get_meta("noise_multiplier"))
+	return DEFAULT_NOISE_MULTIPLIER
+
+
 ## Inicializa y configura el RayCast3D apuntando hacia los pies del personaje
 func _initialize_raycast() -> void:
 	_ray = RayCast3D.new()

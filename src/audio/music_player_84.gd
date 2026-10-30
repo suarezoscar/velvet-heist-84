@@ -1,15 +1,19 @@
 ## @file music_player_84.gd
 ## Música de fondo (FEAT-030). Autoload Music: en el menú suena «Coffee Black» y en la partida
-## «Espionage», en bucle, bajita y en el bus Music (su volumen está en Opciones). Al cambiar de
-## escena funde de una pista a otra. No suena en el servidor dedicado.
+## «Espionage» (y, al saltar la alarma, la de tensión), en bucle, bajita y en el bus Music (su
+## volumen está en Opciones). Al cambiar de escena funde de una pista a otra. No suena en el
+## servidor dedicado.
 class_name MusicPlayer84
 extends Node
 
 const MENU_TRACK: AudioStream = preload("res://assets/audio/music/menu_coffee_black.ogg")
 const HEIST_TRACK: AudioStream = preload("res://assets/audio/music/heist_espionage.ogg")
+## La de tensión, desde que salta la alarma hasta el final de la partida (#111)
+const ALARM_TRACK: AudioStream = preload("res://assets/audio/music/heist_alarm.ogg")
 ## Volumen de base de cada pista (dB), por debajo de los efectos: es música de fondo
 const MENU_DB: float = -10.0
-const HEIST_DB: float = -16.0
+const HEIST_DB: float = -22.0
+const ALARM_DB: float = -24.0
 const SILENT_DB: float = -60.0
 const FADE_TIME: float = 1.5
 
@@ -54,6 +58,11 @@ func play(track: AudioStream, volume_db: float) -> void:
 			player.play()
 	)
 	_tween.tween_property(player, "volume_db", volume_db, FADE_TIME)
+
+
+## Salta la alarma: pasa a la pista de tensión (la siguiente escena vuelve a elegir la suya)
+func play_alarm() -> void:
+	play(ALARM_TRACK, ALARM_DB)
 
 
 func _on_scene_changed() -> void:
