@@ -8,3 +8,7 @@ extends Resource
 
 ## Ángulo total del abanico situado delante del personaje, en grados
 @export var fan_angle_degrees: float = 120.0
+
+## El cursor elige entre candidatos solo si cae a menos de esto (m) de alguno; si no, el más
+## cercano (#113)
+@export var cursor_snap_distance: float = 0.75

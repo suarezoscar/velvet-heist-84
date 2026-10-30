@@ -1,6 +1,8 @@
 ## @file interactor_3d.gd
 ## Componente desacoplado que elige y ejecuta interacciones físicas con objetos del entorno.
-## Usa un abanico cercano, la preferencia del cursor y la oclusión de muros (#113).
+## Usa un abanico cercano, la preferencia del cursor y la oclusión de muros (#113). Distancias y
+## ángulos se miden al centro de la forma de cada objeto, a su altura (cuadros e interruptores
+## están altos), y el cursor solo decide si cae cerca de un candidato.
 class_name Interactor3D
 extends Node3D
 
@@ -21,6 +23,12 @@ const BROAD_PHASE_HEIGHT: float = 4.0
 
 ## Máximo de formas devueltas por la búsqueda física de cada tick
 const MAX_BROAD_PHASE_RESULTS: int = 64
+
+## Cámara isométrica fija (AGENTS.md: rotación -35,264°, 45°): hacia dónde mira en el plano y
+## cuánto avanza en horizontal por cada metro que baja (1 / tan 35,264° = √2). Sirve para llevar
+## el cursor, proyectado al suelo, a la altura de cada objeto
+const VIEW_FORWARD_H: Vector3 = Vector3(-0.70710677, 0.0, -0.70710677)
+const VIEW_RUN_PER_DROP: float = 1.4142135
 
 const DEFAULT_RULES: InteractionRules = preload("res://data/balance/interaction_rules.tres")
 
@@ -68,7 +76,7 @@ func _update_outline() -> void:
 	_outline.show_target(current_target)
 
 
-## Elige el candidato válido preferido por el cursor; sin cursor, gana el más cercano
+## Elige el candidato bajo el cursor (si cae cerca de alguno); si no, el más cercano
 func _find_best_target() -> Node3D:
 	var actor: Node3D = get_parent() as Node3D
 	if actor == null or not is_inside_tree() or get_world_3d() == null or rules == null:
@@ -86,27 +94,35 @@ func _find_best_target() -> Node3D:
 			continue
 		if collider.has_method("can_interact") and not bool(collider.call("can_interact", actor)):
 			continue
-		var hit: Dictionary = _interaction_hit(space, actor, collider, broad_results)
-		if hit.is_empty():
-			continue
-		var point: Vector3 = hit["position"] as Vector3
-		var offset: Vector3 = (point - actor.global_position).slide(Vector3.UP)
+		var center: Vector3 = target_center(collider)
+		var offset: Vector3 = (center - actor.global_position).slide(Vector3.UP)
 		var distance: float = offset.length()
 		if distance >= rules.reach_distance:
 			continue
-		var target_offset: Vector3 = (collider.global_position - actor.global_position).slide(
-			Vector3.UP
-		)
-		var aim_vec: Vector3 = offset if distance > 0.0001 else target_offset
-		if aim_vec.length_squared() > 0.0001:
+		if distance > 0.0001:
 			var forward: Vector3 = (-actor.global_basis.z).slide(Vector3.UP).normalized()
-			if forward.dot(aim_vec.normalized()) < cos(deg_to_rad(rules.fan_angle_degrees * 0.5)):
+			if forward.dot(offset.normalized()) < cos(deg_to_rad(rules.fan_angle_degrees * 0.5)):
 				continue
-		var check_point: Vector3 = point if distance > 0.0001 else collider.global_position
-		if _is_behind_wall(collider, check_point):
+		if _interaction_hit(space, actor, collider, center, broad_results).is_empty():
 			continue
-		candidates.append({"target": collider, "point": check_point, "distance": distance})
-	return _best_candidate(actor, candidates)
+		if _is_behind_wall(collider, center):
+			continue
+		candidates.append({"target": collider, "point": center, "distance": distance})
+	return _best_candidate(actor, _without_covered_locks(candidates))
+
+
+## Un candado y la pieza que guarda están en el mismo sitio: se elige la pieza, que ya abre su
+## dial; el candado solo cuenta si su pieza no es candidata
+static func _without_covered_locks(candidates: Array[Dictionary]) -> Array[Dictionary]:
+	var targets: Array[Node3D] = []
+	for candidate: Dictionary in candidates:
+		targets.append(candidate["target"] as Node3D)
+	var kept: Array[Dictionary] = []
+	for candidate: Dictionary in candidates:
+		var lock: SafeBox3D = candidate["target"] as SafeBox3D
+		if lock == null or not targets.has(lock.contained_target):
+			kept.append(candidate)
+	return kept
 
 
 ## Búsqueda amplia en la capa de interacción; los filtros precisos se hacen por candidato
@@ -129,12 +145,14 @@ func _interaction_hit(
 	space: PhysicsDirectSpaceState3D,
 	actor: Node3D,
 	target: CollisionObject3D,
+	center: Vector3,
 	broad_results: Array[Dictionary]
 ) -> Dictionary:
-	var from: Vector3 = actor.global_position
-	var to: Vector3 = Vector3(target.global_position.x, from.y, target.global_position.z)
+	# A la altura del objeto: un rayo a los pies no toca cuadros ni interruptores de pared
+	var from: Vector3 = Vector3(actor.global_position.x, center.y, actor.global_position.z)
+	var to: Vector3 = center
 	if from.distance_squared_to(to) <= 0.000001:
-		to = target.global_position
+		from = to + Vector3.UP * 0.01
 	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(
 		from, to, INTERACTION_LAYER_MASK
 	)
@@ -151,6 +169,23 @@ func _interaction_hit(
 	if hit.is_empty() or hit.get("collider") != target:
 		return {}
 	return hit
+
+
+## Distancia en el plano entre el objeto y el punto que el ratón señala a su altura: el cursor
+## llega proyectado al suelo, y un objeto alto se ve bajo el ratón más cerca de la cámara
+static func cursor_gap(cursor: Vector3, center: Vector3) -> float:
+	var aimed: Vector3 = cursor - VIEW_FORWARD_H * (center.y - cursor.y) * VIEW_RUN_PER_DROP
+	return (center - aimed).slide(Vector3.UP).length()
+
+
+## Centro de la primera forma de colisión activa hija directa del objeto (su origen si no tiene
+## ninguna). Con varias formas solo cuenta la primera; hoy todos los interactivos tienen una
+static func target_center(target: Node3D) -> Vector3:
+	for child: Node in target.get_children():
+		var shape: CollisionShape3D = child as CollisionShape3D
+		if shape != null and not shape.disabled:
+			return shape.global_position
+	return target.global_position
 
 
 ## true si un muro del nivel (capa LevelArchitectureBuilder.LAYER_WALLS) se interpone entre el
@@ -179,15 +214,16 @@ func _best_candidate(actor: Node3D, candidates: Array[Dictionary]) -> Node3D:
 	var cursor: Vector3 = Vector3.INF
 	if actor is PlayerBase3D:
 		cursor = (actor as PlayerBase3D).interaction_cursor_position
-	var cursor_offset: Vector3 = (cursor - actor.global_position).slide(Vector3.UP)
-	var use_cursor: bool = cursor.is_finite() and cursor_offset.length_squared() > 0.0001
+	# El cursor solo decide si cae cerca de algún candidato; si no, gana el más cercano
+	var use_cursor: bool = false
+	for candidate: Dictionary in candidates:
+		var gap: float = INF
+		if cursor.is_finite():
+			gap = cursor_gap(cursor, candidate["point"] as Vector3)
+		candidate["cursor_gap"] = gap
+		use_cursor = use_cursor or gap <= rules.cursor_snap_distance
 	var best: Dictionary = {}
 	for candidate: Dictionary in candidates:
-		if use_cursor:
-			var offset: Vector3 = (candidate["point"] as Vector3 - actor.global_position).slide(
-				Vector3.UP
-			)
-			candidate["cursor_dot"] = cursor_offset.normalized().dot(offset.normalized())
 		if best.is_empty() or _is_better_candidate(candidate, best, use_cursor):
 			best = candidate
 	return best.get("target") as Node3D if not best.is_empty() else null
@@ -195,10 +231,10 @@ func _best_candidate(actor: Node3D, candidates: Array[Dictionary]) -> Node3D:
 
 func _is_better_candidate(candidate: Dictionary, best: Dictionary, use_cursor: bool) -> bool:
 	if use_cursor:
-		var cursor_dot: float = float(candidate["cursor_dot"])
-		var best_cursor_dot: float = float(best["cursor_dot"])
-		if not is_equal_approx(cursor_dot, best_cursor_dot):
-			return cursor_dot > best_cursor_dot
+		var gap: float = float(candidate["cursor_gap"])
+		var best_gap: float = float(best["cursor_gap"])
+		if not is_equal_approx(gap, best_gap):
+			return gap < best_gap
 	var distance: float = float(candidate["distance"])
 	var best_distance: float = float(best["distance"])
 	if not is_equal_approx(distance, best_distance):
