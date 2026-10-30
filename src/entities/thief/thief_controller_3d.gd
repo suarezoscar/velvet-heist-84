@@ -128,6 +128,7 @@ func simulate_movement(delta: float) -> void:
 	monitor_watch.tick(self, delta)  # FEAT-042: el tiempo de sentarse, como el guardia
 	if in_vent:
 		velocity = Vector3.ZERO
+		_step_timer = INF  # al salir del conducto, el primer paso suena al instante
 		return
 	super.simulate_movement(delta)
 	if is_carrying_heavy_loot:

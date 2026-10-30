@@ -47,7 +47,7 @@ r_paso = max(r_min, R_base × g_modo × s_superficie × t_bando)
   - Ladrón agachado sobre alfombra: 3,5 × 0,3 × 0,2 × 1,0 = 0,21 → **0,5 m** (`r_min`).
   - Guardia andando sobre mármol: 3,5 × 1,0 × 1,2 × 1,2 = **5,04 m**.
 - Parado no se emite ruido: no moverse no es una acción.
-- La cadencia (un paso cada `step_interval` s) vive en el `.tres` de movimiento de cada bando, por modo.
+- La cadencia ya no es un número por modo: el paso suena al ritmo de la animación (`CharacterAnimator3D.step_interval(modo, velocidad)` = duración del ciclo / (2 · velocidad de reproducción)), así que cada pisada coincide con el pie. El primer paso suena al echar a andar (2026-10-30).
 
 ### Quién oye qué
 No hay representación del ruido en el mundo (P2.4, 2026-10-23); el radio emitido es la verdad y se percibe como sonido.
@@ -99,7 +99,7 @@ Los `.tres` marcados como nuevos los crea el paquete B (balance a `.tres`) con l
 | Sigilo / paso | `movement_*.tres` → `sneak_ratio` (nuevo) | sensación | 0,40-0,55 | 0,48 (actual). Lento como para que cueste tiempo de reloj. |
 | Carrera / paso | `movement_*.tres` → `sprint_ratio` (nuevo) | sensación | 1,40-1,60 | 1,5 en ambos bandos (hoy el guardia va a 1,48). |
 | Agachado / paso (ladrón) | `movement_thief.tres` → `crouch_ratio` (nuevo) | sensación | 0,30-0,45, siempre < `sneak_ratio` | 0,40. Paga en velocidad lo que gana en perfil. |
-| Cadencia de pasos | `movement_*.tres` → `step_interval_<modo>` (nuevo) | sensación | 0,25-0,75 s | `walk` 0,42, `sprint` 0,28, `sneak` 0,60, `crouch` 0,55. |
+| Cadencia de pasos | `character_animator_3d.gd` → `STEP_CYCLE_LENGTH`, `ANIMATION_REFERENCE_SPEED` | sensación | sale de la animación | Ya no hay `step_interval_<modo>` en los `.tres` (2026-10-30). Con las velocidades actuales: ladrón andando o corriendo 0,18 s (la reproducción se satura a ×3, así que anda y corre a la misma cadencia y correr solo se distingue por el radio), en sigilo 0,275 s, agachado 0,32 s; guardia andando 0,20 s, en sigilo o barriendo 0,33 s. |
 | Radio base del paso | `step_noise.tres` → `base_radius` (nuevo) | curva | 2,5-4,5 m | 3,5 (actual). |
 | Ruido en sigilo | `step_noise.tres` → `sneak_mult` | curva | 0,20-0,40 | 0,3 (actual). |
 | Ruido en carrera | `step_noise.tres` → `sprint_mult` | curva | 1,6-2,2, siempre > `sprint_ratio` | 2,0 (actual). Correr hace más ruido por metro que andar. |
@@ -342,8 +342,8 @@ Todos nuevos. Los de linterna arrancan con los valores actuales de la escena.
 | Pulso de voz | `guard_radio.tres` → `voice_pulse_interval` | ritmo | 1,5-3,0 s | 2,0. Una frase corta ya delata. |
 | Pulso de fuente sostenida | `noise_feedback.tres` → `pulse_interval` | ritmo | 0,4-1,0 s | 0,6. Una fuente larga suena como pulsos, cada uno con su alcance. |
 | Escala del vúmetro | `noise_feedback.tres` → `meter_full_scale` | sensación | 8-12 m | 10. El ruido más fuerte del ladrón (carrera en parqué, 10,5 m) satura: corre y lo sabe. |
-| Retención del pico | `noise_feedback.tres` → `meter_hold_time` | sensación | 0,1-0,2 s | 0,15. Da tiempo a leer el pico sin tapar el siguiente paso. |
-| Caída del vúmetro | `noise_feedback.tres` → `meter_fall_time` | ritmo | 0,3-0,4 s; retención + caída ≤ `step_interval_crouch` | 0,4. En sigilo y agachado la aguja vuelve a 0 entre pasos y late con la cadencia; andando y corriendo queda llena. |
+| Retención del pico | `noise_feedback.tres` → `meter_hold_time` | sensación | 0,05-0,2 s | 0,07 (2026-10-30; antes 0,15). Da tiempo a leer el pico sin tapar el siguiente paso, que ahora llega antes. |
+| Caída del vúmetro | `noise_feedback.tres` → `meter_fall_time` | ritmo | 0,15-0,4 s; retención + caída ≤ intervalo entre pasos en sigilo y agachado | 0,19 (2026-10-30; antes 0,4). En sigilo y agachado la aguja vuelve a 0 entre pasos y late con la cadencia; andando y corriendo queda llena. |
 | Volumen en el borde | `noise_feedback.tres` → `audio_edge_floor` | sensación | 0,1-0,35 | 0,2. Lo que te alcanza por poco se oye flojo, pero se oye. |
 | Pasos propios | `noise_feedback.tres` → `own_step_volume_db` | sensación | -28 a -16 dB | -22. Sutiles: acompañan sin tapar los ajenos. |
 | Variación de tono | `noise_feedback.tres` → `pitch_jitter` | sensación | 0,03-0,1 | 0,06. Evita el efecto ametralladora sin cambiar la superficie que se reconoce. |
@@ -364,7 +364,7 @@ Comprueban relaciones leyendo los `.tres`, no valores literales.
 19. **La luz ve más que la linterna**: `lit_sight_range` ≥ `flashlight_range`.
 20. **Apagar deja rastro y ninguna vía domina**: `switch_noise_radius`, `unscrew_noise_radius` y `flashlight_toggle_noise_radius` ≥ `min_radius`; `unscrew_time` > `switch_time` y `unscrew_noise_radius` ≤ `switch_noise_radius`; `rescrew_time` ≥ `unscrew_time`.
 21. **Percepción por guardia**: con dos guardias, si solo A cumple alguna condición de detección, el ladrón es visible en el cliente de A y no en el de B; un ruido que alcanza a A y no a B suena en el cliente de A y no en el de B.
-22. **El vúmetro late con la cadencia**: `meter_hold_time` + `meter_fall_time` ≤ `step_interval_sneak` y ≤ `step_interval_crouch` del ladrón; `meter_full_scale` ≥ `min_radius` × 10 (el radio mínimo enciende al menos un segmento).
+22. **El vúmetro late con la cadencia**: `meter_hold_time` + `meter_fall_time` ≤ `CharacterAnimator3D.step_interval` del ladrón en sigilo y agachado (a su velocidad de cada modo); `meter_full_scale` ≥ `min_radius` × 10 (el radio mínimo enciende al menos un segmento).
 23. **La radio se oye**: cada ping y cada pulso de voz emiten un ruido de `ping_noise_radius` > `proximity_radius`.
 24. **Si lo oyes, te ha alcanzado**: un ruido suena en el cliente de un oyente si y solo si `d ≤ r_ef` (tolerancia 1 cm), con `r_ef` = `r × thief_hearing_mult` solo para el ladrón y ruidos de guardia; en el borde suena con ganancia ≥ `audio_edge_floor` × `v_cat` > 0; `thief_hearing_mult` ≥ 1. El chevron solo aparece en golpes y mecanismos.
 

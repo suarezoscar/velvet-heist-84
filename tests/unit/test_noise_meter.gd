@@ -27,13 +27,17 @@ func test_inv22_meter_rhythm() -> void:
 	var total_decay: float = feedback.meter_hold_time + feedback.meter_fall_time
 	assert_lte(
 		total_decay,
-		mov.step_interval_sneak,
-		"Invariante 22: hold + fall debe ser <= step_interval_sneak"
+		CharacterAnimator3D.step_interval(
+			MovementProfile.Mode.SNEAK, mov.speed_for(MovementProfile.Mode.SNEAK)
+		),
+		"Invariante 22: hold + fall debe ser <= el intervalo entre pasos en sigilo"
 	)
 	assert_lte(
 		total_decay,
-		mov.step_interval_crouch,
-		"Invariante 22: hold + fall debe ser <= step_interval_crouch"
+		CharacterAnimator3D.step_interval(
+			MovementProfile.Mode.CROUCH, mov.speed_for(MovementProfile.Mode.CROUCH)
+		),
+		"Invariante 22: hold + fall debe ser <= el intervalo entre pasos agachado"
 	)
 	assert_gte(
 		feedback.meter_full_scale,

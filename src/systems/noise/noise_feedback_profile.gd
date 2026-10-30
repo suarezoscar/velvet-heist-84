@@ -10,10 +10,10 @@ extends Resource
 @export var meter_full_scale: float = 10.0
 
 ## Tiempo en segundos de retención del valor pico en el vúmetro antes de iniciar la caída
-@export var meter_hold_time: float = 0.15
+@export var meter_hold_time: float = 0.07
 
 ## Tiempo en segundos de la caída lineal del vúmetro desde el pico hasta cero
-@export var meter_fall_time: float = 0.4
+@export var meter_fall_time: float = 0.19
 
 ## Suelo mínimo de ganancia lineal para audio en el límite exterior del radio
 @export var audio_edge_floor: float = 0.2
