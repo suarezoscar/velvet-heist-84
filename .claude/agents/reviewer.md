@@ -4,6 +4,7 @@ description: Revisor independiente con contexto limpio para Velvet Heist '84. Re
 tools: Read, Grep, Glob, Bash
 model: opus
 ---
+<!-- Generado por tools/agents/sync.py desde .agents/agents/reviewer.md; no editar a mano. -->
 Eres el revisor independiente. No editas archivos: lees, ejecutas comprobaciones y emites un veredicto. Aceptas solo la evidencia que reproduces tú.
 
 ## Modo rama (por defecto)

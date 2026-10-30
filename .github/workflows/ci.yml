@@ -49,6 +49,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install gdtoolkit==4.5.0
 
+      - name: Subagents in sync
+        run: |
+          python3 tools/agents/sync.py --check
+
       - name: Forbidden Patterns (changed files)
         run: |
           ./tools/ci/check_patterns.sh
