@@ -22,12 +22,13 @@ func before_each() -> void:
 
 func test_door_focuses_from_both_sides_and_across_the_opening() -> void:
 	for side: float in [-1.0, 1.0]:
-		for horizontal: float in [-0.8, 0.0, 0.8]:
-			_guard.global_position = Vector3(horizontal, 0.05, side * 1.6)
-			_guard.look_at(_door.global_position, Vector3.UP)
-			await wait_physics_frames(3)
-			assert_eq(
-				_guard.interactor.current_target,
-				_door,
-				"Puerta enfocada desde x=%.1f, z=%.1f" % [horizontal, side * 1.6]
-			)
+		for depth: float in [0.3, 0.5, 0.8, 1.6]:
+			for horizontal: float in [-0.8, 0.0, 0.8]:
+				_guard.global_position = Vector3(horizontal, 0.05, side * depth)
+				_guard.look_at(_door.global_position, Vector3.UP)
+				await wait_physics_frames(3)
+				assert_eq(
+					_guard.interactor.current_target,
+					_door,
+					"Puerta enfocada desde x=%.1f, z=%.1f" % [horizontal, side * depth]
+				)

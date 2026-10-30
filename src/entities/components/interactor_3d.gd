@@ -29,6 +29,8 @@ const DEFAULT_RULES: InteractionRules = preload("res://data/balance/interaction_
 
 var current_target: Node3D = null
 var _outline: InteractionOutline3D = null
+var _broad_query: PhysicsShapeQueryParameters3D = null
+var _cylinder_shape: CylinderShape3D = null
 
 
 func _ready() -> void:
@@ -90,29 +92,36 @@ func _find_best_target() -> Node3D:
 		var point: Vector3 = hit["position"] as Vector3
 		var offset: Vector3 = (point - actor.global_position).slide(Vector3.UP)
 		var distance: float = offset.length()
-		if distance >= rules.reach_distance or distance <= 0.0001:
+		if distance >= rules.reach_distance:
 			continue
-		var forward: Vector3 = (-actor.global_basis.z).slide(Vector3.UP).normalized()
-		if forward.dot(offset / distance) < cos(deg_to_rad(rules.fan_angle_degrees * 0.5)):
+		var target_offset: Vector3 = (collider.global_position - actor.global_position).slide(
+			Vector3.UP
+		)
+		var aim_vec: Vector3 = offset if distance > 0.0001 else target_offset
+		if aim_vec.length_squared() > 0.0001:
+			var forward: Vector3 = (-actor.global_basis.z).slide(Vector3.UP).normalized()
+			if forward.dot(aim_vec.normalized()) < cos(deg_to_rad(rules.fan_angle_degrees * 0.5)):
+				continue
+		var check_point: Vector3 = point if distance > 0.0001 else collider.global_position
+		if _is_behind_wall(collider, check_point):
 			continue
-		if _is_behind_wall(collider, point):
-			continue
-		candidates.append({"target": collider, "point": point, "distance": distance})
+		candidates.append({"target": collider, "point": check_point, "distance": distance})
 	return _best_candidate(actor, candidates)
 
 
 ## Búsqueda amplia en la capa de interacción; los filtros precisos se hacen por candidato
 func _broad_phase(space: PhysicsDirectSpaceState3D, actor: Node3D) -> Array[Dictionary]:
-	var cylinder: CylinderShape3D = CylinderShape3D.new()
-	cylinder.radius = rules.reach_distance
-	cylinder.height = BROAD_PHASE_HEIGHT
-	var query: PhysicsShapeQueryParameters3D = PhysicsShapeQueryParameters3D.new()
-	query.shape = cylinder
-	query.transform = Transform3D(Basis.IDENTITY, actor.global_position)
-	query.collision_mask = INTERACTION_LAYER_MASK
-	query.collide_with_areas = true
-	query.collide_with_bodies = true
-	return space.intersect_shape(query, MAX_BROAD_PHASE_RESULTS)
+	if _broad_query == null:
+		_broad_query = PhysicsShapeQueryParameters3D.new()
+		_cylinder_shape = CylinderShape3D.new()
+		_cylinder_shape.height = BROAD_PHASE_HEIGHT
+		_broad_query.shape = _cylinder_shape
+		_broad_query.collision_mask = INTERACTION_LAYER_MASK
+		_broad_query.collide_with_areas = true
+		_broad_query.collide_with_bodies = true
+	_cylinder_shape.radius = rules.reach_distance
+	_broad_query.transform = Transform3D(Basis.IDENTITY, actor.global_position)
+	return space.intersect_shape(_broad_query, MAX_BROAD_PHASE_RESULTS)
 
 
 ## Impacto cercano sobre el candidato, sin que otra área interactiva solapada lo tape
@@ -145,13 +154,24 @@ func _interaction_hit(
 
 
 ## true si un muro del nivel (capa LevelArchitectureBuilder.LAYER_WALLS) se interpone entre el
-## personaje y el punto del objetivo. Los muebles y coberturas no bloquean la interacción.
-func _is_behind_wall(_target: Node3D, hit_point: Vector3) -> bool:
+## personaje y el objetivo. Los muebles no bloquean y las partes del propio objetivo (como la hoja
+## de una puerta) no se consideran obstáculos (#113).
+func _is_behind_wall(target: Node3D, hit_point: Vector3) -> bool:
 	if not is_inside_tree() or get_world_3d() == null:
 		return false
 	var from: Vector3 = global_position + Vector3(0.0, WALL_CHECK_HEIGHT, 0.0)
 	var to: Vector3 = Vector3(hit_point.x, from.y, hit_point.z)
-	return not VisionLogic.wall_free(get_world_3d().direct_space_state, from, to)
+	var query: PhysicsRayQueryParameters3D = PhysicsRayQueryParameters3D.create(
+		from, to, LevelArchitectureBuilder.LAYER_WALLS
+	)
+	var exclusions: Array[RID] = []
+	if target is CollisionObject3D:
+		exclusions.append((target as CollisionObject3D).get_rid())
+	if target != null:
+		for child: Node in target.find_children("*", "CollisionObject3D", true, false):
+			exclusions.append((child as CollisionObject3D).get_rid())
+	query.exclude = exclusions
+	return not get_world_3d().direct_space_state.intersect_ray(query).is_empty()
 
 
 ## Compara candidatos sin depender del orden devuelto por el motor físico

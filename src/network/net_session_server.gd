@@ -75,9 +75,7 @@ func on_input(
 	peer: int, tick: int, move: Vector2, sprint: bool, sneak: bool, look: Vector3
 ) -> void:
 	var actor: PlayerBase3D = _actor_for_peer(peer)
-	if actor == null:
-		return
-	if tick <= int(_last_tick.get(peer, -1)):
+	if actor == null or tick <= int(_last_tick.get(peer, -1)):
 		return
 	_last_tick[peer] = tick
 	actor.apply_input(NetInputRules.sanitize(actor, move, sprint, sneak, look))
@@ -96,6 +94,8 @@ func on_action(peer: int, action: StringName, interaction_cursor: Vector3 = Vect
 		)
 	if not HeistActions.handle(actor, action):  # moneda, walkie, luces de alarma
 		actor.perform_action(action)
+	if action == &"interact":
+		actor.interaction_cursor_position = Vector3.INF
 
 
 ## Un cliente ha cargado el mapa: recibe el estado completo y empieza a recibir ticks
@@ -115,12 +115,12 @@ func on_client_ready(peer: int) -> void:
 	if not full.is_empty():
 		_session.send_world_state(peer, full)
 		_log_world(peer, full)
-	var private_state: Dictionary = NetPrivateStates.for_role(
+	var priv: Dictionary = NetPrivateStates.for_role(
 		_private.collect(_world_nodes, true), _peer_roles[peer]
 	)
-	if not private_state.is_empty():
-		_session.send_world_state(peer, private_state)
-		_log_world(peer, private_state)
+	if not priv.is_empty():
+		_session.send_world_state(peer, priv)
+		_log_world(peer, priv)
 	var game_state: Dictionary = GameManager.get_net_state()
 	_last_game_state = game_state
 	_game_timer = 0.0
@@ -132,9 +132,7 @@ func _actor_for_peer(peer: int) -> PlayerBase3D:
 	if _session == null or not _ready_peers.has(peer):
 		return null
 	var role: StringName = NetManager.get_role_for_peer(peer)
-	if role == &"":
-		return null
-	return _session.actor_for_role(role)
+	return _session.actor_for_role(role) if role != &"" else null
 
 
 ## Un peer se va: deja de recibir y su actor se queda quieto (sin sprint ni sigilo)

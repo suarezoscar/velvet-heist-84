@@ -116,3 +116,22 @@ func test_execute_interaction_acts_on_cursor_target() -> void:
 	assert_true(executed, "execute_interaction revalida el foco y devuelve true")
 	assert_eq(far.interacted_by, _guard, "El interact es para el candidato elegido por el cursor")
 	assert_null(near.interacted_by, "El descartado por el cursor no recibe interact")
+
+
+func test_reset_cursor_to_inf_restores_proximity_priority() -> void:
+	var near: FanTarget = _spawn_target(_fan_point(0.0, RULES.reach_distance * 0.6))
+	var far: FanTarget = _spawn_target(_fan_point(40.0, RULES.reach_distance * 0.85))
+	_guard.interaction_cursor_position = _fan_point(40.0, RULES.reach_distance * 1.5)
+	var focused: Node3D = await _focused()
+	assert_eq(focused, far, "Con cursor apunta al lejano")
+	_guard.interaction_cursor_position = Vector3.INF
+	focused = await _focused()
+	assert_eq(focused, near, "Al reiniciar cursor a INF vuelve a ganar el más cercano")
+
+
+func test_sanitize_interaction_cursor_does_not_persist_without_finite_value() -> void:
+	_guard.interaction_cursor_position = Vector3(5.0, 0.0, 5.0)
+	var sanitized: Vector3 = NetInputRules.sanitize_interaction_cursor(_guard, Vector3.INF)
+	assert_eq(
+		sanitized, Vector3.INF, "Un cursor no finito se sanea a Vector3.INF sin heredar el previo"
+	)
