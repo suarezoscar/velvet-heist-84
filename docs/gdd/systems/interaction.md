@@ -103,13 +103,13 @@ Alcance (9,5 m), FOV (52°) y barrido (65°) siguen siendo datos de cada cámara
 
 # Selección de interactivos (2026-10-30, #113)
 
-- **E en abanico**: la E actúa sobre un objeto interactivo válido a menos de 2 m y dentro de un abanico total de 120° delante del personaje. El alcance se mide en horizontal hasta el punto cercano del área interactiva, no hasta su centro. Sin preferencia de cursor gana el más cercano.
-- **Cursor**: si hay varios candidatos válidos, gana aquel al que apunta el cursor. Esta preferencia no cambia la orientación corporal definida en `stealth.md`. El cliente envía el punto del cursor junto a la intención fiable de E; el servidor lo sanea y vuelve a validar alcance, abanico, estado y muros antes de ejecutarla.
-- **Oclusión**: los muros y tabiques siguen bloqueando; los muebles no. La comprobación llega al punto cercano del área para que la propia hoja de una puerta o el muro posterior a una rejilla no impidan usarlas.
+- **E en abanico**: la E actúa sobre un objeto interactivo válido a menos de 2 m y dentro de un abanico total de 120° delante del personaje. El alcance y el ángulo se miden en horizontal hasta el centro de la forma del objeto, a su altura (así llegan los cuadros eléctricos y los interruptores de pared). Si el cursor no señala a ninguno, gana el más cercano.
+- **Cursor**: si el cursor cae a menos de `cursor_snap_distance` (0,75 m) de algún candidato válido, gana el más cercano al cursor; si no, el cursor no cuenta. El cursor llega proyectado al suelo y se lleva a la altura de cada objeto con la inclinación fija de la cámara isométrica (constantes `VIEW_FORWARD_H` y `VIEW_RUN_PER_DROP` de `Interactor3D`: si cambia la cámara, hay que cambiarlas). Esta preferencia no cambia la orientación corporal definida en `stealth.md`. El cliente envía el punto del cursor junto a la intención fiable de E; el servidor lo sanea y vuelve a validar alcance, abanico, estado y muros antes de ejecutarla.
+- **Oclusión**: los muros y tabiques siguen bloqueando; los muebles no. Las partes del propio objeto (la hoja de una puerta) no lo tapan. Entre una pieza y el candado que la guarda gana la pieza, que ya abre su dial.
 - **Puertas**: su área cubre todo el hueco y 1,1 m a cada lado, incluidos los extremos. Vale para ladrón y guardias, respetando el `can_interact` de cada objeto.
 - **Foco visible**: el objeto elegido muestra un contorno suave ámbar además del texto de interacción. Texto y contorno consultan el mismo foco y desaparecen al perderlo o al cambiar de personaje local. El contorno no atraviesa muros ni sustituye los materiales de las piezas.
 
-Los números comunes viven en `data/balance/interaction_rules.tres`: `reach_distance = 2,0` y `fan_angle_degrees = 120,0`.
+Los números comunes viven en `data/balance/interaction_rules.tres`: `reach_distance = 2,0`, `fan_angle_degrees = 120,0` y `cursor_snap_distance = 0,75`.
 
 # Común
 ## Contrajuego

@@ -206,7 +206,7 @@ func test_high_target_behind_wall_is_not_focused() -> void:
 
 
 func test_cursor_gap_corrects_for_object_height() -> void:
-	# Bajo el ratón, un punto a 0,9 m de altura cae en el suelo √2·0,9 m más allá, hacia la cámara
+	# Bajo el ratón, un punto a 0,9 m de alto cae en el suelo √2·0,9 m más allá (hacia donde mira)
 	var center: Vector3 = Vector3(0.0, 0.9, 0.0)
 	var on_floor: Vector3 = (
 		center + Interactor3D.VIEW_FORWARD_H * 0.9 * Interactor3D.VIEW_RUN_PER_DROP
