@@ -32,6 +32,7 @@ func _create_map_with_actors() -> Dictionary:
 
 	add_child_autofree(map)
 	thief.set_physics_process(false)
+	guard_a.apply_flashlight_state(true)  # un guardia humano empieza apagado (#112)
 	guard_a.set_physics_process(false)
 	guard_b.set_physics_process(false)
 	return {"map": map, "thief": thief, "guard_a": guard_a, "guard_b": guard_b}
@@ -86,6 +87,7 @@ func test_ai_not_alerted_by_other_guard() -> void:
 	var ai_a: GuardAI3D = GuardAI3D.new()
 	guard_a.add_child(ai_a)
 	guard_a.is_ai_controlled = true
+	guard_a.apply_flashlight_state(true)
 
 	var ai_b: GuardAI3D = GuardAI3D.new()
 	guard_b.add_child(ai_b)
@@ -114,6 +116,7 @@ func test_last_seen_data() -> void:
 	guard.rotation = Vector3.ZERO
 	guard.look_target_position = Vector3(0.0, 1.4, -10.0)
 	add_child_autofree(guard)
+	guard.apply_flashlight_state(true)  # un guardia humano empieza apagado (#112)
 	guard.set_physics_process(false)
 
 	var thief_scene: PackedScene = load(THIEF_SCENE_PATH) as PackedScene

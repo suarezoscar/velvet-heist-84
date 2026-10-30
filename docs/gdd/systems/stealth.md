@@ -1,6 +1,6 @@
 # Sigilo: modos de movimiento, ruido de pasos y percepción cercana
 
-- **Estado**: aprobado por el usuario: parte 1 el 2026-10-22 y parte 2 (linterna, luz, información entre guardias y ruido) el 2026-10-23. P2.4 reescrita y aprobada el 2026-10-23: **sustituye los anillos de ruido** por audio posicional, vúmetro del ladrón y chevron en el borde (decisiones D8-D11).
+- **Estado**: aprobado por el usuario: parte 1 el 2026-10-22 y parte 2 (linterna, luz, información entre guardias y ruido) el 2026-10-23. P2.4 reescrita y aprobada el 2026-10-23: **sustituye los anillos de ruido** por audio posicional, vúmetro del ladrón y chevron en el borde (decisiones D8-D11). Cambio de controles de la linterna, la porra y la orientación el 2026-10-30 (#112).
 - **Origen**: MASTER_GSD §2 (asimetría), §4.1 (acústica de superficies), §5.3 (visibilidad); FEAT-005 (posturas); auditoría de la Fase 1 (`docs/decisions/2026-10-22-fase-1-auditoria.md`, "Decisiones de diseño pendientes"). 2026-10-22.
 - **Relacionado**: `characters.md` (altura de los modelos, que fija los puntos de visibilidad); `roles.md` (velocidades por rol), `gadgets.md` (molde de cera, hilo con campanillas, láseres) e `interaction.md` (cobertura baja de los niveles), que todavía no existen. `vision.md` (zona visible y niebla de guerra: decide qué ve cada jugador en pantalla; la percepción de este documento sigue decidiendo cuándo un guardia ve al ladrón).
 - **Alcance**: modos de movimiento, ruido de pasos, superficies, quién oye qué (solo la regla), proximidad, puntos de visibilidad y alcance de la porra. **Segunda parte** (abajo): el cono de la linterna, las lámparas y cómo se percibe el ruido (audio, vúmetro, chevron) y el ruido de objetos.
@@ -69,6 +69,10 @@ No hay representación del ruido en el mundo (P2.4, 2026-10-23); el radio emitid
 ### Porra
 - El golpe acierta si la distancia horizontal entre centros es ≤ `melee_range` y hay línea de visión de torso a torso.
 - `melee_range` < `proximity_radius`: un guardia nunca golpea a quien no podría percibir de frente.
+- **Solo delante (2026-10-30, #112)**: además, el ladrón tiene que estar dentro de `melee_half_angle_deg` (75°, un arco de 150°) respecto a hacia dónde mira el guardia: hacia donde anda o, si barre con la linterna, hacia el ratón. A la espalda no se golpea.
+
+### Orientación (2026-10-30, #112)
+- Ambos bandos miran hacia donde andan; parados mantienen el último lado. El ratón solo cuenta al apuntar la moneda (ladrón) o al barrer con la linterna (guardia).
 
 ### Interacciones
 - **Botín pesado**: multiplica la velocidad en todos los modos y no cambia el ruido (pendiente de `loot.md`). Se puede ir agachado con botín pesado.
@@ -223,7 +227,8 @@ d_h(G, L) ≤ F_alcance   y   ángulo_h(frente_G, L − G) ≤ F_semiángulo   y
 - La `SpotLight3D` visible toma `spot_range` y `spot_angle` de estos mismos campos: lo que se ve iluminado es lo que detecta (invariante 14). El haz tiene que leerse hasta su borde: la atenuación no puede dejar el último 20 % del alcance a oscuras.
 - El borde pertenece al cono (como en el arco ciego de la parte 1).
 - **El ladrón ve todos los haces encendidos**, también tras los muros, como silueta del sector en el suelo (MASTER_GSD §2, pilar 3).
-- **Apagar la linterna**: el guardia la alterna con un clic que emite un ruido de `flashlight_toggle_noise_radius`. Apagada, el guardia solo ve por proximidad y por P2.2, y su haz desaparece para el ladrón.
+- **Linterna solo mientras se mantiene (2026-10-30, #112)**: el guardia humano la lleva apagada y la enciende manteniendo el clic derecho; al soltar se apaga. Mientras la mantiene **barre**: el haz apunta al ratón, no corre y se mueve a media velocidad (modo sigilo). La IA la lleva siempre encendida.
+- **Encender y apagar la linterna**: cada cambio emite un ruido de `flashlight_toggle_noise_radius`. Apagada, el guardia solo ve por proximidad y por P2.2, y su haz desaparece para el ladrón.
 
 ### P2.2 Lámparas y zonas de luz
 - **Base oscura**: el museo de noche no tiene luz ambiente que detecte. Un punto de visibilidad está **iluminado** si alguna lámpara encendida cumple `d_h(lámpara, punto) ≤ lit_radius` y el rayo desde la bombilla hasta el punto está libre. Los muebles proyectan sombra: agacharse tras una vitrina en una sala iluminada también oculta.

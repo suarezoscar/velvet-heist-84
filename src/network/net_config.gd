@@ -31,7 +31,8 @@ const ROLES: Array[StringName] = [&"thief", &"guard_1", &"guard_2", &"guard_3"]
 ## Acciones discretas que un cliente puede pedir al servidor
 const ACTIONS: Array[StringName] = [
 	&"interact",
-	&"toggle_flashlight",
+	&"flashlight_on",
+	&"flashlight_off",
 	&"strike",
 	&"crouch_toggle",
 	&"dial_left",

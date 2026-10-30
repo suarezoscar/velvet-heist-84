@@ -242,6 +242,7 @@ func test_authoritative_heavy_loot_mutual_exclusion_and_speed_penalty() -> void:
 
 func test_authoritative_baton_validation_los_and_range() -> void:
 	var guard: GuardController3D = _create_guard(Vector3.ZERO)
+	guard.look_target_position = Vector3(0.0, 0.0, 3.0)  # mira hacia el ladrón (#112)
 	var thief: ThiefController3D = _create_thief(Vector3(0.0, 0.0, 2.5))
 	await wait_physics_frames(1)
 
@@ -274,11 +275,11 @@ func test_authoritative_baton_wall_occlusion() -> void:
 
 func test_authoritative_baton_capture_progression() -> void:
 	var guard: GuardController3D = _create_guard(Vector3.ZERO)
+	guard.look_target_position = Vector3(0.0, 0.0, 3.0)  # mira hacia el ladrón (#112)
 	var thief: ThiefController3D = _create_thief(Vector3(0.0, 0.0, 1.2))
 	watch_signals(SignalBus)
 	await wait_physics_frames(1)
 
-	# Impacto 1
 	var hit1: bool = guard.swing_baton(thief)
 	assert_true(hit1, "Impacto 1 exitoso")
 	assert_eq(thief.baton_hits_taken, 1, "1 impacto registrado")

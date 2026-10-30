@@ -163,13 +163,15 @@ func on_noise(
 
 func _polled_actions(delta: float) -> Array[StringName]:
 	var actions: Array[StringName] = []
+	if _session.actor_for_role(NetManager.get_local_role()) is GuardController3D:
+		var flashlight: StringName = GuardFlashlight.poll()  # mantener = encendida (#112)
+		if flashlight != &"":
+			actions.append(flashlight)  # con la pausa abierta, poll la apaga
 	if LocalInput3D.blocked:  # menú de pausa abierto
 		CoinTrigger.reset()
 		return actions
 	if _just_pressed(&"interact"):
 		actions.append(&"interact")
-	if _just_pressed(&"toggle_flashlight"):
-		actions.append(&"toggle_flashlight")
 	if _just_pressed(&"strike"):
 		actions.append(&"strike")
 	if _just_pressed(&"crouch"):

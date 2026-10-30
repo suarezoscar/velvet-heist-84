@@ -38,7 +38,7 @@ func test_each_emitter_category() -> void:
 	add_child_autofree(guard)
 	guard.set_physics_process(false)
 	n = _recorded.size()
-	guard.set_flashlight(false)
+	guard.set_flashlight(true)  # el guardia humano la lleva apagada (#112)
 	assert_eq(_recorded.size(), n + 1, "Linterna debe emitir 1 ruido")
 	ev = _recorded.back()
 	assert_eq(ev.category, &"mechanism", "Linterna debe tener categoría 'mechanism'")

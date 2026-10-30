@@ -99,6 +99,7 @@ func set_local_player(player: PlayerBase3D) -> void:
 		actor.is_locally_controlled = actor == player
 		if actor is GuardController3D and actor == player:
 			(actor as GuardController3D).is_ai_controlled = false
+			(actor as GuardController3D).apply_flashlight_state(false)  # se enciende al barrer
 	var followed: Node3D = get_followed_actor()
 	if hud != null:
 		hud.target_player = followed

@@ -188,11 +188,10 @@ func update_presentation(delta: float) -> void:
 			)
 		velocity = net_target_velocity
 
-	var horizontal_vel: Vector3 = velocity.slide(Vector3.UP)
+	# Mira a look_target (hacia donde anda o adonde apunta, #112); sin él, hacia donde se mueve
+	var to_look: Vector3 = (look_target_position - global_position).slide(Vector3.UP)
 	var face_dir: Vector3 = (
-		horizontal_vel
-		if horizontal_vel.length() >= FACE_MOVEMENT_MIN_SPEED
-		else (look_target_position - global_position).slide(Vector3.UP)
+		to_look if to_look.length() >= FACE_MOVEMENT_MIN_SPEED else velocity.slide(Vector3.UP)
 	)
 	if face_dir.length_squared() > 0.01:
 		rotation.y = lerp_angle(rotation.y, atan2(-face_dir.x, -face_dir.z), 0.25)
