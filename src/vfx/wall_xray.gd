@@ -6,7 +6,8 @@ class_name WallXRay
 extends Node
 
 const SHADER: Shader = preload("res://assets/shaders/wall_xray.gdshader")
-## Radio del recorte en el plano de la pantalla (m) y altura del centro sobre los pies
+## Distinto de 0 activa el recorte (su forma, una franja con la silueta, está en el shader) y
+## altura del centro sobre los pies
 const RADIUS: float = 2.6
 const CENTER_HEIGHT: float = 1.0
 
