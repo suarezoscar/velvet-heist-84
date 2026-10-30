@@ -9,6 +9,8 @@ extends Resource
 @export var stand_points: PackedFloat32Array = PackedFloat32Array([1.6, 1.2])
 @export var crouch_points: PackedFloat32Array = PackedFloat32Array([0.9, 0.6])
 @export var melee_range: float = 1.5
+## El porrazo solo alcanza delante: medio ángulo respecto a donde mira (#112)
+@export var melee_half_angle_deg: float = 75.0
 @export var ai_hearing_factor: float = 1.0
 ## Geometría del guardia (no es balance): ojos para la vista, torso para la porra
 @export var eye_height: float = 1.5

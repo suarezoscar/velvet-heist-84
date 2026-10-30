@@ -178,6 +178,7 @@ func test_cone_uses_visibility_points() -> void:
 ## Criterio 8: Validación autoritativa de golpe de porra (alcance horizontal, altura y muro)
 func test_melee_range_edge() -> void:
 	var guard: GuardController3D = _create_guard()
+	guard.look_target_position = Vector3(0.0, 0.0, -3.0)  # mira hacia el ladrón (#112)
 	var profile: PerceptionProfile = guard.perception
 	var hit_z: float = -(profile.melee_range - 0.01)
 	var thief: ThiefController3D = _create_thief(Vector3(0.0, 0.0, hit_z))

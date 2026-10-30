@@ -1,9 +1,17 @@
 ## Lectura del teclado y ratón del jugador local (solo la usa PlayerBase3D.gather_input).
+## El personaje mira hacia donde anda; el ratón solo cuenta al apuntar o barrer (#112).
 class_name LocalInput3D
 extends RefCounted
 
+## Distancia (m) del punto mirado cuando se mira hacia donde se anda
+const FACING_DISTANCE: float = 3.0
+
 ## Con un menú abierto encima de la partida (pausa), el jugador local no se mueve ni actúa
 static var blocked: bool = false
+
+## Último lado hacia el que anduvo el jugador local, y de quién es (#112)
+static var _facing: Vector3 = Vector3.ZERO
+static var _facing_owner: int = 0
 
 
 ## Diccionario con movement_vector (Vector2), is_sprinting, is_sneaking, crouch
@@ -29,7 +37,7 @@ static func read(player: PlayerBase3D, cam: Camera3D) -> Dictionary:
 		Input.is_action_just_pressed("crouch") if InputMap.has_action("crouch") else false
 	)
 
-	var target_pos: Vector3 = project_cursor(player, cam)
+	var target_pos: Vector3 = look_target(player, move_vec, aims_with_mouse(player), cam)
 
 	return {
 		"movement_vector": move_vec,
@@ -38,6 +46,39 @@ static func read(player: PlayerBase3D, cam: Camera3D) -> Dictionary:
 		"look_target": target_pos,
 		"crouch": crouch_pressed,
 	}
+
+
+## Apunta con el ratón: el ladrón apuntando la moneda o el guardia barriendo con la linterna
+static func aims_with_mouse(player: PlayerBase3D) -> bool:
+	if player is ThiefController3D:  # también el fotograma en que la suelta y sale la moneda
+		return CoinTrigger.aiming or _held_or_released(CoinTrigger.ACTION)
+	if player is GuardController3D:  # barriendo, o apuntando el walkie hasta soltarlo
+		return GuardFlashlight.held or _held_or_released(&"walkie")
+	return false
+
+
+static func _held_or_released(action: StringName) -> bool:
+	if not InputMap.has_action(action):
+		return false
+	return Input.is_action_pressed(action) or Input.is_action_just_released(action)
+
+
+## Hacia dónde mira (#112): al ratón si apunta; si no, hacia donde anda, y parado sigue
+## mirando al último lado al que anduvo
+static func look_target(
+	player: PlayerBase3D, move_vec: Vector2, aiming: bool, cam: Camera3D
+) -> Vector3:
+	if player == null:
+		return Vector3.ZERO
+	if aiming:
+		return project_cursor(player, cam)
+	if _facing_owner != player.get_instance_id() or _facing == Vector3.ZERO:
+		_facing_owner = player.get_instance_id()
+		_facing = (-player.global_basis.z).slide(Vector3.UP).normalized()
+	if move_vec.length_squared() > 0.01:
+		var walk: Vector3 = Vector3(move_vec.x, 0.0, move_vec.y)
+		_facing = walk.rotated(Vector3.UP, deg_to_rad(45.0)).normalized()
+	return player.global_position + _facing * FACING_DISTANCE
 
 
 ## Lo mismo que hoy hace PlayerBase3D.project_cursor_on_ground

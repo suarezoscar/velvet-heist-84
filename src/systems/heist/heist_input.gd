@@ -17,7 +17,14 @@ func _process(_delta: float) -> void:
 		if action == CoinTrigger.ACTION:
 			if CoinTrigger.poll():  # se apunta manteniendo y se lanza al soltar (FEAT-038)
 				HeistActions.handle(_local_actor(), action)
-		elif InputMap.has_action(action) and Input.is_action_just_pressed(action):
+		elif (
+			InputMap.has_action(action)
+			and (
+				Input.is_action_just_released(action)
+				if HeistActions.ON_RELEASE.has(action)
+				else Input.is_action_just_pressed(action)
+			)
+		):
 			HeistActions.handle(_local_actor(), action)
 
 

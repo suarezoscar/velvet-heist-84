@@ -58,24 +58,25 @@ func test_perform_action_interact_guard() -> void:
 	assert_true(dummy.was_interacted, "Se ejecuta interacción")
 
 
-func test_perform_action_toggle_flashlight() -> void:
+func test_perform_action_flashlight_on_off() -> void:
 	var guard: GuardController3D = autofree(GuardController3D.new())
 	add_child_autofree(guard)
-	assert_true(guard.flashlight_on, "Linterna encendida por defecto")
+	assert_false(guard.flashlight_on, "Un guardia humano empieza con la linterna apagada")
 
-	var executed: bool = guard.perform_action(&"toggle_flashlight")
-	assert_true(executed, "toggle_flashlight devuelve true")
-	assert_false(guard.flashlight_on, "Linterna apagada tras acción")
+	var executed: bool = guard.perform_action(&"flashlight_on")
+	assert_true(executed, "flashlight_on devuelve true")
+	assert_true(guard.flashlight_on, "Linterna encendida tras la acción")
 
-	executed = guard.perform_action(&"toggle_flashlight")
-	assert_true(executed, "toggle_flashlight devuelve true")
-	assert_true(guard.flashlight_on, "Linterna encendida de nuevo")
+	executed = guard.perform_action(&"flashlight_off")
+	assert_true(executed, "flashlight_off devuelve true")
+	assert_false(guard.flashlight_on, "Linterna apagada de nuevo")
 
 
 func test_perform_action_strike() -> void:
 	var guard: GuardController3D = autofree(GuardController3D.new())
 	var thief: ThiefController3D = autofree(ThiefController3D.new())
 	guard.position = Vector3.ZERO
+	guard.look_target_position = Vector3(0.0, 0.0, 3.0)  # mira hacia el ladrón (#112)
 	thief.position = Vector3(0.0, 0.0, 1.0)
 	add_child_autofree(guard)
 	add_child_autofree(thief)

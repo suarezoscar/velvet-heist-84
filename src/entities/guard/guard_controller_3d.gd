@@ -25,8 +25,9 @@ const BATON_COOLDOWN_TIME: float = 0.75
 @export var is_ai_controlled: bool = false
 @export var guard_id: int = 1
 
-## Estado de la linterna Maglite
-var flashlight_on: bool = true:
+## Estado de la linterna Maglite: la de la IA va siempre encendida; la de un jugador, solo
+## mientras mantiene el clic derecho (GuardFlashlight, #112)
+var flashlight_on: bool = false:
 	get:
 		if maglite_light != null:
 			return maglite_light.visible
@@ -59,7 +60,7 @@ var focused_interactive: Node3D:
 ## Estado «mirando monitores» de la garita (interaction.md M1/M3)
 var monitor_watch: GuardMonitorWatch = GuardMonitorWatch.new()
 
-var _flashlight_on: bool = true
+var _flashlight_on: bool = false
 var _senses: GuardSenses = GuardSenses.new()
 
 
@@ -80,6 +81,7 @@ func _ready() -> void:
 		maglite_light.spot_range = perception.flashlight_range
 		maglite_light.spot_angle = perception.flashlight_half_angle_deg
 		maglite_light.position = Vector3(0.0, perception.flashlight_height, -0.4)
+	apply_flashlight_state(is_ai_controlled)
 
 
 ## La IA (GuardAI3D) escribe su intención con apply_world_move(); la simulación es la misma
@@ -91,11 +93,9 @@ func _physics_process(delta: float) -> void:
 func _process_local_actions() -> void:
 	if InputMap.has_action("interact") and Input.is_action_just_pressed("interact"):
 		perform_action(&"interact")
-	if (
-		InputMap.has_action("toggle_flashlight")
-		and Input.is_action_just_pressed("toggle_flashlight")
-	):
-		perform_action(&"toggle_flashlight")
+	var flashlight: StringName = GuardFlashlight.poll()
+	if flashlight != &"":
+		perform_action(flashlight)
 
 
 ## Cambia el estado de la linterna sin emitir ruido (para sincronización de red)
@@ -118,8 +118,8 @@ func perform_action(action: StringName) -> bool:
 		&"interact":
 			if interactor != null:
 				result = interactor.execute_interaction(self)
-		&"toggle_flashlight":
-			set_flashlight(not flashlight_on)
+		GuardFlashlight.TURN_ON, GuardFlashlight.TURN_OFF:
+			set_flashlight(action == GuardFlashlight.TURN_ON)
 			result = true
 		&"strike":
 			var target_thief: ThiefController3D = null
@@ -155,6 +155,9 @@ func simulate_movement(delta: float) -> void:
 		baton_cooldown = maxf(0.0, baton_cooldown - delta)
 
 	monitor_watch.tick(self, delta)
+	if flashlight_on and not is_ai_controlled:  # barriendo con la linterna: media velocidad
+		is_sprinting = false
+		is_sneaking = true
 	_process_stamina_and_sprint(delta, current_input_dir)
 	super.simulate_movement(delta)
 
@@ -191,20 +194,7 @@ func update_presentation(delta: float) -> void:
 	if face_dir.length_squared() > 0.01:
 		rotation.y = lerp_angle(rotation.y, atan2(-face_dir.x, -face_dir.z), 0.25)
 
-	_update_maglite_orientation()
-
-
-## Orienta el haz de la linterna Maglite hacia el punto apuntado por el cursor
-func _update_maglite_orientation() -> void:
-	if maglite_light == null:
-		return
-
-	var dir_to_target: Vector3 = (look_target_position - maglite_light.global_position).normalized()
-	if dir_to_target.length_squared() > 0.01:
-		var up_vector: Vector3 = Vector3.UP
-		if absf(dir_to_target.dot(Vector3.UP)) > 0.98:
-			up_vector = Vector3.FORWARD
-		maglite_light.look_at(look_target_position, up_vector)
+	GuardFlashlight.orient(maglite_light, look_target_position)
 
 
 ## Evalúa si el ladrón es detectable según proximidad, cono de linterna o iluminación
@@ -244,6 +234,15 @@ func validate_melee_hit(target_thief: ThiefController3D) -> bool:
 		global_position, target_thief.global_position
 	)
 	if dist > perception.melee_range:
+		return false
+	# Hacia donde mira (o al ratón si barre con la linterna), no a la espalda (#112)
+	if not PerceptionRules.is_in_flashlight_cone(
+		global_position,
+		look_target_position - global_position,
+		target_thief.global_position,
+		perception.melee_range + 0.01,
+		perception.melee_half_angle_deg
+	):
 		return false
 	if is_inside_tree() and get_world_3d() != null:
 		var space_state: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state

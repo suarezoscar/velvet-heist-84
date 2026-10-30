@@ -63,11 +63,11 @@ Nadie lo ve todo:
 
 | Acción | Tecla |
 |---|---|
-| Moverse / mirar | <kbd>WASD</kbd> o flechas / ratón |
+| Moverse (el personaje mira hacia donde anda; el ratón solo al apuntar o barrer) | <kbd>WASD</kbd> o flechas |
 | Correr · sigilo · agacharse | <kbd>Mayús</kbd> · <kbd>C</kbd> · <kbd>Ctrl</kbd> |
 | Interactuar · robar a lo bruto (salta la alarma) | <kbd>E</kbd> · <kbd>Q</kbd> |
 | Plano del museo | <kbd>M</kbd> o <kbd>Tab</kbd> |
-| Linterna · porra (guardias) | <kbd>F</kbd> · clic izquierdo |
+| Linterna (mantener: barre hacia el ratón, a media velocidad) · porra (guardias) | clic derecho · clic izquierdo |
 | Moneda (ladrón) · walkie · luces de alarma (guardias) | clic derecho · <kbd>T</kbd> · <kbd>Q</kbd> |
 | Datos de la conexión | <kbd>F9</kbd> |
 | Pausa: controles y salir | <kbd>Esc</kbd> |

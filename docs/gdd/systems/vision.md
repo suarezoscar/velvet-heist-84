@@ -1,6 +1,6 @@
 # Visión y niebla de guerra
 
-- **Estado**: aprobado por el usuario el 2026-10-24, con las 5 recomendaciones de «Decisiones»
+- **Estado**: aprobado por el usuario el 2026-10-24, con las 5 recomendaciones de «Decisiones». Nota del 2026-10-30 (#112): el personaje mira hacia donde anda; el ratón solo cuenta al apuntar la moneda o barrer con la linterna (que solo se enciende mientras se mantiene el clic derecho). La zona visible sigue siendo de 360°.
 - **Origen**: petición del usuario del 2026-10-24, tras jugar: «Como ladrón veo dónde están los guardias por la vista cenital de la cámara. Quiero una especie de field of view: fuera del campo de visión, una niebla de guerra que impida ver la posición de guardias o ciertos objetos dentro de las salas.»
 - **Relacionado**:
   - `stealth.md`: percepción de los guardias, P2.1 (el ladrón ve todos los haces), P2.2 luz, P2.4 ruido y chevrons, O2 última posición;

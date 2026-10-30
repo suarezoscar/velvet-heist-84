@@ -14,6 +14,7 @@ func _create_guard(pos: Vector3 = Vector3.ZERO) -> GuardController3D:
 	var guard: GuardController3D = autofree(scene.instantiate() as GuardController3D)
 	guard.position = pos
 	add_child_autofree(guard)
+	guard.apply_flashlight_state(true)  # un guardia humano empieza apagado (#112)
 	guard.set_physics_process(false)
 	return guard
 
@@ -274,7 +275,7 @@ func test_o4_noises_from_tres() -> void:
 	assert_false(source.contains("CAPTURE_NOISE_RADIUS"), "Sin const CAPTURE_NOISE_RADIUS")
 
 
-## Criterio 15: guardia mira hacia look_target_position; ladrón mira hacia donde camina
+## Criterio 15: ambos miran hacia look_target_position (hacia donde andan o adonde apuntan, #112)
 func test_guard_faces_aim() -> void:
 	var guard: GuardController3D = _create_guard(Vector3.ZERO)
 	guard.look_target_position = Vector3(0.0, 1.4, -5.0)
@@ -295,4 +296,4 @@ func test_guard_faces_aim() -> void:
 		thief.update_presentation(0.1)
 
 	var thief_fwd: Vector3 = -thief.global_transform.basis.z
-	assert_gt(thief_fwd.dot(Vector3(1.0, 0.0, 0.0)), 0.8, "Ladrón mira a su velocidad (+X)")
+	assert_gt(thief_fwd.dot(Vector3(0.0, 0.0, -1.0)), 0.8, "Ladrón mira a look_target (-Z)")

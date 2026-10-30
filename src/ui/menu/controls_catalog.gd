@@ -31,7 +31,7 @@ static func groups() -> Array[Dictionary]:
 			"rows":
 			[
 				["Moverse", combo([&"move_up", &"move_left", &"move_down", &"move_right"])],
-				["Mirar", "Ratón"],
+				["Mirar", "Hacia donde andas (el ratón solo al apuntar o barrer)"],
 				["Correr", keys(&"sprint")],
 				["Sigilo", keys(&"sneak")],
 				["Interactuar", keys(&"interact")],
@@ -60,7 +60,7 @@ static func groups() -> Array[Dictionary]:
 			"title": "GUARDIAS",
 			"rows":
 			[
-				["Linterna", keys(&"toggle_flashlight")],
+				["Linterna (mantener)", keys(&"flashlight")],
 				["Porra", keys(&"strike")],
 				[
 					"Mirar los monitores · levantarse",
@@ -74,7 +74,7 @@ static func groups() -> Array[Dictionary]:
 					"Examinar una pieza (¿falsificación?) · restablecer la corriente",
 					keys(&"interact")
 				],
-				["Walkie: marcar un punto al equipo", keys(&"walkie")],
+				["Walkie: mantén, apunta y suelta para marcar un punto", keys(&"walkie")],
 				["Luces de alarma (en «alarma»)", keys(&"alarm_lights")],
 			],
 		},

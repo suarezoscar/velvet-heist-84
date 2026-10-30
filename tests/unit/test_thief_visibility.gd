@@ -36,6 +36,7 @@ func _create_guard(pos: Vector3 = Vector3.ZERO) -> GuardController3D:
 	guard.maglite_light = maglite
 
 	add_child_autofree(guard)
+	guard.apply_flashlight_state(false)  # _ready enciende la de la IA (#112)
 	return guard
 
 

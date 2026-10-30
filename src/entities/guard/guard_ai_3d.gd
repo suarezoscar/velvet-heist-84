@@ -76,6 +76,7 @@ func is_driving() -> bool:
 func _physics_process(_delta: float) -> void:
 	if not is_driving():
 		return
+	_guard.apply_flashlight_state(true)  # la IA lleva la linterna siempre encendida (#112)
 
 	if _thief != null and _guard.check_detection_on_thief(_thief):
 		current_state = AIState.CHASE

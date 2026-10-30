@@ -7,6 +7,7 @@ func _create_guard(pos: Vector3 = Vector3.ZERO) -> GuardController3D:
 	var guard: GuardController3D = autofree(GuardController3D.new())
 	guard.position = pos
 	guard.is_ai_controlled = true
+	guard.look_target_position = pos + Vector3(0.0, 0.0, 3.0)  # mira hacia el ladrón (#112)
 	add_child_autofree(guard)
 	return guard
 
@@ -42,7 +43,7 @@ func test_swing_baton_misses_beyond_melee_range() -> void:
 func test_single_baton_impact_at_1_5m_does_not_capture() -> void:
 	var guard: GuardController3D = _create_guard(Vector3(0.0, 0.0, 0.0))
 	var thief: ThiefController3D = _create_thief(Vector3(0.0, 0.0, 1.5))
-	var bus: Node = get_node_or_null("/root/SignalBus")
+	var bus: Node = SignalBus
 	watch_signals(bus)
 	await wait_physics_frames(1)
 
@@ -71,7 +72,7 @@ func test_baton_cooldown_prevents_spam() -> void:
 func test_two_baton_impacts_at_1_5m_captures_thief() -> void:
 	var guard: GuardController3D = _create_guard(Vector3(0.0, 0.0, 0.0))
 	var thief: ThiefController3D = _create_thief(Vector3(0.0, 0.0, 1.5))
-	var bus: Node = get_node_or_null("/root/SignalBus")
+	var bus: Node = SignalBus
 	watch_signals(bus)
 	await wait_physics_frames(1)
 
@@ -90,7 +91,7 @@ func test_two_baton_impacts_at_1_5m_captures_thief() -> void:
 	assert_eq(thief.baton_hits_taken, 2, "2 impactos acumulados")
 	assert_signal_emitted(bus, "thief_captured", "Señal thief_captured tras 2 impactos")
 
-	var gm: Node = get_node_or_null("/root/GameManager")
+	var gm: Node = GameManager
 	if gm != null:
 		assert_eq(gm.get("current_state"), 3, "GameManager cambia a THIEF_CAPTURED (estado 3)")
 
