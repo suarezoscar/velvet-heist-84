@@ -44,11 +44,15 @@ func tick(delta: float) -> void:
 	var move: Vector2 = input_data.get("movement_vector", Vector2.ZERO) as Vector2
 	var look: Vector3 = input_data.get("look_target", local.look_target_position) as Vector3
 	local.look_target_position = look
+	var interaction_cursor: Vector3 = (
+		input_data.get("interaction_cursor", local.interaction_cursor_position) as Vector3
+	)
+	local.interaction_cursor_position = interaction_cursor
 	var sprint: bool = bool(input_data.get("is_sprinting", false))
 	var sneak: bool = bool(input_data.get("is_sneaking", false))
 	_session.send_input(_tick, move, sprint, sneak, look)
 	for action: StringName in _polled_actions(delta):
-		_session.send_action(action)
+		_session.send_action(action, interaction_cursor)
 
 
 ## Interpola los actores remotos en el instante servidor retrasado

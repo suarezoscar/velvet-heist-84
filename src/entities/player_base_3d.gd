@@ -28,6 +28,8 @@ var current_speed: float = 4.5
 var is_sprinting: bool = false
 var is_sneaking: bool = false
 var look_target_position: Vector3 = Vector3.ZERO
+## Punto del cursor solo para elegir interactivos; no cambia la orientación del personaje
+var interaction_cursor_position: Vector3 = Vector3.INF
 var net_target_position: Vector3 = Vector3.ZERO
 var net_target_velocity: Vector3 = Vector3.ZERO
 var is_net_interpolating: bool = false
@@ -86,18 +88,18 @@ func gather_input(cam: Camera3D = null) -> Dictionary:
 
 ## Almacena los datos de entrada validados para la simulación
 func apply_input(input_data: Dictionary) -> void:
-	if input_data.has("movement_vector"):
-		current_input_dir = input_data["movement_vector"] as Vector2
-	elif input_data.has("input_dir"):
-		current_input_dir = input_data["input_dir"] as Vector2
-	elif input_data.has("move_vector"):
-		current_input_dir = input_data["move_vector"] as Vector2
+	for key: String in ["movement_vector", "input_dir", "move_vector"]:
+		if input_data.has(key):
+			current_input_dir = input_data[key] as Vector2
+			break
 	is_sprinting = bool(input_data.get("is_sprinting", input_data.get("sprint", is_sprinting)))
 	is_sneaking = bool(input_data.get("is_sneaking", input_data.get("sneak", is_sneaking)))
-	if input_data.has("look_target"):
-		look_target_position = input_data["look_target"] as Vector3
-	elif input_data.has("look_target_position"):
-		look_target_position = input_data["look_target_position"] as Vector3
+	for key: String in ["look_target", "look_target_position"]:
+		if input_data.has(key):
+			look_target_position = input_data[key] as Vector3
+			break
+	if input_data.has("interaction_cursor"):
+		interaction_cursor_position = input_data["interaction_cursor"] as Vector3
 	if input_data.has("crouching"):
 		set_crouching(bool(input_data["crouching"]))
 	elif input_data.get("crouch", false):
@@ -136,16 +138,15 @@ func set_crouching(value: bool) -> bool:
 
 ## Calcula el radio acústico del paso según modo, superficie y bando
 func compute_step_radius() -> float:
-	var s_noise: StepNoiseProfile = step_noise
-	if s_noise == null:
-		s_noise = load(DEFAULT_STEP_NOISE_PATH) as StepNoiseProfile
-		if s_noise == null:
-			s_noise = StepNoiseProfile.new()
+	var s_noise: StepNoiseProfile = (
+		step_noise if step_noise != null else load(DEFAULT_STEP_NOISE_PATH) as StepNoiseProfile
+	)
+	var profile: StepNoiseProfile = s_noise if s_noise != null else StepNoiseProfile.new()
 	var surface_mult: float = (
 		surface_detector.get_surface_noise_multiplier() if surface_detector != null else 1.0
 	)
 	var team_mult: float = movement_profile.team_noise_mult if movement_profile != null else 1.0
-	return s_noise.radius_for(get_move_mode(), surface_mult, team_mult)
+	return profile.radius_for(get_move_mode(), surface_mult, team_mult)
 
 
 ## Simulación física isométrica de movimiento
@@ -240,6 +241,7 @@ func _clear_input() -> void:
 	current_input_dir = Vector2.ZERO
 	is_sprinting = false
 	is_sneaking = false
+	interaction_cursor_position = Vector3.INF
 
 
 func _setup_collision_shape() -> void:

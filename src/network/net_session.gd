@@ -109,9 +109,9 @@ func send_input(tick: int, move: Vector2, sprint: bool, sneak: bool, look: Vecto
 	_server_input.rpc_id(1, tick, move, sprint, sneak, look)
 
 
-## Envía una acción discreta del cliente al servidor
-func send_action(action: StringName) -> void:
-	_server_action.rpc_id(1, action)
+## Envía una acción discreta y, para interactuar, el cursor que desempata el objetivo
+func send_action(action: StringName, interaction_cursor: Vector3 = Vector3.INF) -> void:
+	_server_action.rpc_id(1, action, interaction_cursor)
 
 
 ## Avisa al servidor de que el mapa ya está cargado en este cliente
@@ -127,10 +127,10 @@ func _server_input(tick: int, move: Vector2, sprint: bool, sneak: bool, look: Ve
 
 
 @rpc("any_peer", "call_remote", "reliable")
-func _server_action(action: StringName) -> void:
+func _server_action(action: StringName, interaction_cursor: Vector3 = Vector3.INF) -> void:
 	if _server == null or not is_inside_tree():  # mensajes que llegan al recargar el mapa
 		return
-	_server.on_action(multiplayer.get_remote_sender_id(), action)
+	_server.on_action(multiplayer.get_remote_sender_id(), action, interaction_cursor)
 
 
 @rpc("any_peer", "call_remote", "reliable")
