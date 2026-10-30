@@ -227,7 +227,7 @@ d_h(G, L) ≤ F_alcance   y   ángulo_h(frente_G, L − G) ≤ F_semiángulo   y
 - La `SpotLight3D` visible toma `spot_range` y `spot_angle` de estos mismos campos: lo que se ve iluminado es lo que detecta (invariante 14). El haz tiene que leerse hasta su borde: la atenuación no puede dejar el último 20 % del alcance a oscuras.
 - El borde pertenece al cono (como en el arco ciego de la parte 1).
 - **El ladrón ve todos los haces encendidos**, también tras los muros, como silueta del sector en el suelo (MASTER_GSD §2, pilar 3).
-- **Linterna solo mientras se mantiene (2026-10-30, #112)**: el guardia humano la lleva apagada y la enciende manteniendo el clic derecho; al soltar se apaga. Mientras la mantiene **barre**: el haz apunta al ratón, no corre y se mueve a media velocidad (modo sigilo). La IA la lleva siempre encendida.
+- **Linterna solo mientras se mantiene (2026-10-30, #112)**: el guardia humano la lleva apagada y la enciende manteniendo el clic derecho; al soltar se apaga. Mientras la mantiene **barre**: el haz apunta al ratón, no corre y se mueve a media velocidad en modo sigilo, así que sus pasos también son más silenciosos (confirmado por el usuario el 2026-10-30). La IA la lleva siempre encendida.
 - **Encender y apagar la linterna**: cada cambio emite un ruido de `flashlight_toggle_noise_radius`. Apagada, el guardia solo ve por proximidad y por P2.2, y su haz desaparece para el ladrón.
 
 ### P2.2 Lámparas y zonas de luz
