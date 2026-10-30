@@ -10,8 +10,10 @@
 - (Antigravity) Reglas puras `NoiseWaveRules` y números en `noise_feedback.tres`.
 - (Claude Code) Shader `noise_wave.gdshader`, `NoiseWave3D`, `NoiseWavePool` (12 ondas) y enganche en `NoiseAudioPresenter.handle_noise`.
 
+- (Claude Code/Sonnet) Escena aislada `scenes/vfx/noise_wave_preview.tscn`, tests `tests/unit/test_noise_waves.gd` (9), `stealth.md` P2.4 y capturas para el usuario.
+
 ## Falta
-- Escena aislada de la onda, tests, `stealth.md` P2.4, capturas para el usuario (es sensación: enseñar antes de pulir) y verificación completa.
+- Enseñar las capturas al usuario y pulir tamaño y opacidad (a los números actuales casi no se ve la onda de un paso: radio mínimo 0,35 m, opacidad que cae al cuadrado). Verificación completa y PR.
 
 ## Decisiones tomadas
 - (agente) La onda solo sale para ruidos del bando contrario que alcanzan al jugador local: los guardias ven los del ladrón y el ladrón los de los guardias. Lo propio y lo del propio bando no hace onda (el issue lo dice así).
