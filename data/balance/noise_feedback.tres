@@ -6,8 +6,8 @@
 script = ExtResource("1_feedback")
 pulse_interval = 0.6
 meter_full_scale = 10.0
-meter_hold_time = 0.15
-meter_fall_time = 0.4
+meter_hold_time = 0.07
+meter_fall_time = 0.19
 audio_edge_floor = 0.2
 own_step_volume_db = -22.0
 pitch_jitter = 0.06
