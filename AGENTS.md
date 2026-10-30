@@ -4,26 +4,40 @@ Sigilo táctico asimétrico multijugador (1 ladrón contra 2-4 guardias). 3D iso
 - Pilares de diseño: @docs/gdd/pillars.md. Toda mecánica, gadget o nivel se mide contra ellos.
 - Diseño por sistemas: `docs/gdd/systems/` (índice en su `README.md`). `docs/gdd/MASTER_GSD.md` se está dividiendo ahí; ante un conflicto manda `systems/`.
 
-## Flujo de trabajo (desde el 2026-10-24: solo Claude)
-Objetivo actual: el PoC jugable de `docs/decisions/2026-10-23-roadmap-poc.md`. Lo que no acerque a esa meta va al backlog.
-1. **Diseño, solo si cambia reglas**: una mecánica nueva o un cambio de reglas pasa por `game-designer` (`/design`, `/level`, `/balance`) y lo aprueba el usuario. Un bug, un ajuste o algo técnico va directo.
-2. **Nota de FEAT**: `docs/tasks/FEAT-XXX-slug.md` corta (plantilla `_TEMPLATE.md`): objetivo, criterios medibles, riesgos y decisiones abiertas. Se ajusta en la misma rama mientras se trabaja.
-3. **Implementación**: una rama `feat/XXX-slug` (o `fix/`, `chore/`) por FEAT, commits pequeños. Claude implementa; los tests los escribe quien implementa, junto al código.
+## Herramientas y relevo
+Trabajan en este repositorio, por turnos, Claude Code, Google Antigravity y opencode: cuando a una se le acaban los tokens, la siguiente sigue donde lo dejó. Todas leen este archivo, `.agents/rules/` y `.agents/skills/`; `CLAUDE.md`, `opencode.json` y `.agents/agents/` solo adaptan lo propio de cada herramienta.
+
+| Herramienta | Principal (lo difícil: planificar, red, depuración, integrar) | Rápido (tests, `.tres`, renombrados, UI pequeña) | Revisión y diseño (`reviewer`, `game-designer`) |
+|---|---|---|---|
+| Claude Code | Opus | Sonnet | Opus |
+| Antigravity | Claude Opus 5.5; sin cuota de Claude, Gemini 4 Argon | `flash` | `pro` |
+| opencode (Go) | Kimi K3.1 Pro; de reserva, Qwen3.8 Max | Qwen3.8 Flash | el principal |
+
+Orden de relevo: Claude Code → Antigravity (Opus) → Antigravity (Gemini) → opencode.
+
+**Al empezar una sesión**: mira el tablero (https://github.com/users/suarezoscar/projects/1, columna «En curso») y las ramas abiertas. Si hay una tarea a medias, lee el `docs/relevo.md` de su rama antes de tocar nada.
+
+**Mientras trabajas**:
+- Commits pequeños y subidos a menudo, para que una sesión cortada no pierda trabajo.
+- Mantén `docs/relevo.md` en la rama (plantilla en `docs/tasks/_RELEVO_TEMPLATE.md`): tarea (#N), hecho, falta, decisiones tomadas y preguntas pendientes al usuario. Actualízalo en cada paso que cierres. Se borra en el último commit antes de integrar.
+
+## Flujo de trabajo
+Objetivo actual: el tablero de mejoras tras el playtest, en el orden de sus bloques. Lo que no esté en el tablero, al backlog (un issue nuevo).
+1. **Diseño, solo si cambia reglas**: una mecánica nueva o un cambio de reglas pasa por `game-designer` (o la skill `design`, `level`, `balance`) y lo aprueba el usuario. Un bug, un ajuste o algo técnico va directo.
+2. **Tarea**: cada tarea es un issue del repositorio con su tarjeta en el tablero. Al empezar, la tarjeta pasa a «En curso»; al abrir el PR, a «En revisión»; tras integrar, a «Hecho» (el issue se cierra con «Closes #N», pero la tarjeta se mueve a mano).
+3. **Implementación**: una rama `feat/N-slug`, `fix/N-slug` o `chore/` por tarea. Lo difícil lo hace el modelo principal; lo mecánico se delega en el rápido con instrucciones cerradas (archivos, firmas y valores exactos) y el principal revisa su diff antes del commit. Los tests los escribe quien implementa, junto al código.
 4. **Revisión**: `reviewer` (contexto limpio) revisa los cambios con riesgo: red, seguridad, sistemas con reglas, refactors grandes. Lo pequeño se integra solo con el CI en verde.
-5. **PR y merge**: PR contra `master` y merge con el CI en verde (y `reviewer` aprobado si se pidió). El usuario puede revisar o integrar él mismo cualquier PR.
+5. **PR y merge**: PR contra `master` (está protegida: solo entra por PR con el check «Verification Pipeline»). Con el CI en verde, y `reviewer` aprobado si se pidió, integra con merge commit fijando el SHA de la cabeza. Después sincroniza `master` local, borra la rama y avisa al usuario. Si el CI falla, lee el log del job antes de tocar nada.
 
 Un ajuste de números que no cambia reglas es una `TUNE-XXX` (solo `.tres`, plantilla `docs/tasks/_TUNE_TEMPLATE.md`).
-La cola de trabajo se consulta con `/next` y el tablero del PoC. Ante una duda de diseño o un conflicto con los pilares: parar y preguntar al usuario.
+Ante una duda de diseño o un conflicto con los pilares: parar y preguntar al usuario.
 
-## Agentes y modelos
-| Quién | Modelo | Papel |
-|---|---|---|
-| Sesión principal de Claude Code | Opus | Planifica, implementa lo difícil (red, sistemas, depuración), integra |
-| Subagentes de tareas rápidas | Sonnet | Tests, ajustes pequeños, datos `.tres`, refactors acotados y mecánicos |
-| `game-designer` (`.claude/agents/`) | — | Propone mecánicas, niveles y balance; no escribe código |
-| `reviewer` (`.claude/agents/`) | Opus | Revisión y auditoría independientes de los cambios con riesgo |
-
-`scenes/maps/` lo ensambla el usuario; solo se toca si una FEAT lo pide.
+## Cómo trabajar con el usuario
+- **Todo en español**: mensajes, commits, PR, comentarios, y también las descripciones de los comandos que se ven en pantalla.
+- **Preguntas resaltadas**: el usuario lee en diagonal. Cada pregunta o decisión pendiente va en su propia línea como **❓ Pregunta: …**, y se repite igual de resaltada mientras siga pendiente.
+- **Merge con CI verde**: el usuario autoriza a integrar los PR con el CI en verde (y `reviewer` aprobado si el cambio tiene riesgo), y a avisarle después de cada merge.
+- **Ideas del playtest**: cuando el usuario dicta ideas, se entrevistan con la skill `grill-me` hasta que no quede nada asumido, y se escriben como issue en el tablero; no se implementan hasta que él lo diga.
+- **Nunca**: saltarse los hooks (`--no-verify`), forzar un push, borrar ramas remotas ajenas o tocar el token de GitHub. Lo que pida `sudo` lo ejecuta el usuario en su terminal.
 
 ## Versiones y convenciones
 - Godot 4.7.x (la versión exacta se fija en `tools/ci/`). GDScript con tipado estático.

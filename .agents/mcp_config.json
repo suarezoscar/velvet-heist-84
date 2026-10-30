@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "godot-mcp-toolkit": {
+      "command": "npx",
+      "args": ["-y", "@npgamedev/godot-mcp-server"],
+      "env": {
+        "GODOT_MCP_CONFIG_VERSION": "1"
+      }
+    },
+    "blender": {
+      "command": "uvx",
+      "args": ["mcp-for-blender"]
+    },
+    "github": {
+      "command": "sh",
+      "args": [
+        "-c",
+        "GITHUB_PERSONAL_ACCESS_TOKEN=\"$GITHUB_TOKEN\" exec docker run -i --rm -e GITHUB_PERSONAL_ACCESS_TOKEN ghcr.io/github/github-mcp-server"
+      ]
+    }
+  }
+}
