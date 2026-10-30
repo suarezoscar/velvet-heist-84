@@ -6,3 +6,4 @@
 script = ExtResource("1_interaction")
 reach_distance = 2.0
 fan_angle_degrees = 120.0
+cursor_snap_distance = 0.75
