@@ -11,9 +11,9 @@ uniform vec4 tint : source_color = vec4(0.78, 0.82, 0.86, 1.0);
 /// Avance de la onda: 0 al nacer, 1 al desaparecer
 uniform float progress : hint_range(0.0, 1.0) = 0.0;
 /// Opacidad máxima (al principio)
-uniform float max_alpha : hint_range(0.0, 1.0) = 0.42;
+uniform float max_alpha : hint_range(0.0, 1.0) = 0.55;
 /// Grosor de cada anillo, en fracción del radio
-uniform float ring_width : hint_range(0.01, 0.5) = 0.09;
+uniform float ring_width : hint_range(0.01, 0.5) = 0.07;
 /// Retraso del segundo anillo respecto al primero
 uniform float second_lag : hint_range(0.0, 1.0) = 0.35;
 /// Ondulación: cuántas crestas por vuelta y cuánto se deforma el anillo
@@ -32,7 +32,7 @@ void fragment() {
 	float wobble = sin(a * wobble_count + progress * 9.0) * wobble_amount;
 	float first = ring(r + wobble, progress);
 	float second = ring(r - wobble, max(progress - second_lag, 0.0)) * step(second_lag, progress);
-	float fade = (1.0 - progress) * (1.0 - progress);
+	float fade = 1.0 - smoothstep(0.35, 1.0, progress);
 	ALBEDO = tint.rgb;
 	ALPHA = clamp(first + second * 0.6, 0.0, 1.0) * fade * max_alpha * step(r, 1.0);
 }
