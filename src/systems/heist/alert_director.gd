@@ -35,6 +35,7 @@ var alarm_marks: Array[Dictionary] = []
 var _last_alarm_call: float = -INF
 ## Dónde está el último rastro descubierto (la campana de los rastros va ahí, no en el ladrón)
 var _last_trace_pos: Variant = null
+var _traced: Dictionary = {}
 ## Reloj de la partida (s de física): la pausa no cuenta
 var _clock: float = 0.0
 var _timer: float = 0.0
@@ -90,8 +91,10 @@ func scan() -> void:
 			and _trace_seen(piece, guards, watching)
 		):
 			piece.discovered = true
-			_last_trace_pos = piece.global_position
 			print("[AlertDirector] Rastro descubierto: %s" % piece.piece_name)
+		if piece.discovered and not _traced.has(piece):  # también la falsificación examinada
+			_traced[piece] = true
+			_last_trace_pos = piece.global_position
 	_notice_cuts(guards)
 	var thief_seen: bool = guards.any(
 		func(g: GuardController3D) -> bool: return g.is_perceiving_thief

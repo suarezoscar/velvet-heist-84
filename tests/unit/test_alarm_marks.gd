@@ -72,7 +72,8 @@ func test_trace_alarm_does_not_reveal_thief() -> void:
 		add_child_autofree(box)
 		box.is_cut = true
 		box.noticed = true
+	alert._last_trace_pos = Vector3(1, 0, 1)  # el último rastro descubierto
 	alert.scan()
 	assert_eq(alert.level, AlertDirector.Level.ALARM)
-	for mark: Dictionary in alert.alarm_marks:
-		assert_ne(mark["pos"], thief.global_position, "la campana no delata al ladrón")
+	assert_eq(alert.alarm_marks.size(), 1)
+	assert_eq(alert.alarm_marks[0]["pos"], Vector3(1, 0, 1), "la campana va en el rastro")

@@ -109,7 +109,7 @@ func test_legend_groups_cover_every_layer() -> void:
 		assert_false(guard.has(kind), "el guardia no ve %s" % kind)
 
 
-func test_icons_at_returns_position() -> void:
+func test_icons_grow_a_little_with_zoom() -> void:
 	# ICONS.at solo se puede llamar dentro de _draw: aquí se comprueba la escala de los iconos
 	assert_almost_eq(pow(4.0, OVERLAY.ICON_GROWTH), 1.62, 0.01)
 	assert_eq(pow(1.0, OVERLAY.ICON_GROWTH), 1.0)
