@@ -77,6 +77,12 @@ static func glyph(on: CanvasItem, pos: Vector2, label: String, size: int, color:
 	on.draw_string(font, at, label, HORIZONTAL_ALIGNMENT_LEFT, -1, size, color)
 
 
+## Lo que se dibuje después sale escalado k veces alrededor de pos (con k = 1, sin escalar)
+static func at(on: CanvasItem, pos: Vector2, k: float) -> Vector2:
+	on.draw_set_transform(pos * (1.0 - k), 0.0, Vector2(k, k))
+	return pos
+
+
 ## Silueta sprite centrada en pos, de size píxeles y teñida de color
 static func sprite(
 	on: CanvasItem, pos: Vector2, kind: StringName, size: float, color: Color

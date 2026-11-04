@@ -77,6 +77,7 @@ static func icon(on: CanvasItem, kind: StringName, pos: Vector2, prop: Node3D = 
 static func draw_wiring(
 	on: CanvasItem, props: Array[Node3D], lamps: Array[Lamp3D], mouse: Vector2, to_map: Callable
 ) -> void:
+	ICONS.at(on, Vector2.ZERO, 1.0)
 	for prop: Node3D in props:
 		if not (prop is LightSwitch3D or prop is PowerBox3D) or not shown(prop):
 			continue
@@ -99,8 +100,8 @@ static func _feeds(prop: Node3D, lamp: Lamp3D) -> bool:
 
 
 ## Cámaras con el abanico que cubren al barrer (orientación del nivel, alcance de la cámara),
-## recortado a la sala hacia la que miran: no atraviesa paredes
-static func draw_cameras(on: CanvasItem, data: LevelData, to_map: Callable) -> void:
+## recortado a la sala hacia la que miran: no atraviesa paredes. k: escala de la chapa (zoom)
+static func draw_cameras(on: CanvasItem, data: LevelData, to_map: Callable, k: float = 1.0) -> void:
 	var tree: SceneTree = (on as Node).get_tree()
 	var sample: SecurityCamera3D = (
 		tree.get_first_node_in_group(&"security_camera") as SecurityCamera3D
@@ -118,8 +119,10 @@ static func draw_cameras(on: CanvasItem, data: LevelData, to_map: Callable) -> v
 		for i: int in range(17):
 			var ray: Vector2 = dir.rotated(-half + 2.0 * half * float(i) / 16.0)
 			fan.append(to_map.call(pos + ray * _ray_length(room, pos, ray, reach)))
+		ICONS.at(on, Vector2.ZERO, 1.0)
 		ICONS.camera_fan(on, fan)
-		ICONS.camera(on, to_map.call(pos))
+		ICONS.camera(on, ICONS.at(on, to_map.call(pos), k))
+	ICONS.at(on, Vector2.ZERO, 1.0)
 
 
 static func _room_ahead(data: LevelData, point: Vector2) -> Rect2:

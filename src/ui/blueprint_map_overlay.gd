@@ -19,6 +19,8 @@ const HEADER: float = 76.0
 const FOOTER: float = 16.0
 const ZOOM_MAX: float = 4.0
 const ZOOM_STEP: float = 1.2
+## Los iconos crecen con zoom^ICON_GROWTH (x1,27 con zoom 2; x1,62 con zoom 4)
+const ICON_GROWTH: float = 0.35
 const HINT: String = "[M]/[TAB] CERRAR · RUEDA: ZOOM · BOTÓN CENTRAL: MOVER · [1]-[4]: CAPAS"
 ## Objetos que solo salen en el plano del ladrón
 const THIEF_ONLY: Array[StringName] = [&"copy", &"car", &"loot"]
@@ -140,7 +142,7 @@ func _draw() -> void:
 	var thief_view: bool = HeistDirector.local_is_thief(get_tree())
 	_draw_props(thief_view)
 	if layers[&"security"]:
-		PROPS.draw_cameras(self, data, _to_map)
+		PROPS.draw_cameras(self, data, _to_map, pow(zoom, ICON_GROWTH))
 	if thief_view and layers[&"places"]:
 		_draw_vents()
 	_draw_pieces(thief_view)
@@ -153,6 +155,7 @@ func _draw() -> void:
 		_draw_alarms()
 	if layers[&"people"]:
 		_draw_player()
+	ICONS.at(self, Vector2.ZERO, 1.0)  # lo que sigue, sin escalar
 	ICONS.scanlines(self, _area)
 	_mask_outside(view)
 	_draw_header(panel)
@@ -200,12 +203,9 @@ func _draw_header(panel: Rect2) -> void:
 	ICONS.terminal_frame(self, box)
 	var title: Vector2 = box.position + Vector2(18.0, 36.0)
 	ICONS.text(self, title, "PLANO DEL MUSEO VELVET '84", 30, ICONS.COLOR_HEADER)
-	var hint_at: Vector2 = Vector2(box.end.x - 18.0 - _hint_width(), box.position.y + 36.0)
+	var hint_w: float = MenuTheme84.FONT_MONO.get_string_size(HINT, 0, -1, 15).x
+	var hint_at: Vector2 = Vector2(box.end.x - 18.0 - hint_w, box.position.y + 36.0)
 	ICONS.mono(self, hint_at, HINT, 15, ICONS.COLOR_TEXT)
-
-
-func _hint_width() -> float:
-	return MenuTheme84.FONT_MONO.get_string_size(HINT, 0, -1, 15).x
 
 
 func _draw_props(thief_view: bool) -> void:
@@ -214,13 +214,14 @@ func _draw_props(thief_view: bool) -> void:
 		if not PROPS.shown(prop) or not layers[PROP_LAYER.get(kind, &"places")]:
 			continue
 		if thief_view or not THIEF_ONLY.has(kind):
-			PROPS.icon(self, kind, _world(prop.global_position), prop)
+			PROPS.icon(self, kind, _at(_world(prop.global_position)), prop)
 
 
 func _draw_vents() -> void:
 	for node: Node in get_tree().get_nodes_in_group(&"vents"):
 		var vent: Vent3D = node as Vent3D
-		ICONS.vent(self, _world(vent.global_position), vent.network.substr(0, 1).to_upper())
+		var at: Vector2 = _at(_world(vent.global_position))
+		ICONS.vent(self, at, vent.network.substr(0, 1).to_upper())
 
 
 ## El encargo del ladrón (capa de personas) o las candidatas de los guardias (seguridad)
@@ -230,7 +231,7 @@ func _draw_pieces(thief_view: bool) -> void:
 	var heist: HeistDirector = GameManager.heist
 	for node: Node in get_tree().get_nodes_in_group(&"heist_targets"):
 		var piece: TargetPiece3D = node as TargetPiece3D
-		var pos: Vector2 = _world(piece.global_position)
+		var pos: Vector2 = _at(_world(piece.global_position))
 		if thief_view:
 			if heist == null or not heist.is_in_contract(piece.piece_id):
 				continue
@@ -255,7 +256,7 @@ func _draw_pings() -> void:
 	var alert: AlertDirector = AlertDirector.of(get_tree())
 	if alert != null:
 		for ping: Dictionary in alert.pings:
-			ICONS.ping(self, _world(ping["pos"]))
+			ICONS.ping(self, _at(_world(ping["pos"])))
 
 
 ## Los demás guardias, con su número
@@ -263,7 +264,7 @@ func _draw_mates() -> void:
 	for node: Node in get_tree().get_nodes_in_group(&"guards"):
 		var guard: GuardController3D = node as GuardController3D
 		if guard != null and guard != player_pawn:
-			ICONS.mate(self, _world(guard.global_position), "G%d" % guard.guard_id)
+			ICONS.mate(self, _at(_world(guard.global_position)), "G%d" % guard.guard_id)
 
 
 ## Una campana por cada vez que saltó la alarma (los dos bandos)
@@ -274,7 +275,7 @@ func _draw_alarms() -> void:
 	var pulse: float = fmod(_time, 1.6) / 1.6
 	for mark: Dictionary in alert.alarm_marks:
 		var ago: float = float(mark["t"]) - GameManager.match_timer
-		ICONS.alarm(self, _world(mark["pos"]), ago, pulse)
+		ICONS.alarm(self, _at(_world(mark["pos"])), ago, pulse)
 
 
 func _draw_player() -> void:
@@ -282,7 +283,13 @@ func _draw_player() -> void:
 		return
 	var forward: Vector3 = -player_pawn.global_transform.basis.z
 	var pulse: float = fmod(_time, 1.2) / 1.2
-	ICONS.you(self, _world(player_pawn.global_position), Vector2(forward.x, forward.z), pulse)
+	var at: Vector2 = _at(_world(player_pawn.global_position))
+	ICONS.you(self, at, Vector2(forward.x, forward.z), pulse)
+
+
+## Los iconos que se dibujen en pos crecen un poco con el zoom
+func _at(pos: Vector2) -> Vector2:
+	return ICONS.at(self, pos, pow(zoom, ICON_GROWTH))
 
 
 func _world(pos: Vector3) -> Vector2:
