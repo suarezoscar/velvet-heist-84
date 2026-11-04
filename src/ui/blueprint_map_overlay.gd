@@ -1,39 +1,62 @@
 ## @file blueprint_map_overlay.gd
-## Plano cianotipo del museo (FEAT-034), con [M] o [TAB]. Sale de los datos del nivel (el mapa
-## los deja en su meta «level_data»): salas con su nombre, puertas, salidas y cámaras. Además:
-## - el ladrón ve su encargo (rosa; ✔ las que lleva) y las rejillas de ventilación;
-## - los guardias ven todas las candidatas con su protección (✘ rastro descubierto, ✔ auténtica
-##   examinada) y las marcas del walkie.
+## Plano táctico del museo (FEAT-034, #117), con [M] o [TAB], estilo monitor de 1984. Sale de los
+## datos del nivel (el mapa los deja en su meta «level_data»): la arquitectura la dibuja
+## BlueprintMapRooms; los objetos interactivos, BlueprintMapProps; la leyenda por capas,
+## BlueprintMapLegend; las piezas, BlueprintMapPieces. Aquí van tu puntero, los compañeros, las
+## cámaras con su abanico, las campanas de alarma («hace 1:20») y el walkie.
+## Rueda: zoom hacia el cursor; botón central: mover; [1]-[4]: encender y apagar capas.
 ## Solo lee el estado que ya tiene el cliente.
 class_name BlueprintMapOverlay
 extends Control
 
-const COLOR_BG: Color = Color(0.04, 0.10, 0.18, 0.96)
-const COLOR_GRID: Color = Color(0.08, 0.20, 0.32, 0.40)
-const COLOR_ROOM: Color = Color(0.10, 0.22, 0.36, 0.55)
-const COLOR_OUTSIDE: Color = Color(0.06, 0.12, 0.18, 0.55)
-const COLOR_WALL: Color = Color(0.80, 0.92, 1.0, 0.90)
-const COLOR_DOOR: Color = Color(0.20, 0.90, 0.60, 0.85)
-const COLOR_TEXT: Color = Color(0.70, 0.88, 1.0, 0.95)
-const COLOR_HEADER: Color = Color(1.0, 0.82, 0.40, 1.0)
-const COLOR_FOUND: Color = Color("ff4a3d")
-const COLOR_OK: Color = Color("4be38a")
-const COLOR_VENT: Color = Color(0.6, 0.62, 0.68, 0.9)
-const MARGIN: float = 40.0
-const HEADER: float = 70.0
-const FOOTER: float = 34.0
-## Icono de cada protección en las fichas de los guardias
-const PROTECTION_ICONS: Dictionary = {&"combination": "◎", &"pressure": "▣", &"sensor": "ϟ"}
+const ICONS := preload("res://src/ui/blueprint_map_icons.gd")
+const PROPS := preload("res://src/ui/blueprint_map_props.gd")
+const ROOMS := preload("res://src/ui/blueprint_map_rooms.gd")
+const LEGEND := preload("res://src/ui/blueprint_map_legend.gd")
+const PIECES := preload("res://src/ui/blueprint_map_pieces.gd")
+const COLOR_BG: Color = ICONS.COLOR_BG
+const MARGIN: float = 16.0
+const HEADER: float = 76.0
+const FOOTER: float = 16.0
+const ZOOM_MAX: float = 4.0
+const ZOOM_STEP: float = 1.2
+## Los iconos crecen con zoom^ICON_GROWTH (x1,27 con zoom 2; x1,62 con zoom 4)
+const ICON_GROWTH: float = 0.35
+const HINT: String = "[M]/[TAB] CERRAR · RUEDA: ZOOM · BOTÓN CENTRAL: MOVER · [1]-[4]: CAPAS"
+## Objetos que solo salen en el plano del ladrón
+const THIEF_ONLY: Array[StringName] = [&"copy", &"car", &"loot"]
+## Capa de cada tipo de objeto
+const PROP_LAYER: Dictionary = {
+	&"power": &"power",
+	&"switch": &"power",
+	&"lamp": &"power",
+	&"coffee": &"places",
+	&"desk": &"places",
+	&"copy": &"places",
+	&"car": &"places",
+	&"loot": &"places",
+}
 
 var data: LevelData = null
 var player_pawn: Node3D = null
+## 1 = todo el museo; hasta ZOOM_MAX
+var zoom: float = 1.0
+## Capas encendidas: {&"people", &"security", &"power", &"places": bool}
+var layers: Dictionary = {&"people": true, &"security": true, &"power": true, &"places": true}
 var _scale: float = 10.0
 var _origin: Vector2 = Vector2.ZERO
 var _area: Rect2 = Rect2()
+var _bounds: Rect2 = Rect2()
+## Punto del nivel (en metros de diseño) que queda en el centro del área
+var _center: Vector2 = Vector2.INF
+var _props: Array[Node3D] = []
+var _lamps: Array[Lamp3D] = []
+var _time: float = 0.0
 
 
 func _ready() -> void:
 	visible = false
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS  # siluetas reducidas, sin dientes
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_process_unhandled_input(true)
 
@@ -42,157 +65,206 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("toggle_blueprint"):
 		toggle_map()
 		get_viewport().set_input_as_handled()
+		return
+	if not visible or data == null:
+		return
+	var key: InputEventKey = event as InputEventKey
+	if key != null and key.pressed and not key.echo:
+		var index: int = key.keycode - KEY_1
+		if index >= 0 and index < LEGEND.LAYERS.size():
+			toggle_layer(LEGEND.LAYERS[index])
+			get_viewport().set_input_as_handled()
+		return
+	var button: InputEventMouseButton = event as InputEventMouseButton
+	if button != null and button.pressed:
+		if button.button_index == MOUSE_BUTTON_WHEEL_UP:
+			zoom_at(button.position, zoom * ZOOM_STEP)
+		elif button.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			zoom_at(button.position, zoom / ZOOM_STEP)
+		else:
+			return
+		get_viewport().set_input_as_handled()
+	var motion: InputEventMouseMotion = event as InputEventMouseMotion
+	if motion != null and motion.button_mask & MOUSE_BUTTON_MASK_MIDDLE:
+		_center -= motion.relative / _scale
+		get_viewport().set_input_as_handled()
 
 
 func toggle_map() -> void:
 	visible = not visible
-	if visible and data == null:
-		var scene: Node = get_tree().current_scene
-		if scene != null and scene.has_meta(&"level_data"):
-			data = scene.get_meta(&"level_data") as LevelData
+	if not visible:
+		return
+	var scene: Node = get_tree().current_scene
+	if data == null and scene != null and scene.has_meta(&"level_data"):
+		data = scene.get_meta(&"level_data") as LevelData
+	set_props(PROPS.collect(scene))
+	zoom = 1.0
+	_center = Vector2.INF  # se centra en el nivel al dibujar
 
 
-func _process(_delta: float) -> void:
+## Objetos interactivos que se dibujan (y, de ellos, las lámparas para los cables y la luz)
+func set_props(props: Array[Node3D]) -> void:
+	_props = props
+	_lamps.clear()
+	for prop: Node3D in props:
+		if prop is Lamp3D:
+			_lamps.append(prop as Lamp3D)
+
+
+func toggle_layer(layer: StringName) -> void:
+	layers[layer] = not bool(layers.get(layer, true))
+
+
+## Cambia el zoom dejando quieto el punto del plano que hay bajo screen_pos
+func zoom_at(screen_pos: Vector2, new_zoom: float) -> void:
+	var under: Vector2 = (screen_pos - _origin) / _scale
+	zoom = clampf(new_zoom, 1.0, ZOOM_MAX)
+	_center = under - (screen_pos - _area.get_center()) / (_base_scale() * zoom)
+
+
+func _process(delta: float) -> void:
 	if visible:
+		_time += delta
 		queue_redraw()
 
 
 func _draw() -> void:
 	var view: Vector2 = get_viewport_rect().size
 	var panel: Rect2 = Rect2(MARGIN, MARGIN, view.x - MARGIN * 2.0, view.y - MARGIN * 2.0)
-	draw_rect(panel, COLOR_BG, true)
-	draw_rect(panel, COLOR_WALL, false, 2.0)
-	_text(panel.position + Vector2(24.0, 34.0), "PLANO DEL MUSEO VELVET '84", 22, COLOR_HEADER)
-	_text(
-		panel.position + Vector2(24.0, 56.0),
-		"DOCUMENTO DE SEGURIDAD // [M] / [TAB] PARA CERRAR",
-		13,
-		COLOR_TEXT
-	)
+	draw_rect(Rect2(Vector2.ZERO, view), COLOR_BG)
 	if data == null:
-		_text(panel.get_center(), "Sin plano para este mapa", 18, COLOR_TEXT)
+		ICONS.text(self, panel.get_center(), "Sin plano para este mapa", 22, ICONS.COLOR_TEXT)
 		return
 	_fit(panel)
-	for x: float in range(int(_area.position.x), int(_area.end.x), int(_scale * 2.0)):
-		draw_line(Vector2(x, _area.position.y), Vector2(x, _area.end.y), COLOR_GRID, 1.0)
-	for y: float in range(int(_area.position.y), int(_area.end.y), int(_scale * 2.0)):
-		draw_line(Vector2(_area.position.x, y), Vector2(_area.end.x, y), COLOR_GRID, 1.0)
-	_draw_rooms()
-	_draw_doors()
-	var thief_view: bool = HeistDirector.local_is_thief(get_tree())
-	_draw_cameras()
-	if thief_view:
+	ROOMS.draw_grid(self, _to_map(_bounds.position), _to_map(_bounds.end), _scale * 2.0)
+	var power: bool = layers[&"power"]
+	var thief_view: bool = HeistDirector.local_is_thief(get_tree())  # R9: la luz, solo el ladrón
+	var light: Dictionary = ROOMS.light_levels(data, _lamps) if power and thief_view else {}
+	ROOMS.draw(self, data, _to_map, _scale, light)
+	ROOMS.draw_doors(self, data, _to_map, _scale)
+	_draw_props(thief_view)
+	if layers[&"security"]:
+		PROPS.draw_cameras(self, data, _to_map, pow(zoom, ICON_GROWTH))
+	if thief_view and layers[&"places"]:
 		_draw_vents()
-	_draw_pieces(thief_view)
-	if not thief_view:
+	if layers[&"people" if thief_view else &"security"]:
+		PIECES.draw(self, thief_view, func(pos: Vector3) -> Vector2: return _at(_world(pos)))
+	if not thief_view and layers[&"people"]:
 		_draw_pings()
-	_draw_player()
-	_text(Vector2(panel.position.x + 24.0, panel.end.y - 12.0), _legend(thief_view), 13, COLOR_TEXT)
+		_draw_mates()
+	if power:
+		PROPS.draw_wiring(self, _props, _lamps, get_local_mouse_position(), _world, thief_view)
+	if layers[&"security"]:
+		_draw_alarms()
+	if layers[&"people"]:
+		_draw_player()
+	ICONS.at(self, Vector2.ZERO, 1.0)  # lo que sigue, sin escalar
+	ICONS.scanlines(self, _area)
+	_mask_outside(view)
+	_draw_header(panel)
+	LEGEND.draw(self, panel, panel.position.y + HEADER, thief_view, layers)
 
 
-## Escala para que todo el nivel quepa en el panel
+## Escala y origen: el nivel entero cabe con zoom 1 (dejando sitio a la leyenda a la derecha)
 func _fit(panel: Rect2) -> void:
-	var bounds: Rect2 = Rect2()
 	var first: bool = true
 	for room: Dictionary in data.section("rooms"):
-		bounds = data.room_rect(room) if first else bounds.merge(data.room_rect(room))
+		_bounds = data.room_rect(room) if first else _bounds.merge(data.room_rect(room))
 		first = false
-	var space: Vector2 = panel.size - Vector2(48.0, HEADER + FOOTER)
-	_scale = minf(space.x / bounds.size.x, space.y / bounds.size.y)
-	var size: Vector2 = bounds.size * _scale
-	_area = Rect2(panel.position + Vector2((panel.size.x - size.x) * 0.5, HEADER), size)
-	_origin = _area.position - bounds.position * _scale
+	var free: Vector2 = panel.size - Vector2(LEGEND.WIDTH + 64.0, HEADER + FOOTER)
+	_area = Rect2(panel.position + Vector2(24.0, HEADER), free)
+	_scale = _base_scale() * zoom
+	if _center == Vector2.INF:
+		_center = _bounds.get_center()
+	var half: Vector2 = _area.size * 0.5 / _scale  # sin salirse del nivel
+	var lo: Vector2 = _bounds.position + half
+	var hi: Vector2 = _bounds.end - half
+	_center.x = _bounds.get_center().x if lo.x > hi.x else clampf(_center.x, lo.x, hi.x)
+	_center.y = _bounds.get_center().y if lo.y > hi.y else clampf(_center.y, lo.y, hi.y)
+	_origin = _area.get_center() - _center * _scale
 
 
-func _draw_rooms() -> void:
-	for room: Dictionary in data.section("rooms"):
-		var rect: Rect2 = data.room_rect(room)
-		var ui: Rect2 = Rect2(_to_map(rect.position), rect.size * _scale)
-		var outside: bool = bool(room.get("exterior", false))
-		draw_rect(ui, COLOR_OUTSIDE if outside else COLOR_ROOM, true)
-		draw_rect(ui, COLOR_WALL, false, 1.5)
-		var label: String = String(room.get("name", room["id"])).to_upper()
-		if ui.size.x < 110.0:
-			label = String(room["id"])
-		_text(ui.position + Vector2(5.0, 13.0), label, 10, COLOR_TEXT)
+func _base_scale() -> float:
+	if _bounds.size.x <= 0.0 or _bounds.size.y <= 0.0:
+		return 10.0
+	return minf(_area.size.x / _bounds.size.x, _area.size.y / _bounds.size.y)
 
 
-func _draw_doors() -> void:
-	var exits: Array = []
-	for exit_data: Dictionary in data.section("exits"):
-		exits.append(String(exit_data["id"]))
-	for door: Dictionary in data.section("doors"):
-		var pos: Vector2 = _to_map(Vector2(float(door["pos"][0]), float(door["pos"][1])))
-		var half: float = float(door.get("width", 1.2)) * _scale * 0.5
-		var along: Vector2 = Vector2(half, 0.0)
-		if LevelArchitectureBuilder._door_axis(data, door) == "V":
-			along = Vector2(0.0, half)
-		draw_line(pos - along, pos + along, COLOR_BG, 4.0)
-		var color: Color = COLOR_HEADER if door.has("leaf") else COLOR_DOOR
-		draw_line(pos - along, pos + along, color, 2.5)
-		if exits.has(String(door["id"])):
-			_text(pos + Vector2(-20.0, 16.0), "SALIDA", 11, COLOR_OK)
+## Tapa lo que sobresale del área al hacer zoom (hasta los bordes de la pantalla)
+func _mask_outside(view: Vector2) -> void:
+	var a: Rect2 = _area
+	draw_rect(Rect2(0.0, 0.0, view.x, a.position.y), COLOR_BG)
+	draw_rect(Rect2(0.0, a.end.y, view.x, view.y - a.end.y), COLOR_BG)
+	draw_rect(Rect2(0.0, a.position.y, a.position.x, a.size.y), COLOR_BG)
+	draw_rect(Rect2(a.end.x, a.position.y, view.x - a.end.x, a.size.y), COLOR_BG)
+	draw_rect(a, Color(ICONS.COLOR_TEXT, 0.5), false, 1.0)
 
 
-func _draw_cameras() -> void:
-	for cam: Dictionary in data.section("cameras"):
-		var pos: Vector2 = _to_map(Vector2(float(cam["pos"][0]), float(cam["pos"][1])))
-		draw_circle(pos, 3.5, COLOR_FOUND)
+## Cabecera de terminal: título y controles
+func _draw_header(panel: Rect2) -> void:
+	var box: Rect2 = Rect2(panel.position, Vector2(panel.size.x, HEADER - 14.0))
+	ICONS.terminal_frame(self, box)
+	var title: Vector2 = box.position + Vector2(18.0, 36.0)
+	ICONS.text(self, title, "PLANO DEL MUSEO VELVET '84", 30, ICONS.COLOR_HEADER)
+	var hint_w: float = MenuTheme84.FONT_MONO.get_string_size(HINT, 0, -1, 15).x
+	var hint_at: Vector2 = Vector2(box.end.x - 18.0 - hint_w, box.position.y + 36.0)
+	ICONS.mono(self, hint_at, HINT, 15, ICONS.COLOR_TEXT)
+
+
+func _draw_props(thief_view: bool) -> void:
+	for prop: Node3D in _props:
+		var kind: StringName = PROPS.kind_of(prop)
+		if not PROPS.shown(prop) or not layers[PROP_LAYER.get(kind, &"places")]:
+			continue
+		if thief_view or not THIEF_ONLY.has(kind):
+			PROPS.icon(self, kind, _at(_world(prop.global_position)), prop if thief_view else null)
 
 
 func _draw_vents() -> void:
 	for node: Node in get_tree().get_nodes_in_group(&"vents"):
 		var vent: Vent3D = node as Vent3D
-		var pos: Vector2 = _world(vent.global_position)
-		draw_rect(Rect2(pos - Vector2(4.0, 4.0), Vector2(8.0, 8.0)), COLOR_VENT, false, 1.5)
-		_text(pos + Vector2(6.0, 4.0), vent.network.substr(0, 1).to_upper(), 9, COLOR_VENT)
-
-
-func _draw_pieces(thief_view: bool) -> void:
-	var heist: HeistDirector = GameManager.heist
-	for node: Node in get_tree().get_nodes_in_group(&"heist_targets"):
-		var piece: TargetPiece3D = node as TargetPiece3D
-		var pos: Vector2 = _world(piece.global_position)
-		if thief_view:
-			if heist == null or not heist.is_in_contract(piece.piece_id):
-				continue
-			var done: bool = heist.stolen.has(piece.piece_id)
-			_text(pos + Vector2(-5.0, 5.0), "✔" if done else "◆", 15, TeamMarker3D.THIEF_COLOR)
-			_text(pos + Vector2(9.0, 4.0), piece.piece_name, 10, TeamMarker3D.THIEF_COLOR)
-			continue
-		var icon: String = PROTECTION_ICONS.get(piece.protection, "◆")
-		var color: Color = TeamMarker3D.GUARD_COLOR
-		if piece.discovered:
-			icon = "✘"
-			color = COLOR_FOUND
-		elif piece.inspected:
-			color = COLOR_OK
-		_text(pos + Vector2(-5.0, 5.0), icon, 14, color)
+		var at: Vector2 = _at(_world(vent.global_position))
+		ICONS.vent(self, at, vent.network.substr(0, 1).to_upper())
 
 
 func _draw_pings() -> void:
 	var alert: AlertDirector = AlertDirector.of(get_tree())
+	if alert != null:
+		for ping: Dictionary in alert.pings:
+			ICONS.ping(self, _at(_world(ping["pos"])))
+
+
+## Los demás guardias, con su número
+func _draw_mates() -> void:
+	for node: Node in get_tree().get_nodes_in_group(&"guards"):
+		var guard: GuardController3D = node as GuardController3D
+		if guard != null and guard != player_pawn:
+			ICONS.mate(self, _at(_world(guard.global_position)), "G%d" % guard.guard_id)
+
+
+## Una campana por cada vez que saltó la alarma (los dos bandos)
+func _draw_alarms() -> void:
+	var alert: AlertDirector = AlertDirector.of(get_tree())
 	if alert == null:
 		return
-	for ping: Dictionary in alert.pings:
-		draw_arc(_world(ping["pos"]), 10.0, 0.0, TAU, 24, COLOR_FOUND, 2.0)
+	var pulse: float = fmod(_time, 1.6) / 1.6
+	for mark: Dictionary in alert.alarm_marks:
+		var ago: float = float(mark["t"]) - GameManager.match_timer
+		ICONS.alarm(self, _at(_world(mark["pos"])), ago, pulse)
 
 
 func _draw_player() -> void:
 	if player_pawn == null or not is_instance_valid(player_pawn):
 		return
-	var pos: Vector2 = _world(player_pawn.global_position)
-	var color: Color = (
-		TeamMarker3D.THIEF_COLOR if player_pawn is ThiefController3D else TeamMarker3D.GUARD_COLOR
-	)
-	draw_circle(pos, 5.0, color)
-	draw_arc(pos, 10.0, 0.0, TAU, 24, Color(color, 0.5), 2.0)
+	var forward: Vector3 = -player_pawn.global_transform.basis.z
+	var pulse: float = fmod(_time, 1.2) / 1.2
+	var at: Vector2 = _at(_world(player_pawn.global_position))
+	ICONS.you(self, at, Vector2(forward.x, forward.z), pulse)
 
 
-func _legend(thief_view: bool) -> String:
-	if thief_view:
-		return "◆ TU ENCARGO   ✔ ROBADA   □ VENTILACIÓN (S/O/E)   ● CÁMARA"
-	return "◎ COMBINACIÓN   ▣ PRESIÓN   ϟ SENSOR   ✘ RASTRO   ● CÁMARA"
+## Los iconos que se dibujen en pos crecen un poco con el zoom
+func _at(pos: Vector2) -> Vector2:
+	return ICONS.at(self, pos, pow(zoom, ICON_GROWTH))
 
 
 func _world(pos: Vector3) -> Vector2:
@@ -201,7 +273,3 @@ func _world(pos: Vector3) -> Vector2:
 
 func _to_map(design: Vector2) -> Vector2:
 	return _origin + design * _scale
-
-
-func _text(pos: Vector2, text: String, size: int, color: Color) -> void:
-	draw_string(MenuTheme84.FONT_STRONG, pos, text, HORIZONTAL_ALIGNMENT_LEFT, -1, size, color)

@@ -143,6 +143,11 @@ w(sala) = 1 + ai_piece_weight × n(sala)
 
 - La alerta **nunca baja** durante la partida.
 - Todos la ven, el ladrón también: sabe que le han descubierto, y la tensión sube.
+- **Campanas en el plano** (2026-11-04, #117): cada vez que salta la alarma queda una campana con «hace m:ss» en el plano de los dos bandos (las 8 últimas). Va donde saltó:
+  - un guardia o una cámara vigilada ve al ladrón: donde estaba el ladrón en ese momento (excepción a la percepción por guardia, ver `stealth.md` P2.3);
+  - robo a lo bruto: en la pieza;
+  - 2 rastros descubiertos: en el último rastro, nunca donde está el ladrón.
+- **Cortes y luz en el plano** (#117): solo el ladrón ve en su plano qué cuadros están cortados y cuánta luz da cada sala. El de los guardias los enseña siempre en estado normal, para no saltarse R9.
 
 ### R11. Informe de la noche (FEAT-041; sin relojes ni faltas desde el 2026-10-30, #116)
 - Al acabar la partida, todos los personajes se quedan quietos y el informe ocupa la pantalla: primero un sello 1,5 s («ESCAPADO», «CAPTURADO» o «AMANECE»), después el veredicto y una ficha por jugador.

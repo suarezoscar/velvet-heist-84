@@ -178,7 +178,7 @@ func steal(brute: bool, fake: TargetPieceLook.Flaw = TargetPieceLook.Flaw.NONE) 
 	NoiseEmit.emit(global_position, radius, &"thief", kind, thief)
 	var alert: AlertDirector = AlertDirector.of(get_tree())
 	if brute and alert != null:
-		alert.raise(AlertDirector.Level.ALARM)  # R9: a lo bruto salta la alarma
+		alert.raise(AlertDirector.Level.ALARM, global_position)  # R9: a lo bruto salta la alarma
 		discovered = true
 	print("[TargetPiece3D] %s robada%s" % [piece_name, " a lo bruto" if brute else ""])
 

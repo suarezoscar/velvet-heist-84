@@ -4,9 +4,9 @@
   "wall": {"height": 3.2, "thickness": 0.3},
   "rooms": [
     {"id": "VES", "name": "Vestíbulo", "rect": [16, 26, 16, 10], "surface": "marble", "exterior": false},
-    {"id": "ROT", "name": "Gran Galería de Escultura (rotonda)", "rect": [16, 14, 16, 12], "surface": "wood_parquet", "exterior": false},
+    {"id": "ROT", "name": "Gran Galería de Escultura (rotonda)", "rect": [16, 14, 16, 12], "surface": "wood_parquet", "exterior": false, "plan": "circle"},
     {"id": "ANTE", "name": "Antesala de la Cámara", "rect": [16, 10, 16, 4], "surface": "carpet", "exterior": false},
-    {"id": "VLT", "name": "Cámara de la Pieza Maestra", "rect": [16, 0, 16, 10], "surface": "marble", "exterior": false},
+    {"id": "VLT", "name": "Cámara de la Pieza Maestra", "rect": [16, 0, 16, 10], "surface": "marble", "exterior": false, "plan": "frame"},
     {"id": "ANT", "name": "Ala de Antigüedades", "rect": [0, 0, 16, 14], "surface": "wood_parquet", "exterior": false},
     {"id": "GW", "name": "Galería de Retratos", "rect": [0, 14, 16, 10], "surface": "carpet", "exterior": false},
     {"id": "GSW", "name": "Galería de Pintura Moderna", "rect": [0, 24, 16, 12], "surface": "marble", "exterior": false},

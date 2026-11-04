@@ -10,6 +10,7 @@
 ## - en alarma, las luces de alarma encienden las lámparas cercanas un rato;
 ## - FEAT-033: la alarma despeja a los guardias (adrenalina) y, al apagarse las luces de
 ##   alarma, les da el bajón (GuardSleep.crash).
+## - #117: recuerda dónde y cuándo saltó cada alarma (alarm_marks), para los dos bandos.
 class_name AlertDirector
 extends Node
 
@@ -19,6 +20,8 @@ const RULES: HeistRules = preload("res://data/balance/heist_rules.tres")
 ## Segundos sin llamadas a la alarma para que la siguiente cuente como otra (FEAT-041)
 const ALARM_GAP: float = 3.0
 const TICK: float = 0.2
+## Campanas que se recuerdan (las más antiguas se olvidan): acota el estado replicado
+const MAX_MARKS: int = 8
 
 var level: Level = Level.CALM
 ## Marcas del walkie: [{"pos": Vector3, "left": float}]
@@ -26,7 +29,13 @@ var pings: Array[Dictionary] = []
 var flood_cooldown_left: float = 0.0
 ## Veces que algo hizo saltar la alarma (FEAT-041); una situación seguida cuenta una vez
 var alarm_triggers: int = 0
+## Dónde y cuándo saltó cada alarma (#117), para el plano de los dos bandos:
+## [{"pos": Vector3, "t": float}], t = GameManager.match_timer en ese momento (cuenta atrás)
+var alarm_marks: Array[Dictionary] = []
 var _last_alarm_call: float = -INF
+## Dónde está el último rastro descubierto (la campana de los rastros va ahí, no en el ladrón)
+var _last_trace_pos: Variant = null
+var _traced: Dictionary = {}
 ## Reloj de la partida (s de física): la pausa no cuenta
 var _clock: float = 0.0
 var _timer: float = 0.0
@@ -83,23 +92,30 @@ func scan() -> void:
 		):
 			piece.discovered = true
 			print("[AlertDirector] Rastro descubierto: %s" % piece.piece_name)
+		if piece.discovered and not _traced.has(piece):  # también la falsificación examinada
+			_traced[piece] = true
+			_last_trace_pos = piece.global_position
 	_notice_cuts(guards)
 	var thief_seen: bool = guards.any(
 		func(g: GuardController3D) -> bool: return g.is_perceiving_thief
 	)
 	if thief_seen or (watching and SecurityCamera3D.any_detects(self)):
-		raise(Level.ALARM)
+		raise(Level.ALARM, _thief_pos())  # alguien lo ve: la campana va donde está
 	var traces: int = discovered_count()
 	if traces >= RULES.alarm_traces and level < Level.ALARM:
-		raise(Level.ALARM)  # los rastros hacen saltar la alarma una vez, al llegar al umbral
+		raise(Level.ALARM, _last_trace_pos)  # al llegar al umbral, una vez; campana en el rastro
 	elif traces >= 1:
 		raise(Level.SUSPICION)
 
 
-func raise(new_level: Level) -> void:
+func raise(new_level: Level, where: Variant = null) -> void:
 	if new_level == Level.ALARM:
 		if _clock - _last_alarm_call > ALARM_GAP:
 			alarm_triggers += 1
+			if where is Vector3:  # sin punto (p. ej. llamada externa) salta, pero sin campana
+				alarm_marks.append({"pos": where, "t": GameManager.match_timer})
+				if alarm_marks.size() > MAX_MARKS:
+					alarm_marks.pop_front()
 		_last_alarm_call = _clock
 	if new_level > level:
 		level = new_level
@@ -133,6 +149,7 @@ func _notice_cuts(guards: Array[GuardController3D]) -> void:
 			)
 			if near_panel or box.contains(guard.global_position):
 				box.noticed = true
+				_last_trace_pos = box.global_position
 				print("[AlertDirector] Los guardias saben del corte en %s" % box.wing_name)
 				break
 
@@ -214,9 +231,18 @@ func _guards() -> Array[GuardController3D]:
 	return guards
 
 
-## A todos: el nivel (el ladrón también lo ve, decisión 2)
+## Donde está el ladrón (solo para las alarmas en las que alguien lo ve)
+func _thief_pos() -> Vector3:
+	var thief: Node3D = get_tree().get_first_node_in_group(&"thief") as Node3D
+	return thief.global_position if thief != null else Vector3.ZERO
+
+
+## A todos: el nivel (el ladrón también lo ve, decisión 2) y dónde y cuándo saltó cada alarma
 func get_net_state() -> Dictionary:
-	return {"level": int(level)}
+	var marks: Array = []
+	for mark: Dictionary in alarm_marks:
+		marks.append([mark["pos"], snappedf(float(mark["t"]), 1.0)])
+	return {"level": int(level), "alarms": marks}
 
 
 ## Solo a los guardias: las marcas del walkie
@@ -238,6 +264,10 @@ func net_private_audience() -> StringName:
 func apply_net_state(state: Dictionary) -> void:
 	if state.has("level"):
 		level = int(state["level"]) as Level
+	if state.has("alarms"):
+		alarm_marks.clear()
+		for mark: Variant in state["alarms"]:
+			alarm_marks.append({"pos": mark[0] as Vector3, "t": float(mark[1])})
 	if state.has("pings"):
 		pings.clear()
 		for mark: Variant in state["pings"]:
