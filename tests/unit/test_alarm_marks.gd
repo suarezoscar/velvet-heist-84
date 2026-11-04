@@ -72,8 +72,8 @@ func test_trace_alarm_does_not_reveal_thief() -> void:
 			StringName("T%d" % i), "Pieza", &"sensor", null
 		)
 		add_child_autofree(piece)
+		piece.global_position = Vector3(1, 0, 1)  # los rastros, lejos del ladrón
 		piece.discovered = true
-	alert._last_trace_pos = Vector3(1, 0, 1)  # el último rastro descubierto
 	alert.scan()
 	assert_eq(alert.level, AlertDirector.Level.ALARM)
 	assert_eq(alert.alarm_marks.size(), 1)

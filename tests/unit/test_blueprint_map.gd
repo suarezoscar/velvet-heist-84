@@ -53,7 +53,7 @@ func test_collect_finds_only_map_props() -> void:
 	root.add_child(Lamp3D.new())
 	var plain: Node3D = Node3D.new()
 	root.add_child(plain)
-	plain.add_child(Node3D.new())
+	plain.add_child(LightSwitch3D.new())  # también los que cuelgan de un nodo cualquiera
 	assert_eq(PROPS.collect(root).size(), 2)
 	assert_eq(PROPS.collect(null).size(), 0)
 

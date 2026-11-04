@@ -110,7 +110,10 @@ func test_steal_each_protection_and_escape() -> void:
 	assert_true(case_piece.stolen)
 	var pedestal_piece: TargetPiece3D = _first(map, &"pedestal", true)
 	pedestal_piece.interact(thief)
-	assert_true(pedestal_piece.stolen, "Pedestal: E a lo bruto")
+	assert_false(pedestal_piece.stolen, "Pedestal: E abre el minijuego, nunca a lo bruto (#119)")
+	assert_true(pedestal_piece.is_playing())
+	assert_true(pedestal_piece.force(thief), "Q a lo bruto")
+	assert_true(pedestal_piece.stolen)
 	assert_true(heist.is_complete())
 	assert_true(GameManager.can_thief_escape())
 	thief.global_position = map.find_child("Exit_P01", true, false).global_position

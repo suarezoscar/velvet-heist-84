@@ -66,7 +66,7 @@ func test_brute_theft_or_sighting_means_alarm_and_it_never_drops() -> void:
 	var alert: AlertDirector = AlertDirector.of(get_tree())
 	var piece: TargetPiece3D = _piece(&"pedestal")
 	GameManager.heist.targets.assign([piece.piece_id])
-	piece.interact(map.thief)
+	piece.force(map.thief)  # #119: a lo bruto es Q
 	assert_eq(alert.level, AlertDirector.Level.ALARM, "A lo bruto salta la alarma")
 	alert.raise(AlertDirector.Level.CALM)
 	assert_eq(alert.level, AlertDirector.Level.ALARM, "Nunca baja")
@@ -185,7 +185,7 @@ func test_discovered_traces_only_reach_guards() -> void:
 	var alert: AlertDirector = AlertDirector.of(get_tree())
 	var piece: TargetPiece3D = _piece(&"pedestal")
 	GameManager.heist.targets.assign([piece.piece_id])
-	piece.interact(map.thief)
+	piece.force(map.thief)  # #119: a lo bruto es Q
 	assert_false(piece.get_net_state().has("discovered"), "No va en el estado público")
 	assert_has(alert.get_net_state_private()["found"], piece.piece_id, "Va a los guardias")
 	piece.discovered = false
