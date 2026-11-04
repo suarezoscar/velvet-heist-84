@@ -1,78 +1,38 @@
-# Interacción: relojes de fichar y monitores CCTV
+# Interacción: monitores CCTV y selección de interactivos
 
-- **Estado**: aprobado (2026-10-24, con las 6 recomendaciones de «Decisiones abiertas»). Parte 1 de `interaction.md`: solo relojes de fichar (R) y monitores CCTV (M). Cajas fuertes, puertas, teléfonos y el panel de pilotos (O3 de `stealth.md`) quedan para partes siguientes.
+- **Estado**: aprobado (2026-10-24, con las 6 recomendaciones de «Decisiones abiertas»). Parte 1 de `interaction.md`: relojes de fichar (R) y monitores CCTV (M). **2026-10-30, #116: la parte R se retira** por decisión del usuario; la sustituyen el sueño nuevo y el final por tiempo de `heist.md` (R4, R5, R5c, R5d). Cajas fuertes, puertas, teléfonos y el panel de pilotos (O3 de `stealth.md`) quedan para partes siguientes.
 - **Origen**: decisiones 3 y 5 de `docs/gdd/levels/museum_v2.md` (aprobadas por el usuario el 2026-10-24); MASTER_GSD §3.0 (relojes de 90 s); roadmap del PoC, cambio a internet con servidor dedicado (`docs/decisions/2026-10-23-roadmap-poc.md`).
-- **Relacionado**: `stealth.md` (P2.2 luz, P2.3 percepción por guardia, P2.4 ruido, filtro de red); `match.md` (por crear: adopta la tabla de final por tiempo de R4); `docs/tasks/FEAT-014-red-minima-lan.md` (filtro del ladrón, `net_state`); `vision.md` (las imágenes CCTV no llevan niebla; los pilotos se ven a través de ella). Código actual: `src/systems/time_clock_3d.gd`, `security_camera_3d.gd`, `cctv_monitor_3d.gd`, `core/game_manager.gd`.
+- **Relacionado**: `stealth.md` (P2.2 luz, P2.3 percepción por guardia, P2.4 ruido, filtro de red); `heist.md` (sueño, café y final por tiempo desde #116); `match.md` (por crear); `docs/tasks/FEAT-014-red-minima-lan.md` (filtro del ladrón, `net_state`); `vision.md` (las imágenes CCTV no llevan niebla; los pilotos se ven a través de ella). Código actual: `security_camera_3d.gd`, `cctv_monitor_3d.gd`, `core/game_manager.gd` (`time_clock_3d.gd` y `src/systems/rounds/` se borran con #116).
 - **Alcance**: PoC, 1 ladrón contra 2 guardias por internet; el servidor dedicado decide todo lo que aquí se describe.
 
 ## Fantasía
-- **Guardias**: "La central lee la tira de papel de los relojes. Si fallamos la ronda, que no nos pillen sin el ladrón en la mano". Y en la garita: "Desde aquí lo veo todo... menos lo que tengo detrás".
-- **Ladrón**: "Cada campana que suena es un guardia que no está donde debería. Y cuando el piloto rojo de la cámara se enciende, alguien está mirando".
+- **Guardias**: en la garita, "Desde aquí lo veo todo... menos lo que tengo detrás". (Desde #116, la tira de papel de los relojes ya no existe.)
+- **Ladrón**: "Cuando el piloto rojo de la cámara se enciende, alguien está mirando".
 
-# Parte R: relojes de fichar con consecuencia
+# Parte R: relojes de fichar y rondas (retirada el 2026-10-30, #116)
 
-## Reglas
-- **R1 Rutas por guardia** (FEAT-034, sustituye a la ventana por reloj): cada mapa tiene sus relojes con una zona (museo v2: R1-R8 en las zonas oeste, centro y este). Al empezar la partida (`IN_PROGRESS`), cada guardia recibe una **ruta de `route_length` relojes en orden**. Empieza en una zona distinta de la de sus compañeros y va alternando zonas. Solo cuenta fichar (`interact`) en **el siguiente reloj de su ruta**; en otro, el aviso dice cuál le toca. Al acabar la ruta vuelve a empezar.
-  - **Tramo**: el tiempo para llegar al siguiente reloj es el camino andando entre salas (por las puertas), a la velocidad de paso, por `leg_walk_factor`, más `leg_margin`. Fichar empieza el tramo siguiente.
-  - La IA sin red patrulla su propia ruta.
-- **R2 Retraso y faltas (la hoja de ronda)**: un tramo a 0 pasa a **tarde** y apunta una falta; mientras sigue tarde, apunta otra cada vez que pasa el tiempo de ese tramo (`T`). Fichar en su reloj lo pone al día, pero **las faltas no se borran**.
+En el playtest con amigos fichar no era divertido: los guardias jugaban contra la tablilla y no contra el ladrón. El usuario decidió quitarlo en la entrevista de #116. **Ya no existen**:
+- los relojes de fichar del mapa (R1-R8 de `museum_v2`), su campana de vencido y su banderola;
+- las rutas por guardia, los tramos, el retraso y la hoja de faltas (antiguas R1-R3);
+- el final por tiempo según la ronda (antigua R4): ya no hay `TIME_EXPIRED_BREACH` ni `TIME_EXPIRED_DRAW`;
+- la tablilla de ronda del HUD, su pitido ámbar y la flecha al siguiente reloj (antiguas R6 y R6b, FEAT-042), y la ronda suspendida por la alarma (R2b);
+- los relojes y las faltas del informe y de los puntos (`heist.md` R11);
+- las rutas de ronda de la IA (`RoundPlanner`);
+- el recurso `data/balance/time_clock_rules.tres`.
 
-```
-F = Σ por cada episodio de vencimiento (1 + floor(v / T))
-```
-| Variable | Significado | Fuente |
-|---|---|---|
-| `F` | Faltas del equipo en la partida | resultado, entero ≥ 0 |
-| `v` | Segundos que un guardia pasó tarde en ese tramo | simulación |
-| `T` | Tiempo de ese tramo | R1 (camino × `leg_walk_factor` + `leg_margin`) |
+**Qué los sustituye** (fuente de verdad en `heist.md`):
+- **El sueño** empuja a los guardias: fuera de la garita sube poco a poco y dentro se congela; el café lo deja a 0 (R5).
+- **El final por tiempo** es de los guardias: si se acaba sin que el ladrón haya escapado, ganan (R4).
+- **Correr** solo con la alarma (R5d).
+- **La IA sin red** patrulla salas a su aire, sobre todo donde hay piezas, y vuelve a por café cuando le entra sueño (R5c).
 
-Rango: 0 a ~4 × (duración de la partida / `T`) = 24 con los valores iniciales (cada reloj, 1 + floor(510 / 90) = 6). Ejemplo (`T` 90 s): R4 vence a 3:10 y se ficha a 3:50 (v = 40 s) → 1 falta. R2 vence a 7:00 y nadie lo ficha hasta el final, 10:00 (v = 180 s) → 1 + 2 = 3. F = 4.
-- **R3 Ronda al día**: al día ⇔ `F ≤ allowed_misses × guardias` (FEAT-034: las faltas toleradas son por guardia y se suman en el equipo) **y** nadie llega tarde en el instante final. La primera condición impide ignorar los relojes 8 minutos y fichar los cuatro en el último ciclo; la segunda vuelve frenético el último minuto. Si `F` supera `allowed_misses`, la ronda queda **rota** para toda la partida: los guardias ya solo ganan capturando.
-- **R4 Final por tiempo** (al llegar `match_timer` a 0; la captura y la huida no cambian):
-
-| Ronda | Ladrón con la Pieza Maestra | Ladrón sin la Pieza |
-|---|---|---|
-| Al día | ganan los guardias (`TIME_EXPIRED`) | ganan los guardias (`TIME_EXPIRED`) |
-| No al día (rota o con un reloj vencido) | gana el ladrón (nuevo `TIME_EXPIRED_BREACH`) | empate (nuevo `TIME_EXPIRED_DRAW`) |
-
-- **R5 Aviso y rastro**: fichar suena a `punch_noise_radius` (mecanismo, P2.4). Con un guardia que llega tarde, la campana del reloj al que debía llegar suena a `alarm_noise_radius` cada `alarm_pulse_interval`, y ese reloj baja una banderola roja visible en el mundo. Son ruidos de equipo `guard`: el ladrón los oye a ×`thief_hearing_mult` (`noise_feedback.tres`).
-- **R2b Con la alarma se acaba fichar** (FEAT-042): desde que suena la alarma (y la alerta nunca baja) la ronda queda suspendida hasta el final: no se apuntan faltas nuevas, nadie llega tarde y la tablilla dice «ALARMA: olvidaos de la ronda, a por él». Las faltas de antes se quedan; en el final por tiempo (R3) la ronda cuenta al día si esas faltas no pasaban de las toleradas.
-- **R6b Flecha** (FEAT-042): el guardia que juegas ve en el suelo, a su lado, una flecha cian que apunta por el camino real (por las puertas) al siguiente reloj de su ruta, con «R3 · 18 m». Desaparece con la alarma.
-- **R6 HUD del guardia** (siempre, también mirando monitores): una tablilla con **su ruta** (el reloj que toca, marcado), el siguiente reloj con su sala y los segundos del tramo (normal, ámbar a `warning_time` o menos, rojo «¡TARDE!») y el contador "Faltas del equipo F / tolerancia". Al entrar un reloj en ámbar suena un pitido de reloj de pulsera solo para los guardias (UI, no ruido del mundo: es información propia, no una acción). Con `F = allowed_misses`, aviso "Una falta más y la central no os cubre"; al romperse, "Ronda rota: solo vale capturarlo".
-- **R7 HUD del ladrón**: nada. Se entera por las campanas, los fichajes que oye y las banderolas que tiene en pantalla (pilar 3: oye más lejos). La pantalla final muestra la hoja de ronda a todos.
-- **R8 Red**: el servidor lleva las rondas (ruta, tramo, faltas) y la banderola de cada reloj. A los guardias les llegan las rondas de todo el equipo; al ladrón solo la banderola de cada reloj, **nunca las rutas, los tiempos ni `F`**. Puede deducir rutas escuchando los fichajes.
-
-### Casos límite
-- **Dos guardias fichan a la vez**: el servidor aplica las dos acciones en orden; el reloj queda en `round_duration` y suenan los dos fichajes. Ninguna falta cambia.
-- **Mismo tick**: un reloj que llega a 0 en el tick final cuenta como vencido (borde = vencido). Un fichaje recibido en ese tick se aplica antes de evaluar R3.
-- **Guardia "capturado"**: no existe (pilar 6, el ladrón nunca ataca). Si el capturado es el ladrón, la partida acaba en `THIEF_CAPTURED` y los relojes no cuentan.
-- **Guardia desconectado**: la regla no cambia; un guardia solo ficha los cuatro en ~39 s de cada 90 (museo v2 §8), así que sigue siendo posible. En red no hay guardias de IA: hay uno por jugador guardia, de 1 a 3 (FEAT-022). Sin red, los guardias de IA **deben** incluir los relojes en su patrulla.
-- **Ladrón junto a un reloj**: no puede ficharlo ni sabotearlo (sabotaje, si llega, en `gadgets.md` con su contramedida). Esperar junto a un reloj es apostar a que viene un guardia: un riesgo, no un escondite.
-
-## Números (nuevo recurso `data/balance/time_clock_rules.tres`)
-| Mando | Campo | Tipo | Rango | Valor inicial y por qué |
-|---|---|---|---|---|
-| Tramo sin camino medible | `round_duration` | ritmo | 60-120 s | 90. Solo de respaldo (FEAT-034) |
-| Faltas toleradas por guardia | `allowed_misses` | ritmo | 0-4 | 2. Con 2 guardias, 4 en el equipo |
-| Relojes por ruta | `route_length` | ritmo | 3-5 | 4 (FEAT-034) |
-| Holgura del tramo | `leg_walk_factor` / `leg_margin` | ritmo | 1,4-2,5 / 5-30 s | 2,3 / 25 s (FEAT-042; antes 1,8 / 15 s, demasiado justo): da margen para mirar una sala o servirse un café |
-| Aviso ámbar | `warning_time` | sensación | 10-30 s | 20. Andando son ~84 m: basta para llegar a cualquier reloj del museo v2 desde casi cualquier punto |
-| Ruido de fichar | `punch_noise_radius` | sensación | 4-7 m | 5,5 (constante actual). El ladrón lo oye a 8,25 m |
-| Campana de vencido | `alarm_noise_radius` | sensación | 10-18 m | 14 (constante actual). El ladrón la oye a 21 m: un hueco en la ronda se oye media ala |
-| Pulso de campana | `alarm_pulse_interval` | sensación | 2-5 s | 3 (constante actual) |
-
-## Invariantes medibles
-1. `F` nunca baja dentro de una partida; fichar no la modifica.
-2. Un reloj vencido v segundos aporta exactamente `1 + floor(v / round_duration)` faltas.
-3. El resultado por tiempo sigue la tabla R4 en todos sus casos (test por casilla).
-4. El cliente del ladrón no recibe nunca `time_left` ni `F` (prueba de red, como el escenario `secret` de FEAT-014).
-5. Nivel: la ronda de un solo guardia por los cuatro relojes, andando, ≤ 0,5 × `round_duration`.
+El rastro sonoro que daban los relojes (fichar a 8,25 m para el ladrón, campana a 21 m) lo sustituyen los bostezos, la cafetera y la puerta de la garita (ver «Pilares»).
 
 # Parte M: mirar los monitores CCTV
 
 ## Reglas
 - **M1 Activación**: en la garita, ante la mesa (alcance del interactor del guardia), `interact` entra en **mirando** tras `monitor_enter_time` (sentarse, girar el selector). Sale al instante con `interact`, cualquier input de movimiento, la porra (que no golpea en ese input) o el fin de partida. Una sola silla: si otro guardia ya mira, la mesa dice "ocupado". El servidor valida la distancia y el estado.
-- **M2 HUD**: las 3 imágenes en fila en la mitad superior, 4:3, de alto `feed_height_frac` de la pantalla (a 1080p, 3 × 576 × 432 px, el 90 % del ancho), con el shader CRT, su rótulo ("CAM-1 VESTÍBULO") y marco rojo si esa cámara detecta. La mitad inferior sigue mostrando el mundo, y la tablilla de ronda sigue visible. Comprobación: a 9,5 m, la imagen cubre ~6,7 m de alto; un ladrón de 1,7 m ocupa ~110 px, legible.
+- **M2 HUD**: las 3 imágenes en fila en la mitad superior, 4:3, de alto `feed_height_frac` de la pantalla (a 1080p, 3 × 576 × 432 px, el 90 % del ancho), con el shader CRT, su rótulo ("CAM-1 VESTÍBULO") y marco rojo si esa cámara detecta. La mitad inferior sigue mostrando el mundo, y la taza del sueño sigue visible (la tablilla de ronda desapareció con #116). Comprobación: a 9,5 m, la imagen cubre ~6,7 m de alto; un ladrón de 1,7 m ocupa ~110 px, legible.
 - **M3 Qué deja de hacer**: no se mueve (moverse es salir) y mira fijo a la mesa, de espaldas a la ventana V1 y a P20. La linterna conserva su estado (sin ruido) y alumbra la mesa: el ladrón la ve. **Visión apagada**: ni linterna ni luz (`lit_sight_range`) le detectan al ladrón. **Siguen**: el oído y la proximidad, con su arco ciego trasero (`stealth.md`).
 - **M4 Rastro (pilar 2)**: mientras alguien mira, las 3 cámaras encienden un **piloto rojo de grabación**, visible en el mundo para quien las tenga en pantalla. Es la contramedida del ladrón: sabe cuándo le miran y cuándo la garita está distraída.
 - **M5 Qué ve una cámara**: detecta al ladrón con su cono y su línea de visión actuales **y solo si está iluminado** (lámpara de P2.2 o haz de una linterna). Un CCTV de 1984 no ve en la oscuridad (pilar 1): apagar la sala ciega la cámara, y la imagen sale negra.
@@ -115,40 +75,35 @@ Los números comunes viven en `data/balance/interaction_rules.tres`: `reach_dist
 ## Contrajuego
 | Acción | Quién | Qué percibe el otro | Respuesta |
 |---|---|---|---|
-| Fichar | guardia | clic a 8,25 m: "ahí hay uno y este reloj tiene 90 s" | cruzar lejos de los relojes recién fichados |
-| Dejar vencer un reloj | guardias | campana a 21 m y banderola | aprovechar el hueco de esa ala; con la ronda rota, aguantar con la Pieza |
-| Acampar el coche | guardia | sin linterna en la ronda; el compañero ficha solo | rodear al corredor, que pasa siempre por lo mismo |
 | Mirar monitores | guardia | pilotos rojos, linterna fija en la garita | apagar las luces de las salas con cámara o cruzar el pasillo de servicio a su espalda |
 | Apagar la luz de una sala con cámara | ladrón | imagen negra, sala a oscuras en el mundo | ir a encenderla (deja la garita) o patrullarla con linterna |
 
 ## Pilares
 | Pilar | Cómo lo cumple |
 |---|---|
-| 1. 1984 | Relojes Detex con tira de papel, banderola mecánica, CRT, piloto de grabación; el CCTV no ve a oscuras |
-| 2. Sonido | Fichar y vencer suenan; mirar se ve (pilotos). **Silencio justificado**: el pitido ámbar es solo de UI |
-| 3. Información frente a número | El ladrón infiere la ronda de oído; los guardias ganan las cámaras quedándose ciegos y quietos |
+| 1. 1984 | CRT, piloto de grabación; el CCTV no ve a oscuras (los relojes Detex se fueron con #116) |
+| 2. Sonido | Mirar se ve (pilotos). Desde #116, lo que antes delataban los relojes (dónde está cada guardia) lo delatan los bostezos, la cafetera y la puerta de la garita (`heist.md` R5) |
+| 3. Información frente a número | Los guardias ganan las cámaras quedándose ciegos y quietos; el ladrón ve los pilotos |
 | 4. Respuesta | Tabla de contrajuego; ninguna acción sin fila |
-| 5. Partidas cortas | La hoja castiga ignorar relojes en cualquier minuto y la regla final calienta el último ciclo |
+| 5. Partidas cortas | Desde #116 el tiempo presiona al ladrón (si no escapa, ganan los guardias) y el sueño, a los guardias (`heist.md` R4 y R5) |
 | 6. No violento | Sin cambios; el guardia mirando es vulnerable a ser esquivado, no atacado |
 
 ## Qué medir
 | Evento | Pregunta | Señal de alarma |
 |---|---|---|
-| `clock_expired`, `F` final | ¿Los relojes mandan? | `F` = 0 en 5 de 5 partidas (sobra holgura) o ronda rota antes del minuto 4 en 3 de 5 |
-| Resultado por tiempo | ¿El final por tiempo es justo? | Más de 2 empates en 5 partidas |
 | Segundos mirando por partida | ¿Los monitores valen? | < 20 s seguidos en todas, o un guardia > 50 % de la partida en la silla |
 | Detecciones por cámara con alguien mirando | ¿Las cámaras aportan? | 0 en 5 partidas |
 
 ## Estado
-- **Parte R** (FEAT-016, integrada el 2026-10-24): faltas, final por tiempo R4, tablilla del guardia, banderola y filtro de red. Los números están en `time_clock_rules.tres`.
+- **Parte R** (FEAT-016, integrada el 2026-10-24; ampliada en FEAT-034 y FEAT-042): **retirada el 2026-10-30 (#116)**. El código y `time_clock_rules.tres` se borran en la FEAT de #116.
 - **Parte M** (FEAT-017): mesa de la garita, «mirando» con visión apagada, imágenes CRT en el HUD, cámaras que necesitan luz, pilotos y filtro de red `cctv_only`. Los números están en `cctv_rules.tres`.
 - **Precisión del invariante 5 de la parte M**: los pilotos se encienden cuando el guardia ya mira, no mientras se sienta (la silla sí queda reservada).
 
-## Decisiones (usuario, 2026-10-28; FEAT-034)
+## Decisiones (usuario, 2026-10-28; FEAT-034; sin efecto desde #116)
 - Fichar de uno en uno, con una ruta distinta para cada guardia (R1).
 - Tramo medido por la distancia andando, × 1,8 + 15 s; faltas de equipo, 2 por guardia; 8 relojes; el ladrón no ve las rutas; la IA sigue la suya.
 
-## Decisiones (aprobadas por el usuario el 2026-10-24)
+## Decisiones (aprobadas por el usuario el 2026-10-24; la 1, la 2, la 3 y la 6 quedan sin efecto desde #116)
 1. Las faltas son irreversibles.
 2. El ladrón no sabe que la ronda está rota; lo deduce por las campanas.
 3. Ronda rota y ladrón sin la Pieza al acabar el tiempo: empate.

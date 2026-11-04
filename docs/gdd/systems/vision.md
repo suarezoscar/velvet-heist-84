@@ -41,7 +41,7 @@ Las reglas de abajo describen la opción A.
 | Muros, suelos, muebles fijos | Normal | Oscurecidos (recuerdo del plano) |
 | Personajes del otro bando | Según R3 | **Ocultos** |
 | Compañeros de bando (guardias entre sí) | Normal | Visibles como silueta (D2) |
-| Botín, caja fuerte, banderolas de reloj | Estado actual | **Último estado visto** (D4). Si te robaron el cuadro, lo descubres al volver a mirar |
+| Botín y caja fuerte (las banderolas de reloj se retiraron con #116, 2026-10-30) | Estado actual | **Último estado visto** (D4). Si te robaron el cuadro, lo descubres al volver a mirar |
 | Luz de las lámparas y pilotos rojos del CCTV | Normal | **Visibles**, porque la luz se ve de lejos (D5) |
 | Haces de linterna de los guardias | Normal | **El ladrón los ve siempre**, también tras muros (ya era la regla P2.1). Los guardias ven los de sus compañeros |
 | Chevrons de ruido y sonido | Sin cambios | Sin cambios: son el canal principal para saber qué pasa fuera de la vista (pilar 2) |
@@ -65,7 +65,7 @@ El servidor decide; cada cliente solo recibe lo que su jugador ve.
 | Estado de un compañero guardia | Los otros guardias | Siempre |
 | Guardia visto por una cámara (FEAT-042) | El ladrón, sentado ante los monitores | Si alguna cámara lo ve con luz: marcado «solo CCTV», se dibuja solo en las imágenes |
 | Moneda en vuelo (FEAT-038) | El ladrón siempre; cada guardia despierto | Al lanzarse (no fiable), si la salida o la caída están en su zona visible (`CoinFlightPresenter.view_for`). Quien no ve la salida recibe solo el tramo desde donde entra en su vista: sabe de qué lado viene, no desde dónde se lanzó. El ruido va aparte, al caer |
-| Botín, lámparas, relojes, caja fuerte | Todos | Como hoy. La memoria de R2 la aplica el cliente al dibujar (D4). Sin filtro en el servidor en el PoC: hacer trampa con eso vale poco |
+| Botín, lámparas, caja fuerte (sin relojes desde #116) | Todos | Como hoy. La memoria de R2 la aplica el cliente al dibujar (D4). Sin filtro en el servidor en el PoC: hacer trampa con eso vale poco |
 
 - **Coste**: para cada guardia, entre 1 y 3 rayos ladrón-guardia por tick de snapshot (20 Hz). El polígono que se dibuja lo calcula cada cliente para su propio jugador: unos `fog_rays` rayos a 30 Hz.
 
@@ -110,7 +110,7 @@ El servidor decide; cada cliente solo recibe lo que su jugador ve.
 | Esperar a oscuras con la linterna apagada (emboscada) | guardia | Nada hasta `dark_sight_radius`; sus pasos al moverse | Escuchar antes de cruzar; encender la luz de la sala (el interruptor suena); lanzar un señuelo |
 | Llevar la linterna encendida | guardia | El haz, a través de los muros | Apagarla en las zonas donde se espera al ladrón, a cambio de ver menos |
 | Apagar las luces de una zona | ladrón | El clic del interruptor y la sala a oscuras en la niebla | Ir con linterna; la oscuridad también ciega al ladrón más allá de 6 m |
-| Robar algo lejos de los guardias | ladrón | Nada hasta que vuelven a mirar (D4) | Rondas que pasan por las salas del botín; la cámara CCTV de la antesala |
+| Robar algo lejos de los guardias | ladrón | Nada hasta que vuelven a mirar (D4) | Patrullas que pasan por las salas del botín; la cámara CCTV de la antesala |
 
 ## Pilares
 | Pilar | Cómo lo cumple |
