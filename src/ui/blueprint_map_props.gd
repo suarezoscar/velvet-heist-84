@@ -3,11 +3,14 @@
 ## interruptores, lámparas, mesa de copias, coche de huida y objetos sueltos.
 ## Las puertas, las piezas (con su caja fuerte), las cámaras y las rejillas las dibuja
 ## BlueprintMapOverlay.
-## Se buscan una vez al abrir el plano (collect) y cada icono sale con su estado actual.
+## Se buscan una vez al abrir el plano (collect) y cada icono sale con su estado actual; con el
+## cursor encima de un interruptor o un cuadro se ven los cables a sus lámparas (draw_wiring).
 class_name BlueprintMapProps
 extends RefCounted
 
 const ICONS := preload("res://src/ui/blueprint_map_icons.gd")
+## Píxeles alrededor de un interruptor o cuadro para enseñar sus cables
+const HOVER_RADIUS: float = 18.0
 
 
 ## Los objetos interactivos bajo root (la escena del mapa)
@@ -68,3 +71,75 @@ static func icon(on: CanvasItem, kind: StringName, pos: Vector2, prop: Node3D = 
 			ICONS.car(on, pos)
 		&"loot":
 			ICONS.badge(on, pos, ICONS.COLOR_LOOT, "$")
+
+
+## Cables: con el cursor sobre un interruptor o un cuadro eléctrico, líneas a sus lámparas
+static func draw_wiring(
+	on: CanvasItem, props: Array[Node3D], lamps: Array[Lamp3D], mouse: Vector2, to_map: Callable
+) -> void:
+	for prop: Node3D in props:
+		if not (prop is LightSwitch3D or prop is PowerBox3D) or not shown(prop):
+			continue
+		var from: Vector2 = to_map.call(prop.global_position)
+		if from.distance_to(mouse) > HOVER_RADIUS:
+			continue
+		for lamp: Lamp3D in lamps:
+			if is_instance_valid(lamp) and _feeds(prop, lamp):
+				var to: Vector2 = to_map.call(lamp.global_position)
+				on.draw_dashed_line(from, to, Color(ICONS.COLOR_POWER, 0.7), 1.5, 6.0)
+				ICONS.lamp(on, to, lamp.is_lit())
+				on.draw_arc(to, 6.0, 0.0, TAU, 16, Color(ICONS.COLOR_POWER, 0.9), 1.5)
+
+
+## true si prop (interruptor o cuadro) alimenta lamp
+static func _feeds(prop: Node3D, lamp: Lamp3D) -> bool:
+	if prop is LightSwitch3D:
+		return (prop as LightSwitch3D).circuit_id == lamp.circuit_id
+	return (prop as PowerBox3D).circuits.has(lamp.circuit_id)
+
+
+## Cámaras con el abanico que cubren al barrer (orientación del nivel, alcance de la cámara),
+## recortado a la sala hacia la que miran: no atraviesa paredes
+static func draw_cameras(on: CanvasItem, data: LevelData, to_map: Callable) -> void:
+	var tree: SceneTree = (on as Node).get_tree()
+	var sample: SecurityCamera3D = (
+		tree.get_first_node_in_group(&"security_camera") as SecurityCamera3D
+	)
+	var fov: float = sample.detection_fov_deg if sample != null else 52.0
+	var sweep: float = sample.sweep_angle_deg if sample != null else 65.0
+	var reach: float = sample.detection_range if sample != null else 9.5
+	var half: float = deg_to_rad((fov + sweep) * 0.5)
+	for cam: Dictionary in data.section("cameras"):
+		var yaw: float = deg_to_rad(float(cam.get("yaw_deg", 0.0)))
+		var dir: Vector2 = Vector2(sin(yaw), -cos(yaw))
+		var pos: Vector2 = Vector2(float(cam["pos"][0]), float(cam["pos"][1]))
+		var room: Rect2 = _room_ahead(data, pos + dir * 0.5)
+		var fan: PackedVector2Array = PackedVector2Array([to_map.call(pos)])
+		for i: int in range(17):
+			var ray: Vector2 = dir.rotated(-half + 2.0 * half * float(i) / 16.0)
+			fan.append(to_map.call(pos + ray * _ray_length(room, pos, ray, reach)))
+		ICONS.camera_fan(on, fan)
+		ICONS.camera(on, to_map.call(pos))
+
+
+static func _room_ahead(data: LevelData, point: Vector2) -> Rect2:
+	for room: Dictionary in data.section("rooms"):
+		if data.room_rect(room).has_point(point):
+			return data.room_rect(room)
+	return Rect2()
+
+
+## Hasta dónde llega un rayo desde pos sin salirse de room (como mucho reach)
+static func _ray_length(room: Rect2, pos: Vector2, ray: Vector2, reach: float) -> float:
+	if room.size == Vector2.ZERO:
+		return reach
+	var length: float = reach
+	if ray.x > 0.0001:
+		length = minf(length, (room.end.x - pos.x) / ray.x)
+	elif ray.x < -0.0001:
+		length = minf(length, (room.position.x - pos.x) / ray.x)
+	if ray.y > 0.0001:
+		length = minf(length, (room.end.y - pos.y) / ray.y)
+	elif ray.y < -0.0001:
+		length = minf(length, (room.position.y - pos.y) / ray.y)
+	return maxf(length, 0.0)

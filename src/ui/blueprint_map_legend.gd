@@ -1,75 +1,107 @@
 ## @file blueprint_map_legend.gd
-## Leyenda del plano (#117): un recuadro arriba a la derecha, distinto por bando, con los mismos
-## iconos que el plano (BlueprintMapIcons y BlueprintMapProps).
+## Leyenda del plano (#117): un recuadro de terminal arriba a la derecha, con los iconos en
+## cuatro capas que se encienden y apagan con [1]-[4] (BlueprintMapOverlay). Distinta por bando;
+## usa los mismos iconos que el plano (BlueprintMapIcons y BlueprintMapProps).
 class_name BlueprintMapLegend
 extends RefCounted
 
 const ICONS := preload("res://src/ui/blueprint_map_icons.gd")
 const PROPS := preload("res://src/ui/blueprint_map_props.gd")
-const WIDTH: float = 250.0
-const ROW: float = 29.0
+const WIDTH: float = 260.0
+const ROW: float = 26.0
+const GROUP_GAP: float = 34.0
+## Capas, en el orden de sus teclas [1]-[4]
+const LAYERS: Array[StringName] = [&"people", &"security", &"power", &"places"]
 
-## Filas por bando: [icono, texto]
-const THIEF_ROWS: Array = [
-	[&"you", "TÚ"],
-	[&"contract", "TU ENCARGO (✔ ROBADA)"],
-	[&"vent", "REJILLA (S / O / E)"],
-	[&"camera", "CÁMARA"],
-	[&"exit", "SALIDA"],
-	[&"car", "COCHE DE HUIDA"],
-	[&"copy", "MESA DE COPIAS"],
-	[&"power", "CUADRO ELÉCTRICO"],
-	[&"switch", "INTERRUPTOR"],
-	[&"lamp", "LÁMPARA"],
-	[&"post", "GARITA"],
-	[&"coffee", "CAFETERA"],
-	[&"desk", "MONITORES"],
-	[&"alarm", "ALARMA (HACE…)"],
-]
-const GUARD_ROWS: Array = [
-	[&"you", "TÚ"],
-	[&"mate", "COMPAÑERO"],
-	[&"combination", "COMBINACIÓN"],
-	[&"pressure", "PRESIÓN"],
-	[&"sensor", "SENSOR"],
-	[&"trace", "RASTRO (FALTA)"],
-	[&"camera", "CÁMARA"],
-	[&"exit", "SALIDA"],
-	[&"power", "CUADRO ELÉCTRICO"],
-	[&"switch", "INTERRUPTOR"],
-	[&"lamp", "LÁMPARA"],
-	[&"post", "GARITA"],
-	[&"coffee", "CAFETERA"],
-	[&"desk", "MONITORES"],
-	[&"ping", "WALKIE"],
-	[&"alarm", "ALARMA (HACE…)"],
-]
+## Por bando: capa → [título, [[icono, texto], ...]]
+const THIEF_GROUPS: Dictionary = {
+	&"people": ["TÚ Y ENCARGO", [[&"you", "TÚ"], [&"contract", "TU ENCARGO (✔ ROBADA)"]]],
+	&"security": ["SEGURIDAD Y EVENTOS", [[&"camera", "CÁMARA"], [&"alarm", "ALARMA (HACE…)"]]],
+	&"power":
+	[
+		"RED ELÉCTRICA",
+		[[&"power", "CUADRO ELÉCTRICO"], [&"switch", "INTERRUPTOR"], [&"lamp", "LÁMPARA"]]
+	],
+	&"places":
+	[
+		"INSTALACIONES",
+		[
+			[&"exit", "SALIDA"],
+			[&"car", "COCHE DE HUIDA"],
+			[&"vent", "REJILLA (S / O / E)"],
+			[&"copy", "MESA DE COPIAS"],
+			[&"post", "GARITA"],
+			[&"coffee", "CAFETERA"],
+			[&"desk", "MONITORES"]
+		]
+	],
+}
+const GUARD_GROUPS: Dictionary = {
+	&"people": ["PERSONAL Y COMMS", [[&"you", "TÚ"], [&"mate", "COMPAÑERO"], [&"ping", "WALKIE"]]],
+	&"security":
+	[
+		"SEGURIDAD Y EVENTOS",
+		[
+			[&"camera", "CÁMARA"],
+			[&"sensor", "SENSOR"],
+			[&"pressure", "PRESIÓN"],
+			[&"combination", "COMBINACIÓN"],
+			[&"alarm", "ALARMA (HACE…)"],
+			[&"trace", "RASTRO (FALTA)"]
+		]
+	],
+	&"power":
+	[
+		"RED ELÉCTRICA",
+		[[&"power", "CUADRO ELÉCTRICO"], [&"switch", "INTERRUPTOR"], [&"lamp", "LÁMPARA"]]
+	],
+	&"places":
+	[
+		"INSTALACIONES",
+		[[&"post", "GARITA"], [&"coffee", "CAFETERA"], [&"desk", "MONITORES"], [&"exit", "SALIDA"]]
+	],
+}
 
 
-## Recuadro de la leyenda arriba a la derecha de panel (abajo va el panel de depuración)
-static func draw(on: CanvasItem, panel: Rect2, top: float, thief_view: bool) -> void:
-	var rows: Array = THIEF_ROWS if thief_view else GUARD_ROWS
-	var size: Vector2 = Vector2(WIDTH, 44.0 + rows.size() * ROW)
-	var box: Rect2 = Rect2(Vector2(panel.end.x - size.x - 20.0, top), size)
-	on.draw_rect(box.grow(3.0), ICONS.COLOR_OUTLINE, true)
-	on.draw_rect(box, Color(ICONS.COLOR_BG, 1.0), true)
-	on.draw_rect(box, ICONS.COLOR_TEXT, false, 2.0)
+## Recuadro de la leyenda arriba a la derecha de panel; layers: {capa: bool} encendidas
+static func draw(
+	on: CanvasItem, panel: Rect2, top: float, thief_view: bool, layers: Dictionary
+) -> void:
+	var groups: Dictionary = THIEF_GROUPS if thief_view else GUARD_GROUPS
+	var height: float = 58.0
+	for layer: StringName in LAYERS:
+		height += GROUP_GAP + (groups[layer][1].size() * ROW if layers.get(layer, true) else 0.0)
+	var box: Rect2 = Rect2(Vector2(panel.end.x - WIDTH - 20.0, top), Vector2(WIDTH, height))
+	ICONS.terminal_frame(on, box)
 	ICONS.text(on, box.position + Vector2(14.0, 30.0), "LEYENDA", 22, ICONS.COLOR_HEADER)
-	var y: float = box.position.y + 44.0 + ROW * 0.5
-	for row: Array in rows:
-		_icon(on, row[0], Vector2(box.position.x + 28.0, y), thief_view)
-		ICONS.text(
-			on, Vector2(box.position.x + 54.0, y + 7.0), String(row[1]), 18, ICONS.COLOR_TEXT
-		)
-		y += ROW
+	var y: float = box.position.y + 48.0
+	for i: int in range(LAYERS.size()):
+		var layer: StringName = LAYERS[i]
+		var on_layer: bool = layers.get(layer, true)
+		var color: Color = ICONS.COLOR_HEADER if on_layer else ICONS.COLOR_OFF
+		var title: String = "[%d] %s" % [i + 1, groups[layer][0]]
+		ICONS.mono(on, Vector2(box.position.x + 14.0, y + 20.0), title, 15, color)
+		y += GROUP_GAP
+		if not on_layer:
+			continue
+		for row: Array in groups[layer][1]:
+			var middle: float = y + ROW * 0.5  # icono y texto centrados en la fila
+			_icon(on, row[0], Vector2(box.position.x + 30.0, middle), thief_view)
+			ICONS.text(
+				on,
+				Vector2(box.position.x + 56.0, middle + 6.0),
+				String(row[1]),
+				17,
+				ICONS.COLOR_TEXT
+			)
+			y += ROW
 
 
 static func _icon(on: CanvasItem, kind: StringName, at: Vector2, thief_view: bool) -> void:
 	var own: Color = TeamMarker3D.THIEF_COLOR if thief_view else TeamMarker3D.GUARD_COLOR
 	match kind:
 		&"you":
-			ICONS.badge(on, at, own)
-			on.draw_circle(at, 4.0, ICONS.COLOR_YOU)
+			ICONS.you(on, at + Vector2(0.0, 3.0), Vector2.UP, 1.0, false)
 		&"mate":
 			ICONS.badge(on, at, TeamMarker3D.GUARD_COLOR)
 		&"contract":
@@ -93,5 +125,7 @@ static func _icon(on: CanvasItem, kind: StringName, at: Vector2, thief_view: boo
 			ICONS.ping(on, at)
 		&"alarm":
 			ICONS.alarm(on, at, -1.0)
+		&"lamp":
+			on.draw_circle(at, 5.0, Color(ICONS.COLOR_POWER, 0.6))
 		_:
 			PROPS.icon(on, kind, at)

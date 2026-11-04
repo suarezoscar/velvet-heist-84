@@ -13,6 +13,7 @@ const COLOR_OK: Color = Color("4be38a")
 const COLOR_VENT: Color = Color(0.72, 0.74, 0.80)
 const COLOR_POST: Color = Color(1.0, 0.72, 0.25)
 const COLOR_YOU: Color = Color(1.0, 1.0, 1.0)
+const COLOR_YOU_WARM: Color = Color(1.0, 0.95, 0.78)
 const COLOR_OUTLINE: Color = Color(0.02, 0.03, 0.07)
 const COLOR_OFF: Color = Color(0.36, 0.40, 0.46)
 const COLOR_POWER: Color = Color("ffd23d")
@@ -61,21 +62,25 @@ static func badge(on: CanvasItem, pos: Vector2, fill: Color, letter: String = ""
 		on.draw_string(FONT, at, letter, HORIZONTAL_ALIGNMENT_LEFT, -1, 17, COLOR_OUTLINE)
 
 
-## Tu punto: chapa de tu bando, aro que late (pulse 0..1), flecha hacia donde miras y «TÚ»
-static func you(on: CanvasItem, pos: Vector2, facing: Vector2, color: Color, pulse: float) -> void:
-	var ring: Color = Color(color, 0.8 * (1.0 - pulse))
-	on.draw_arc(pos, BADGE + 6.0 + pulse * 12.0, 0.0, TAU, 32, ring, 3.0)
-	if facing.length_squared() > 0.0001:
-		var dir: Vector2 = facing.normalized()
-		var side: Vector2 = dir.orthogonal() * 9.0
-		var tip: Vector2 = pos + dir * 30.0
-		var base: Vector2 = pos + dir * 13.0
-		var arrow: PackedVector2Array = PackedVector2Array([tip, base + side, base - side, tip])
-		on.draw_colored_polygon(arrow.slice(0, 3), COLOR_YOU)
-		on.draw_polyline(arrow, COLOR_OUTLINE, 2.5)
-	badge(on, pos, color)
-	on.draw_circle(pos, 4.0, COLOR_YOU)
-	text(on, pos + Vector2(16.0, 24.0), "TÚ", 22, COLOR_YOU)
+## Tu punto: puntero (gota) blanco cálido que gira hacia donde miras, con halo que late
+## (pulse 0..1) y «TÚ». Los compañeros son círculos cian: no se confunden
+static func you(
+	on: CanvasItem, pos: Vector2, facing: Vector2, pulse: float, label: bool = true
+) -> void:
+	glow(on, pos, COLOR_YOU_WARM, 22.0 + pulse * 10.0, 0.35 * (1.0 - pulse))
+	var dir: Vector2 = facing.normalized() if facing.length_squared() > 0.0001 else Vector2.UP
+	var side: Vector2 = dir.orthogonal()
+	var drop: PackedVector2Array = PackedVector2Array()
+	drop.append(pos + dir * 22.0)
+	for i: int in range(13):  # media vuelta de atrás: la gota
+		var angle: float = PI * 0.5 + PI * float(i) / 12.0
+		drop.append(pos + (dir * cos(angle) + side * sin(angle)) * 9.0)
+	on.draw_colored_polygon(drop, COLOR_YOU_WARM)
+	drop.append(drop[0])
+	on.draw_polyline(drop, COLOR_OUTLINE, 3.0)
+	on.draw_circle(pos, 3.0, COLOR_OUTLINE)
+	if label:
+		text(on, pos + Vector2(14.0, 26.0), "TÚ", 22, COLOR_YOU_WARM)
 
 
 ## Compañero: chapa cian con su número («G2») al lado
@@ -84,8 +89,13 @@ static func mate(on: CanvasItem, pos: Vector2, label: String) -> void:
 	text(on, pos + Vector2(15.0, 7.0), label, 19, TeamMarker3D.GUARD_COLOR)
 
 
-## Campana roja donde saltó una alarma; ago en segundos («hace 1:20»), < 0 para no ponerlo
-static func alarm(on: CanvasItem, pos: Vector2, ago: float) -> void:
+## Campana roja donde saltó una alarma, con pulso; ago en segundos va en una píldora oscura
+## con borde rojo («hace 1:20»), < 0 para no ponerlo
+static func alarm(on: CanvasItem, pos: Vector2, ago: float, pulse: float = 0.0) -> void:
+	if pulse > 0.0:
+		on.draw_arc(
+			pos, 8.0 + pulse * 18.0, 0.0, TAU, 28, Color(COLOR_ALARM, 0.7 * (1.0 - pulse)), 2.5
+		)
 	var bell: PackedVector2Array = PackedVector2Array(
 		[
 			pos + Vector2(-4.0, -11.0),
@@ -101,8 +111,29 @@ static func alarm(on: CanvasItem, pos: Vector2, ago: float) -> void:
 	on.draw_polyline(bell, COLOR_OUTLINE, 6.0)
 	on.draw_colored_polygon(bell.slice(0, 6), COLOR_ALARM)
 	on.draw_circle(pos + Vector2(0.0, 7.5), 3.0, COLOR_ALARM)
-	if ago >= 0.0:
-		text(on, pos + Vector2(15.0, 6.0), "hace %s" % clock(ago), 18, COLOR_ALARM)
+	if ago < 0.0:
+		return
+	var label: String = "HACE %s" % clock(ago)
+	var width: float = FONT.get_string_size(label, 0, -1, 17).x
+	var pill: Rect2 = Rect2(pos + Vector2(15.0, -11.0), Vector2(width + 16.0, 22.0))
+	on.draw_rect(pill, Color(COLOR_OUTLINE, 0.85))
+	on.draw_rect(pill, COLOR_ALARM, false, 1.5)
+	on.draw_string(
+		FONT,
+		pill.position + Vector2(8.0, 17.0),
+		label,
+		HORIZONTAL_ALIGNMENT_LEFT,
+		-1,
+		17,
+		COLOR_ALARM
+	)
+
+
+## Resplandor CRT: discos concéntricos que se desvanecen
+static func glow(on: CanvasItem, pos: Vector2, color: Color, radius: float, alpha: float) -> void:
+	for i: int in range(4):
+		var k: float = 1.0 - float(i) / 4.0
+		on.draw_circle(pos, radius * k, Color(color, alpha * 0.25))
 
 
 ## Taza de café (la cafetera de la garita)
@@ -133,10 +164,10 @@ static func power(on: CanvasItem, pos: Vector2, cut: bool) -> void:
 		on.draw_line(pos + Vector2(-8.0, -8.0), pos + Vector2(8.0, 8.0), COLOR_ALARM, 3.0)
 
 
-## Lámpara: punto pequeño (hay muchas), amarillo si da luz y gris si está apagada o desenroscada
+## Lámpara: punto tenue (la luz se lee en el tinte de la sala), amarillo si da luz
 static func lamp(on: CanvasItem, pos: Vector2, lit: bool) -> void:
-	on.draw_circle(pos, 5.0, COLOR_OUTLINE)
-	on.draw_circle(pos, 3.0, Color(COLOR_POWER, 0.8) if lit else COLOR_OFF)
+	on.draw_circle(pos, 3.5, Color(COLOR_OUTLINE, 0.6))
+	on.draw_circle(pos, 2.0, Color(COLOR_POWER, 0.55) if lit else Color(COLOR_OFF, 0.6))
 
 
 ## Interruptor de la luz: palanca
@@ -153,6 +184,14 @@ static func car(on: CanvasItem, pos: Vector2) -> void:
 	on.draw_rect(Rect2(pos - Vector2(6.0, 11.0), Vector2(12.0, 6.0)), COLOR_OK, true)
 	for x: float in [-8.0, 8.0]:
 		on.draw_circle(pos + Vector2(x, 7.0), 4.0, COLOR_OUTLINE)
+
+
+## Abanico semitransparente de una cámara (polígono ya en pantalla, con el vértice primero)
+static func camera_fan(on: CanvasItem, fan: PackedVector2Array) -> void:
+	on.draw_colored_polygon(fan, Color(COLOR_ALARM, 0.10))
+	var edge: PackedVector2Array = fan.duplicate()
+	edge.append(fan[0])
+	on.draw_polyline(edge, Color(COLOR_ALARM, 0.35), 1.0)
 
 
 static func camera(on: CanvasItem, pos: Vector2) -> void:
@@ -179,3 +218,33 @@ static func ping(on: CanvasItem, pos: Vector2) -> void:
 static func clock(seconds: float) -> String:
 	var total: int = maxi(0, int(seconds))
 	return "%d:%02d" % [total / 60, total % 60]
+
+
+## Texto monoespaciado de terminal, con contorno
+static func mono(on: CanvasItem, pos: Vector2, label: String, size: int, color: Color) -> void:
+	var font: FontFile = MenuTheme84.FONT_MONO
+	on.draw_string_outline(font, pos, label, HORIZONTAL_ALIGNMENT_LEFT, -1, size, 4, COLOR_OUTLINE)
+	on.draw_string(font, pos, label, HORIZONTAL_ALIGNMENT_LEFT, -1, size, color)
+
+
+## Marco de terminal: fondo opaco, borde fino con resplandor y esquinas marcadas
+static func terminal_frame(on: CanvasItem, box: Rect2) -> void:
+	on.draw_rect(box.grow(3.0), COLOR_OUTLINE)
+	on.draw_rect(box, Color(COLOR_BG, 1.0))
+	on.draw_rect(box.grow(2.0), Color(COLOR_TEXT, 0.12), false, 4.0)
+	on.draw_rect(box, Color(COLOR_TEXT, 0.7), false, 1.5)
+	var corner: float = 14.0
+	for x: float in [box.position.x, box.end.x]:
+		for y: float in [box.position.y, box.end.y]:
+			var sx: float = 1.0 if x == box.position.x else -1.0
+			var sy: float = 1.0 if y == box.position.y else -1.0
+			on.draw_line(Vector2(x, y), Vector2(x + sx * corner, y), COLOR_HEADER, 3.0)
+			on.draw_line(Vector2(x, y), Vector2(x, y + sy * corner), COLOR_HEADER, 3.0)
+
+
+## Líneas de barrido CRT muy suaves sobre area (no tapan los textos)
+static func scanlines(on: CanvasItem, area: Rect2) -> void:
+	var y: float = area.position.y
+	while y < area.end.y:
+		on.draw_line(Vector2(area.position.x, y), Vector2(area.end.x, y), Color(0, 0, 0, 0.10), 1.0)
+		y += 3.0
