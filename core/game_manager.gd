@@ -19,6 +19,12 @@ enum MatchState {
 	TIME_EXPIRED_BREACH,
 	## Sin uso desde #116 (no se reordena el enum, viaja por red)
 	TIME_EXPIRED_DRAW,
+	## Huida a medias (#120): con la alarma y al menos una pieza; gana quien tenga más puntos
+	THIEF_ESCAPED_PARTIAL,
+	## Victoria de los Guardias (#120): bajan las rejas con el ladrón dentro
+	THIEF_LOCKED_IN,
+	## Victoria de los Guardias (#120): bajan las rejas con el ladrón en el callejón sin piezas
+	THIEF_NO_LOOT,
 }
 
 ## Cuota económica objetivo requerida para que el ladrón pueda escapar (en $)

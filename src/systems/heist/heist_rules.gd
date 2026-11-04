@@ -37,6 +37,14 @@ extends Resource
 @export var walkie_radius: float = 6.0
 @export var walkie_cooldown: float = 10.0
 
+## R7b (#120): segundos desde la primera alarma hasta que las rejas tocan el suelo
+@export var lockdown_time: float = 30.0
+## R7b: segundos que tardan las rejas en bajar (hasta que tocan el suelo se pasa por debajo)
+@export var gate_drop_time: float = 1.5
+## R7b: últimos segundos en que la cuenta atrás late en rojo y el timbre se acelera
+@export var lockdown_warn_at: float = 10.0
+## R7b: radio del chirrido y del golpe de las rejas
+@export var gate_radius: float = 10.0
 ## R3: peso del botín: el ladrón pierde esta parte de su velocidad por cada pieza que lleva
 @export var loot_slow: float = 0.05
 ## R3: velocidad mínima con todo el botín (parte de la normal)

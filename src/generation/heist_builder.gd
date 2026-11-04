@@ -26,13 +26,32 @@ static func build(data: LevelData, props: Node3D, targets: Array) -> void:
 		)
 		zone.position = data.to_world(exit_data["pos"])
 		props.add_child(zone)
+		var gate: ExitGate3D = ExitGate3D.create(String(exit_data["id"]), float(size[0]))
+		gate.position = zone.position  # #120: la reja, recogida sobre la puerta
+		props.add_child(gate)
+	_add_outdoors(data, props)
 	var director: HeistDirector = HeistDirector.new()
 	props.add_child(director)
 	director.add_child(AlertDirector.new())
+	director.add_child(HeistLockdown.new())  # #120: la cuenta atrás de las rejas
 	props.add_child(HeistInput.new())
 	props.add_child(MatchRecorder.new())  # FEAT-041: cuenta de la partida para el informe
 	props.add_child(CoinFlightPresenter.new())  # FEAT-038: la moneda en vuelo y su mira
 	props.add_child(CoinAim3D.new())
+
+
+## #120: el callejón (salas exteriores) como zona de huida: con la alarma, estar fuera es huir
+static func _add_outdoors(data: LevelData, props: Node3D) -> void:
+	for room: Dictionary in data.section("rooms"):
+		if not bool(room.get("exterior", false)):
+			continue
+		var rect: Rect2 = data.room_rect(room)
+		var zone: ExitZone3D = ExitZone3D.create(
+			"Outdoor_%s" % room["id"], Vector3(rect.size.x, EXIT_HEIGHT, rect.size.y), true
+		)
+		var center: Vector2 = rect.get_center()
+		zone.position = data.to_world([center.x, center.y])
+		props.add_child(zone)
 
 
 ## La cafetera de la garita y el sueño de cada guardia de la escena (heist.md R5)
