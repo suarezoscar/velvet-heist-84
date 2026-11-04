@@ -12,7 +12,6 @@ tests/
     ├── test_thief_visibility.gd        # Criterio 4: Visibilidad y cono de detección
     ├── test_loot_weight.gd             # Criterio 5: Penalización de botín pesado
     ├── test_guard_capture.gd           # Criterio 6: Mecánica de captura por porra
-    └── test_time_clock.gd              # Criterio 7: Reloj mecánico de ronda (90s)
 ```
 
 ## Configuración

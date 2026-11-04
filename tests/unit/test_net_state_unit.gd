@@ -229,18 +229,6 @@ func test_roundtrip_escape_car() -> void:
 	assert_eq(car2.get_net_state(), s, "Roundtrip EscapeCar3D idéntico")
 
 
-func test_roundtrip_time_clock() -> void:
-	var clock1: TimeClock3D = autofree(TimeClock3D.new())
-	var clock2: TimeClock3D = autofree(TimeClock3D.new())
-	add_child_autofree(clock1)
-	add_child_autofree(clock2)
-
-	clock1.is_expired = true
-	var s: Dictionary = clock1.get_net_state()
-	clock2.apply_net_state(s)
-	assert_eq(clock2.get_net_state(), s, "Roundtrip TimeClock3D idéntico")
-
-
 func test_roundtrip_security_camera() -> void:
 	var scene: PackedScene = load("res://scenes/entities/security_camera.tscn") as PackedScene
 	var cam1: SecurityCamera3D = scene.instantiate() as SecurityCamera3D

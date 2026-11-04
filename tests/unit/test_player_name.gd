@@ -48,7 +48,7 @@ func test_huge_names_are_cheap() -> void:
 
 func test_letter_and_summary_use_the_names() -> void:
 	var lines: Array[String] = RoleBriefing84.heist_objectives(
-		false, [] as Array[String], 3, 12, 8, "—D."
+		false, [] as Array[String], 3, 12, "—D."
 	)
 	assert_string_contains(lines[0], "Con mis respetos, —D.»")
 	var players: Dictionary = {

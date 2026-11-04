@@ -15,9 +15,9 @@ func before_each() -> void:
 	LevelArchitectureBuilder.build(LevelData.load_json(FIXTURE_PATH), _root)
 
 
-## Guardia quieto en from mirando a un reloj de fichar en at; devuelve lo que enfoca
+## Guardia quieto en from mirando a un interactuable en at; devuelve lo que enfoca
 func _focus(from: Vector3, at: Vector3) -> Node3D:
-	var clock: TimeClock3D = TimeClock3D.new()
+	var clock: DummyInteractive = DummyInteractive.new()
 	var shape: CollisionShape3D = CollisionShape3D.new()
 	var box: BoxShape3D = BoxShape3D.new()
 	box.size = Vector3(0.6, 2.0, 0.4)
@@ -38,17 +38,17 @@ func _focus(from: Vector3, at: Vector3) -> Node3D:
 
 func test_open_path_focuses() -> void:
 	var target: Node3D = await _focus(Vector3(2.7, 0.05, 4.5), Vector3(4.0, 0.0, 4.5))
-	assert_true(target is TimeClock3D, "Sin nada en medio se enfoca")
+	assert_true(target is DummyInteractive, "Sin nada en medio se enfoca")
 
 
 func test_wall_blocks_interaction() -> void:
 	var target: Node3D = await _focus(Vector3(7.3, 0.05, 4.5), Vector3(8.6, 0.0, 4.5))
-	assert_null(target, "El reloj al otro lado del muro x=8 no se enfoca")
+	assert_null(target, "El interactuable al otro lado del muro x=8 no se enfoca")
 
 
 func test_partition_blocks_interaction() -> void:
 	var target: Node3D = await _focus(Vector3(3.5, 0.05, 1.3), Vector3(3.5, 0.0, 2.6))
-	assert_null(target, "El tabique T1 tapa el reloj")
+	assert_null(target, "El tabique T1 tapa el interactuable")
 
 
 func test_same_side_and_over_furniture() -> void:
@@ -62,4 +62,4 @@ func test_same_side_and_over_furniture() -> void:
 	_root.add_child(furniture)
 	furniture.global_position = Vector3(3.3, 0.75, 4.5)
 	var target: Node3D = await _focus(Vector3(2.7, 0.05, 4.5), Vector3(4.0, 0.0, 4.5))
-	assert_true(target is TimeClock3D, "Un mueble no es un muro: se enfoca")
+	assert_true(target is DummyInteractive, "Un mueble no es un muro: se enfoca")

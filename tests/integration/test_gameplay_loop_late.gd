@@ -1,6 +1,6 @@
 ## @file test_gameplay_loop_late.gd
-## Suite global de integración de Velvet Heist '84 (2/2): alarma del reloj de fichar, derrota por
-## tiempo, red autoritativa en el mapa, fugas de memoria y benchmark headless.
+## Suite global de integración de Velvet Heist '84 (2/2): derrota por tiempo, red autoritativa en el
+## mapa, fugas de memoria y benchmark headless.
 extends GutTest
 
 ## Espejo tipado de GameManager.MatchState para verificaciones asertivas
@@ -31,43 +31,6 @@ func after_each() -> void:
 		gm.set("current_loot_value", 0)
 		gm.set("has_masterpiece", false)
 		gm.set("match_timer", 600.0)
-
-
-# ------------------------------------------------------------------------------
-# Test 4: Ciclo de Alarma por Reloj de Fichar de 90s
-# ------------------------------------------------------------------------------
-
-
-func test_04_alarm_cycle_time_clock_90s() -> void:
-	var gm: Node = GameManager
-	var map: Node3D = load("res://scenes/maps/museum_v2.tscn").instantiate() as Node3D
-	add_child_autofree(map)
-	await wait_physics_frames(2)
-	gm.call("start_match")
-	await wait_physics_frames(2)
-
-	# FEAT-034: cada guardia recibe su ruta al empezar
-	var guard: GuardController3D = map.get("guards")[0]
-	var round_node: GuardRound = GuardRound.of(guard)
-	assert_eq(round_node.route.size(), 4, "Ruta de 4 relojes")
-	assert_gt(round_node.time_left, 15.0, "El primer tramo da tiempo a llegar")
-	var clock: TimeClock3D = null
-	for node: Node in map.get_tree().get_nodes_in_group(&"time_clock"):
-		if (node as TimeClock3D).clock_id == round_node.next_clock():
-			clock = node as TimeClock3D
-	assert_not_null(clock, "Su siguiente reloj está en el mapa")
-
-	# 1. Se le acaba el tramo: llega tarde y baja la banderola de ese reloj
-	round_node.step(round_node.time_left + 0.1)
-	assert_true(round_node.late, "Llega tarde")
-	await wait_physics_frames(2)
-	assert_true(clock.is_expired, "Banderola en su reloj")
-
-	# 2. Ficha en su reloj: tramo nuevo y banderola recogida
-	clock.interact(guard)
-	assert_false(round_node.late, "Al día tras fichar")
-	await wait_physics_frames(2)
-	assert_false(clock.is_expired, "Banderola recogida")
 
 
 # ------------------------------------------------------------------------------
