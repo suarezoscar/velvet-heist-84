@@ -1,6 +1,6 @@
 # El golpe: la lista del coleccionista, el café y la alerta
 
-- **Estado**: aprobado por el usuario el 2026-10-28 (decisiones tomadas en conversación). **2026-11-04, #119, pendiente de aprobación**: R9 reescrita (minijuego en la pieza, Q a lo bruto; fuera mesas de réplicas, cuadros eléctricos de las alas y panel de pilotos) y R1, R6, R7, R11, números, contrajuego y casos límite ajustados. **2026-10-30, #116**: R4, R5, R7 y R11 reescritas y R5c y R5d nuevas (fuera relojes y rondas; sueño fuera de la garita; IA de patrulla libre; correr solo con alarma). Las reglas las decidió el usuario en la entrevista de #116; los números nuevos los aprobó el 2026-11-04. **2026-11-04, #118**: «cámara vigilada» pasa a ser la cámara que está en pantalla en la mesa (una cada vez, `interaction.md` M5); R5, R6, R7 y el contrajuego ajustados.
+- **Estado**: aprobado por el usuario el 2026-10-28 (decisiones tomadas en conversación). **2026-11-04, #119, aprobado por el usuario el 2026-11-04**: R9 reescrita (todo lo necesario para robar está en la pieza: minijuego con E, Q a lo bruto; fuera las mesas de copias, cuadros eléctricos de las alas y panel de pilotos) y R1, R6, R7, R11, números, contrajuego y casos límite ajustados. **2026-10-30, #116**: R4, R5, R7 y R11 reescritas y R5c y R5d nuevas (fuera relojes y rondas; sueño fuera de la garita; IA de patrulla libre; correr solo con alarma). Las reglas las decidió el usuario en la entrevista de #116; los números nuevos los aprobó el 2026-11-04. **2026-11-04, #118**: «cámara vigilada» pasa a ser la cámara que está en pantalla en la mesa (una cada vez, `interaction.md` M5); R5, R6, R7 y el contrajuego ajustados.
 - **Origen**: rediseño pedido por el usuario el 2026-10-28 para que los guardias no acampen en un sitio y para que su turno sea divertido. Temática: `docs/decisions/2026-10-28-tematica-caballero-ladron.md`.
 - **Relacionado**: `interaction.md` (CCTV; su parte R, relojes de ronda, se retiró el 2026-10-30, #116), `vision.md` (niebla y filtro de red), `stealth.md` (percepción y ruido), `gentleman.md` (temática; sus M1-M3 quedan sustituidas por este documento), `docs/gdd/levels/museum_v2.md`.
 
@@ -31,7 +31,7 @@ Y da a los guardias un juego propio: los rastros y la alerta.
 - **Quién sabe qué**:
   - **el ladrón** conoce sus piezas desde el principio (en la tarjeta de objetivo y en su plano);
   - **los guardias** saben cuáles son las candidatas y cuántas busca el ladrón, pero no cuáles: tienen que deducirlo por las zonas que frecuenta.
-- **Robar** una pieza: E junto a ella abre el minijuego de su protección y Q la roba a lo bruto (R9, #119, pendiente de aprobación). Una pieza que no está en el encargo **no se puede robar**: el ladrón no pierde el tiempo con ella.
+- **Robar** una pieza: E junto a ella abre el minijuego de su protección y Q la roba a lo bruto (R9, #119, aprobado por el usuario el 2026-11-04). Una pieza que no está en el encargo **no se puede robar**: el ladrón no pierde el tiempo con ella.
 - Las piezas van al maletín, sin cargar en brazos. El botín pesado queda aparcado.
 - Las **cajas fuertes** (2) son candidatas: si le toca una, la pieza está dentro y hay que abrirla con el dial.
 - Desaparecen la **cuota de dinero** y la **Pieza Maestra fija**. El resto del botín del museo se retira del nivel.
@@ -127,7 +127,7 @@ w(sala) = 1 + ai_piece_weight × n(sala)
 - **Por qué**: sin rondas ya no hace falta correr para llegar a tiempo, y un guardia que corre en calma cruza el museo a 6,3 m/s. Andando (4,2 m/s), en calma el ladrón decide el ritmo; con la alarma, los guardias cierran el cerco.
 
 ### R6. Rastros
-- Cada pieza robada deja su **pedestal vacío**, salvo el cambiazo, que deja la réplica (R9b; no es rastro hasta que un guardia la examina). El de un sensor puenteado se anuncia como «sensor puenteado» (#119, pendiente de aprobación).
+- Cada pieza robada deja su **pedestal vacío**, salvo el cambiazo, que deja una falsificación (R9b; no es rastro hasta que un guardia la examina). El de un sensor puenteado se anuncia como «sensor puenteado» (#119, aprobado por el usuario el 2026-11-04).
 - Cuando un guardia lo ve, o lo ve la cámara que está en pantalla mientras alguien mira los monitores (2026-11-04, #118: las demás no ven nada, `interaction.md` M5), el rastro queda **descubierto**:
   - aparece en el plano de todo el equipo;
   - sube la alerta (R7);
@@ -147,8 +147,8 @@ w(sala) = 1 + ai_piece_weight × n(sala)
   - un guardia o una cámara vigilada (la que está en pantalla, #118) ve al ladrón: donde estaba el ladrón en ese momento (excepción a la percepción por guardia, ver `stealth.md` P2.3);
   - robo a lo bruto: en la pieza;
   - 2 rastros descubiertos: en el último rastro, nunca donde está el ladrón.
-- **Luz en el plano** (#117; #119, pendiente de aprobación: sin cuadros eléctricos que cortar): solo el ladrón ve en su plano cuánta luz da cada sala. El de los guardias enseña las lámparas siempre en estado normal: apagar una luz no se ve desde el plano, hay que ir o mirarla por la cámara en pantalla (pilar 3). Con el cursor sobre un interruptor se ven los cables a sus lámparas; desaparecen el icono del cuadro eléctrico y la mesa de copias de las leyendas.
-- **Rastros para la alarma** (#119, pendiente de aprobación): solo cuentan las piezas descubiertas (R6); los cortes de corriente desaparecen.
+- **Luz en el plano** (#117; #119: sin cuadros eléctricos que cortar): solo el ladrón ve en su plano cuánta luz da cada sala. El de los guardias enseña las lámparas siempre en estado normal: apagar una luz no se ve desde el plano, hay que ir o mirarla por la cámara en pantalla (pilar 3). Con el cursor sobre un interruptor se ven los cables a sus lámparas; desaparecen de las leyendas el icono del cuadro eléctrico y el de la mesa de copias.
+- **Rastros para la alarma** (#119): solo cuentan las piezas descubiertas (R6); los cortes de corriente desaparecen.
 
 ### R11. Informe de la noche (FEAT-041; sin relojes ni faltas desde el 2026-10-30, #116)
 - Al acabar la partida, todos los personajes se quedan quietos y el informe ocupa la pantalla: primero un sello 1,5 s («ESCAPADO», «CAPTURADO» o «AMANECE»), después el veredicto y una ficha por jugador.
@@ -172,40 +172,42 @@ w(sala) = 1 + ai_piece_weight × n(sala)
   - El chasquido suena con radio `walkie_radius` alrededor de quien habla.
   - Espera `walkie_cooldown` s entre usos.
 
-### R9. Protecciones de las piezas (reescrita el 2026-11-04, #119: **pendiente de aprobación**)
-> Regla decidida por el usuario tras el playtest (#119): en el playtest no se entendían las réplicas del taller ni el cuadro eléctrico del ala. Los números y los puntos marcados «abierto» son propuesta de `game-designer` y esperan su visto bueno.
+### R9. Protecciones de las piezas (reescrita con #119, aprobada por el usuario el 2026-11-04)
+> Regla decidida por el usuario tras el playtest (#119): no se entendía tener que ir a por una copia al taller ni el cuadro eléctrico del ala. Los números y las decisiones de abajo los aprobó el 2026-11-04.
 
-**Todo pasa en la pieza.** Cada candidata tiene una protección (una sola, como hoy). Junto a la pieza, el ladrón tiene siempre dos opciones, y nada más:
+**Regla general: todo lo necesario para robar una pieza está en la propia pieza.** Ninguna protección pide ir a buscar algo a otro sitio del mapa. Interruptores, bombillas y monedas son ayudas opcionales, nunca requisito.
+
+**Todo pasa en la pieza.** Cada candidata tiene **una sola protección**. Junto a la pieza, el ladrón tiene siempre dos opciones, y nada más:
 - **E: robar en silencio.** Abre el minijuego de su protección. Si lo completa, la pieza va al maletín sin alarma.
-- **Q: a lo bruto.** Instantáneo: suena la campana de alarma de esa sala (ruido de radio `brute_radius`) y la alerta pasa a «alarma» al momento (R7). **E nunca roba a lo bruto** (hasta ahora, E sin réplica o sin corte robaba a lo bruto: eso confundía).
+- **Q: a lo bruto.** Instantáneo: suena la campana de alarma de esa sala (ruido de radio `brute_radius`) y la alerta pasa a «alarma» al momento (R7). **E nunca roba a lo bruto** (hasta ahora, E sin copia o sin corte robaba a lo bruto: eso confundía).
 
 Reparto en `museum_v2` (FEAT-034, sin cambios): 7 de combinación (cinco vitrinas y dos cajas fuertes), 7 de presión (báscula) y 6 de sensor.
 
-**Fuera del juego** (#119): las 2 mesas de réplicas, los 4 cuadros eléctricos de alarma de las alas y el panel de pilotos de la garita. Los interruptores de luz de cada sala, el cuadro de alumbrado de Mantenimiento (que solo duplica interruptores) y desenroscar bombillas **se quedan**: apagar la luz sigue siendo la herramienta de luz del ladrón, sala a sala (R9d).
+**Fuera del juego** (#119): las 2 mesas de copias del taller y del ala este, los 4 cuadros eléctricos de alarma de las alas y el panel de pilotos de la garita. Los interruptores de luz de cada sala, el cuadro de alumbrado de Mantenimiento (que solo duplica interruptores) y desenroscar bombillas **se quedan**: apagar la luz sigue siendo la herramienta de luz del ladrón, sala a sala (R9d).
 
 | Protección | E: el minijuego | Qué deja | Contrajuego |
 |---|---|---|---|
 | **Combinación** (vitrina o caja fuerte) | «Abrir la vitrina [E]» o «Abrir la caja fuerte [E]»: **el dial de siempre** (3 números por los clics), sin cambios | La vitrina o la caja vacía: rastro normal (R6) | El rastro a la vista; los clics del dial y el ruido al fallar un número |
-| **Presión: la báscula** | «Dar el cambiazo [E]»: **la balanza** (abajo). Necesita la réplica de esa pieza, que el ladrón ya trae en la bolsa | La **réplica** en el pedestal, con su fallo (color, tamaño o pose). El pedestal parece intacto: **no es rastro** hasta que la examinan | Comparar con la ficha del plano y **examinarla** (E, `inspect_time` s): «¡Es una falsificación!» (rastro descubierto, R6) o «Auténtica» |
-| **Sensor** | «Puentear el sensor [E]»: **el piloto** (abajo) | El pedestal vacío con el puente a la vista: rastro normal (R6) que se anuncia como «sensor puenteado» | El rastro a la vista. Ver decisión abierta 1: si el puente se puede dejar puesto sin llevarse la pieza, también examinarla |
+| **Presión: la báscula** | «Dar el cambiazo [E]»: **la balanza** (abajo). No pide nada más: el ladrón trae las copias consigo, y toda pieza de báscula de su encargo admite siempre el cambiazo | Una **falsificación** en el pedestal, con su fallo (color, tamaño o pose). El pedestal parece intacto: **no es rastro** hasta que la examinan | Comparar con la ficha del plano y **examinarla** (E, `inspect_time` s): «¡Es una falsificación!» (rastro descubierto, R6) o «Auténtica» |
+| **Sensor** | «Puentear el sensor [E]»: **el piloto** (abajo) | El pedestal vacío con el puente a la vista: rastro normal (R6) que se anuncia como «sensor puenteado» | El rastro a la vista, como una vitrina vacía. Puentear y coger es una sola acción: no hay puente puesto sin pieza robada, ni nada que examinar |
 
 #### R9a. Reglas comunes de los minijuegos
 - **Duración**: 5-8 s cada uno si se hace bien (el dial, que ya existe, no se toca y dura lo que tarde el ladrón en oír los clics).
 - **Quieto**: mientras dura, el ladrón no anda; las teclas que usa el minijuego no lo mueven (como en el dial).
 - **Cancelar**: lo cancela alejarse más de `task_leash` m (un empujón), cualquier tecla de movimiento que el minijuego no use, Esc, un golpe de porra o la captura. Cancelar no hace ruido y no gasta nada: se vuelve a empezar de cero.
-- **Fallar**: suena un ruido mecánico de radio `fail_noise_radius` (el mismo que fallar un número del dial) y se reintenta al momento. **Fallar nunca hace saltar la alarma** ni gasta la réplica.
+- **Fallar**: suena un ruido mecánico de radio `fail_noise_radius` (el mismo que fallar un número del dial) y se reintenta al momento. **Fallar nunca hace saltar la alarma**.
 - **Trabajar se oye un poco** (pilar 2): cada minijuego hace un ruido suave de radio `work_noise_radius` mientras dura (el crujido de la balanza, el chasquido del puente), como los clics del dial. Al terminar, la pieza sale con el ruido suave de siempre (2,5 m).
 - **Q en mitad de un minijuego**: lo abandona y roba a lo bruto (con alarma).
-- **A la vista**: el ladrón trabajando se ve y se oye como siempre; el minijuego no lo esconde.
+- **A la vista**: el ladrón trabajando se ve y se oye como siempre; el minijuego no lo esconde. Si lo ven a mitad, salta la alarma como siempre que lo ven (R7), pero puede terminarlo y la pieza sale en silencio.
 
 #### R9b. La báscula: «Dar el cambiazo»
-- **Las réplicas**: el ladrón empieza con **una réplica por cada pieza de báscula de su encargo**, y cada una es la de su pieza (la del Busto solo sirve para el Busto). El HUD lo dice como «2 réplicas en la bolsa» y la lista del encargo marca cada pieza de báscula con «réplica en la bolsa». Con 0 piezas de báscula, no hay réplicas ni línea. Una réplica solo se gasta al completar el cambiazo.
-- **El minijuego**: el ladrón **mantiene E** para deslizar la réplica sobre la báscula mientras saca el original. Una barra de progreso se llena en `swap_time` s mientras E siga pulsada.
+- **Las copias**: no son un objeto. No hay inventario, contador ni marca en la lista del encargo, y el HUD no dice nada de copias: en la pieza solo «Dar el cambiazo [E]» y «A lo bruto [Q]: salta la alarma».
+- **El minijuego**: el ladrón **mantiene E** para deslizar la copia sobre la báscula mientras saca el original. Una barra de progreso se llena en `swap_time` s mientras E siga pulsada.
   - Una **aguja** de báscula se va hacia un lado o hacia el otro (cambia de sentido al azar cada `needle_flip_min`-`needle_flip_max` s) y cada vez más deprisa a medida que avanza el cambiazo (el peso pasa de una pieza a otra).
   - Con **← →** (o A D) el ladrón la empuja de vuelta, a `needle_correct_speed`.
   - Si la aguja **sale de la franja verde**, falla: ruido de fallo, la aguja vuelve al centro y el progreso a 0.
-  - **Soltar E** (abierto, decisión 3): propuesta, pausa sin ruido; el progreso se queda, pero la aguja sigue yéndose, así que no sirve para descansar.
-- **El fallo de la réplica**: se sortea al completar el cambiazo, como hoy (color, tamaño o pose), y es lo que un guardia puede notar comparando con la ficha del plano.
+  - **Soltar E** pausa sin ruido: el progreso se queda, pero la aguja sigue yéndose, así que no sirve para descansar.
+- **El fallo de la falsificación**: se sortea al completar el cambiazo, como hoy (color, tamaño o pose), y es lo que un guardia puede notar comparando con la ficha del plano.
 
 ```
 d(p) = needle_drift_start + (needle_drift_end − needle_drift_start) × p
@@ -220,7 +222,7 @@ t_reacción = (needle_green_half − |a|) / d(p)
 | `needle_drift_start`, `needle_drift_end` | Velocidad de la aguja al empezar y al acabar | `steal_minigames.tres` (nuevo) |
 | `needle_green_half` | Media anchura de la franja verde | `steal_minigames.tres` |
 
-Rango: con los valores propuestos (0,15 → 0,40 por s; franja ±0,35), desde el centro hay 2,3 s para reaccionar al empezar y 0,9 s al final; el ladrón corrige a 0,9 por s, más del doble de lo que se va la aguja, así que siempre se puede salvar si se reacciona. Ejemplo: a mitad del cambiazo (`p` = 0,5, 3 s), `d` = 0,275 por s; con la aguja en +0,10 y yéndose hacia fuera, quedan (0,35 − 0,10) / 0,275 = 0,9 s antes de fallar.
+Rango: con los valores aprobados (0,15 → 0,40 por s; franja ±0,35), desde el centro hay 2,3 s para reaccionar al empezar y 0,9 s al final; el ladrón corrige a 0,9 por s, más del doble de lo que se va la aguja, así que siempre se puede salvar si se reacciona. Ejemplo: a mitad del cambiazo (`p` = 0,5, 3 s), `d` = 0,275 por s; con la aguja en +0,10 y yéndose hacia fuera, quedan (0,35 − 0,10) / 0,275 = 0,9 s antes de fallar.
 
 #### R9c. El sensor: «Puentear el sensor»
 - Junto a la pieza, un **piloto** del sensor se enciende y se apaga solo: encendido `pilot_on_min`-`pilot_on_max` s (al azar, para que no se pueda contar a ciegas) y apagado `pilot_off_time` s.
@@ -239,26 +241,26 @@ T ≈ bridge_hits × t_on + (bridge_hits − 1) × pilot_off_time + r
 | `bridge_hits` | Aciertos seguidos | `steal_minigames.tres` |
 | `r` | Reacción del jugador al ver el piloto apagarse (~0,25-0,45 s) | jugador |
 
-Rango: con los valores propuestos (1,2-1,8 s encendido, 0,5 s apagado, 3 aciertos), `T` va de 4,9 a 6,9 s; cada fallo añade unos 2 s. Ejemplo: t_on medio 1,5 s y r = 0,3 s: 3 × 1,5 + 2 × 0,5 + 0,3 = 5,8 s.
+Rango: con los valores aprobados (1,2-1,8 s encendido, 0,5 s apagado, 3 aciertos), `T` va de 4,9 a 6,9 s; cada fallo añade unos 2 s. Ejemplo: t_on medio 1,5 s y r = 0,3 s: 3 × 1,5 + 2 × 0,5 + 0,3 = 5,8 s.
 
 #### R9d. Luz, sin cuadros eléctricos
 - Desaparece «cortar la corriente de un ala»: ya no apaga las luces de un ala de golpe ni enciende un piloto en la garita. El ladrón apaga la luz sala a sala con los interruptores (y el cuadro de alumbrado de Mantenimiento) o desenroscando bombillas, como hasta ahora.
 - Las luces de alarma (R7) se encienden en cualquier sala: ya no hay alas sin corriente que no respondan.
 - Un corte ya no es un rastro (antes contaba al verlo en el panel o al llegar al ala a oscuras). Lo que cuenta para la alerta (R7) son solo los rastros de las piezas.
 
-- **Una réplica sin descubrir no es rastro**: el pedestal parece intacto. Es la jugada elegante del caballero, y la única que no deja rastro a la vista; por eso es la que pide el minijuego más fino.
+- **Una falsificación sin descubrir no es rastro**: el pedestal parece intacto. Es la jugada elegante del caballero, y la única que no deja rastro a la vista; por eso es la que pide el minijuego más fino.
 - Un guardia que examina una pieza auténtica pierde el tiempo. No compensa revisarlo todo a ciegas.
 
 #### R9e. A lo bruto (Q) en cada protección
 | Pieza | Q |
 |---|---|
 | Vitrina (combinación) | Rompe el cristal y coge la pieza: campana y alarma |
-| Caja fuerte (combinación) | No se puede (como hoy): no se rompe a lo bruto. Abierto: decisión 2 |
-| Báscula | Coge la pieza sin dejar nada: campana y alarma. La réplica se queda en la bolsa sin uso |
+| Caja fuerte (combinación) | No se puede: no se rompe a lo bruto, y la segunda línea dice «La caja fuerte no se puede forzar» |
+| Báscula | Coge la pieza sin dejar nada: campana y alarma |
 | Sensor | Coge la pieza: campana y alarma |
 | Pieza que no está en el encargo | Ni E ni Q (como hoy) |
 
-**Textos** (`estilo-de-textos.md`): en la pieza, la línea de E («Abrir la vitrina [E]», «Abrir la caja fuerte [E]», «Dar el cambiazo [E]», «Puentear el sensor [E]») y debajo, siempre que se pueda, «A lo bruto [Q]: salta la alarma».
+**Textos** (`estilo-de-textos.md`): en la pieza, la línea de E («Abrir la vitrina [E]», «Abrir la caja fuerte [E]», «Dar el cambiazo [E]», «Puentear el sensor [E]») y debajo «A lo bruto [Q]: salta la alarma» (en la caja fuerte, «La caja fuerte no se puede forzar»).
 
 ### R10. Ventilación (FEAT-034)
 - Tres redes de rejillas (servicio, oeste y este), de 3 o 4 rejillas cada una. Ninguna en la Cámara de la Pieza Maestra ni en la Garita.
@@ -303,9 +305,9 @@ Viven en `data/balance/heist_rules.tres` (`HeistRules`) salvo donde se indica ot
 | Examinar una pieza | `inspect_time` | ritmo | 1-3 s | 2 (sin cambios) |
 | Distancia que cancela un minijuego | `task_leash` (`heist_rules.tres`) | sensación | 1-2 m | 1,5 (sin cambios): como el ladrón no anda durante el minijuego, solo lo cancela un empujón o el golpe |
 
-**Minijuegos de robo (#119, propuesta pendiente de aprobación).** Viven en un recurso nuevo, `data/balance/steal_minigames.tres` (`StealMinigameRules`), para que `heist_rules.tres` no crezca más y quede junto a `safe_dial.tres`. Con #119 se borran de `heist_rules.tres` `swap_time` (pasa al recurso nuevo con otro valor), `cut_time`, `restore_time` y `pilot_sight`.
+**Minijuegos de robo (#119, aprobado por el usuario el 2026-11-04).** Viven en un recurso nuevo, `data/balance/steal_minigames.tres` (`StealMinigameRules`), para que `heist_rules.tres` no crezca más y quede junto a `safe_dial.tres`. Con #119 se borran de `heist_rules.tres` `swap_time` (pasa al recurso nuevo con otro valor), `cut_time`, `restore_time` y `pilot_sight`.
 
-| Mando | Campo | Tipo | Rango | Propuesto |
+| Mando | Campo | Tipo | Rango | Aprobado |
 |---|---|---|---|---|
 | Duración del cambiazo | `swap_time` | ritmo | 5-8 s | **6 s** (antes 2 s sin minijuego). En medio de la franja que pidió el usuario: lo bastante para sentir que la balanza se tuerce, poco para que un guardia que pasa a 10 m llegue a verlo empezar y acabar |
 | Franja verde | `needle_green_half` | curva | 0,25-0,5 | **0,35** (franja de −0,35 a +0,35 en una esfera de −1 a 1, un tercio largo de la esfera): se ve de un vistazo en la isométrica |
@@ -332,7 +334,7 @@ Viven en `data/balance/heist_rules.tres` (`HeistRules`) salvo donde se indica ot
 | Lanzar una moneda | Ladrón | Un ruido como cualquier otro | Mandar a uno solo a mirar, con el walkie |
 | Usar el walkie | Guardia | El chasquido | Saber dónde está ese guardia |
 | Salir | Ladrón | Nada antes de cruzar | Patrullar cerca de las salidas al final, sin poder cubrir las 3 |
-| Dar el cambiazo (#119) | Ladrón | 6 s de crujidos suaves junto a la pieza; después, una réplica con un fallo | Fijarse en ella, compararla con la ficha y examinarla |
+| Dar el cambiazo (#119) | Ladrón | 6 s de crujidos suaves junto a la pieza; después, una falsificación con un fallo | Fijarse en ella, compararla con la ficha y examinarla |
 | Puentear el sensor (#119) | Ladrón | Chasquidos suaves junto a la pieza; después, el pedestal vacío («sensor puenteado») | El rastro a la vista, como una vitrina vacía |
 | Fallar un minijuego (#119) | Ladrón | Un ruido mecánico de 7,5 m, como fallar el dial | Acercarse a la sala de donde viene: el ladrón está quieto en una pieza |
 | Robar a lo bruto | Ladrón | La campana y la alarma al momento | Ir todos hacia allí y cerrar las salidas de esa zona |
@@ -348,15 +350,14 @@ Viven en `data/balance/heist_rules.tres` (`HeistRules`) salvo donde se indica ot
 - **Cabezada mirando los monitores**: no puede pasar, porque en la garita el sueño se congela; si entra ya agotado, sigue dando cabezadas (no ve las cámaras en ellas) hasta que se toma el café.
 - **Alarma con un guardia agotado**: la adrenalina lo despeja (R5b) y desde entonces el sueño no sube.
 - **Se acaba el tiempo con el ladrón cruzando una salida**: aprobado: si cruza en el último tick, gana él (el escape se evalúa antes que el tiempo; la captura sigue mandando sobre el escape).
-- **Minijuegos (#119, pendiente de aprobación)**:
-  - **Un guardia lo ve a mitad de minijuego**: salta la alarma como siempre que lo ven (R7); el minijuego sigue si el ladrón no se va, y la pieza sale en silencio si lo termina (ya no hay alarma que ahorrar, pero sí el rastro: la réplica sigue sin ser rastro hasta que la examinen).
+- **Minijuegos (#119)**:
+  - **Un guardia lo ve a mitad de minijuego**: salta la alarma como siempre que lo ven (R7); el minijuego sigue si el ladrón no se va, y la pieza sale en silencio si lo termina (ya no hay alarma que ahorrar, pero sí el rastro: la falsificación sigue sin ser rastro hasta que la examinen).
   - **Se acaba la partida a mitad**: no termina nada (como `TimedTask` hoy).
-  - **La pieza de báscula se roba a lo bruto**: su réplica se queda en la bolsa sin uso; no sirve para otra pieza.
   - **Dos piezas a menos de `reach_distance`**: la E va a la que señala el cursor (`interaction.md`, selección de interactivos); el minijuego es de esa.
   - **Con red**: el servidor lleva el estado del minijuego (aguja, progreso, piloto, aciertos) y decide fallos y aciertos; el cliente del ladrón manda las teclas, como con el dial. El sorteo de la aguja y del piloto lo hace el servidor.
 
 ## Red
-- **Al ladrón**: su encargo y sus réplicas (#119), como estado privado (`#private`, igual que la caja fuerte), y el estado de su minijuego.
+- **Al ladrón**: su encargo, como estado privado (`#private`, igual que la caja fuerte), y el estado de su minijuego (#119).
 - **A los guardias**: las candidatas, el número de piezas y los rastros descubiertos. Nunca el encargo.
 - **A todos**: la alerta, los ruidos (bostezos, café, monedas, walkie) y si cada pedestal está ocupado o vacío. Estos últimos solo se dibujan si se ven, por la niebla y la memoria de `vision.md`.
 - **Al propio guardia**: su sueño, como estado privado.
@@ -370,8 +371,8 @@ Viven en `data/balance/heist_rules.tres` (`HeistRules`) salvo donde se indica ot
   - la Miniatura (taller);
   - la caja fuerte.
 - Una cafetera en la garita.
-- Protección de cada candidata (2 de combinación con la caja fuerte, 2 de presión y 2 de sensor), la mesa de réplicas en el taller (TAL), un cuadro eléctrico de alarma por ala y el panel de pilotos en la garita.
-  - #119 (pendiente de aprobación): fuera de `data/levels/museum_v2.json` las secciones `replica_tables` (2 mesas), `wings` (4 cuadros; solo los usa `PowerBox3D`) y `pilot_panel`. Las protecciones de las 20 piezas no cambian.
+- Protección de cada candidata (2 de combinación con la caja fuerte, 2 de presión y 2 de sensor), y, hasta #119, la mesa de copias del taller (TAL), un cuadro eléctrico de alarma por ala y el panel de pilotos en la garita.
+  - #119: fuera de `data/levels/museum_v2.json` las secciones `replica_tables` (2 mesas), `wings` (4 cuadros; solo los usa `PowerBox3D`) y `pilot_panel`. Las protecciones de las 20 piezas no cambian.
 - Las salidas exteriores P01, P02 y P03 marcadas como «salida».
 
 ## Qué medir
@@ -387,7 +388,7 @@ Viven en `data/balance/heist_rules.tres` (`HeistRules`) salvo donde se indica ot
 | Robos por método y fallos de minijuego (#119) | ¿Se entiende y compensa robar en silencio? | Más de la mitad de las piezas a lo bruto en 3 de 5 partidas, o más de 3 fallos por pieza de media (el minijuego es demasiado duro) |
 
 ## Estado
-#119 (2026-11-04, **pendiente de aprobación**): todo robo silencioso con E en la propia pieza y su minijuego (R9); Q, lo único a lo bruto; fuera mesas de réplicas, cuadros eléctricos de las alas y panel de pilotos. Regla del usuario; números y decisiones abiertas, propuesta.
+#119 (aprobado por el usuario el 2026-11-04, a falta de su FEAT): todo lo necesario para robar está en la pieza; robo silencioso con E y su minijuego (R9); Q, lo único a lo bruto; fuera las mesas de copias, los cuadros eléctricos de las alas y el panel de pilotos.
 #118 (2026-11-04, a falta de su FEAT): una cámara en cada sala y solo la que está en pantalla ve al ladrón (`interaction.md` parte M).
 #116 (2026-10-30, implementado el 2026-11-04): fuera relojes y rondas, sueño fuera de la garita (R5), IA de patrulla libre (R5c), correr solo con alarma (R5d) y final por tiempo para los guardias (R4).
 FEAT-034 amplía el museo: 20 candidatas, ventilación (R10), puerta de la garita (R11), 4 salidas y partida de 12 minutos; el nivel está en `docs/gdd/levels/museum_v2.md`.
@@ -410,13 +411,13 @@ Entrega 1 implementada en FEAT-028 (lista, carta, escape, condiciones de victori
 1. **Poder de la alarma**: en «alarma», los guardias pueden **encender de golpe todas las luces de un ala durante 30 s** con los interruptores que ya existen. Las puertas, con «cerrar con llave» y puertas abiertas como rastro, irán en su propio diseño más adelante.
 2. **El ladrón ve el nivel de alerta.**
 
-## Decisiones abiertas (#119, pendientes del usuario)
-1. **¿Qué deja el sensor puenteado y qué descubre el guardia?** El issue dice que un guardia que examina una pieza puenteada lo descubre, como con una réplica; pero al puentear el ladrón se lleva la pieza, y un pedestal vacío ya es rastro a la vista (R6). Opciones:
-   - A (**recomendada**): puentear y llevarse la pieza es una sola acción. Queda el pedestal vacío, rastro normal en cuanto un guardia lo ve, anunciado como «sensor puenteado». No hace falta examinar. Así la réplica sigue siendo la única jugada sin rastro, que es lo que la hace especial, y el sensor es la opción rápida sin preparar nada.
-   - B: dos pasos. El puente se queda puesto y la pieza se coge después con E, al momento. Si un guardia examina una pieza puenteada que sigue en su sitio, ve «sensor puenteado» (rastro descubierto) y quita el puente. Da juego de preparar el camino, pero añade un estado y pocos ladrones lo usarán.
-   - C: como B, pero el puente es invisible hasta examinar también con la pieza ya robada. No: un pedestal vacío se ve.
-2. **¿Q en la caja fuerte?** Hoy no se puede, y el texto «siempre A lo bruto [Q]» choca con eso. Recomendación: **sigue sin poder**; en la caja fuerte la segunda línea dice «La caja fuerte no se puede forzar». Es la única pieza que obliga al dial, y forzar una caja de 1984 en segundos no es creíble (pilar 1).
-3. **¿Soltar E en la balanza?** Opciones: pausa sin ruido con la aguja que sigue yéndose (**recomendada**: no sirve para descansar y no castiga un dedo que resbala) o cancelar y empezar de cero.
-4. **¿Cada réplica es de su pieza o vale para cualquiera?** Recomendación: **de su pieza**, por creíble y porque el fallo es de esa copia. Con genéricas, un robo a lo bruto en una báscula dejaría una réplica libre para otra, lo que da igual en la práctica (todas las básculas del encargo ya tienen la suya).
-5. **¿Cómo se cancela?** Recomendación: cualquier tecla de movimiento que el minijuego no use, y Esc (como el dial). En la balanza ← → y A D mueven la aguja, así que W S (y ↑ ↓) cancelan; en el sensor, todas.
-6. **Una protección por pieza**: hoy ninguna tiene dos y la propuesta lo mantiene (el playtest pidió legibilidad). Si algún día una pieza tiene dos (vitrina con sensor), los minijuegos irían uno detrás de otro con un solo Q para todo. Recomendación: no ahora; al backlog si se quiere.
+## Decisiones (usuario, 2026-11-04, #119, tras el playtest)
+1. **Todo está en la pieza**: lo necesario para robar una pieza está en la propia pieza; ninguna protección pide ir a buscar algo a otro sitio. Interruptores, bombillas y monedas son ayudas opcionales.
+2. E abre el minijuego de la protección; Q es lo único que roba a lo bruto. Fuera las mesas de copias, los cuadros eléctricos de las alas y el panel de pilotos.
+3. **Sensor**: puentear y coger es una sola acción; queda el pedestal vacío, rastro normal anunciado como «sensor puenteado», sin examinar.
+4. **Caja fuerte**: sigue sin poder forzarse; su segunda línea dice «La caja fuerte no se puede forzar».
+5. **Balanza**: soltar E pausa sin ruido y la aguja sigue yéndose.
+6. **Sin copias como objeto**: el ladrón las trae consigo y toda pieza de báscula del encargo admite siempre el cambiazo; el HUD no habla de copias. La falsificación conserva su fallo examinable.
+7. Una protección por pieza.
+8. Visto a mitad de minijuego, puede terminarlo y la pieza sale en silencio.
+9. Los números de R9 (`steal_minigames.tres`), como los propuso `game-designer`.

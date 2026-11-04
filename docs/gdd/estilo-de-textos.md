@@ -58,9 +58,9 @@ Las referencias son para el vocabulario y el ritmo, nunca para copiar frases.
 |---|---|---|
 | Lo que tiene que robar el ladrón | **el encargo** | la misión, los objetivos |
 | Las obras que podrían estar en el encargo (vista de los guardias) | **piezas en el punto de mira** | candidatas |
-| La copia del cambiazo | **réplica** (ladrón); **falsificación** (cuando un guardia la descubre) | pieza de pega |
-| La protección de presión | **la báscula**; robarla en silencio es **dar el cambiazo** (#119, pendiente de aprobación) | pedestal de presión |
-| Desactivar un sensor | **puentear el sensor**; el rastro, **sensor puenteado** (#119, pendiente de aprobación) | hackear, desactivar |
+| Lo que deja el cambiazo | **falsificación** (cuando un guardia la descubre); el HUD del ladrón no nombra las copias (#119) | pieza de pega, réplica |
+| La protección de presión | **la báscula**; robarla en silencio es **dar el cambiazo** (#119) | pedestal de presión |
+| Desactivar un sensor | **puentear el sensor**; el rastro, **sensor puenteado** (#119) | hackear, desactivar |
 | Robar sin desactivar la protección | **a lo bruto** | forzar sin sigilo |
 | Lo que delata un robo | **rastro** | evidencia, pista |
 | El estado de la patrulla | **alerta**: calma, sospecha, alarma | nivel de amenaza |
@@ -70,7 +70,6 @@ Las referencias son para el vocabulario y el ritmo, nunca para copiar frases.
 | La garita de los guardias | **la garita** | sala de control |
 | La radio de los guardias | **el walkie** | radio, comunicador |
 | Moverse por los conductos | **la ventilación**, **el conducto**, **la rejilla** | túnel, atajo |
-| Cortar la alarma de un ala | Sale del juego con #119 (pendiente de aprobación): **el cuadro eléctrico**, **cortar la corriente** | panel de energía |
 | Los guardias que no maneja una persona | **los lleva el ordenador** | IA, bots |
 | La pantalla técnica de F9 | **Datos de la conexión** | panel de rendimiento y red, debug |
 | Esperar a que empiece la partida en red | **la sala de espera** | lobby |
@@ -96,8 +95,7 @@ Las referencias son para el vocabulario y el ritmo, nunca para copiar frases.
 | Eres el ladrón; la IA lleva a los guardias. | Eres el ladrón. A los guardias los lleva el ordenador. | Sin «IA» |
 | Fichar Ronda Mecanica (90s restantes) [E] | Fichar en el reloj 5 [E] | Tildes, sin paréntesis técnicos |
 | Panel de rendimiento y red | Datos de la conexión (F9) | Lenguaje de jugador |
-| Coger una pieza de pega [E] | Coger una réplica [E] | Glosario |
-| Robar el Busto a lo bruto: salta la alarma [E] | Dar el cambiazo [E] · A lo bruto [Q]: salta la alarma | #119 (pendiente de aprobación): E siempre en silencio, Q siempre a lo bruto |
+| Robar el Busto a lo bruto: salta la alarma [E] | Dar el cambiazo [E] · A lo bruto [Q]: salta la alarma | #119: E siempre en silencio, Q siempre a lo bruto |
 | Las piezas candidatas llevan una marca cian | Las piezas en el punto de mira llevan una marca cian | Glosario |
 | La policia aseguro el perimetro | La central cerró el museo a tiempo. Sin novedad. | Ortografía y voz de los guardias |
 | No se pudo conectar con 1.2.3.4:7777: ERR_CANT_CONNECT | No hay respuesta en 1.2.3.4:7777. Comprueba la IP y el puerto e inténtalo de nuevo. | Sin códigos; qué hacer |
