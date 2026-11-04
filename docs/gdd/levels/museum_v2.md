@@ -26,7 +26,7 @@ La fuente de verdad del nivel es `data/levels/museum_v2.json`. Esta sección man
 - **Ventilación** (heist.md R10): red de servicio (TAL, MNT, DOCK), red oeste (GW, GSW, ANT, ARC) y red este (ORI, PAT, VES, BIB).
 - **Rondas**: retiradas el 2026-10-30 (#116). Fuera los 8 relojes y las rutas; la IA (`offline_guards`: 2) patrulla salas según sus piezas y vuelve a la garita (GAR, sala con `"guard_post": true`) a por café (`heist.md` R5 y R5c).
   - Antes (FEAT-034): 8 relojes en tres zonas (oeste R2, R4, R8; centro R1, R5; este R3, R6, R7) y una ruta de 4 por guardia.
-- **Cámaras**: 5 (CAM-4 en el Patio y CAM-5 en Arte Oriental).
+- **Cámaras**: 5 (CAM-4 en el Patio y CAM-5 en Arte Oriental). **2026-11-04, #118**: pasan a ser 20, una por sala interior menos la garita; lista propuesta en `systems/interaction.md` («Anexo: las 20 cámaras de museum_v2»), que manda sobre §6 en cuanto se apruebe.
 - **Partida**: 12 minutos (`match_minutes`).
 - **Aspecto**:
   - paredes a 3,2 m, recortadas con tramado delante del jugador local (`WallXRay`);
