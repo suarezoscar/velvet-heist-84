@@ -37,6 +37,7 @@ var _pressed_this_off: bool = false
 var _work_left: float = 0.0
 var _origin: Vector3 = Vector3.ZERO
 var _cancelled: bool = false
+var _armed: bool = false
 
 
 static func start(game_kind: Kind, who: Node3D) -> StealMinigame:
@@ -64,6 +65,13 @@ static func piece_of(who: Node3D) -> TargetPiece3D:
 			if piece.game == null or piece.game.actor == who:
 				return piece
 	return null
+
+
+## Cierra el minijuego que esté jugando who (golpe de porra, Q, desconexión)
+static func cancel_for(who: Node3D) -> void:
+	var piece: TargetPiece3D = piece_of(who)
+	if piece != null and piece.game != null:
+		piece.game = null
 
 
 ## Sin red, las teclas del ladrón local que no son movimiento: soltar E y Esc
@@ -98,7 +106,9 @@ func release() -> void:
 ## usa lo cancelan
 func steer(move: Vector2) -> void:
 	var cancels: bool = absf(move.y) >= 0.5 if kind == Kind.SWAP else move.length() >= 0.5
-	if cancels:
+	if not cancels:
+		_armed = true
+	elif _armed:  # la tecla que ya se mantenía al abrirlo no cuenta: hace falta soltarla
 		cancel()
 		return
 	_push = clampf(move.x, -1.0, 1.0) if kind == Kind.SWAP else 0.0

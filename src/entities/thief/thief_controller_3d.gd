@@ -121,6 +121,7 @@ func perform_action(action: StringName) -> bool:
 				safe.cancel_cracking()
 				result = true
 		&"force":
+			StealMinigame.cancel_for(self)  # Q sobre otra pieza también suelta el minijuego
 			var target: TargetPiece3D = HeistReach.forceable(self)
 			result = target != null and target.force(self)
 		_:
@@ -179,6 +180,7 @@ func can_use_gadgets() -> bool:
 ## Registra de forma autoritativa un impacto recibido de porra.
 ## Devuelve true si el ladrón ha sido neutralizado (2 impactos)
 func register_baton_hit() -> bool:
+	StealMinigame.cancel_for(self)  # #119: el golpe cancela el minijuego
 	baton_hits_taken += 1
 	return baton_hits_taken >= REQUIRED_HITS_TO_CAPTURE
 

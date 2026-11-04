@@ -72,7 +72,7 @@ static func heist_objectives(
 			contract,
 			"• Con todas encima, sal por cualquier puerta exterior antes de %d minutos." % minutes,
 			(
-				"• Cada pieza se roba en la propia pieza con [E]: el dial, el cambiazo o el sensor."
+				"• Cada pieza se roba allí mismo con [E]: el dial, el cambiazo o el sensor."
 				+ " A lo bruto [Q] es rápido, pero salta la alarma."
 			),
 			"• Nada de violencia: escóndete, engaña y espera tu momento. Un caballero no deja huellas.",

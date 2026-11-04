@@ -142,6 +142,7 @@ func test_bridge_completes_with_enough_hits() -> void:
 func test_bridge_any_movement_cancels() -> void:
 	for move: Vector2 in [Vector2(1, 0), Vector2(0, -1), Vector2(0.5, 0.0)]:
 		var game: StealMinigame = _game(StealMinigame.Kind.BRIDGE)
+		game.steer(Vector2.ZERO)  # soltó lo que llevaba pulsado al abrirlo
 		game.steer(move)
 		assert_eq(game.tick(0.05), StealMinigame.Result.CANCELLED, str(move))
 
