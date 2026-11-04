@@ -83,8 +83,12 @@ func _unhandled_input(event: InputEvent) -> void:
 func can_open() -> bool:
 	if GameManager.is_match_over():
 		return false
-	var dial: Control = _map.hud.safe_dial if _map != null and _map.hud != null else null
-	return dial == null or not dial.visible
+	if _map == null or _map.hud == null:
+		return true
+	for panel: Control in [_map.hud.safe_dial, _map.hud.steal_minigame]:  # allí Esc lo suelta
+		if panel != null and panel.visible:
+			return false
+	return true
 
 
 func open() -> void:

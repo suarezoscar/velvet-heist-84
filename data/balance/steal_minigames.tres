@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="StealMinigameRules" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/systems/heist/steal_minigame_rules.gd" id="1_steal"]
+
+[resource]
+script = ExtResource("1_steal")
+swap_time = 6.0
+needle_green_half = 0.35
+needle_drift_start = 0.15
+needle_drift_end = 0.4
+needle_flip_min = 0.8
+needle_flip_max = 2.0
+needle_correct_speed = 0.9
+pilot_on_min = 1.2
+pilot_on_max = 1.8
+pilot_off_time = 0.5
+bridge_hits = 3
+fail_noise_radius = 7.5
+work_noise_radius = 2.0
+work_noise_interval = 1.0

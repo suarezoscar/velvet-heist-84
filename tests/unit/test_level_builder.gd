@@ -132,7 +132,6 @@ func test_museum_v2_data_matches_design() -> void:
 	assert_eq(data.section("targets").size(), 20, "Veinte piezas candidatas")
 	assert_eq(kinds, {"combination": 7, "pressure": 7, "sensor": 6}, "Reparto de protecciones")
 	assert_eq(data.section("exits").size(), 4, "P01, P02, P03 y P38")
-	assert_eq(data.section("wings").size(), 4, "Cuatro alas con cuadro eléctrico")
 	assert_eq(data.section("vents").size(), 11, "Tres redes de ventilación")
 	assert_true(data.section("loot").is_empty(), "Sin botín suelto")
 	var garita_doors: int = 0

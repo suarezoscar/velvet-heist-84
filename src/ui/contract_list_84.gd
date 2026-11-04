@@ -49,8 +49,6 @@ static func compose(heist: HeistDirector) -> String:
 			lines.append("✔ %s" % piece.piece_name)
 		else:
 			lines.append("◆ %s · %s · %s" % [piece.piece_name, piece.room_name, hint(piece)])
-	if heist.carrying_fake:
-		lines.append("Llevas una réplica")
 	if heist.is_complete():
 		lines.append("¡A cualquier salida!")
 	return "\n".join(PackedStringArray(lines))

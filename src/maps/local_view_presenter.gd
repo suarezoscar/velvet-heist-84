@@ -78,6 +78,10 @@ func _physics_process(_delta: float) -> void:
 	# 4. Panel del dial si el ladrón local está abriendo una caja fuerte
 	if _map.hud != null and _map.hud.safe_dial != null:
 		_map.hud.safe_dial.bind(_cracking_safe())
+	# 5. Panel del minijuego de robo (#119)
+	if _map.hud != null and _map.hud.steal_minigame != null:
+		var thief: bool = _map.local_player is ThiefController3D
+		_map.hud.steal_minigame.bind(StealMinigame.piece_of(_map.local_player) if thief else null)
 
 
 ## Caja fuerte que el ladrón local está abriendo (en red, la que llega con el estado privado)

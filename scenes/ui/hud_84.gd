@@ -21,6 +21,8 @@ var noise_meter: NoiseMeter84 = null
 var cctv_feeds: CCTVFeeds84 = null
 ## Panel del dial de la caja fuerte del ladrón local (LocalViewPresenter)
 var safe_dial: SafeDial84 = null
+## Panel del minijuego de robo del ladrón local (#119, LocalViewPresenter)
+var steal_minigame: StealMinigame84 = null
 
 var _exposure_state: StringName = &""
 var _exposure_blink_timer: float = 0.0
@@ -75,6 +77,8 @@ func _ready() -> void:
 	move_child(cctv_feeds, 0)  # #118: el margen oscuro tapa el mundo, no el resto del HUD
 	safe_dial = SafeDial84.new()
 	add_child(safe_dial)
+	steal_minigame = StealMinigame84.new()
+	add_child(steal_minigame)
 
 
 func _process(delta: float) -> void:

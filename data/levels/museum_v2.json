@@ -266,13 +266,6 @@
     {"id": "T20", "name": "Ritón del toro", "pos": [9.5, 12], "protection": "sensor", "variant": "pedestal", "model": "bull_head", "size": 0.7}
   ],
   "coffee": {"pos": [40.3, 29.3], "rot_deg": 180},
-  "wings": [
-    {"id": "OESTE", "name": "Ala oeste", "rooms": ["GW", "GSW"], "circuits": [6, 7], "box": {"pos": [0.3, 30], "rot_deg": 90}},
-    {"id": "SERVICIO", "name": "Ala de servicio", "rooms": ["TAL", "MNT"], "circuits": [11, 12], "box": {"pos": [47.7, 15.6], "rot_deg": 270}},
-    {"id": "ESTE", "name": "Ala este", "rooms": ["BIB", "TAP"], "circuits": [18, 20], "box": {"pos": [65.7, 21.5], "rot_deg": 270}},
-    {"id": "ANTIGUEDADES", "name": "Ala de antigüedades", "rooms": ["ANT"], "circuits": [5], "box": {"pos": [0.3, 10.5], "rot_deg": 90}}
-  ],
-  "pilot_panel": {"pos": [34.4, 26.2]},
   "exits": [
     {"id": "P01", "pos": [24, 36], "size": [3.2, 2.0]},
     {"id": "P02", "pos": [6, 36], "size": [2.0, 2.0]},
@@ -313,10 +306,6 @@
   "spawns": {"thief": [8, 40], "guards": [[37, 26], [39, 26], [36, 28.5]]},
   "offline_guards": 2,
   "match_minutes": 12,
-  "replica_tables": [
-    {"pos": [35.4, 16.0]},
-    {"pos": [64.6, 2.0]}
-  ],
   "vents": [
     {"network": "servicio", "id": "V_TAL", "pos": [35, 24], "rot_deg": 0},
     {"network": "servicio", "id": "V_MNT", "pos": [48, 15], "rot_deg": 270},

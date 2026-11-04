@@ -1,11 +1,8 @@
 ## @file heist_builder.gd
 ## Coloca el golpe de un nivel por datos (heist.md): el HeistDirector, las piezas candidatas
 ## (sección «targets», con su protección y su variante: pedestal, vitrina o caja fuerte), las
-## salidas exteriores («exits»), los cuadros eléctricos de cada ala («wings»), la mesa de
-## réplicas («replica_tables», o una sola en «replica_table») y el panel de pilotos
-## («pilot_panel»). Cada pieza lleva su modelo, o un cuadro (PaintingArt), con su tamaño y su
-## tinte. Lo llama
-## LevelEntitiesBuilder.
+## salidas exteriores («exits»). Cada pieza lleva su modelo, o un cuadro (PaintingArt), con su
+## tamaño y su tinte. Lo llama LevelEntitiesBuilder.
 class_name HeistBuilder
 extends RefCounted
 
@@ -20,25 +17,8 @@ const COFFEE_AREA: Vector3 = Vector3(2.6, 1.8, 1.6)
 
 
 static func build(data: LevelData, props: Node3D, targets: Array) -> void:
-	var boxes: Array[PowerBox3D] = _add_wings(data, props)
 	for target: Dictionary in targets:
-		var piece: TargetPiece3D = _add_target(data, props, target)
-		for box: PowerBox3D in boxes:
-			if piece.protection == &"sensor" and box.contains(piece.position):
-				piece.power_box = box
-	var tables: Array = data.section("replica_tables").duplicate()
-	if not data.entry("replica_table").is_empty():
-		tables.append(data.entry("replica_table"))
-	for index: int in range(tables.size()):
-		var table: ReplicaTable3D = ReplicaTable3D.create()
-		if index > 0:
-			table.name = "%s%d" % [table.name, index + 1]
-		table.position = data.to_world(tables[index]["pos"])
-		props.add_child(table)
-	if not data.entry("pilot_panel").is_empty():
-		var panel: PilotPanel3D = PilotPanel3D.new()
-		panel.position = data.to_world(data.entry("pilot_panel")["pos"])
-		props.add_child(panel)
+		_add_target(data, props, target)
 	for exit_data: Dictionary in data.section("exits"):
 		var size: Array = exit_data["size"]
 		var zone: ExitZone3D = ExitZone3D.create(
@@ -74,27 +54,6 @@ static func room_name_at(data: LevelData, point: Array) -> String:
 		if data.room_rect(room).has_point(Vector2(float(point[0]), float(point[1]))):
 			return String(room.get("name", room.get("id", "")))
 	return ""
-
-
-## Un cuadro eléctrico por ala, con sus circuitos y sus salas
-static func _add_wings(data: LevelData, props: Node3D) -> Array[PowerBox3D]:
-	var boxes: Array[PowerBox3D] = []
-	for wing: Dictionary in data.section("wings"):
-		var circuits: Array[int] = []
-		circuits.assign(wing.get("circuits", []))
-		var box: PowerBox3D = PowerBox3D.create(
-			StringName(wing["id"]), String(wing["name"]), circuits
-		)
-		for room_id: Variant in wing.get("rooms", []):
-			var rect: Rect2 = data.room_rect(data.room_by_id(String(room_id)))
-			var corner: Vector3 = data.to_world([rect.position.x, rect.position.y])
-			box.areas.append(Rect2(Vector2(corner.x, corner.z), rect.size))
-		var box_data: Dictionary = wing["box"]
-		box.position = data.to_world(box_data["pos"])
-		box.rotation.y = deg_to_rad(-float(box_data.get("rot_deg", 0.0)))
-		props.add_child(box)
-		boxes.append(box)
-	return boxes
 
 
 ## Modelo de una pieza: un cuadro («painting») o un .glb de assets/models

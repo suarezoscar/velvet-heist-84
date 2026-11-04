@@ -43,11 +43,7 @@ static func tools_text(is_thief: bool, alert: AlertDirector, heist: HeistDirecto
 	var walkie: String = ControlsCatalog.keys(&"walkie")
 	if is_thief:
 		var coins: int = heist.coins_left if heist != null else 0
-		var fake: bool = heist != null and heist.carrying_fake
-		return (
-			"MONEDAS: %d  [%s]%s"
-			% [coins, ControlsCatalog.keys(&"throw_coin"), "   ·   PIEZA DE PEGA ✔" if fake else ""]
-		)
+		return "MONEDAS: %d  [%s]" % [coins, ControlsCatalog.keys(&"throw_coin")]
 	var line: String = "WALKIE [%s]" % walkie
 	if alert.level == AlertDirector.Level.ALARM:
 		if alert.flood_cooldown_left > 0.0:

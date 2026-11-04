@@ -38,6 +38,7 @@ const ACTIONS: Array[StringName] = [
 	&"dial_left",
 	&"dial_right",
 	&"dial_cancel",
+	&"interact_release",
 	&"force",
 	&"throw_coin",
 	&"walkie",

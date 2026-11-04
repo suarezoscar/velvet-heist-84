@@ -24,15 +24,13 @@ const ZOOM_STEP: float = 1.2
 const ICON_GROWTH: float = 0.35
 const HINT: String = "[M]/[TAB] CERRAR · RUEDA: ZOOM · BOTÓN CENTRAL: MOVER · [1]-[4]: CAPAS"
 ## Objetos que solo salen en el plano del ladrón
-const THIEF_ONLY: Array[StringName] = [&"copy", &"car", &"loot"]
+const THIEF_ONLY: Array[StringName] = [&"car", &"loot"]
 ## Capa de cada tipo de objeto
 const PROP_LAYER: Dictionary = {
-	&"power": &"power",
 	&"switch": &"power",
 	&"lamp": &"power",
 	&"coffee": &"places",
 	&"desk": &"places",
-	&"copy": &"places",
 	&"car": &"places",
 	&"loot": &"places",
 }

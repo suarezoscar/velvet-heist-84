@@ -90,7 +90,7 @@ static func update_marker(piece: TargetPiece3D) -> void:
 		return
 	marker.visible = not NetManager.is_dedicated_server
 	if piece.discovered:
-		marker.text = "✘"
+		marker.text = "✘ SENSOR PUENTEADO" if piece.bridged else "✘"  # #119
 		marker.modulate = DISCOVERED_COLOR
 	elif piece.inspected:
 		marker.text = "✔"

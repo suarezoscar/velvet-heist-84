@@ -86,6 +86,7 @@ func _process_local_actions() -> void:
 		perform_action(&"interact")
 	if InputMap.has_action("force") and Input.is_action_just_pressed("force"):
 		perform_action(&"force")
+	StealMinigame.poll_local(self)  # #119: soltar E pausa la balanza; Esc sale
 
 
 ## Ejecuta una acción discreta sobre el ladrón (interactuar, dial). Devuelve true si la ejecutó
@@ -96,6 +97,10 @@ func perform_action(action: StringName) -> bool:
 		stop_watching()  # FEAT-042: también mira los monitores
 		return true
 	var result: bool = false
+	var piece: TargetPiece3D = StealMinigame.piece_of(self)
+	if piece != null and action in [&"interact", &"interact_release", &"dial_cancel"]:
+		piece.minigame_action(self, action)  # #119: E, soltar E y Esc van a su pieza
+		return true
 	match action:
 		&"interact":
 			if interactor != null:
@@ -116,8 +121,8 @@ func perform_action(action: StringName) -> bool:
 				safe.cancel_cracking()
 				result = true
 		&"force":
-			var piece: TargetPiece3D = HeistReach.forceable(self)
-			result = piece != null and piece.force(self)
+			var target: TargetPiece3D = HeistReach.forceable(self)
+			result = target != null and target.force(self)
 		_:
 			result = super.perform_action(action)
 	return result
@@ -247,7 +252,10 @@ func _setup_interactor() -> void:
 ## Girando el dial de una caja fuerte, las teclas de movimiento solo mueven el dial: el ladrón
 ## se queda quieto hasta confirmar la combinación o salir con Esc
 func apply_input(input_data: Dictionary) -> void:
-	if is_cracking_safe():
+	var piece: TargetPiece3D = StealMinigame.piece_of(self)
+	if piece != null:
+		piece.steer(self, input_data.get("movement_vector", Vector2.ZERO) as Vector2)
+	if is_cracking_safe() or piece != null:
 		input_data = input_data.duplicate()
 		input_data["movement_vector"] = Vector2.ZERO
 		input_data["is_sprinting"] = false

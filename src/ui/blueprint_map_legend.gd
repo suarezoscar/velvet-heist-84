@@ -17,11 +17,7 @@ const LAYERS: Array[StringName] = [&"people", &"security", &"power", &"places"]
 const THIEF_GROUPS: Dictionary = {
 	&"people": ["TÚ Y ENCARGO", [[&"you", "TÚ"], [&"contract", "TU ENCARGO (✔ ROBADA)"]]],
 	&"security": ["SEGURIDAD Y EVENTOS", [[&"camera", "CÁMARA"], [&"alarm", "ALARMA (HACE…)"]]],
-	&"power":
-	[
-		"RED ELÉCTRICA",
-		[[&"power", "CUADRO ELÉCTRICO"], [&"switch", "INTERRUPTOR"], [&"lamp", "LÁMPARA"]]
-	],
+	&"power": ["RED ELÉCTRICA", [[&"switch", "INTERRUPTOR"], [&"lamp", "LÁMPARA"]]],
 	&"places":
 	[
 		"INSTALACIONES",
@@ -29,7 +25,6 @@ const THIEF_GROUPS: Dictionary = {
 			[&"exit", "SALIDA"],
 			[&"car", "COCHE DE HUIDA"],
 			[&"vent", "REJILLA (S / O / E)"],
-			[&"copy", "MESA DE COPIAS"],
 			[&"post", "GARITA"],
 			[&"coffee", "CAFETERA"],
 			[&"desk", "MONITORES"]
@@ -50,11 +45,7 @@ const GUARD_GROUPS: Dictionary = {
 			[&"trace", "RASTRO (FALTA)"]
 		]
 	],
-	&"power":
-	[
-		"RED ELÉCTRICA",
-		[[&"power", "CUADRO ELÉCTRICO"], [&"switch", "INTERRUPTOR"], [&"lamp", "LÁMPARA"]]
-	],
+	&"power": ["RED ELÉCTRICA", [[&"switch", "INTERRUPTOR"], [&"lamp", "LÁMPARA"]]],
 	&"places":
 	[
 		"INSTALACIONES",

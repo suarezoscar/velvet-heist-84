@@ -29,8 +29,6 @@ static func from_level(data: LevelData) -> RoomNav:
 	for target: Dictionary in data.section("targets"):
 		var side: float = float(PIECE_SIZES.get(String(target.get("variant", "pedestal")), 0.9))
 		nav._add_box(target["pos"], Vector2(side, side), 0)
-	for table: Dictionary in data.section("replica_tables"):
-		nav._add_box(table["pos"], Vector2(1.2, 0.6), 0)
 	if not data.entry("coffee").is_empty():
 		var coffee: Dictionary = data.entry("coffee")
 		nav._add_box(coffee["pos"], Vector2(2.2, 1.1), coffee.get("rot_deg", 0))

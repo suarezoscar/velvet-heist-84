@@ -19,7 +19,7 @@ const HOW_TEXT: Dictionary = {
 	&"dial": "abriendo el dial",
 	&"brute": "a lo bruto",
 	&"swap": "con el cambiazo",
-	&"power": "con la corriente cortada",
+	&"bridge": "puenteando el sensor",
 }
 
 ## Informe de la partida terminada ({} mientras se juega)

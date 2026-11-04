@@ -67,11 +67,12 @@ func test_trace_alarm_does_not_reveal_thief() -> void:
 	add_child_autofree(thief)
 	thief.add_to_group(&"thief")
 	thief.global_position = Vector3(40, 0, 40)
-	for i: int in range(2):  # RULES.alarm_traces = 2 cortes ya descubiertos
-		var box := PowerBox3D.new()
-		add_child_autofree(box)
-		box.is_cut = true
-		box.noticed = true
+	for i: int in range(2):  # RULES.alarm_traces = 2 piezas ya descubiertas
+		var piece: TargetPiece3D = TargetPiece3D.create(
+			StringName("T%d" % i), "Pieza", &"sensor", null
+		)
+		add_child_autofree(piece)
+		piece.discovered = true
 	alert._last_trace_pos = Vector3(1, 0, 1)  # el último rastro descubierto
 	alert.scan()
 	assert_eq(alert.level, AlertDirector.Level.ALARM)
