@@ -1,5 +1,5 @@
 ## Coloca las entidades de un nivel por datos (FEAT-015): lámparas, interruptores, puertas con
-## hoja (FEAT-034), botín, caja fuerte, relojes de fichar, cámaras y monitores, coche de huida,
+## hoja (FEAT-034), botín, caja fuerte, cámaras y monitores, coche de huida,
 ## apariciones y patrullas.
 ## Reutiliza las escenas de scenes/entities y los scripts de src/systems; los nombres de nodo
 ## salen de los ids del JSON, así que son iguales en servidor y clientes.
@@ -13,7 +13,6 @@ const LOOT_HEAVY_SCENE: PackedScene = preload("res://scenes/entities/loot_master
 const CAMERA_SCENE: PackedScene = preload("res://scenes/entities/security_camera.tscn")
 const MONITOR_SCENE: PackedScene = preload("res://scenes/entities/cctv_monitor.tscn")
 const SAFE_MODEL: PackedScene = preload("res://assets/models/safe_box_84.glb")
-const CLOCK_MODEL: PackedScene = preload("res://assets/models/grandfather_clock.glb")
 const CAR_MODEL: PackedScene = preload("res://assets/models/escape_car_84.glb")
 const GUARD_AI_SCRIPT: Script = preload("res://src/entities/guard/guard_ai_3d.gd")
 
@@ -54,8 +53,6 @@ static func build(data: LevelData, map: Node3D) -> Node3D:
 		_add_loot(data, props, loot)
 	if not data.entry("safe").is_empty():
 		_add_safe(data, props, data.entry("safe"))
-	for clock: Dictionary in data.section("clocks"):
-		_add_clock(data, props, clock)
 	if not data.section("rooms").is_empty():  # garita y patrulla libre (#116)
 		var patrol: GuardPatrol = GuardPatrol.new()
 		patrol.graph = RoomGraph.from_level(data)
@@ -140,18 +137,6 @@ static func _add_safe(data: LevelData, props: Node3D, safe: Dictionary) -> void:
 	node.loot_inside_scene = LOOT_LIGHT_SCENE
 	node.position = data.to_world(safe["pos"])
 	_setup_area(node, Vector3(0.8, 1.8, 0.8), SAFE_MODEL)
-	props.add_child(node)
-
-
-static func _add_clock(data: LevelData, props: Node3D, clock: Dictionary) -> void:
-	var node: TimeClock3D = TimeClock3D.new()
-	node.name = "TimeClock_%02d" % int(clock["id"])
-	node.clock_id = int(clock["id"])
-	node.zone = String(clock.get("zone", ""))
-	node.room_name = HeistBuilder.room_name_at(data, clock["pos"])
-	node.position = data.to_world(clock["pos"])
-	node.rotation.y = deg_to_rad(-float(clock.get("rot_deg", 0.0)))
-	_setup_area(node, Vector3(0.6, 2.0, 0.4), CLOCK_MODEL)
 	props.add_child(node)
 
 
@@ -252,9 +237,7 @@ static func _place_actors(data: LevelData, map: Node3D) -> void:
 			if guard_index < patrols.size():
 				_add_patrol(data, child as GuardController3D, patrols[guard_index])
 			elif guard_index < int(data.raw.get("offline_guards", 0)):
-				_add_patrol(data, child as GuardController3D, [])  # la ronda le da la patrulla
-			if not data.section("clocks").is_empty():
-				GuardRound.attach(child as GuardController3D)
+				_add_patrol(data, child as GuardController3D, [])  # patrulla libre (#116)
 			guard_index += 1
 
 

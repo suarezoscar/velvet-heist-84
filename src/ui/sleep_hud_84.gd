@@ -1,13 +1,13 @@
 ## @file sleep_hud_84.gd
-## Lo que ve el guardia local de su sueño (heist.md R5): una taza con su estado bajo la hoja
-## de ronda («☕ DESPIERTO», «SOMNOLIENTO», «AGOTADO: ¡CAFÉ!», «SIRVIENDO CAFÉ…», «DESPEJADO»,
+## Lo que ve el guardia local de su sueño (heist.md R5): una taza con su estado arriba a la
+## derecha («☕ DESPIERTO», «SOMNOLIENTO», «AGOTADO: ¡CAFÉ!», «SIRVIENDO CAFÉ…», «DESPEJADO»,
 ## «¡EL CAFÉ ESTABA DROGADO!»)
 ## y un fundido a negro durante cada cabezada. Solo se ve jugando con un guardia que tiene sueño.
 class_name SleepHud84
 extends Control
 
-## Bajo la hoja de ronda, alineado a la derecha
-const LABEL_TOP: float = 236.0
+## Arriba a la derecha (donde estaba la hoja de ronda)
+const LABEL_TOP: float = 65.0
 const LABEL_WIDTH: float = 460.0
 const NOD_ALPHA: float = 0.92
 const COLORS: Dictionary = {

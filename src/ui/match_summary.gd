@@ -1,7 +1,7 @@
 ## @file match_summary.gd
 ## Resumen de la partida para el panel de fin (FEAT-027): qué bando gana, si has ganado tú y
-## las cifras (botín, Pieza Maestra, tiempo jugado y faltas de ronda) y quién jugaba en cada
-## bando (FEAT-035). Lógica pura.
+## las cifras (botín, Pieza Maestra y tiempo jugado) y quién jugaba en cada bando (FEAT-035).
+## Lógica pura.
 class_name MatchSummary
 extends RefCounted
 
@@ -9,7 +9,7 @@ extends RefCounted
 ## Bando que gana: &"thief", &"guards" o &"" (empate o partida sin terminar)
 static func winner(state: GameManager.MatchState) -> StringName:
 	match state:
-		GameManager.MatchState.THIEF_ESCAPED, GameManager.MatchState.TIME_EXPIRED_BREACH:
+		GameManager.MatchState.THIEF_ESCAPED:
 			return &"thief"
 		GameManager.MatchState.THIEF_CAPTURED, GameManager.MatchState.TIME_EXPIRED:
 			return &"guards"
@@ -27,9 +27,7 @@ static func verdict(state: GameManager.MatchState, local_side: StringName) -> St
 
 
 ## Cifras de la partida, una por línea
-static func stats(
-	loot: int, quota: int, masterpiece: bool, elapsed: float, faults: int, allowed: int
-) -> String:
+static func stats(loot: int, quota: int, masterpiece: bool, elapsed: float) -> String:
 	var seconds: int = maxi(roundi(elapsed), 0)
 	return (
 		"\n"
@@ -39,7 +37,6 @@ static func stats(
 					"Botín: %d de %d" % [loot, quota],
 					"Pieza Maestra: %s" % ("robada" if masterpiece else "en su sitio"),
 					"Tiempo: %d:%02d" % [seconds / 60, seconds % 60],
-					"Faltas de ronda: %d de %d toleradas" % [faults, allowed],
 				]
 			)
 		)
@@ -66,8 +63,8 @@ static func players_line(players: Dictionary, own_name: String) -> String:
 	return "Ladrón: %s · Guardias: %s" % [thief_name, guard_names]
 
 
-## Cifras con encargo (heist.md): piezas robadas, cuáles eran, tiempo y faltas
-static func heist_stats(heist: HeistDirector, elapsed: float, faults: int, allowed: int) -> String:
+## Cifras con encargo (heist.md): piezas robadas, cuáles eran y tiempo
+static func heist_stats(heist: HeistDirector, elapsed: float) -> String:
 	var seconds: int = maxi(roundi(elapsed), 0)
 	var names: Array[String] = []
 	for piece_id: StringName in heist.targets:
@@ -82,7 +79,6 @@ static func heist_stats(heist: HeistDirector, elapsed: float, faults: int, allow
 					"Encargo: %d de %d piezas" % [heist.stolen.size(), heist.contract_size],
 					"  ".join(PackedStringArray(names)),
 					"Tiempo: %d:%02d" % [seconds / 60, seconds % 60],
-					"Faltas de ronda: %d de %d toleradas" % [faults, allowed],
 				]
 			)
 		)

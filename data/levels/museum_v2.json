@@ -279,16 +279,6 @@
     {"id": "P03", "pos": [44, 36], "size": [3.8, 2.0]},
     {"id": "P38", "pos": [55, 36], "size": [3.2, 2.0]}
   ],
-  "clocks": [
-    {"id": 1, "pos": [36, 24.2], "rot_deg": 180, "zone": "centro"},
-    {"id": 2, "pos": [0.2, 6], "rot_deg": 90, "zone": "oeste"},
-    {"id": 3, "pos": [47.8, 2], "rot_deg": 270, "zone": "este"},
-    {"id": 4, "pos": [0.2, 26], "rot_deg": 90, "zone": "oeste"},
-    {"id": 5, "pos": [31.8, 33], "rot_deg": 270, "zone": "centro"},
-    {"id": 6, "pos": [57, 0.2], "rot_deg": 180, "zone": "este"},
-    {"id": 7, "pos": [65.8, 28], "rot_deg": 270, "zone": "este"},
-    {"id": 8, "pos": [16.2, 23], "rot_deg": 90, "zone": "oeste"}
-  ],
   "cameras": [
     {"id": "CAM-1", "pos": [31.5, 26.5], "yaw_deg": 225, "label": "VESTÍBULO"},
     {"id": "CAM-2", "pos": [16.5, 25.5], "yaw_deg": 45, "label": "ROTONDA"},

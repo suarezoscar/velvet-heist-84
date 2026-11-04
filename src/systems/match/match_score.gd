@@ -28,8 +28,6 @@ static func thief(report: Dictionary, rules: ScoreRules = RULES) -> Dictionary:
 static func guard(report: Dictionary, rules: ScoreRules = RULES) -> Dictionary:
 	return _sum(
 		[
-			_line("Relojes fichados", int(report.get("clocks", 0)), rules.guard_clock),
-			_line("Faltas de ronda", int(report.get("faults", 0)), rules.guard_fault),
 			_line("Veces que vio al ladrón", int(report.get("seen", 0)), rules.guard_seen),
 			_line("Golpes de porra", int(report.get("hits", 0)), rules.guard_hit),
 			_line("Captura", 1 if bool(report.get("capture", false)) else 0, rules.guard_capture),

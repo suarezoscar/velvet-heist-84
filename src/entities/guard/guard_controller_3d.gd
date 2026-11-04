@@ -49,7 +49,7 @@ var stamina_drain_rate: float = 35.0
 var stamina_recovery_rate: float = 20.0
 var baton_cooldown: float = 0.0
 
-## Componente modular de interacción (para relojes de fichar y puertas)
+## Componente modular de interacción (para puertas y cafetera)
 var interactor: Interactor3D = null
 
 ## Propiedad de conveniencia para que el HUD consulte el interactuable enfocado

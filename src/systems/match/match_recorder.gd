@@ -3,7 +3,7 @@
 ## servidor o la partida sin red) mira cada fotograma cuándo empieza cada guardia a ver al
 ## ladrón (perderlo menos de SEEN_GAP s no cuenta otra vez) y cuándo da una cabezada; lo demás
 ## lo cuentan sus sistemas (HeistDirector.stolen_how, AlertDirector.alarm_triggers,
-## GuardRound.punched, los golpes y la captura en metadatos del guardia). Al acabar monta el
+## los golpes y la captura en metadatos del guardia). Al acabar monta el
 ## informe y lo reparte con el resto del estado (grupo net_state); antes no manda nada.
 class_name MatchRecorder
 extends Node
@@ -86,7 +86,6 @@ func build_report() -> Dictionary:
 	var index: int = 0
 	for guard: GuardController3D in _guards():
 		index += 1
-		var round_node: GuardRound = guard.get_node_or_null("Round") as GuardRound
 		var seen: int = int(_seen.get(String(guard.name), 0))
 		seen_total += seen
 		(
@@ -94,8 +93,6 @@ func build_report() -> Dictionary:
 			. append(
 				{
 					"name": _guard_name(index),
-					"clocks": round_node.punched if round_node != null else 0,
-					"faults": round_node.faults if round_node != null else 0,
 					"seen": seen,
 					"hits": int(guard.get_meta(HITS_META, 0)),
 					"capture": bool(guard.get_meta(CAPTURE_META, false)),

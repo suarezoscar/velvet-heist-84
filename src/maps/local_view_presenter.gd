@@ -106,11 +106,6 @@ func _update_cctv_feeds() -> void:
 		cameras.assign(get_tree().get_nodes_in_group(&"security_camera"))
 		hud.cctv_feeds.setup(cameras)
 	hud.cctv_feeds.visible = watching
-	if hud.round_sheet != null:
-		var below_feeds: bool = watching and hud.cctv_feeds.panel_count() > 0
-		hud.round_sheet.offset_top = (
-			hud.cctv_feeds.feed_rect(0).end.y + 12.0 if below_feeds else RoundSheet84.TOP
-		)
 
 
 func _attach_markers() -> void:

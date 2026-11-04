@@ -43,8 +43,6 @@ static func guard(data: Dictionary, number: int, best: bool) -> MatchReportCard8
 	)
 	var box: VBoxContainer = card.get_meta(&"box")
 	var facts: PackedStringArray = [
-		"Relojes: %d" % int(data.get("clocks", 0)),
-		"Faltas: %d" % int(data.get("faults", 0)),
 		"Vio al ladrón: %s" % _times(int(data.get("seen", 0))),
 	]
 	box.add_child(_body(" · ".join(facts), MenuTheme84.TEXT))

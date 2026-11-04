@@ -2,8 +2,7 @@
 ## Grafo de salas y puertas de un nivel (FEAT-034), en coordenadas del diseño (x, z). Da el
 ## camino entre dos puntos cruzando por los huecos de las puertas, con un punto a cada lado de
 ## cada hueco para no rozar las esquinas, y dentro de cada sala rodeando los muebles (RoomNav).
-## Lo usan las rutas de fichaje (RoundPlanner) para medir los tramos y para las patrullas de la
-## IA.
+## Lo usan la patrulla libre (GuardPatrol) y la IA de los guardias.
 class_name RoomGraph
 extends RefCounted
 
@@ -25,7 +24,7 @@ static func from_level(level: LevelData) -> RoomGraph:
 		var a: String = String(door["a"])
 		var b: String = String(door["b"])
 		if graph._exterior(a) or graph._exterior(b):
-			continue  # las rondas van por dentro del edificio
+			continue  # las patrullas van por dentro del edificio
 		var pos: Vector2 = Vector2(float(door["pos"][0]), float(door["pos"][1]))
 		var horizontal: bool = LevelArchitectureBuilder._door_axis(level, door) == "H"
 		var normal: Vector2 = Vector2(0.0, 1.0) if horizontal else Vector2(1.0, 0.0)
