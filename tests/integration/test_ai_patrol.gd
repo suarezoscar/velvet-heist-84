@@ -44,7 +44,8 @@ func test_ai_guard_patrols_and_changes_room() -> void:
 	var rooms: Dictionary = {}
 	var travelled: float = 0.0
 	var last: Vector3 = guard.global_position
-	for _second: int in range(60):
+	# Ahora pasa junto a cada pieza de la sala: una sala con muchas tarda más (R5c)
+	for _second: int in range(120):
 		await wait_physics_frames(60)
 		var pos: Vector3 = guard.global_position
 		travelled += Vector2(pos.x - last.x, pos.z - last.z).length()

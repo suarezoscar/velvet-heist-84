@@ -4,6 +4,17 @@ extends GutTest
 
 const MAP_SCENE: PackedScene = preload("res://scenes/maps/museum_v2.tscn")
 
+var _saved_state: GameManager.MatchState
+
+
+## El mapa arranca la partida: se devuelve el estado para no afectar a otros tests
+func before_each() -> void:
+	_saved_state = GameManager.current_state
+
+
+func after_each() -> void:
+	GameManager.current_state = _saved_state
+
 
 func _sprint_guard() -> GuardController3D:
 	var map: HeistMap3D = MAP_SCENE.instantiate() as HeistMap3D
