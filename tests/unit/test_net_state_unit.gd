@@ -81,12 +81,15 @@ func test_perform_action_strike() -> void:
 	add_child_autofree(guard)
 	add_child_autofree(thief)
 	guard.baton_cooldown = 0.0
+	var saved: GameManager.MatchState = GameManager.current_state
+	GameManager.current_state = GameManager.MatchState.IN_PROGRESS  # acabada no se golpea (#120)
 
 	var hit: bool = guard.perform_action(&"strike")
 	assert_true(hit, "Golpe conecta con el ladrón dentro de rango")
 
 	var spam_hit: bool = guard.perform_action(&"strike")
 	assert_false(spam_hit, "Golpe inmediato durante cooldown es rechazado")
+	GameManager.current_state = saved
 
 
 func test_perform_action_dial_actions() -> void:

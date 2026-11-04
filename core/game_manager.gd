@@ -47,6 +47,8 @@ var current_state: MatchState = MatchState.LOBBY
 
 ## Encargo del coleccionista del nivel (heist.md); null en los mapas con cuota y Pieza Maestra
 var heist: HeistDirector = null
+## Tick de física en que acabó la partida (end_match)
+var _ended_frame: int = -1
 
 
 func _ready() -> void:
@@ -127,7 +129,13 @@ func start_match() -> void:
 
 
 ## Finaliza la partida con el estado correspondiente
+## Una vez acabada no cambia (#120: un golpe tras la huida no la convierte en captura), salvo
+## una captura en el mismo tick del final (captura > huida > rejas > tiempo, heist.md R7b)
 func end_match(final_state: MatchState) -> void:
+	var frame: int = Engine.get_physics_frames()
+	if is_match_over() and (final_state != MatchState.THIEF_CAPTURED or frame != _ended_frame):
+		return
+	_ended_frame = frame
 	current_state = final_state
 	print("[GameManager] Fin de la partida. Estado final: %s" % MatchState.keys()[final_state])
 

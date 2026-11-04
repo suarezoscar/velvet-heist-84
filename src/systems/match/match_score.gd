@@ -55,7 +55,7 @@ static func partial_result(report: Dictionary, rules: ScoreRules = RULES) -> Dic
 		var sum: int = 0
 		for entry: Dictionary in guards:
 			sum += int(guard(entry, rules)["total"])
-		guards_total = roundi(float(sum) / guards.size())
+		guards_total = floori(float(sum) / guards.size() + 0.5)  # los ,5 hacia arriba (R4b)
 	var winner: StringName = &""
 	if thief_total > guards_total:
 		winner = &"thief"
