@@ -23,7 +23,8 @@ const LABEL_COLOR: Color = Color("b8e6c1")
 const LABEL_OFFSET: Vector2 = Vector2(16.0, 10.0)
 ## Ruido del shader en la imagen normal y durante la nieve del cambio
 const NOISE: float = 0.08
-const SNOW_NOISE: float = 0.5
+const SNOW_NOISE: float = 1.4
+const SNOW_TINT: Color = Color(0.22, 0.26, 0.22)
 
 var _feeds: Array[Feed] = []
 var _backdrop: ColorRect = null
@@ -39,6 +40,7 @@ class Feed:
 	var label: Label = null
 	var style: StyleBoxFlat = null
 	var material: ShaderMaterial = null
+	var picture: TextureRect = null
 	var alert: bool = false
 
 
@@ -63,7 +65,7 @@ func _process(delta: float) -> void:
 	if _snow_left > 0.0:
 		_snow_left = maxf(0.0, _snow_left - delta)
 		if _snow_left == 0.0 and _shown >= 0:
-			_feeds[_shown].material.set_shader_parameter(&"noise_intensity", NOISE)
+			_snow(_feeds[_shown], false)
 	for feed: Feed in _feeds:
 		if is_instance_valid(feed.camera):
 			_set_alert(feed, feed.camera.is_alert_active)
@@ -99,7 +101,7 @@ func show_index(index: int) -> void:
 		_feeds[i].root.visible = i == index
 	if had_one:
 		_snow_left = RULES.switch_time
-		_feeds[index].material.set_shader_parameter(&"noise_intensity", SNOW_NOISE)
+		_snow(_feeds[index], true)
 	_update_rendering()
 
 
@@ -185,6 +187,7 @@ func _build_feed(camera: SecurityCamera3D) -> Feed:
 	feed.material.set_shader_parameter(&"noise_intensity", NOISE)
 	picture.material = feed.material
 	feed.root.add_child(picture)
+	feed.picture = picture
 
 	feed.label = Label.new()
 	feed.label.name = "Caption"
@@ -206,6 +209,12 @@ func _build_feed(camera: SecurityCamera3D) -> Feed:
 	feed.root.add_child(frame)
 	_apply_frame(feed)
 	return feed
+
+
+## Nieve del cambio de cámara: la imagen se apaga casi entera y se llena de ruido
+func _snow(feed: Feed, on: bool) -> void:
+	feed.material.set_shader_parameter(&"noise_intensity", SNOW_NOISE if on else NOISE)
+	feed.picture.self_modulate = SNOW_TINT if on else Color.WHITE
 
 
 func _set_alert(feed: Feed, alert: bool) -> void:
