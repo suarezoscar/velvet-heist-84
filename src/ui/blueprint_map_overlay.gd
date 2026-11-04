@@ -53,6 +53,7 @@ var _time: float = 0.0
 
 func _ready() -> void:
 	visible = false
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS  # siluetas reducidas, sin dientes
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_process_unhandled_input(true)
 
@@ -235,17 +236,19 @@ func _draw_pieces(thief_view: bool) -> void:
 				continue
 			var pink: Color = TeamMarker3D.THIEF_COLOR
 			ICONS.glow(self, pos, pink, 20.0, 0.5)
-			ICONS.glyph(self, pos, "✔" if heist.stolen.has(piece.piece_id) else "◆", 24, pink)
+			ICONS.piece(self, pos, &"cut_diamond", pink)
+			if heist.stolen.has(piece.piece_id):
+				ICONS.glyph(self, pos + Vector2(9.0, -9.0), "✔", 18, ICONS.COLOR_OK)
 			ICONS.text(self, pos + Vector2(15.0, 7.0), piece.piece_name, 17, pink)
 			continue
-		var icon: String = ICONS.PROTECTION_ICONS.get(piece.protection, "◆")
+		var icon: StringName = ICONS.PROTECTION_SPRITES.get(piece.protection, &"cut_diamond")
 		var color: Color = TeamMarker3D.GUARD_COLOR
 		if piece.discovered:
-			icon = "✘"
+			icon = &"cross_mark"
 			color = ICONS.COLOR_ALARM
 		elif piece.inspected:
 			color = ICONS.COLOR_OK
-		ICONS.glyph(self, pos, icon, 22, color)
+		ICONS.piece(self, pos, icon, color)
 
 
 func _draw_pings() -> void:

@@ -103,20 +103,19 @@ static func _icon(on: CanvasItem, kind: StringName, at: Vector2, thief_view: boo
 		&"you":
 			ICONS.you(on, at + Vector2(0.0, 3.0), Vector2.UP, 1.0, false)
 		&"mate":
-			ICONS.badge(on, at, TeamMarker3D.GUARD_COLOR)
+			ICONS.badge(on, at, TeamMarker3D.GUARD_COLOR, &"police_officer_head")
 		&"contract":
-			ICONS.glyph(on, at, "◆", 20, TeamMarker3D.THIEF_COLOR)
+			ICONS.sticker(on, at, &"cut_diamond", 20.0, TeamMarker3D.THIEF_COLOR)
 		&"combination", &"pressure", &"sensor":
-			ICONS.glyph(on, at, ICONS.PROTECTION_ICONS[kind], 20, own)
+			ICONS.sticker(on, at, ICONS.PROTECTION_SPRITES[kind], 20.0, own)
 		&"trace":
-			ICONS.glyph(on, at, "✘", 20, ICONS.COLOR_ALARM)
+			ICONS.sticker(on, at, &"cross_mark", 20.0, ICONS.COLOR_ALARM)
 		&"vent":
 			ICONS.vent(on, at, "")
 		&"camera":
 			ICONS.camera(on, at)
 		&"exit":
-			on.draw_line(at - Vector2(11.0, 0.0), at + Vector2(11.0, 0.0), ICONS.COLOR_OUTLINE, 9.0)
-			on.draw_line(at - Vector2(10.0, 0.0), at + Vector2(10.0, 0.0), ICONS.COLOR_OK, 5.0)
+			ICONS.exit_door(on, at)
 		&"post":
 			var square: Rect2 = Rect2(at - Vector2(11.0, 8.0), Vector2(22.0, 16.0))
 			on.draw_rect(square, Color(ICONS.COLOR_POST, 0.35))
@@ -126,6 +125,6 @@ static func _icon(on: CanvasItem, kind: StringName, at: Vector2, thief_view: boo
 		&"alarm":
 			ICONS.alarm(on, at, -1.0)
 		&"lamp":
-			on.draw_circle(at, 5.0, Color(ICONS.COLOR_POWER, 0.6))
+			ICONS.sticker(on, at, &"light_bulb", 18.0, Color(ICONS.COLOR_POWER, 0.8))
 		_:
 			PROPS.icon(on, kind, at)

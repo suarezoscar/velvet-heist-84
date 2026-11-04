@@ -58,7 +58,7 @@ static func icon(on: CanvasItem, kind: StringName, pos: Vector2, prop: Node3D = 
 		&"coffee":
 			ICONS.cup(on, pos, ICONS.COLOR_POST)
 		&"desk":
-			ICONS.badge(on, pos, ICONS.COLOR_DESK, "TV")
+			ICONS.badge(on, pos, ICONS.COLOR_DESK, &"tv")
 		&"power":
 			ICONS.power(on, pos, prop != null and (prop as PowerBox3D).is_cut)
 		&"switch":
@@ -66,11 +66,11 @@ static func icon(on: CanvasItem, kind: StringName, pos: Vector2, prop: Node3D = 
 		&"lamp":
 			ICONS.lamp(on, pos, prop == null or (prop as Lamp3D).is_lit())
 		&"copy":
-			ICONS.badge(on, pos, ICONS.COLOR_COPY, "C")
+			ICONS.badge(on, pos, ICONS.COLOR_COPY, &"easel")
 		&"car":
 			ICONS.car(on, pos)
 		&"loot":
-			ICONS.badge(on, pos, ICONS.COLOR_LOOT, "$")
+			ICONS.badge(on, pos, ICONS.COLOR_LOOT, &"coins")
 
 
 ## Cables: con el cursor sobre un interruptor o un cuadro eléctrico, líneas a sus lámparas

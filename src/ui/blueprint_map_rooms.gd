@@ -109,6 +109,7 @@ static func draw_doors(on: CanvasItem, data: LevelData, to_map: Callable, scale:
 		if exits.has(String(door["id"])):
 			on.draw_line(pos - along, pos + along, ICONS.COLOR_OUTLINE, 10.0)
 			on.draw_line(pos - along, pos + along, ICONS.COLOR_OK, 6.0)
+			ICONS.exit_door(on, pos + Vector2(-34.0, 21.0), 18.0)
 			ICONS.text_centered(on, pos + Vector2(0.0, 28.0), "SALIDA", 18, ICONS.COLOR_OK)
 		elif door.has("leaf"):
 			on.draw_line(pos - along, pos + along, ICONS.COLOR_POST, 3.0)

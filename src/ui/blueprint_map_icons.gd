@@ -22,8 +22,34 @@ const COLOR_COPY: Color = Color("b98cff")
 const COLOR_LOOT: Color = Color("ffc93d")
 const BADGE: float = 11.0
 const FONT: FontFile = MenuTheme84.FONT_DISPLAY
+## Siluetas blancas de game-icons.net (CC BY 3.0, créditos en assets/ui/map_icons/CREDITS.md):
+## se tiñen al dibujarlas
+const SPRITES: Dictionary = {
+	&"cctv_camera": preload("res://assets/ui/map_icons/cctv_camera.svg"),
+	&"city_car": preload("res://assets/ui/map_icons/city_car.svg"),
+	&"coffee_cup": preload("res://assets/ui/map_icons/coffee_cup.svg"),
+	&"coins": preload("res://assets/ui/map_icons/coins.svg"),
+	&"cross_mark": preload("res://assets/ui/map_icons/cross_mark.svg"),
+	&"cut_diamond": preload("res://assets/ui/map_icons/cut_diamond.svg"),
+	&"dial_padlock": preload("res://assets/ui/map_icons/dial_padlock.svg"),
+	&"easel": preload("res://assets/ui/map_icons/easel.svg"),
+	&"exit_door": preload("res://assets/ui/map_icons/exit_door.svg"),
+	&"floor_hatch": preload("res://assets/ui/map_icons/floor_hatch.svg"),
+	&"eye_target": preload("res://assets/ui/map_icons/eye_target.svg"),
+	&"light_bulb": preload("res://assets/ui/map_icons/light_bulb.svg"),
+	&"police_officer_head": preload("res://assets/ui/map_icons/police_officer_head.svg"),
+	&"power_lightning": preload("res://assets/ui/map_icons/power_lightning.svg"),
+	&"radar_sweep": preload("res://assets/ui/map_icons/radar_sweep.svg"),
+	&"ringing_bell": preload("res://assets/ui/map_icons/ringing_bell.svg"),
+	&"toggles": preload("res://assets/ui/map_icons/toggles.svg"),
+	&"tv": preload("res://assets/ui/map_icons/tv.svg"),
+	&"walkie_talkie": preload("res://assets/ui/map_icons/walkie_talkie.svg"),
+	&"weight": preload("res://assets/ui/map_icons/weight.svg"),
+}
 ## Icono de cada protección en las fichas de los guardias
-const PROTECTION_ICONS: Dictionary = {&"combination": "◎", &"pressure": "▣", &"sensor": "ϟ"}
+const PROTECTION_SPRITES: Dictionary = {
+	&"combination": &"dial_padlock", &"pressure": &"weight", &"sensor": &"eye_target"
+}
 
 
 ## Texto con contorno oscuro (se lee encima de cualquier cosa)
@@ -51,15 +77,32 @@ static func glyph(on: CanvasItem, pos: Vector2, label: String, size: int, color:
 	on.draw_string(font, at, label, HORIZONTAL_ALIGNMENT_LEFT, -1, size, color)
 
 
-## Chapa redonda: borde oscuro, relleno y aro claro; letra opcional en el centro
-static func badge(on: CanvasItem, pos: Vector2, fill: Color, letter: String = "") -> void:
+## Silueta sprite centrada en pos, de size píxeles y teñida de color
+static func sprite(
+	on: CanvasItem, pos: Vector2, kind: StringName, size: float, color: Color
+) -> void:
+	var texture: Texture2D = SPRITES.get(kind) as Texture2D
+	if texture != null:
+		var rect: Rect2 = Rect2(pos - Vector2(size, size) * 0.5, Vector2(size, size))
+		on.draw_texture_rect(texture, rect, false, color)
+
+
+## Pegatina: la silueta con un borde oscuro grueso alrededor
+static func sticker(
+	on: CanvasItem, pos: Vector2, kind: StringName, size: float, color: Color
+) -> void:
+	for i: int in range(8):
+		sprite(on, pos + Vector2.RIGHT.rotated(TAU * i / 8.0) * 2.5, kind, size, COLOR_OUTLINE)
+	sprite(on, pos, kind, size, color)
+
+
+## Chapa redonda: borde oscuro, relleno y aro claro, con la silueta kind en oscuro dentro
+static func badge(on: CanvasItem, pos: Vector2, fill: Color, kind: StringName = &"") -> void:
 	on.draw_circle(pos, BADGE + 3.0, COLOR_OUTLINE)
 	on.draw_circle(pos, BADGE, fill)
 	on.draw_arc(pos, BADGE - 1.0, 0.0, TAU, 28, Color(1.0, 1.0, 1.0, 0.85), 2.0)
-	if letter != "":
-		var width: float = FONT.get_string_size(letter, 0, -1, 17).x
-		var at: Vector2 = pos + Vector2(-width * 0.5, 6.0)
-		on.draw_string(FONT, at, letter, HORIZONTAL_ALIGNMENT_LEFT, -1, 17, COLOR_OUTLINE)
+	if kind != &"":
+		sprite(on, pos, kind, BADGE * 1.45, COLOR_OUTLINE)
 
 
 ## Tu punto: puntero (gota) blanco cálido que gira hacia donde miras, con halo que late
@@ -85,7 +128,7 @@ static func you(
 
 ## Compañero: chapa cian con su número («G2») al lado
 static func mate(on: CanvasItem, pos: Vector2, label: String) -> void:
-	badge(on, pos, TeamMarker3D.GUARD_COLOR)
+	badge(on, pos, TeamMarker3D.GUARD_COLOR, &"police_officer_head")
 	text(on, pos + Vector2(15.0, 7.0), label, 19, TeamMarker3D.GUARD_COLOR)
 
 
@@ -96,21 +139,7 @@ static func alarm(on: CanvasItem, pos: Vector2, ago: float, pulse: float = 0.0) 
 		on.draw_arc(
 			pos, 8.0 + pulse * 18.0, 0.0, TAU, 28, Color(COLOR_ALARM, 0.7 * (1.0 - pulse)), 2.5
 		)
-	var bell: PackedVector2Array = PackedVector2Array(
-		[
-			pos + Vector2(-4.0, -11.0),
-			pos + Vector2(4.0, -11.0),
-			pos + Vector2(7.0, -3.0),
-			pos + Vector2(11.0, 4.0),
-			pos + Vector2(-11.0, 4.0),
-			pos + Vector2(-7.0, -3.0),
-			pos + Vector2(-4.0, -11.0)
-		]
-	)
-	on.draw_circle(pos + Vector2(0.0, 7.5), 4.5, COLOR_OUTLINE)
-	on.draw_polyline(bell, COLOR_OUTLINE, 6.0)
-	on.draw_colored_polygon(bell.slice(0, 6), COLOR_ALARM)
-	on.draw_circle(pos + Vector2(0.0, 7.5), 3.0, COLOR_ALARM)
+	sticker(on, pos, &"ringing_bell", 26.0, COLOR_ALARM)
 	if ago < 0.0:
 		return
 	var label: String = "HACE %s" % clock(ago)
@@ -138,30 +167,15 @@ static func glow(on: CanvasItem, pos: Vector2, color: Color, radius: float, alph
 
 ## Taza de café (la cafetera de la garita)
 static func cup(on: CanvasItem, pos: Vector2, color: Color) -> void:
-	badge(on, pos, color)
-	var c: Vector2 = pos + Vector2(-1.0, 1.0)
-	on.draw_rect(Rect2(c + Vector2(-5.0, -4.0), Vector2(9.0, 8.0)), COLOR_OUTLINE, true)
-	on.draw_arc(c + Vector2(5.0, 0.0), 3.0, -PI * 0.5, PI * 0.5, 8, COLOR_OUTLINE, 2.0)
-	on.draw_line(c + Vector2(-2.0, -6.0), c + Vector2(-1.0, -9.0), COLOR_OUTLINE, 1.5)
-	on.draw_line(c + Vector2(1.0, -6.0), c + Vector2(2.0, -9.0), COLOR_OUTLINE, 1.5)
+	badge(on, pos, color, &"coffee_cup")
 
 
 ## Cuadro eléctrico: rayo; gris y tachado si el ala está cortada
 static func power(on: CanvasItem, pos: Vector2, cut: bool) -> void:
-	badge(on, pos, COLOR_OFF if cut else COLOR_POWER)
-	var bolt: PackedVector2Array = PackedVector2Array(
-		[
-			pos + Vector2(2.0, -8.0),
-			pos + Vector2(-5.0, 1.0),
-			pos + Vector2(0.0, 1.0),
-			pos + Vector2(-2.0, 8.0),
-			pos + Vector2(5.0, -2.0),
-			pos + Vector2(0.0, -2.0)
-		]
-	)
-	on.draw_colored_polygon(bolt, COLOR_OUTLINE)
+	badge(on, pos, COLOR_OFF if cut else COLOR_POWER, &"power_lightning")
 	if cut:
-		on.draw_line(pos + Vector2(-8.0, -8.0), pos + Vector2(8.0, 8.0), COLOR_ALARM, 3.0)
+		on.draw_line(pos + Vector2(-9.0, -9.0), pos + Vector2(9.0, 9.0), COLOR_OUTLINE, 6.0)
+		on.draw_line(pos + Vector2(-9.0, -9.0), pos + Vector2(9.0, 9.0), COLOR_ALARM, 3.0)
 
 
 ## Lámpara: punto tenue (la luz se lee en el tinte de la sala), amarillo si da luz
@@ -170,20 +184,24 @@ static func lamp(on: CanvasItem, pos: Vector2, lit: bool) -> void:
 	on.draw_circle(pos, 2.0, Color(COLOR_POWER, 0.55) if lit else Color(COLOR_OFF, 0.6))
 
 
-## Interruptor de la luz: palanca
+## Interruptor de la luz
 static func light_switch(on: CanvasItem, pos: Vector2) -> void:
-	on.draw_rect(Rect2(pos - Vector2(7.0, 9.0), Vector2(14.0, 18.0)), COLOR_OUTLINE, true)
-	on.draw_rect(Rect2(pos - Vector2(5.0, 7.0), Vector2(10.0, 14.0)), COLOR_YOU, true)
-	on.draw_rect(Rect2(pos - Vector2(2.5, 6.0), Vector2(5.0, 7.0)), COLOR_OUTLINE, true)
+	sticker(on, pos, &"toggles", 18.0, COLOR_YOU)
 
 
 ## Coche de huida
 static func car(on: CanvasItem, pos: Vector2) -> void:
-	on.draw_rect(Rect2(pos - Vector2(15.0, 8.0), Vector2(30.0, 14.0)), COLOR_OUTLINE, true)
-	on.draw_rect(Rect2(pos - Vector2(13.0, 6.0), Vector2(26.0, 10.0)), COLOR_OK, true)
-	on.draw_rect(Rect2(pos - Vector2(6.0, 11.0), Vector2(12.0, 6.0)), COLOR_OK, true)
-	for x: float in [-8.0, 8.0]:
-		on.draw_circle(pos + Vector2(x, 7.0), 4.0, COLOR_OUTLINE)
+	sticker(on, pos, &"city_car", 32.0, COLOR_OK)
+
+
+## Salida (en la leyenda y junto al rótulo «SALIDA»)
+static func exit_door(on: CanvasItem, pos: Vector2, size: float = 20.0) -> void:
+	sticker(on, pos, &"exit_door", size, COLOR_OK)
+
+
+## Pieza: pegatina de su protección (guardias) o del diamante del encargo (ladrón)
+static func piece(on: CanvasItem, pos: Vector2, kind: StringName, color: Color) -> void:
+	sticker(on, pos, kind, 24.0, color)
 
 
 ## Abanico semitransparente de una cámara (polígono ya en pantalla, con el vértice primero)
@@ -195,23 +213,17 @@ static func camera_fan(on: CanvasItem, fan: PackedVector2Array) -> void:
 
 
 static func camera(on: CanvasItem, pos: Vector2) -> void:
-	on.draw_circle(pos, 8.0, COLOR_OUTLINE)
-	on.draw_circle(pos, 5.5, COLOR_ALARM)
-	on.draw_circle(pos, 2.0, COLOR_YOU)
+	badge(on, pos, COLOR_ALARM, &"cctv_camera")
 
 
 static func vent(on: CanvasItem, pos: Vector2, network: String) -> void:
-	on.draw_rect(Rect2(pos - Vector2(9.0, 9.0), Vector2(18.0, 18.0)), COLOR_OUTLINE, true)
-	on.draw_rect(Rect2(pos - Vector2(7.0, 7.0), Vector2(14.0, 14.0)), COLOR_VENT, true)
-	for y: float in [-3.0, 0.0, 3.0]:
-		on.draw_line(pos + Vector2(-5.0, y), pos + Vector2(5.0, y), COLOR_OUTLINE, 1.5)
+	sticker(on, pos, &"floor_hatch", 20.0, COLOR_VENT)
 	if network != "":
 		text(on, pos + Vector2(12.0, 7.0), network, 16, COLOR_VENT)
 
 
 static func ping(on: CanvasItem, pos: Vector2) -> void:
-	on.draw_arc(pos, 14.0, 0.0, TAU, 28, COLOR_OUTLINE, 6.0)
-	on.draw_arc(pos, 14.0, 0.0, TAU, 28, COLOR_ALARM, 3.0)
+	sticker(on, pos, &"radar_sweep", 30.0, COLOR_ALARM)
 
 
 ## m:ss
