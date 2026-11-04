@@ -13,7 +13,7 @@ enum MatchState {
 	THIEF_ESCAPED,
 	## Victoria de los Guardias: El ladrón ha sido neutralizado con porra
 	THIEF_CAPTURED,
-	## Victoria de los Guardias: La policía rodeó el recinto al vencer el reloj
+	## Victoria de los Guardias: se acabó el tiempo y el ladrón no escapó (amanece; #116)
 	TIME_EXPIRED,
 	## Sin uso desde #116 (no se reordena el enum, viaja por red)
 	TIME_EXPIRED_BREACH,
@@ -24,7 +24,7 @@ enum MatchState {
 ## Cuota económica objetivo requerida para que el ladrón pueda escapar (en $)
 @export var quota_target: int = 10000
 
-## Duración máxima de la ronda en segundos (10 minutos por defecto)
+## Duración máxima de la partida en segundos (10 minutos por defecto)
 @export var match_duration_seconds: float = 600.0
 
 ## Valor acumulado del botín asegurado en la partida actual
