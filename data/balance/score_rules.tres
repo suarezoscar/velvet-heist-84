@@ -6,6 +6,7 @@
 script = ExtResource("1")
 thief_piece = 100
 thief_escape = 150
+thief_partial_escape = 50
 thief_alarm = -25
 thief_seen = -10
 guard_seen = 25
