@@ -1,6 +1,7 @@
 ## @file test_cctv_feeds.gd
-## Tests del panel de imágenes CCTV del HUD (FEAT-017, interaction.md M2): orden, 4:3,
-## alto según feed_height_frac, disposición en fila, redimensionado y marco de alerta.
+## Tests de la imagen CCTV del HUD (interaction.md M2 y M8, #118): una imagen por cámara y solo
+## una visible, 4:3 casi a pantalla completa y centrada, cambio en bucle con nieve, rótulo,
+## marco de alerta y render solo de la cámara que se ve.
 extends GutTest
 
 const RULES: CCTVRules = preload("res://data/balance/cctv_rules.tres")
@@ -8,10 +9,10 @@ const CAMERA_SCENE: PackedScene = preload("res://scenes/entities/security_camera
 const ASPECT_TOLERANCE: float = 0.005
 
 
-## Cámaras en desorden a propósito: CAM-2, CAM-1, CAM-3
+## Cámaras en desorden a propósito: CAM-02, CAM-01, CAM-03
 func _cameras() -> Array[SecurityCamera3D]:
 	var cameras: Array[SecurityCamera3D] = []
-	var ids: Array[String] = ["CAM-2", "CAM-1", "CAM-3"]
+	var ids: Array[String] = ["CAM-02", "CAM-01", "CAM-03"]
 	var labels: Array[String] = ["GALERÍA", "VESTÍBULO", "ALMACÉN"]
 	for i: int in ids.size():
 		var camera: SecurityCamera3D = CAMERA_SCENE.instantiate() as SecurityCamera3D
@@ -38,69 +39,45 @@ func _feeds_in_viewport(cameras: Array[SecurityCamera3D], size: Vector2i) -> CCT
 	return _feeds_in(viewport, cameras)
 
 
-func _assert_row(feeds: CCTVFeeds84, view: Vector2) -> void:
-	var count: int = feeds.panel_count()
-	var max_width: float = (view.x * CCTVFeeds84.MAX_ROW_WIDTH_FRAC - 12.0 * (count - 1)) / count
-	var height: float = minf(RULES.feed_height_frac * view.y, max_width / (4.0 / 3.0))
-	for i: int in feeds.panel_count():
-		var rect: Rect2 = feeds.feed_rect(i)
-		assert_almost_eq(
-			rect.size.y,
-			height,
-			1.0,
-			"Alto %d: feed_height_frac × alto, o lo que quepa a lo ancho" % i
-		)
-		assert_almost_eq(rect.size.x / rect.size.y, 4.0 / 3.0, ASPECT_TOLERANCE, "4:3")
-		assert_almost_eq(rect.position.y, 60.0, 0.01, "Borde superior a 60 px")
-	var first: Rect2 = feeds.feed_rect(0)
-	var last: Rect2 = feeds.feed_rect(feeds.panel_count() - 1)
-	assert_almost_eq(first.position.x, view.x - last.end.x, 1.0, "Centrada en horizontal")
+func _mode(camera: SecurityCamera3D) -> int:
+	return camera.sub_viewport.render_target_update_mode
+
+
+func test_one_feed_per_camera_sorted_and_only_one_shown() -> void:
+	var feeds: CCTVFeeds84 = _feeds_in(self, _cameras())
+	autofree(feeds)
+	assert_eq(feeds.panel_count(), 3, "Una imagen por cámara")
+	assert_eq(feeds.label_text(0), "CAM 01 · VESTÍBULO", "Primero CAM-01")
+	assert_eq(feeds.label_text(1), "CAM 02 · GALERÍA")
+	assert_eq(feeds.label_text(2), "CAM 03 · ALMACÉN")
+	assert_eq(feeds.shown_index(), 0, "Se empieza por la primera")
+	var visible_count: int = 0
+	for node: Node in feeds.find_children("Feed_*", "Control", false, false):
+		visible_count += int((node as Control).visible)
+	assert_eq(visible_count, 1, "Solo una imagen visible")
+
+
+func test_feed_is_4_3_centered_at_1080p() -> void:
+	var feeds: CCTVFeeds84 = _feeds_in_viewport(_cameras(), Vector2i(1920, 1080))
+	var rect: Rect2 = feeds.feed_rect(0)
+	assert_almost_eq(rect.size, Vector2(1296.0, 972.0), Vector2(1.0, 1.0), "0,9 del alto, 4:3")
+	assert_almost_eq(rect.size.x / rect.size.y, 4.0 / 3.0, ASPECT_TOLERANCE)
+	assert_almost_eq(rect.position.x, (1920.0 - rect.size.x) * 0.5, 1.0, "Centrada en horizontal")
+	assert_almost_eq(rect.position.y, (1080.0 - rect.size.y) * 0.5, 1.0, "Centrada en vertical")
 	for i: int in range(1, feeds.panel_count()):
-		var gap: float = feeds.feed_rect(i).position.x - feeds.feed_rect(i - 1).end.x
-		assert_almost_eq(gap, 12.0, 0.01, "12 px entre paneles")
+		assert_eq(feeds.feed_rect(i), rect, "Todas ocupan el mismo sitio")
 
 
-func test_three_panels_sorted_by_id() -> void:
-	var feeds: CCTVFeeds84 = _feeds_in(self, _cameras())
-	autofree(feeds)
-	assert_eq(feeds.panel_count(), 3, "Un panel por cámara")
-	assert_true(feeds.label_text(0).begins_with("CAM-1"), "Primero CAM-1")
-	assert_eq(feeds.label_text(0), "CAM-1 VESTÍBULO")
-	assert_eq(feeds.label_text(1), "CAM-2 GALERÍA")
-	assert_eq(feeds.label_text(2), "CAM-3 ALMACÉN")
-
-
-func test_feeds_are_4_3_and_height_follows_rules() -> void:
-	var feeds: CCTVFeeds84 = _feeds_in(self, _cameras())
-	autofree(feeds)
-	_assert_row(feeds, get_viewport().get_visible_rect().size)
-
-
-func test_feeds_do_not_overlap() -> void:
-	var feeds: CCTVFeeds84 = _feeds_in(self, _cameras())
-	autofree(feeds)
-	for i: int in feeds.panel_count():
-		for j: int in range(i + 1, feeds.panel_count()):
-			assert_false(
-				feeds.feed_rect(i).intersects(feeds.feed_rect(j)),
-				"Imágenes %d y %d solapadas" % [i, j]
-			)
-
-
-func test_known_resolutions() -> void:
-	var feeds_1080: CCTVFeeds84 = _feeds_in_viewport(_cameras(), Vector2i(1920, 1080))
-	assert_almost_eq(feeds_1080.feed_rect(0).size, Vector2(576.0, 432.0), Vector2(1.0, 1.0))
-	_assert_row(feeds_1080, Vector2(1920.0, 1080.0))
-	var feeds_720: CCTVFeeds84 = _feeds_in_viewport(_cameras(), Vector2i(1280, 720))
-	assert_almost_eq(feeds_720.feed_rect(2).size, Vector2(384.0, 288.0), Vector2(1.0, 1.0))
-	_assert_row(feeds_720, Vector2(1280.0, 720.0))
-
-
-func test_row_fits_width_outside_16_9() -> void:
+func test_feed_fits_width_outside_16_9() -> void:
 	var feeds: CCTVFeeds84 = _feeds_in_viewport(_cameras(), Vector2i(1024, 768))
-	_assert_row(feeds, Vector2(1024.0, 768.0))
-	assert_gte(feeds.feed_rect(0).position.x, 0.0, "No se sale por la izquierda")
-	assert_lte(feeds.feed_rect(2).end.x, 1024.0, "Ni por la derecha")
+	var rect: Rect2 = feeds.feed_rect(0)
+	assert_lte(
+		rect.size.x, 1024.0 * CCTVFeeds84.MAX_WIDTH_FRAC + 0.01, "No pasa del 96 % del ancho"
+	)
+	assert_almost_eq(rect.size.x / rect.size.y, 4.0 / 3.0, ASPECT_TOLERANCE, "Sigue siendo 4:3")
+	assert_gte(rect.position.x, 0.0, "No se sale por la izquierda")
+	assert_lte(rect.end.x, 1024.0, "Ni por la derecha")
+	assert_lte(rect.size.y, RULES.feed_height_frac * 768.0 + 0.01)
 
 
 func test_relayout_when_viewport_resizes() -> void:
@@ -108,10 +85,35 @@ func test_relayout_when_viewport_resizes() -> void:
 	viewport.size = Vector2i(1280, 720)
 	add_child_autofree(viewport)
 	var feeds: CCTVFeeds84 = _feeds_in(viewport, _cameras())
-	assert_almost_eq(feeds.feed_rect(0).size.y, 288.0, 1.0)
+	assert_almost_eq(feeds.feed_rect(0).size.y, 648.0, 1.0)
 	viewport.size = Vector2i(1920, 1080)
-	assert_almost_eq(feeds.feed_rect(0).size, Vector2(576.0, 432.0), Vector2(1.0, 1.0))
-	_assert_row(feeds, Vector2(1920.0, 1080.0))
+	assert_almost_eq(feeds.feed_rect(0).size, Vector2(1296.0, 972.0), Vector2(1.0, 1.0))
+
+
+func test_show_index_loops_and_snows_only_on_change() -> void:
+	var feeds: CCTVFeeds84 = _feeds_in(self, _cameras())
+	autofree(feeds)
+	assert_false(feeds.is_snowing(), "No hay nieve al arrancar")
+	feeds.show_index(1)
+	assert_eq(feeds.shown_index(), 1)
+	assert_true(feeds.is_snowing(), "Al cambiar, nieve")
+	feeds.show_index(3)
+	assert_eq(feeds.shown_index(), 0, "Pasada la última, vuelve a la primera")
+	feeds.show_index(-1)
+	assert_eq(feeds.shown_index(), 2, "Antes de la primera, la última")
+	await wait_seconds(RULES.switch_time + 0.2)
+	assert_false(feeds.is_snowing(), "La nieve dura switch_time")
+	feeds.show_index(2)
+	assert_false(feeds.is_snowing(), "Repetir la misma no hace nieve")
+
+
+func test_caption_with_and_without_label() -> void:
+	var camera: SecurityCamera3D = _cameras()[0]
+	camera.camera_id = "CAM-07"
+	camera.camera_label = "PIEZA MAESTRA"
+	assert_eq(CCTVFeeds84.caption(camera), "CAM 07 · PIEZA MAESTRA")
+	camera.camera_label = ""
+	assert_eq(CCTVFeeds84.caption(camera), "CAM 07", "Sin etiqueta, solo el id")
 
 
 func test_frame_turns_red_while_camera_detects() -> void:
@@ -121,14 +123,31 @@ func test_frame_turns_red_while_camera_detects() -> void:
 	await wait_frames(2)
 	for i: int in feeds.panel_count():
 		assert_false(feeds.is_frame_alert(i), "Sin alerta al empezar")
-	cameras[0].is_alert_active = true  # CAM-2: segundo panel
+	cameras[0].is_alert_active = true  # CAM-02: segunda imagen
 	await wait_frames(2)
-	assert_true(feeds.is_frame_alert(1), "CAM-2 detecta: su marco en rojo")
-	assert_false(feeds.is_frame_alert(0), "CAM-1 no detecta")
-	assert_false(feeds.is_frame_alert(2), "CAM-3 no detecta")
+	assert_true(feeds.is_frame_alert(1), "CAM-02 detecta: su marco en rojo")
+	assert_false(feeds.is_frame_alert(0), "CAM-01 no detecta")
+	assert_false(feeds.is_frame_alert(2), "CAM-03 no detecta")
 	cameras[0].is_alert_active = false
 	await wait_frames(2)
 	assert_false(feeds.is_frame_alert(1), "Al perderlo vuelve al marco gris")
+
+
+func test_only_the_shown_camera_renders_and_none_when_hidden() -> void:
+	var cameras: Array[SecurityCamera3D] = _cameras()  # [CAM-02, CAM-01, CAM-03]
+	var feeds: CCTVFeeds84 = _feeds_in(self, cameras)
+	autofree(feeds)
+	assert_eq(_mode(cameras[1]), SubViewport.UPDATE_ALWAYS, "CAM-01 se ve: renderiza")
+	assert_eq(_mode(cameras[0]), SubViewport.UPDATE_DISABLED, "Las demás, no")
+	assert_eq(_mode(cameras[2]), SubViewport.UPDATE_DISABLED)
+	feeds.show_index(1)
+	assert_eq(_mode(cameras[0]), SubViewport.UPDATE_ALWAYS, "Ahora CAM-02")
+	assert_eq(_mode(cameras[1]), SubViewport.UPDATE_DISABLED, "CAM-01 deja de renderizar")
+	feeds.hide()
+	for camera: SecurityCamera3D in cameras:
+		assert_eq(_mode(camera), SubViewport.UPDATE_DISABLED, "Oculto el HUD, ninguna")
+	feeds.show()
+	assert_eq(_mode(cameras[0]), SubViewport.UPDATE_ALWAYS, "Al volver, la mostrada")
 
 
 func test_ignores_mouse_everywhere() -> void:

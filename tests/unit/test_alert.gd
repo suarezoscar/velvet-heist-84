@@ -172,6 +172,9 @@ func test_watched_camera_finds_an_empty_pedestal() -> void:
 	var guard: GuardController3D = map.guards[0]
 	guard.monitor_watch.state = GuardMonitorWatch.State.WATCHING
 	alert.scan()
+	assert_false(piece.discovered, "Mirando, pero esa cámara no está en pantalla: no cuenta")
+	camera.is_live = true  # en pantalla con un guardia despierto mirando (#118)
+	alert.scan()
 	assert_true(piece.discovered, "Con alguien mirando los monitores, sí")
 	guard.monitor_watch.state = GuardMonitorWatch.State.NONE
 

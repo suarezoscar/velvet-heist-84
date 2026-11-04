@@ -35,8 +35,11 @@ static func of(tree: SceneTree) -> CCTVDesk3D:
 
 ## Las cámaras del nivel en el orden en que se pasan (por camera_id: CAM-01, CAM-02…)
 func cameras() -> Array[SecurityCamera3D]:
-	if _cameras.is_empty() and is_inside_tree():
-		_cameras.assign(get_tree().get_nodes_in_group(&"security_camera"))
+	if not is_inside_tree():
+		return _cameras
+	var found: Array[Node] = get_tree().get_nodes_in_group(&"security_camera")
+	if found.size() != _cameras.size():  # una cámara nueva (o quitada) rehace la lista
+		_cameras.assign(found)
 		_cameras.sort_custom(
 			func(a: SecurityCamera3D, b: SecurityCamera3D) -> bool:
 				return a.camera_id.naturalnocasecmp_to(b.camera_id) < 0

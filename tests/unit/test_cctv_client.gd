@@ -115,6 +115,6 @@ func test_museum_desk_is_reached_from_the_front() -> void:
 	guard.look_target_position = desk.global_position
 	await wait_physics_frames(3)
 	assert_eq(guard.interactor.current_target, desk, "Delante de la mesa, la enfoca")
-	var monitor: Node3D = map.get_node("Props/Monitor_CAM_1") as Node3D
+	var monitor: Node3D = map.get_node("Props/Monitor_CAM_01") as Node3D
 	var screen_dir: Vector3 = monitor.global_transform.basis.z
 	assert_gt(screen_dir.dot(-desk.global_transform.basis.z), 0.9, "Pantallas hacia el guardia")

@@ -54,7 +54,8 @@ func test_guard_on_camera_shows_only_on_the_screens() -> void:
 	var thief: ThiefController3D = map.thief
 	var guard: GuardController3D = map.guards[0]
 	guard.is_ai_controlled = false
-	var camera: SecurityCamera3D = get_tree().get_nodes_in_group(&"security_camera")[0]
+	var desk: CCTVDesk3D = CCTVDesk3D.of(get_tree())
+	var camera: SecurityCamera3D = desk.on_screen()  # la que sale en pantalla al sentarse
 	# Un punto del suelo que la cámara ve
 	var forward: Vector3 = -camera.mount.global_transform.basis.z
 	var spot: Vector3 = Vector3.INF
@@ -71,18 +72,29 @@ func test_guard_on_camera_shows_only_on_the_screens() -> void:
 	await wait_physics_frames(2)
 	var lamps: Array[Lamp3D] = VisionLogic.lamps_in(map)
 	var before: StringName = VisionLogic.thief_view_of(thief, guard, lamps)
-	thief.monitor_watch.state = GuardMonitorWatch.State.WATCHING
-	var view: StringName = VisionLogic.thief_view_of(thief, guard, lamps)
 	if before == &"full":
 		pass_test("El ladrón ya lo veía en persona desde su sitio")
 		return
+	desk.interact(thief)
+	thief.monitor_watch.tick(thief, RULES.monitor_enter_time + 0.01)
+	await wait_physics_frames(2)
+	assert_true(camera.on_screen, "Su cámara está en pantalla")
+	var view: StringName = VisionLogic.thief_view_of(thief, guard, lamps)
 	assert_eq(view, &"cctv", "Ante los monitores lo ve por la cámara")
 	await wait_physics_frames(3)
 	var body: Node3D = guard.get_node("VisualRoot") as Node3D
 	assert_true(body.visible, "Se dibuja…")
 	var mesh: GeometryInstance3D = body.find_children("*", "GeometryInstance3D", true, false)[0]
 	assert_eq(mesh.layers, 1 << (CctvLayer.LAYER - 1), "…solo en la capa de las cámaras")
-	thief.monitor_watch.state = GuardMonitorWatch.State.NONE
+	desk.step(1)  # otra cámara en pantalla: la que lo ve ya no cuenta
+	await wait_seconds(RULES.switch_time + 0.2)
+	assert_false(camera.on_screen)
+	assert_ne(
+		VisionLogic.thief_view_of(thief, guard, lamps),
+		&"cctv",
+		"Si la cámara que lo ve no está en pantalla, no lo ve por cámara"
+	)
+	thief.monitor_watch.stop(thief)
 	await wait_physics_frames(3)
 	assert_ne(mesh.layers, 1 << (CctvLayer.LAYER - 1), "Al levantarse, fuera de las pantallas")
 
