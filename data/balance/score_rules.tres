@@ -13,3 +13,5 @@ guard_seen = 25
 guard_hit = 50
 guard_capture = 150
 guard_nap = -15
+guard_protect = 60
+guard_lockdown = 100
