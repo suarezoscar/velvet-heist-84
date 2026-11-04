@@ -45,19 +45,19 @@ func test_points_with_breakdown() -> void:
 	assert_eq(int(thief["total"]), 2 * 100 - 25 - 2 * 10)
 	assert_eq((thief["lines"] as Array).size(), 3, "Solo lo que ha pasado (sin huida)")
 	var guard: Dictionary = MatchScore.guard(
-		{"clocks": 4, "faults": 1, "seen": 2, "hits": 2, "capture": true, "naps": 1}, rules
+		{"seen": 2, "hits": 2, "capture": true, "naps": 1}, rules
 	)
-	assert_eq(int(guard["total"]), 40 - 20 + 50 + 100 + 150 - 15)
+	assert_eq(int(guard["total"]), 50 + 100 + 150 - 15)
 
 
 func test_best_of_the_night() -> void:
 	var report: Dictionary = {
 		"thief": {"pieces": [{"stolen": true}], "escaped": false},
-		"guards": [{"clocks": 2}, {"hits": 2, "capture": true}],
+		"guards": [{"seen": 2}, {"hits": 2, "capture": true}],
 	}
 	assert_eq(MatchScore.best(report), "1", "El guardia que lo atrapó")
 	report["thief"] = {"pieces": [{"stolen": true}, {"stolen": true}], "escaped": true}
-	report["guards"] = [{"clocks": 2}]
+	report["guards"] = [{"seen": 2}]
 	assert_eq(MatchScore.best(report), "thief")
 	assert_eq(MatchScore.best({}), "")
 

@@ -1,13 +1,13 @@
 # Sigilo: modos de movimiento, ruido de pasos y percepción cercana
 
-- **Estado**: aprobado por el usuario: parte 1 el 2026-10-22 y parte 2 (linterna, luz, información entre guardias y ruido) el 2026-10-23. P2.4 reescrita y aprobada el 2026-10-23: **sustituye los anillos de ruido** por audio posicional, vúmetro del ladrón y chevron en el borde (decisiones D8-D11). Cambio de controles de la linterna, la porra y la orientación el 2026-10-30 (#112).
+- **Estado**: aprobado por el usuario: parte 1 el 2026-10-22 y parte 2 (linterna, luz, información entre guardias y ruido) el 2026-10-23. P2.4 reescrita y aprobada el 2026-10-23: **sustituye los anillos de ruido** por audio posicional, vúmetro del ladrón y chevron en el borde (decisiones D8-D11). Cambio de controles de la linterna, la porra y la orientación el 2026-10-30 (#112). 2026-10-30, #116: los guardias solo corren con la alarma y desaparecen los relojes de ronda (`heist.md` R5d).
 - **Origen**: MASTER_GSD §2 (asimetría), §4.1 (acústica de superficies), §5.3 (visibilidad); FEAT-005 (posturas); auditoría de la Fase 1 (`docs/decisions/2026-10-22-fase-1-auditoria.md`, "Decisiones de diseño pendientes"). 2026-10-22.
 - **Relacionado**: `characters.md` (altura de los modelos, que fija los puntos de visibilidad); `roles.md` (velocidades por rol), `gadgets.md` (molde de cera, hilo con campanillas, láseres) e `interaction.md` (cobertura baja de los niveles), que todavía no existen. `vision.md` (zona visible y niebla de guerra: decide qué ve cada jugador en pantalla; la percepción de este documento sigue decidiendo cuándo un guardia ve al ladrón).
 - **Alcance**: modos de movimiento, ruido de pasos, superficies, quién oye qué (solo la regla), proximidad, puntos de visibilidad y alcance de la porra. **Segunda parte** (abajo): el cono de la linterna, las lámparas y cómo se percibe el ruido (audio, vúmetro, chevron) y el ruido de objetos.
 
 ## Fantasía
 - **Ladrón**: "Si me lo pienso, nadie me oye; si tengo prisa, todo el edificio se entera". Cada metro tiene un precio en tiempo o en ruido, y esconderse tras una vitrina es una decisión, no un truco gratis.
-- **Guardias**: "Puedo acercarme sin avisar, pero eso me hace lento y el reloj de ronda no espera". Las botas y el manojo de llaves pesan más que las zapatillas del ladrón.
+- **Guardias**: "Puedo acercarme sin avisar, pero eso me hace lento y el sueño no espera" (desde #116; antes, el reloj de ronda). Y mientras no suene la alarma, nada de correr. Las botas y el manojo de llaves pesan más que las zapatillas del ladrón.
 
 ## Reglas
 
@@ -18,7 +18,7 @@ Un modo es la combinación de **marcha** (cuánto corre) y **altura** (cuánto a
 |---|---|---|---|---|
 | Paso (`walk`) | ambos | por defecto | de pie | Referencia: velocidad y ruido ×1. |
 | Sigilo (`sneak`) | ambos | mantener `sneak` | de pie | Sustituye a TIPTOE. Puede reutilizar la animación `tiptoe_walk`. |
-| Carrera (`sprint`) | ambos | mantener `sprint` | de pie | El guardia gasta estamina; el ladrón no (aplazado A3). |
+| Carrera (`sprint`) | ambos | mantener `sprint` | de pie | El guardia gasta estamina y **solo corre con la alerta en «alarma»** (2026-10-30, #116, `heist.md` R5d); antes, `sprint` no hace nada y anda. El ladrón corre siempre y sin estamina (aplazado A3). |
 | Agachado (`crouch`) | solo ladrón | alternar `crouch` | baja | Anula `sneak` y `sprint` mientras dura: es un modo, no un modificador que se suma. Más lento que el sigilo, mismo ruido, puntos de visibilidad bajos. |
 
 - No existen otras posturas. TIPTOE se elimina; PRONE y WALL_COVER quedan aplazados (A1, A2). Los guardias no tienen `crouch`.
@@ -96,7 +96,7 @@ Los `.tres` marcados como nuevos los crea el paquete B (balance a `.tres`) con l
 |---|---|---|---|---|
 | Paso del ladrón | `movement_thief.tres` → `walk_speed` (nuevo) | sensación | 4,5-5,5 m/s | 5,0 (actual). Más rápido que el guardia para que la huida sea posible. |
 | Paso del guardia | `movement_guard.tres` → `walk_speed` (nuevo) | sensación | 3,8-4,6 m/s | 4,2 (actual). |
-| Sigilo / paso | `movement_*.tres` → `sneak_ratio` (nuevo) | sensación | 0,40-0,55 | 0,48 (actual). Lento como para que cueste tiempo de reloj. |
+| Sigilo / paso | `movement_*.tres` → `sneak_ratio` (nuevo) | sensación | 0,40-0,55 | 0,48 (actual). Lento como para que cueste tiempo de partida. |
 | Carrera / paso | `movement_*.tres` → `sprint_ratio` (nuevo) | sensación | 1,40-1,60 | 1,5 en ambos bandos (hoy el guardia va a 1,48). |
 | Agachado / paso (ladrón) | `movement_thief.tres` → `crouch_ratio` (nuevo) | sensación | 0,30-0,45, siempre < `sneak_ratio` | 0,40. Paga en velocidad lo que gana en perfil. |
 | Cadencia de pasos | `character_animator_3d.gd` → `STEP_CYCLE_LENGTH`, `ANIMATION_REFERENCE_SPEED` | sensación | sale de la animación | Ya no hay `step_interval_<modo>` en los `.tres` (2026-10-30). Con las velocidades actuales: ladrón andando o corriendo 0,18 s (la reproducción se satura a ×3, así que anda y corre a la misma cadencia y correr solo se distingue por el radio), en sigilo 0,275 s, agachado 0,32 s; guardia andando 0,20 s, en sigilo o barriendo 0,33 s. |
@@ -138,8 +138,8 @@ Comprueban relaciones leyendo los `.tres`, no valores literales.
 | Carrera | ladrón | Pasos fuertes y frecuentes, audibles desde lejos | Converger por radio (pagando la estática del walkie), cortar salidas. |
 | Agachado tras cobertura baja | ladrón | Nada si no se mueve; pasos al radio mínimo al moverse | Linterna desde arriba o desde el lateral de la cobertura; rodearla; más guardias. |
 | Acercarse por la espalda (molde de cera) | ladrón | Solo sus pasos: en parqué o mármol se oyen a 1,2 m; en alfombra, no | Girarse a menudo, no detenerse en alfombra, ir en pareja. |
-| Sigilo | guardia | Pasos medianos (botas), con más radio que los del ladrón en el mismo suelo | El ladrón los oye a 1,5 × el radio; el guardia lento pierde tiempo de ronda. |
-| Carrera | guardia | Pasos con radio muy grande; se gasta estamina | Esconderse y dejar que pase; aprovechar el hueco en su ruta. |
+| Sigilo | guardia | Pasos medianos (botas), con más radio que los del ladrón en el mismo suelo | El ladrón los oye a 1,5 × el radio; el guardia lento cubre menos salas antes de que el sueño lo devuelva a la garita. |
+| Carrera (solo con alarma, #116) | guardia | Pasos con radio muy grande; se gasta estamina | Esconderse y dejar que pase; aprovechar el hueco que deja. |
 
 ## Qué medir
 | Evento de telemetría | Pregunta que responde | Señal de alarma |
@@ -268,7 +268,7 @@ Aprobada el 2026-10-23; **sustituye a los anillos de ruido** ("Aspecto y legibil
 |---|---|---|
 | Paso | pasos de cualquier modo | muestra de la superficie bajo los pies (alfombra, mármol, parqué) |
 | Golpe u objeto | porra, captura, monedas, jarrón, botín | golpe seco |
-| Mecanismo | walkie, teléfono, despertador, interruptor, bombilla, linterna, caja fuerte, coche, fichar | clic, rosca, estática o motor |
+| Mecanismo | walkie, teléfono, despertador, interruptor, bombilla, linterna, caja fuerte, coche (fichar se retiró con #116) | clic, rosca, estática o motor |
 
 - **Mismos pasos para los dos bandos** (D10): el guardia no distingue de oído a un compañero del ladrón; las botas solo cambian el radio y, con él, el volumen. El sigilo y el agachado no tienen muestras propias: se oyen por el volumen y la cadencia.
 - **Pasos propios**: sin posición, flojos (`own_step_volume_db`) y escalados por `r / meter_full_scale`. Cada paso varía su tono en ±`pitch_jitter`.
@@ -335,7 +335,7 @@ Todos nuevos. Los de linterna arrancan con los valores actuales de la escena.
 | Clic de interruptor | `light_rules.tres` → `switch_noise_radius` | curva | 1,5-3,0 m | 2,0. Se oye en la sala, no en la de al lado. |
 | Desenroscar bombilla | `light_rules.tres` → `unscrew_time` | ritmo | 1,5-3,0 s, > `switch_time` | 2,0. Más lento a cambio de durar. |
 | Ruido al desenroscar | `light_rules.tres` → `unscrew_noise_radius` | curva | 0,5-1,5 m, ≤ `switch_noise_radius` | 1,0. Más discreto que el clic. |
-| Volver a enroscar | `light_rules.tres` → `rescrew_time` | ritmo | 2,0-4,0 s, ≥ `unscrew_time` | 3,0. Arreglarlo cuesta tiempo de ronda. |
+| Volver a enroscar | `light_rules.tres` → `rescrew_time` | ritmo | 2,0-4,0 s, ≥ `unscrew_time` | 3,0. Arreglarlo cuesta tiempo fuera de la garita, con el sueño subiendo. |
 | Marcador del ping | `guard_radio.tres` → `ping_marker_time` | ritmo | 2-5 s | 3,0 (GSD, igual que el silbato). |
 | Estática del walkie | `guard_radio.tres` → `ping_noise_radius` | curva | 5-8 m | 6,0 (GSD). |
 | Enfriamiento del ping | `guard_radio.tres` → `ping_cooldown` | ritmo | 1-3 s | 1,5. Evita el spam sin impedir dos avisos seguidos. |
@@ -375,7 +375,7 @@ Comprueban relaciones leyendo los `.tres`, no valores literales.
 | Apagar la linterna | guardia | Clic de 1 m y el haz que desaparece; sus pasos siguen | Escuchar sus pasos; desconfiar de una zona oscura donde un haz se apagó. |
 | Cruzar una zona iluminada | ladrón | Visible a 12 m en 240° | Apagarla antes, rodearla, usar la sombra de los muebles, ir por la espalda. |
 | Apagar por interruptor | ladrón | Clic de 2 m y la sala que se oscurece en su pantalla | Volver a encender con el mismo gesto; vigilar el interruptor. |
-| Desenroscar bombilla | ladrón | Ruido de 1 m y la lámpara apagada | Enroscarla (3 s de ronda); usar la linterna en esa sala. |
+| Desenroscar bombilla | ladrón | Ruido de 1 m y la lámpara apagada | Enroscarla (3 s); usar la linterna en esa sala. |
 | Ping de walkie | guardia | Estática discontinua de 6 m en su posición | Alejarse del guardia que avisa; el ladrón sabe que le han localizado. |
 | Hablar por walkie | guardia | Estática cada 2 s mientras habla | Igual que el ping; además sabe que hay coordinación en curso. |
 | Lanzar un ruido señuelo (monedas, despertador) | ladrón | Un guardia lo oye si le alcanza (chevron si está fuera de pantalla), sin pista de bando | Comprobar si coincide con pasos; mandar a uno solo; pedir confirmación por ping. |
@@ -396,7 +396,7 @@ Veredicto: `APROBABLE`. Alcance: L (percepción, niveles, red y UI).
 - Pilar 2: todo cambio de luz y toda comunicación dejan ruido audible para quien alcanzan; el único silencio es un guardia quieto con la linterna apagada, que sigue siendo visible al ladrón por línea de visión.
 - Pilar 3: el ladrón ve haces y luz, oye a los guardias a 1,5 × su radio y lee su propio ruido en el vúmetro; los guardias solo saben lo propio y pagan la radio.
 - Pilar 4: cada acción nueva tiene fila de contrajuego; ninguna vía de apagar domina (invariante 20).
-- Pilar 5: los tiempos de interacción son ≤ 3 s; el reloj de fichar sigue empujando a los guardias fuera de las salas iluminadas.
+- Pilar 5: los tiempos de interacción son ≤ 3 s. Desde #116 no hay reloj de fichar: lo que saca a los guardias de la garita es que, si se quedan, el ladrón roba sin que lo vean; el sueño los devuelve a ella (`heist.md` R5).
 - Pilar 6: apagar luces y señuelos no son violencia.
 - Tensión declarada: la luz con 240° es fuerte; se compensa con islas de `lit_radius` y el requisito de nivel de P2.2.
 

@@ -1,7 +1,7 @@
 ## @file hud_84.gd
 ## Capa de interfaz gráfica (HUD) con estética retro años 80 / casete analógico.
 ## Muestra el progreso de la cuota económica, estado de la obra de arte,
-## reloj de ronda, tooltips dinámicos contextuales, paneles de fin de partida,
+## tiempo de la partida, tooltips dinámicos contextuales, paneles de fin de partida,
 ## indicador de exposición del ladrón, vúmetro de ruido y marcadores fuera de pantalla.
 class_name HUD84
 extends CanvasLayer
@@ -17,8 +17,6 @@ var exposure_icon: Label = null
 var exposure_label: Label = null
 var exposure_row: Control = null
 var noise_meter: NoiseMeter84 = null
-## Tablilla de ronda: solo con un guardia en pantalla (interaction.md R6-R7)
-var round_sheet: RoundSheet84 = null
 ## Imágenes de las cámaras del guardia que mira los monitores (LocalViewPresenter, M2)
 var cctv_feeds: CCTVFeeds84 = null
 ## Panel del dial de la caja fuerte del ladrón local (LocalViewPresenter)
@@ -71,9 +69,6 @@ func _ready() -> void:
 			noise_meter = get_node_or_null("NoiseMeter") as NoiseMeter84
 
 	_update_exposure_panel_visibility()
-	round_sheet = RoundSheet84.new()
-	round_sheet.visible = false
-	add_child(round_sheet)
 	cctv_feeds = CCTVFeeds84.new()
 	cctv_feeds.visible = false
 	add_child(cctv_feeds)
@@ -82,7 +77,6 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	round_sheet.visible = target_player is GuardController3D
 	_update_header_stats()
 	_update_interaction_tooltip()
 	_update_exposure_blink(delta)
@@ -222,16 +216,6 @@ func _update_header_stats() -> void:
 
 
 func _check_game_over_state() -> void:
-	var sheet: String = (
-		"Hoja de ronda: %d faltas de %d toleradas."
-		% [
-			GameManager.round_faults,
-			RoundRules.allowed_faults(
-				get_tree().get_nodes_in_group(&"guard_round"),
-				GameManager.CLOCK_RULES.allowed_misses
-			)
-		]
-	)
 	match GameManager.current_state:
 		GameManager.MatchState.THIEF_ESCAPED:
 			_show_game_over_modal(
@@ -251,20 +235,8 @@ func _check_game_over_state() -> void:
 		GameManager.MatchState.TIME_EXPIRED:
 			_show_game_over_modal(
 				"SE ACABÓ LA NOCHE",
-				"La ronda estaba al día y el ladrón no salió con su encargo.\n" + sheet,
+				"Amanece, la policía rodea el museo y el ladrón no salió con su encargo.",
 				Color(1.0, 0.55, 0.1)
-			)
-		GameManager.MatchState.TIME_EXPIRED_BREACH:
-			_show_game_over_modal(
-				"LA RONDA FALLÓ",
-				"Los vigilantes dejaron la ronda y el ladrón se salió con la suya.\n" + sheet,
-				Color(0.25, 1.0, 0.4)
-			)
-		GameManager.MatchState.TIME_EXPIRED_DRAW:
-			_show_game_over_modal(
-				"EMPATE",
-				"La ronda se rompió, pero el ladrón no llegó a salir con el encargo.\n" + sheet,
-				Color(0.9, 0.9, 0.9)
 			)
 
 

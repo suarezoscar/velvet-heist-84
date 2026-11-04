@@ -167,7 +167,7 @@ func _build() -> void:
 	)
 	style.set_content_margin_all(10)
 	_panel.add_theme_stylebox_override("panel", style)
-	# Abajo a la derecha: arriba están la hoja de ronda y el indicador de sombra
+	# Abajo a la derecha: arriba están el estado del sueño y el indicador de sombra
 	_panel.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)

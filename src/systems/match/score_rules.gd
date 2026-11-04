@@ -15,10 +15,6 @@ extends Resource
 @export var thief_seen: int = -10
 
 @export_group("Guardias")
-## Por cada reloj fichado
-@export var guard_clock: int = 10
-## Por cada falta de ronda
-@export var guard_fault: int = -20
 ## Por cada vez que empezó a ver al ladrón
 @export var guard_seen: int = 25
 ## Por cada golpe de porra que acertó

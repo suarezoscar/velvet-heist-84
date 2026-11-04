@@ -49,7 +49,7 @@ var stamina_drain_rate: float = 35.0
 var stamina_recovery_rate: float = 20.0
 var baton_cooldown: float = 0.0
 
-## Componente modular de interacción (para relojes de fichar y puertas)
+## Componente modular de interacción (para puertas y cafetera)
 var interactor: Interactor3D = null
 
 ## Propiedad de conveniencia para que el HUD consulte el interactuable enfocado
@@ -291,7 +291,8 @@ func _capture_thief() -> void:
 
 
 func _process_stamina_and_sprint(delta: float, input_dir: Vector2) -> void:
-	if is_sprinting and (stamina <= 5.0 or input_dir.length_squared() <= 0.01):
+	var calm: bool = is_inside_tree() and not AlertDirector.alarm_on(get_tree())  # #116
+	if is_sprinting and (calm or stamina <= 5.0 or input_dir.length_squared() <= 0.01):
 		is_sprinting = false
 	var rate: float = -stamina_drain_rate if is_sprinting else stamina_recovery_rate
 	stamina = clampf(stamina + rate * delta, 0.0, max_stamina)

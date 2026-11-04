@@ -117,7 +117,7 @@ func test_steal_each_protection_and_escape() -> void:
 	await wait_physics_frames(3)
 	assert_eq(GameManager.current_state, GameManager.MatchState.THIEF_ESCAPED, "Sale y gana")
 	assert_true(heist.get_net_state().has("targets"), "Al acabar se revela el encargo")
-	assert_string_contains(MatchSummary.heist_stats(heist, 120.0, 0, 2), "Encargo: 3 de 3 piezas")
+	assert_string_contains(MatchSummary.heist_stats(heist, 120.0), "Encargo: 3 de 3 piezas")
 
 
 func test_exit_without_contract_does_nothing() -> void:
@@ -129,16 +129,16 @@ func test_exit_without_contract_does_nothing() -> void:
 
 
 func test_guards_see_the_letter_not_the_contract() -> void:
-	var lines: Array[String] = RoleBriefing84.heist_objectives(false, [] as Array[String], 3, 10, 4)
+	var lines: Array[String] = RoleBriefing84.heist_objectives(false, [] as Array[String], 3, 10)
 	assert_string_contains(lines[0], "me llevaré 3 piezas")
 	var thief_lines: Array[String] = RoleBriefing84.heist_objectives(
-		true, ["Busto de bronce (Archivo)"] as Array[String], 3, 10, 4
+		true, ["Busto de bronce (Archivo)"] as Array[String], 3, 10
 	)
 	assert_string_contains(thief_lines[0], "Busto de bronce")
 
 
 func test_briefing_waits_for_the_contract() -> void:
-	var lines: Array[String] = RoleBriefing84.heist_objectives(true, [] as Array[String], 0, 10, 4)
+	var lines: Array[String] = RoleBriefing84.heist_objectives(true, [] as Array[String], 0, 10)
 	assert_false(lines[0].contains("0 piezas"), "Sin encargo aún no dice «0 piezas»")
 	assert_false(lines[0].contains("…."), "Ni puntuación doble")
 
@@ -190,15 +190,12 @@ func test_dial_reachable_through_the_piece() -> void:
 		piece.lock.cancel_cracking()
 
 
-## heist.md R4: con encargo, la ronda rota al acabar el tiempo es empate aunque lleve la Pieza
-func test_time_out_with_broken_round_is_a_draw() -> void:
+## heist.md R4 (#116): al acabar el tiempo ganan los guardias, lleve o no la Pieza el ladrón
+func test_time_out_is_always_a_guards_win() -> void:
 	var map: HeistMap3D = _map()
 	await wait_physics_frames(2)
-	var rounds: Array = get_tree().get_nodes_in_group(&"guard_round")
-	for node: Node in rounds:
-		(node as GuardRound).assign([1] as Array[int], [90.0] as Array[float])
-	(rounds[0] as GuardRound).faults = GameManager.CLOCK_RULES.allowed_misses * rounds.size() + 1
 	GameManager.has_masterpiece = true
-	assert_eq(GameManager.time_expired_state(), GameManager.MatchState.TIME_EXPIRED_DRAW)
+	assert_eq(GameManager.time_expired_state(), GameManager.MatchState.TIME_EXPIRED)
 	GameManager.has_masterpiece = false
+	assert_eq(GameManager.time_expired_state(), GameManager.MatchState.TIME_EXPIRED)
 	assert_not_null(map)

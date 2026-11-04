@@ -13,6 +13,8 @@ static func create(id: String, size: Vector3) -> ExitZone3D:
 	zone.collision_layer = 0
 	zone.collision_mask = 2  # Personajes
 	zone.monitoring = true
+	# Antes que GameManager (autoload): quien cruza en el último tick escapa (heist.md R4)
+	zone.process_physics_priority = -1
 	var shape: BoxShape3D = BoxShape3D.new()
 	shape.size = size
 	var col: CollisionShape3D = CollisionShape3D.new()

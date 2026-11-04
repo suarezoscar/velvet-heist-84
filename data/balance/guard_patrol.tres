@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="GuardPatrolRules" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/systems/patrol/guard_patrol_rules.gd" id="1_patrol"]
+
+[resource]
+script = ExtResource("1_patrol")
+ai_piece_weight = 1.5
+ai_room_memory = 3
+ai_room_dwell = 4.0

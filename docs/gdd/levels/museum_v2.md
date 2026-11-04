@@ -24,7 +24,8 @@ La fuente de verdad del nivel es `data/levels/museum_v2.json`. Esta sección man
 - **Garita**: una sola puerta, P20 al Pasillo de Servicio, con hoja (`Door3D`). P21 y P24 pasan a ser muro. Decorado de oficina de 1984: fluorescentes, reloj de pared, taquillas, mesita con teléfono, linóleo a cuadros y la pared de 5 monitores.
 - **20 candidatas** (heist.md R1, R9): 7 de combinación (cajas fuertes en el Despacho y en Joyas), 7 de presión y 6 de sensor. Las de sensor están en las alas Oeste (GW, GSW), Servicio (TAL, MNT), Este (BIB, TAP) y Antigüedades (ANT). Hay mesas de réplicas en el Taller y en el ala oriental.
 - **Ventilación** (heist.md R10): red de servicio (TAL, MNT, DOCK), red oeste (GW, GSW, ANT, ARC) y red este (ORI, PAT, VES, BIB).
-- **Rondas** (interaction.md R1): 8 relojes en tres zonas (oeste R2, R4, R8; centro R1, R5; este R3, R6, R7). Cada guardia recibe una ruta de 4. Las patrullas fijas desaparecen: la IA patrulla su ruta (`offline_guards`: 2).
+- **Rondas**: retiradas el 2026-10-30 (#116). Fuera los 8 relojes y las rutas; la IA (`offline_guards`: 2) patrulla salas según sus piezas y vuelve a la garita (GAR, sala con `"guard_post": true`) a por café (`heist.md` R5 y R5c).
+  - Antes (FEAT-034): 8 relojes en tres zonas (oeste R2, R4, R8; centro R1, R5; este R3, R6, R7) y una ruta de 4 por guardia.
 - **Cámaras**: 5 (CAM-4 en el Patio y CAM-5 en Arte Oriental).
 - **Partida**: 12 minutos (`match_minutes`).
 - **Aspecto**:
@@ -220,7 +221,7 @@ Total disponible sin la Pieza: 10.000 $ ligeros y 7.500 $ pesados, 3,5 veces lo 
 3. **Ligero y repartido**: L1 + L2 + L3 + L4 + L8 = 5.000 (sin caja ni pesados, pero pasando por la rotonda).
 4. **Pesado lejano**: H1 + L4 + L7 = 5.000 (el ánfora obliga a volver por todo el oeste cargado).
 
-### Relojes de fichar
+### Relojes de fichar (retirados el 2026-10-30, #116; se conserva como historia)
 Cuatro, uno por cuadrante. `round_duration` es un campo del nodo (dato de nivel, hoy 90 s por defecto, `DEFAULT_ROUND_DURATION`). Rango de ritmo propuesto: 60-120 s. Fichar hace un ruido de 5,5 m y un reloj vencido suena a 14 m cada 3 s (constantes de `time_clock_3d.gd`).
 
 | Id | Sala, posición | Ciclo | Por qué ahí |
@@ -288,6 +289,8 @@ Coche → P01 → L5 → P04 → L4 → ANTE → P13 → P14 → ARC → P16 →
 - Con un factor de 3-4 por esperas, escondites y rodeos: **5-7 minutos** de partida de 10 (`match_duration_seconds` = 600 s). Si un ladrón experto gana sistemáticamente en menos de 4 minutos, sobra botín o sobra mapa (ver §9).
 
 ## 8. Patrullas y ritmo
+> 2026-10-30, #116: sin relojes, las rondas de esta tabla ya no son obligatorias; lo que mueve a los guardias es el sueño (vuelven a la garita cada 3-4 minutos) y la IA elige salas por sus piezas (`heist.md` R5c). Los recorridos sirven como referencia de distancias.
+
 Los relojes imponen el recorrido; el reparto entre los dos guardias es suyo. Estas son las dos rondas naturales con su coste andando (4,2 m/s):
 
 | Ronda | Recorrido | Longitud | Tiempo | % del ciclo de 90 s |

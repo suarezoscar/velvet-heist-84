@@ -8,5 +8,5 @@ Aprobados por el usuario el 2026-10-22; pilar 3 modificado por el usuario el 202
 2. **El sonido es información.** Cada acción relevante de cualquier bando deja un rastro audible o visible para alguien, proporcional a lo que hace. El ruido es el principal canal entre bandos; un silencio total necesita una justificación de diseño.
 3. **Información frente a número.** El ladrón sabe más (visión amplia, ve linternas y oye más lejos); los guardias son más (2-4) y se coordinan pagando un precio (el walkie-talkie delata).
 4. **Toda herramienta tiene respuesta.** Cada gadget o acción tiene una contramedida que el otro bando puede percibir y usar. Ninguna opción domina siempre.
-5. **Partidas cortas y tensas.** 8-10 minutos. El reloj presiona a los dos bandos: cuota y huida para el ladrón, relojes de fichar para los guardias.
+5. **Partidas cortas y tensas.** 8-10 minutos. La cuenta atrás presiona al ladrón (encargo y huida); el sueño, a los guardias (2026-10-30, #116: antes, relojes de fichar).
 6. **El ladrón no es violento.** Distrae, engaña, esquiva o se oculta; nunca ataca.

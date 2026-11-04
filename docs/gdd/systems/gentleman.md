@@ -16,7 +16,7 @@ Cinco mecánicas candidatas, ordenadas por lo que aportan a la temática y a la 
 ### M1. El golpe anunciado (recomendada para después del playtest)
 Antes de empezar, el ladrón elige **qué pieza va a robar**: la Pieza Maestra pasa a ser una entre 3 o 4 candidatas repartidas por el museo. Al empezar, los guardias reciben **la carta del ladrón**: «Esta noche me llevaré *El retrato de la condesa*. Afectuosamente, V.».
 - **Regla**: la pieza anunciada es la única que cuenta como «Pieza Maestra». Las otras candidatas son botín normal (o no existen esa partida).
-- **Contrajuego**: los guardias saben **qué** proteger, pero no **cuándo** ni **por dónde** llegará. Esto da un motivo para acampar junto a la pieza, que tensa los relojes de ronda, que ya existen precisamente para impedir acampar.
+- **Contrajuego**: los guardias saben **qué** proteger, pero no **cuándo** ni **por dónde** llegará. Esto da un motivo para acampar junto a la pieza, que tensa los relojes de ronda, que ya existen precisamente para impedir acampar. (2026-10-30, #116: los relojes se retiraron; contra la acampada queda el sueño fuera de la garita, `heist.md` R5.)
 - **Pilares**: refuerza el 3 (información frente a número: ahora los guardias también saben algo) y el 5 (tensión desde el primer segundo).
 - **Rejugabilidad**: muy alta. Cada partida cambia la ruta, la sala que vigilar y el reparto de los guardias. Combina con la «semilla del golpe» del roadmap.
 - **Coste**: medio (datos del nivel con candidatas, selección en el lobby y la carta en la tarjeta de objetivo).
@@ -44,7 +44,7 @@ Los guardias puntúan al revés («la ronda impecable»: relojes sin faltas, cap
 ### M4. El disfraz de guardia (pedido por el usuario)
 El ladrón puede ponerse un **uniforme de guardia** (uno por partida, en una taquilla del museo). Disfrazado, **a distancia** se dibuja como un guardia más en los clientes de los guardias.
 - **Regla**: el disfraz cae al correr, al robar o al ponerse a menos de `dark_sight` de un guardia (que «le ve la cara»). Las CCTV no se dejan engañar, porque las cintas se miran con calma.
-- **Contrajuego**: los guardias saben cuántos son. Un guardia «de más» se delata en los números de las marcas (FEAT-027): el falso no tiene número. También se delata por la radio (el walkie, cuando exista) y por no fichar.
+- **Contrajuego**: los guardias saben cuántos son. Un guardia «de más» se delata en los números de las marcas (FEAT-027): el falso no tiene número. También se delata por la radio (el walkie, cuando exista) y por no ir a por café (desde #116 no hay que fichar).
 - **Pilares**: tensa el 3 y el filtro de red de `vision.md` (el servidor tiene que enviar al ladrón como guardia, sin revelar quién es). Es la mecánica más cara.
 - **Coste**: alto. Necesita su propio `/design` detallado y tocar la red.
 

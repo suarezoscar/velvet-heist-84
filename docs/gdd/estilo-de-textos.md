@@ -17,7 +17,7 @@ Quedan fuera los documentos de desarrollo (`docs/`, el manual de compilación) y
 - **Dónde**: «la ciudad», en España, en 1984. No se nombran lugares reales.
 - **Quién vigila**: **vigilantes jurados** de una empresa de seguridad privada, que dan parte a **la central**.
 - **Quién roba**: un ladrón de guante blanco al estilo de Arsène Lupin. Nunca es violento. Firma con la inicial de su nombre (§7).
-- **La técnica**: la de 1984. Circuito cerrado de televisión, monitores de tubo, relojes de fichar, walkies y cuadros eléctricos. Nada de pantallas táctiles, drones ni «sistemas».
+- **La técnica**: la de 1984. Circuito cerrado de televisión, monitores de tubo, walkies y cuadros eléctricos. Nada de pantallas táctiles, drones ni «sistemas».
 
 ## 3. Tres voces
 Las referencias son para el vocabulario y el ritmo, nunca para copiar frases.
@@ -25,7 +25,7 @@ Las referencias son para el vocabulario y el ritmo, nunca para copiar frases.
 | Voz | Dónde | Cómo suena | Referencias |
 |---|---|---|---|
 | **El ladrón** | Su briefing, su encargo, sus avisos y su victoria | Un caballero irónico y educado que habla del robo como de un oficio fino: «el encargo», «la pieza», «con mis respetos» | Maurice Leblanc (Arsène Lupin); Lawrence Block, la serie de Bernie Rhodenbarr (*El ladrón que…*) |
-| **Los guardias** | Su briefing, la hoja de ronda y los avisos de su HUD | El parte de servicio de un vigilante jurado: seco, de reglamento. «La central», «la ronda», «sin novedad», «dar parte», «el relevo» | Donald E. Westlake y Richard Stark (golpes contados con sequedad profesional) |
+| **Los guardias** | Su briefing, la taza del sueño y los avisos de su HUD | El parte de servicio de un vigilante jurado: seco, de reglamento. «La central», «la patrulla», «sin novedad», «dar parte», «el relevo» | Donald E. Westlake y Richard Stark (golpes contados con sequedad profesional) |
 | **El narrador** | Menús, alerta, pantallas finales y textos comunes | Novela negra breve: una frase con imagen, no un párrafo | Eduardo Mendoza (*El misterio de la cripta embrujada*), Manuel Vázquez Montalbán (Carvalho) |
 
 ## 4. Leer con calma o en un segundo
@@ -62,7 +62,7 @@ Las referencias son para el vocabulario y el ritmo, nunca para copiar frases.
 | Robar sin desactivar la protección | **a lo bruto** | forzar sin sigilo |
 | Lo que delata un robo | **rastro** | evidencia, pista |
 | El estado de la patrulla | **alerta**: calma, sospecha, alarma | nivel de amenaza |
-| Pasar por los relojes | **fichar**, **la ronda**, **la hoja de ronda**, **falta**, **ronda rota** | checkpoint, penalización |
+| El sueño del guardia | **sueño**, **bostezo**, **cabezada**, **café**, **despejado** (desde #116; fichar, ronda y hoja de ronda ya no existen) | stamina, debuff, penalización |
 | Las cámaras | **circuito cerrado**, **mesa de monitores** | CCTV |
 | La empresa de seguridad | **la central** | el sistema, el servidor |
 | La garita de los guardias | **la garita** | sala de control |
@@ -98,7 +98,7 @@ Las referencias son para el vocabulario y el ritmo, nunca para copiar frases.
 | Las piezas candidatas llevan una marca cian | Las piezas en el punto de mira llevan una marca cian | Glosario |
 | La policia aseguro el perimetro | La central cerró el museo a tiempo. Sin novedad. | Ortografía y voz de los guardias |
 | No se pudo conectar con 1.2.3.4:7777: ERR_CANT_CONNECT | No hay respuesta en 1.2.3.4:7777. Comprueba la IP y el puerto e inténtalo de nuevo. | Sin códigos; qué hacer |
-| Atrapadlo antes de 12 minutos y fichad los relojes. | Atrapadlo antes de que acabe el turno (12 minutos) y no dejéis la ronda. | Vosotros solo en el objetivo del equipo; voz de parte |
+| Atrapadlo antes de 12 minutos y tomad café. | Atrapadlo antes de que acabe el turno (12 minutos); si amanece y sigue dentro, ganáis. | Vosotros solo en el objetivo del equipo; voz de parte |
 
 ## 9. Comprobación
 - Toda FEAT que añada o cambie textos del jugador los repasa con esta guía.

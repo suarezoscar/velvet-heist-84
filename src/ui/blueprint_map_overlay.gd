@@ -3,7 +3,7 @@
 ## los deja en su meta «level_data»): salas con su nombre, puertas, salidas y cámaras. Además:
 ## - el ladrón ve su encargo (rosa; ✔ las que lleva) y las rejillas de ventilación;
 ## - los guardias ven todas las candidatas con su protección (✘ rastro descubierto, ✔ auténtica
-##   examinada), su ruta de relojes con el siguiente marcado y las marcas del walkie.
+##   examinada) y las marcas del walkie.
 ## Solo lee el estado que ya tiene el cliente.
 class_name BlueprintMapOverlay
 extends Control
@@ -85,7 +85,6 @@ func _draw() -> void:
 		_draw_vents()
 	_draw_pieces(thief_view)
 	if not thief_view:
-		_draw_route()
 		_draw_pings()
 	_draw_player()
 	_text(Vector2(panel.position.x + 24.0, panel.end.y - 12.0), _legend(thief_view), 13, COLOR_TEXT)
@@ -171,21 +170,6 @@ func _draw_pieces(thief_view: bool) -> void:
 		_text(pos + Vector2(-5.0, 5.0), icon, 14, color)
 
 
-func _draw_route() -> void:
-	var round_node: GuardRound = GuardRound.of(player_pawn)
-	if round_node == null:
-		return
-	for node: Node in get_tree().get_nodes_in_group(&"time_clock"):
-		var clock: TimeClock3D = node as TimeClock3D
-		var pos: Vector2 = _world(clock.global_position)
-		var order: int = round_node.route.find(clock.clock_id)
-		var next: bool = clock.clock_id == round_node.next_clock()
-		var color: Color = COLOR_HEADER if next else (COLOR_TEXT if order >= 0 else COLOR_GRID)
-		if next:
-			draw_arc(pos, 9.0, 0.0, TAU, 24, COLOR_HEADER, 2.0)
-		_text(pos + Vector2(-8.0, 4.0), "R%d" % clock.clock_id, 11, color)
-
-
 func _draw_pings() -> void:
 	var alert: AlertDirector = AlertDirector.of(get_tree())
 	if alert == null:
@@ -208,7 +192,7 @@ func _draw_player() -> void:
 func _legend(thief_view: bool) -> String:
 	if thief_view:
 		return "◆ TU ENCARGO   ✔ ROBADA   □ VENTILACIÓN (S/O/E)   ● CÁMARA"
-	return "◎ COMBINACIÓN   ▣ PRESIÓN   ϟ SENSOR   ✘ RASTRO   R RELOJ (○ EL SIGUIENTE)   ● CÁMARA"
+	return "◎ COMBINACIÓN   ▣ PRESIÓN   ϟ SENSOR   ✘ RASTRO   ● CÁMARA"
 
 
 func _world(pos: Vector3) -> Vector2:

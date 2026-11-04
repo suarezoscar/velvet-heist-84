@@ -44,11 +44,6 @@ signal rotary_phone_called(target_extension_id: int)
 ## Emitida cuando un guardia o ladrón descuelga el auricular de un teléfono que estaba sonando.
 signal rotary_phone_answered(extension_id: int)
 
-## Emitida cuando un guardia gira su llave en un reloj de pared mecánico de ronda.
-## [param clock_id]: Identificador único del reloj fichado.
-## [param guard_peer_id]: ID del jugador de la guardia que realizó el fichaje.
-signal time_clock_punched(clock_id: int, guard_peer_id: int)
-
 ## Emitida cuando se bloquea o desbloquea una puerta física usando cuñas de madera.
 signal door_wedge_changed(door_id: int, is_wedged: bool)
 

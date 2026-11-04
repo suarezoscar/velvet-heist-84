@@ -12,13 +12,13 @@
     {"id": "GSW", "name": "Galería de Pintura Moderna", "rect": [0, 24, 16, 12], "surface": "marble", "exterior": false},
     {"id": "ARC", "name": "Archivo y Almacén de Obras", "rect": [32, 0, 8, 14], "surface": "linoleum", "exterior": false},
     {"id": "OFF", "name": "Despacho del Conservador", "rect": [40, 0, 8, 14], "surface": "carpet", "exterior": false},
-    {"id": "PS", "name": "Pasillo de Servicio", "rect": [32, 14, 2, 16], "surface": "linoleum", "exterior": false},
+    {"id": "PS", "name": "Pasillo de Servicio", "rect": [32, 14, 2, 16], "surface": "linoleum", "exterior": false, "corridor": true},
     {"id": "TAL", "name": "Taller de Restauración", "rect": [34, 14, 6, 10], "surface": "wood_parquet", "exterior": false},
     {"id": "MNT", "name": "Mantenimiento y Generadores", "rect": [40, 14, 8, 10], "surface": "linoleum", "exterior": false},
-    {"id": "GAR", "name": "Garita de Seguridad", "rect": [34, 24, 8, 6], "surface": "linoleum", "exterior": false},
+    {"id": "GAR", "name": "Garita de Seguridad", "rect": [34, 24, 8, 6], "surface": "linoleum", "exterior": false, "guard_post": true},
     {"id": "VEST", "name": "Vestuario de Personal", "rect": [42, 24, 6, 6], "surface": "linoleum", "exterior": false},
     {"id": "DOCK", "name": "Muelle de Carga", "rect": [32, 30, 16, 6], "surface": "linoleum", "exterior": false},
-    {"id": "EPS", "name": "Pasillo de Servicio Este", "rect": [48, 14, 2, 22], "surface": "linoleum", "exterior": false},
+    {"id": "EPS", "name": "Pasillo de Servicio Este", "rect": [48, 14, 2, 22], "surface": "linoleum", "exterior": false, "corridor": true},
     {"id": "ORI", "name": "Galería de Arte Oriental", "rect": [48, 0, 18, 14], "surface": "wood_parquet", "exterior": false},
     {"id": "JOY", "name": "Sala de Joyas y Relojes", "rect": [50, 14, 8, 10], "surface": "carpet", "exterior": false},
     {"id": "BIB", "name": "Biblioteca de Manuscritos", "rect": [58, 14, 8, 10], "surface": "wood_parquet", "exterior": false},
@@ -278,16 +278,6 @@
     {"id": "P02", "pos": [6, 36], "size": [2.0, 2.0]},
     {"id": "P03", "pos": [44, 36], "size": [3.8, 2.0]},
     {"id": "P38", "pos": [55, 36], "size": [3.2, 2.0]}
-  ],
-  "clocks": [
-    {"id": 1, "pos": [36, 24.2], "rot_deg": 180, "zone": "centro"},
-    {"id": 2, "pos": [0.2, 6], "rot_deg": 90, "zone": "oeste"},
-    {"id": 3, "pos": [47.8, 2], "rot_deg": 270, "zone": "este"},
-    {"id": 4, "pos": [0.2, 26], "rot_deg": 90, "zone": "oeste"},
-    {"id": 5, "pos": [31.8, 33], "rot_deg": 270, "zone": "centro"},
-    {"id": 6, "pos": [57, 0.2], "rot_deg": 180, "zone": "este"},
-    {"id": 7, "pos": [65.8, 28], "rot_deg": 270, "zone": "este"},
-    {"id": 8, "pos": [16.2, 23], "rot_deg": 90, "zone": "oeste"}
   ],
   "cameras": [
     {"id": "CAM-1", "pos": [31.5, 26.5], "yaw_deg": 225, "label": "VESTÍBULO"},

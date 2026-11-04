@@ -1,8 +1,8 @@
 # El golpe: la lista del coleccionista, el café y la alerta
 
-- **Estado**: aprobado por el usuario el 2026-10-28 (decisiones tomadas en conversación).
+- **Estado**: aprobado por el usuario el 2026-10-28 (decisiones tomadas en conversación). **2026-10-30, #116**: R4, R5, R7 y R11 reescritas y R5c y R5d nuevas (fuera relojes y rondas; sueño fuera de la garita; IA de patrulla libre; correr solo con alarma). Las reglas las decidió el usuario en la entrevista de #116; los números nuevos los aprobó el 2026-11-04.
 - **Origen**: rediseño pedido por el usuario el 2026-10-28 para que los guardias no acampen en un sitio y para que su turno sea divertido. Temática: `docs/decisions/2026-10-28-tematica-caballero-ladron.md`.
-- **Relacionado**: `interaction.md` (relojes de ronda, CCTV), `vision.md` (niebla y filtro de red), `stealth.md` (percepción y ruido), `gentleman.md` (temática; sus M1-M3 quedan sustituidas por este documento), `docs/gdd/levels/museum_v2.md`.
+- **Relacionado**: `interaction.md` (CCTV; su parte R, relojes de ronda, se retiró el 2026-10-30, #116), `vision.md` (niebla y filtro de red), `stealth.md` (percepción y ruido), `gentleman.md` (temática; sus M1-M3 quedan sustituidas por este documento), `docs/gdd/levels/museum_v2.md`.
 
 ## Fantasía
 - **Ladrón**: «Un coleccionista me ha encargado tres piezas. Ellos no saben cuáles. Entro, me las llevo y salgo por donde menos me esperen».
@@ -12,7 +12,7 @@
 Hasta ahora el ladrón necesitaba una pieza fija (la Pieza Maestra de la cámara acorazada) y volver a un coche fijo. Lo óptimo para los guardias era acampar en esos dos puntos. Este diseño ataca las tres causas:
 - **no saber qué defender**: la lista;
 - **no saber por dónde saldrá**: las salidas;
-- **que quedarse quieto cueste**: el café.
+- **que alejarse mucho rato de la garita canse**: el sueño y el café (desde el 2026-10-30, #116; antes castigaba quedarse quieto).
 
 Y da a los guardias un juego propio: los rastros y la alerta.
 
@@ -48,34 +48,49 @@ El número es el del encargo. La carta no da ninguna pista de cuáles son.
 - Sin todas las piezas, las salidas no hacen nada. El coche queda como decorado.
 - **Peso del botín** (FEAT-033): cada pieza del encargo que lleva le quita `loot_slow` de velocidad, hasta un mínimo de `loot_min_speed`.
 
-### R4. Cómo se gana
+### R4. Cómo se gana (reescrita el 2026-10-30, #116)
 | Resultado | Cuándo |
 |---|---|
 | **Gana el ladrón** | Sale por una salida exterior con todas las piezas del encargo antes de que acabe el tiempo |
-| **Ganan los guardias** | Lo atrapan (la porra, como hoy), o se acaba el tiempo con la ronda al día (`interaction.md` R3) |
-| **Empate** | Se acaba el tiempo con la ronda rota |
+| **Ganan los guardias** | Lo atrapan (la porra, como hoy), o se acaba el tiempo sin que haya escapado (`TIME_EXPIRED`, sello «AMANECE») |
 
-Desaparece el caso «ronda rota y el ladrón tenía la Pieza Maestra = gana el ladrón». Para ganar, el ladrón **siempre** tiene que escapar.
+- Ya no hay empate ni «ronda rota»: desaparecen `TIME_EXPIRED_BREACH` y `TIME_EXPIRED_DRAW` y la tabla R4 de `interaction.md`. Para ganar, el ladrón **siempre** tiene que escapar.
+- **Por qué**: sin relojes, el tiempo es la presión del ladrón; la de los guardias es que, si se quedan en la garita, él se lleva el encargo sin que nadie lo vea (R5, «Presión sobre los guardias»).
 
-### R5. El sueño y el café
-- **Cómo se mide**: cada guardia guarda dónde ha estado en los últimos `window` segundos. Si ha pasado más de `linger_ratio` de ese tiempo dentro de un círculo de radio `radius` alrededor de su posición media, está **acampando**. No importa que dé pasos dentro del círculo.
+### R5. El sueño y el café (reescrita el 2026-10-30, #116; sustituye a la regla de acampar)
+- **La garita** es la sala del nivel marcada como puesto de los guardias: en `museum_v2`, el rectángulo entero de GAR (8 × 6 m, con la cafetera y la mesa de monitores). Todo lo demás es «fuera», también el vestuario, el pasillo de servicio y el umbral de la puerta P20. Dato de nivel nuevo: `"guard_post": true` en la sala (`data/levels/museum_v2.json`).
 - **El sueño** es una barra de 0 a 1:
-  - sube a `rise_rate` por segundo mientras acampa;
-  - no baja sola: moverse solo impide que suba;
-  - con la alerta en «alarma» no sube.
+  - **fuera de la garita sube** a `rise_rate` por segundo, ande o esté quieto;
+  - **dentro de la garita se congela**: ni sube ni baja, mire los monitores o no;
+  - no sube mientras está despejado por un café, con la alerta en «alarma» ni mientras percibe al ladrón (como hasta ahora);
+  - solo baja con el café (y con la adrenalina, R5b).
+- Desaparece **acampar**: ya no se mide dónde ha estado el guardia (fuera `window`, `radius`, `linger_ratio` y `CampingMeter`).
+
+```
+t_bostezo = drowsy_at / rise_rate        t_cabezada = exhausted_at / rise_rate
+```
+| Variable | Significado | Fuente |
+|---|---|---|
+| `t_bostezo`, `t_cabezada` | Segundos fuera de la garita, desde el sueño 0 y sin contar el rato despejado, hasta el primer bostezo o la primera cabezada | resultado |
+| `rise_rate` | Subida por segundo fuera | `guard_sleep.tres` |
+| `drowsy_at`, `exhausted_at` | Umbrales de somnoliento y agotado | `guard_sleep.tres` |
+
+Rango: con `rise_rate` entre 1/300 y 1/180 por s y los umbrales aprobados (0,75 / 1,0), el primer bostezo llega entre 135 y 225 s fuera y la primera cabezada entre 180 y 300 s. Con los valores aprobados, a los 180 y 240 s (los 3 y 4 minutos que pidió el usuario). Ejemplo: un guardia sale de la garita a 0:00; a 1:30 vuelve 40 s a mirar los monitores (sueño 0,375, congelado) y sale a 2:10. Le quedan 90 s fuera hasta 0,75: bosteza a 3:40. Si no va a por café, da la primera cabezada a 4:40.
+
 - **Niveles**:
 
   | Sueño | Nivel | Efecto |
   |---|---|---|
   | < `drowsy_at` | Despierto | Ninguno |
-  | ≥ `drowsy_at` | Somnoliento | Bosteza cada `yawn_interval` s: un ruido de radio `yawn_radius` que oye todo el mundo. Sus alcances de vista se multiplican por `drowsy_sight` |
-  | ≥ `exhausted_at` | Agotado | Lo anterior, y además da cabezadas: cada `nod_interval` s, su vista se apaga `nod_time` s (no percibe nada) |
+  | ≥ `drowsy_at` | Somnoliento | Bosteza cada `yawn_interval` s: un ruido de radio `yawn_radius` que oye todo el mundo (el ladrón, a ×1,5). Sus alcances de vista se multiplican por `drowsy_sight` |
+  | ≥ `exhausted_at` | Agotado | Lo anterior, y además da cabezadas: cada `nod_interval` s, durante `nod_time` s, no ve nada (ni con la linterna ni la proximidad; si mira los monitores, tampoco las cámaras). Puede seguir andando. Sobre él sale el «Zzz» |
 
 - **El café**: E en la **cafetera de la garita** (`coffee_time` s, que suenan con radio `coffee_radius`).
-  - Deja el sueño a 0 y da `fresh_time` s **despejado**, sin que suba.
-  - Mirar los monitores cuenta como acampar, igual que cualquier otro sitio.
+  - Deja el sueño a 0 y da `fresh_time` s **despejado**: no sube aunque salga. El rato despejado corre también dentro de la garita (no se guarda para después).
+  - Al empezar la partida, los guardias salen de la garita con el sueño a 0 y sin rato despejado.
 - El guardia ve su nivel de sueño en el HUD (una taza que se vacía). El ladrón no lo ve, pero lo oye bostezar.
 - **Cabezadas a la vista** (FEAT-033): sobre un guardia que da una cabezada sale un «Zzz» que ve cualquiera que lo tenga a la vista (la niebla lo oculta como al cuerpo).
+- **Presión sobre los guardias** (sin relojes): en la garita no se duermen, pero desde ella solo ven lo que enseñan las cámaras con luz; el ladrón roba en silencio y escapa sin que nadie lo vea. Fuera ven y oyen, pero cada 3-4 minutos el sueño los devuelve a la garita. El ritmo de los guardias es ese vaivén, y el ladrón lo oye (bostezos, café, la puerta que cruje).
 
 ### R5b. Somnífero, adrenalina y bajón (FEAT-033)
 - **Somnífero**: el ladrón tiene `drug_doses` dosis por partida. Con E en la cafetera la droga en silencio (`drug_time` s, sin alejarse). Solo él sabe que está drogada.
@@ -83,6 +98,33 @@ Desaparece el caso «ronda rota y el ladrón tenía la Pieza Maestra = gana el l
   - La alarma no despierta a un guardia drogado.
 - **Adrenalina**: al pasar la alerta a «alarma», el sueño de todos los guardias vuelve a 0.
 - **Bajón**: cuando se apagan unas luces de alarma, el sueño de todos los guardias sube de golpe hasta `crash_level` (salvo a quien esté despejado por un café). Encender las luces tiene precio.
+  - 2026-10-30, #116: con la alarma el sueño ya no sube, así que el bajón se queda donde lo deja hasta el próximo café. Por eso `crash_level` tiene que ser ≥ `drowsy_at` (si no, el bajón no hace nada): 0,85, somnoliento sin cabezadas.
+
+### R5c. La IA sin red patrulla salas (2026-10-30, #116; sustituye a las rutas de relojes)
+- **Duerme como un humano**: los guardias de IA tienen el mismo sueño, bostezos, cabezadas y café que los humanos (hasta ahora no dormían). El somnífero del ladrón también les afecta.
+- **Elige sala**: al empezar y cada vez que termina una sala, elige la siguiente al azar, con peso:
+
+```
+w(sala) = 1 + ai_piece_weight × n(sala)
+```
+| Variable | Significado | Fuente |
+|---|---|---|
+| `w` | Peso de la sala en el sorteo | resultado, ≥ 1 |
+| `n` | Candidatas de esa sala que siguen siéndolo para los guardias (las descubiertas como robadas, R6, ya no cuentan; las robadas sin descubrir, sí: la IA no sabe más que un humano) | estado del golpe |
+| `ai_piece_weight` | Cuánto tira cada pieza | `guard_patrol.tres` (nuevo) |
+
+  - Quedan fuera del sorteo: la garita, los pasillos (PS y EPS solo se cruzan), las últimas `ai_room_memory` salas que visitó ese guardia y la sala a la que va otro guardia de IA.
+  - Rango: una sala vacía pesa 1; con `ai_piece_weight` = 1,5, una con 3 piezas pesa 5,5. Ejemplo en `museum_v2` (14 salas con piezas, 20 piezas, 4 salas de destino vacías: ANTE, MNT, VEST y DOCK): suma 1 × 18 + 1,5 × 20 = 48; Antigüedades (3 piezas) sale el 11 % de las veces y alguna sala vacía, el 8 %.
+- **En la sala**: va andando por el camino de salas y puertas (el grafo de salas), pasa junto a cada candidata de la sala (o por su centro, si no tiene) y se para `ai_room_dwell` s girando la linterna antes de elegir la siguiente.
+- **A por café**: cuando su sueño llega a `ai_coffee_at`, deja lo que hace y va a la cafetera; al terminar el café elige sala. Perseguir e investigar mandan sobre el café. Con los valores aprobados va al primer bostezo: el ladrón la oye bostezar de camino a la garita.
+- Con la alarma, el sueño no sube y la IA no necesita café; tras el bajón de las luces de alarma (R5b, `crash_level` ≥ `ai_coffee_at`) vuelve a por él, como haría un humano.
+
+### R5d. Los guardias andan; solo corren con la alarma (2026-10-30, #116)
+- Mientras la alerta no está en «alarma», el guardia no corre: la tecla de correr no hace nada (anda), y el HUD lo dice bajo la taza del sueño con «Correr: solo con la alarma» mientras mantiene la tecla. Puede andar o ir en sigilo.
+- Desde que salta la alarma, y hasta el final porque la alerta nunca baja (R7), corre como hasta ahora, gastando estamina.
+- La IA, igual: patrulla e investiga andando; con la alarma corre al perseguir y al investigar. Como ver al ladrón ya hace saltar la alarma (R7), toda persecución es con carrera.
+- El ladrón no cambia: corre siempre (`stealth.md` A3).
+- **Por qué**: sin rondas ya no hace falta correr para llegar a tiempo, y un guardia que corre en calma cruza el museo a 6,3 m/s. Andando (4,2 m/s), en calma el ladrón decide el ritmo; con la alarma, los guardias cierran el cerco.
 
 ### R6. Rastros
 - Cada pieza robada deja su **pedestal vacío**.
@@ -97,16 +139,18 @@ Desaparece el caso «ronda rota y el ladrón tenía la Pieza Maestra = gana el l
 |---|---|---|
 | **Calma** | Al empezar | — |
 | **Sospecha** | 1 rastro descubierto | Los rastros se ven en el plano del equipo (R6) |
-| **Alarma** | 2 rastros descubiertos, o que un guardia (o una cámara vigilada) vea al ladrón | Encender de golpe todas las luces de un ala durante 30 s (decisión 1). El sueño deja de subir |
+| **Alarma** | 2 rastros descubiertos, o que un guardia (o una cámara vigilada) vea al ladrón | Encender de golpe todas las luces de un ala durante 30 s (decisión 1). El sueño deja de subir. Pueden correr (R5d, desde el 2026-10-30) |
 
 - La alerta **nunca baja** durante la partida.
 - Todos la ven, el ladrón también: sabe que le han descubierto, y la tensión sube.
 
-### R11. Informe de la noche (FEAT-041)
+### R11. Informe de la noche (FEAT-041; sin relojes ni faltas desde el 2026-10-30, #116)
 - Al acabar la partida, todos los personajes se quedan quietos y el informe ocupa la pantalla: primero un sello 1,5 s («ESCAPADO», «CAPTURADO» o «AMANECE»), después el veredicto y una ficha por jugador.
 - **Ladrón**: cada pieza del encargo con ✔/✘ y cómo se robó (abriendo el dial, a lo bruto, con el cambiazo, con la corriente cortada), alarmas que hizo saltar, monedas, veces que lo vieron y la hora de la huida.
-- **Cada guardia**: relojes fichados, faltas, veces que vio al ladrón (cuenta cuando empieza a verlo; perderlo menos de 2 s no cuenta otra vez; las cámaras no cuentan), golpes de porra, captura y cabezadas.
-- **Puntos** (`score_rules.tres`, no cambian el juego, solo lo valoran): ladrón +100 por pieza, +150 por huir, −25 por alarma, −10 por cada vez que lo ven; guardia +10 por reloj, −20 por falta, +25 por cada vez que lo ve, +50 por golpe, +150 por la captura, −15 por cabezada. El que más tiene lleva el sello «MEJOR DE LA NOCHE».
+- **Cada guardia**: veces que vio al ladrón (cuenta cuando empieza a verlo; perderlo menos de 2 s no cuenta otra vez; las cámaras no cuentan), golpes de porra, captura y cabezadas.
+- **Puntos** (`score_rules.tres`, no cambian el juego, solo lo valoran): ladrón +100 por pieza, +150 por huir, −25 por alarma, −10 por cada vez que lo ven; guardia +25 por cada vez que lo ve, +50 por golpe, +150 por la captura, −15 por cabezada. El que más tiene lleva el sello «MEJOR DE LA NOCHE».
+  - 2026-10-30, #116: fuera los puntos por reloj (`guard_clock`) y por falta (`guard_fault`), que se borran de `score_rules.tres`; la hoja de ronda desaparece del informe. Lo que queda es provisional: el sistema completo de puntos de los guardias (proteger, detectar, atrapar, equipo) es #123.
+  - Un guardia que se queda toda la partida en la garita y no ve al ladrón acaba con 0 puntos; uno que patrulla con sueño puede acabar en negativo por las cabezadas. Lo corrige #123 con «proteger» (+60 por pieza que sigue en su sitio).
 - **Acciones**: «REVANCHA» (todos votan, mismos bandos), «VOLVER A LA SALA» (con red: cualquiera con bando lleva a todos a la sala sin desconectar, para cambiar de bandos) y «SALIR».
 
 ### R8. Una herramienta por bando
@@ -148,23 +192,25 @@ Cada candidata tiene una protección. El ladrón elige entre **desactivarla y ro
 - Al abrirse **cruje** (`creak_radius`) y se cierra sola a los `auto_close` s, si el hueco está libre.
 
 ## Números
-Viven en un recurso nuevo, `data/balance/heist_rules.tres` (`HeistRules`). Son valores iniciales para afinar jugando.
+Viven en `data/balance/heist_rules.tres` (`HeistRules`) salvo donde se indica otro recurso; los del sueño, en `guard_sleep.tres` (`GuardSleepRules`). Son valores iniciales para afinar jugando. Los marcados **aprobado 2026-11-04** (#116) los aprobó el usuario y ya están en sus `.tres`. Con #116 se borran de `guard_sleep.tres` `window`, `radius` y `linger_ratio`, y `data/balance/time_clock_rules.tres` entero.
 
 | Mando | Campo | Tipo | Rango | Inicial |
 |---|---|---|---|---|
 | Candidatas | nivel (`targets`) | ritmo | 5-8 | 6 |
 | Piezas del encargo según guardias | `pieces_by_guards` | ritmo | — | [4, 3, 2] |
-| Ventana del sueño | `window` | ritmo | 30-90 s | 60 |
-| Radio de acampada | `radius` | ritmo | 5-12 m | 8 |
-| Proporción que cuenta | `linger_ratio` | ritmo | 0,6-0,9 | 0,75 |
-| Subida del sueño | `rise_rate` | ritmo | — | 1/90 por s (unos 45 s hasta somnoliento) |
-| Umbrales | `drowsy_at` / `exhausted_at` | ritmo | — | 0,5 / 1,0 |
-| Bostezo | `yawn_interval` / `yawn_radius` | sensación | 6-15 s / 5-10 m | 8 / 7 |
-| Vista somnolienta | `drowsy_sight` | ritmo | 0,6-0,9 | 0,8 |
-| Cabezadas | `nod_interval` / `nod_time` | ritmo | — | 10 / 1,5 s |
-| Café | `coffee_time` / `coffee_radius` / `fresh_time` | ritmo | — | 3 s / 8 m / 120 s |
-| Somnífero | `drug_doses` / `drug_time` / `drug_nap_time` | ritmo | 1-2 / 2-5 s / 5-12 s | 1 / 3 s / 8 s |
-| Bajón tras las luces de alarma | `crash_level` | ritmo | 0,5-0,8 | 0,6 |
+| Subida del sueño fuera de la garita | `rise_rate` (`guard_sleep.tres`) | ritmo | 1/300-1/180 por s | **1/240 (0,004167)** (#116; antes 1/90 solo acampando). Bostezo a 180 s fuera y cabezada a 240 s, lo que pidió el usuario: unos 3 minutos de patrulla tranquila y uno de aviso audible antes de quedarse ciego a ratos |
+| Umbrales | `drowsy_at` / `exhausted_at` (`guard_sleep.tres`) | ritmo | 0,6-0,85 / 1,0 | **0,75** / 1,0 (antes 0,5 / 1,0). Con un solo `rise_rate`, el cociente 0,75 da los 3 y 4 minutos |
+| Puesto de los guardias | sala con `"guard_post": true` (nivel, nuevo) | — | una sala | GAR en `museum_v2` |
+| Bostezo | `yawn_interval` / `yawn_radius` (`guard_sleep.tres`) | sensación | 6-15 s / 5-10 m | 8 / 7 (sin cambios): en el minuto de aviso son ~7 bostezos; el ladrón los oye a 10,5 m |
+| Vista somnolienta | `drowsy_sight` (`guard_sleep.tres`) | ritmo | 0,6-0,9 | 0,8 (sin cambios) |
+| Cabezadas | `nod_interval` / `nod_time` (`guard_sleep.tres`) | ritmo | 8-15 s / 1,5-4 s | 10 / **2,5 s** (antes 1,5). Ciego el 25 % del tiempo: saltarse el café tiene que costar, porque ya no es un castigo por acampar sino una elección; 2,5 s andando son 12 m de ladrón |
+| Café | `coffee_time` / `coffee_radius` / `fresh_time` (`guard_sleep.tres`) | ritmo | 2-5 s / 6-10 m / 30-120 s | 3 s / 8 m / **60 s** (antes 120). Basta para volver andando al ala más lejana (~60 m, 15 s) y mirar una sala; da 2-3 cafés por guardia en 12 minutos |
+| Somnífero | `drug_doses` / `drug_time` / `drug_nap_time` (`guard_sleep.tres`) | ritmo | 1-2 / 2-5 s / 5-12 s | 1 / 3 s / 8 s |
+| Bajón tras las luces de alarma | `crash_level` (`guard_sleep.tres`) | ritmo | `drowsy_at`-0,95 | **0,85** (antes 0,6, que con el umbral nuevo no haría nada) |
+| IA: cuándo va a por café | `ai_coffee_at` (`guard_sleep.tres`, nuevo) | ritmo | 0,6-1,0 | **0,75** (= `drowsy_at`): va al primer bostezo y se la oye de camino |
+| IA: peso de cada pieza | `ai_piece_weight` (`guard_patrol.tres`, nuevo `GuardPatrolRules`) | ritmo | 0,5-3 | **1,5**: ~11 % a la sala con más piezas, ~8 % a alguna vacía |
+| IA: salas que no repite | `ai_room_memory` (`guard_patrol.tres`) | ritmo | 1-5 | **3**: no vuelve enseguida, pero en 12 minutos pasa varias veces por las salas con piezas |
+| IA: rato en cada sala | `ai_room_dwell` (`guard_patrol.tres`) | sensación | 2-8 s | **4 s**: una pasada de linterna a la sala |
 | Peso del botín | `loot_slow` / `loot_min_speed` (`heist_rules.tres`) | ritmo | 0,03-0,1 / 0,6-0,85 | 0,05 por pieza / 0,7 |
 | Ventilación | `enter_time` / `hatch_radius` / `travel_speed` / `open_time` / `rumble_radius` (`vent_rules.tres`) | ritmo | — | 1,5 s / 4 m / 2 m/s / 20 s / 5 m; `max_inside` 20 s |
 | Puerta de la garita | `pick_time` / `creak_radius` / `auto_close` (`door_rules.tres`) | ritmo | — | 2 s / 6 m / 6 s |
@@ -179,8 +225,11 @@ Viven en un recurso nuevo, `data/balance/heist_rules.tres` (`HeistRules`). Son v
 ## Contrajuego
 | Acción | Quién | Qué percibe el otro | Cómo responde |
 |---|---|---|---|
-| Acampar junto a una candidata | Guardia | Bostezos, y el puesto vacío cuando va a por café | Robar las otras piezas, o esperar al café |
-| Ir a por café | Guardia | El ruido de la cafetera | Aprovechar que deja el puesto |
+| Plantarse junto a una candidata o una salida | Guardia | Su linterna; a los 3 minutos fuera, bostezos; después, el «Zzz» de las cabezadas | Robar las otras piezas, esperar a que vaya a por café o cruzar durante una cabezada |
+| Ir a por café | Guardia | Los bostezos de camino, el crujido de la puerta de la garita y el ruido de la cafetera | Aprovechar el hueco: el ala que deja tarda ~15 s en volver a estar vigilada |
+| Quedarse en la garita (#116: no da sueño) | Guardia | Los pilotos rojos de las cámaras si mira; ninguna linterna fuera | Apagar las luces de las salas con cámara y robar en silencio: desde la garita no se descubren rastros sin cámara |
+| Saltarse el café | Guardia | Bostezos y el «Zzz» | Cruzar durante la cabezada (2,5 s ciego cada 10 s) |
+| Correr con la alarma (#116) | Guardia | Pasos fuertes (×2 de radio) | Esconderse y dejar que pase; romper la línea de visión |
 | Drogar la cafetera | Ladrón | Nada, hasta que alguien cae dormido | Vigilar la garita de paso; no servirse café a ciegas tras un rato sin ver la cafetera |
 | Encender las luces de alarma | Guardia | Todo iluminado 30 s, y después bostezos | Esperar a que pase y aprovechar el bajón |
 | Robar una pieza | Ladrón | El pedestal vacío, si lo ven | Descartar candidatas y cerrar el cerco |
@@ -197,7 +246,11 @@ Viven en un recurso nuevo, `data/balance/heist_rules.tres` (`HeistRules`). Son v
 - **Cambia el número de guardias a mitad de partida** (desconexión): el encargo ya sorteado no cambia.
 - **La caja fuerte es candidata pero no está en el encargo**: no se puede abrir, como las demás piezas que no tocan. Su dial ni siquiera se activa.
 - **Revancha**: nuevo sorteo.
-- **Sin red**: los 2 guardias de IA patrullan como hoy; no les afecta el sueño ni usan el walkie (más adelante).
+- **Sin red** (2026-10-30, #116): los 2 guardias de IA patrullan salas (R5c), duermen y van a por café como un humano; no usan el walkie (más adelante).
+- **El guardia en el umbral de la garita**: está fuera (el sueño sube). La garita es el rectángulo de la sala.
+- **Cabezada mirando los monitores**: no puede pasar, porque en la garita el sueño se congela; si entra ya agotado, sigue dando cabezadas (no ve las cámaras en ellas) hasta que se toma el café.
+- **Alarma con un guardia agotado**: la adrenalina lo despeja (R5b) y desde entonces el sueño no sube.
+- **Se acaba el tiempo con el ladrón cruzando una salida**: aprobado: si cruza en el último tick, gana él (el escape se evalúa antes que el tiempo; la captura sigue mandando sobre el escape).
 
 ## Red
 - **Al ladrón**: su encargo, como estado privado (`#private`, igual que la caja fuerte).
@@ -221,11 +274,15 @@ Viven en un recurso nuevo, `data/balance/heist_rules.tres` (`HeistRules`). Son v
 | Evento | Pregunta | Alarma |
 |---|---|---|
 | `match_end` (resultado, tiempo, piezas robadas, guardias) | ¿Quién gana y con cuántos guardias? | Un bando gana más del 65 % de las partidas con el mismo número de guardias |
-| `guard_drowsy` / `coffee` | ¿Se acampa? ¿El café es un trámite? | Más de 3 cafés por guardia y partida (es un trámite), o ninguno (el sueño no muerde) |
+| `guard_drowsy` / `coffee` | ¿El sueño saca a los guardias de la garita y los devuelve? ¿El café es un trámite? | Más de 3 cafés por guardia y partida (es un trámite), o ninguno (el sueño no muerde) |
+| Segundos de cada guardia en la garita (#116) | ¿La garita es el nuevo campamento? | Un guardia pasa más del 50 % de la partida en la garita en 3 de 5 partidas |
+| Resultado por tiempo (#116) | ¿Los guardias ganan solo por esperar? | Más del 60 % de las partidas acaban en «AMANECE» |
+| Persecuciones antes de la alarma (#116) | ¿Andar en calma hace imposible atraparlo? | Ninguna captura en 5 partidas |
 | `trace_found` | ¿Los rastros dan juego? | Más del 50 % de los robos se descubren antes de 20 s (el ladrón no puede esconderse) |
 | `coin_thrown` / `walkie` | ¿Se usan las herramientas? | Menos de 1 uso por partida |
 
 ## Estado
+#116 (2026-10-30, implementado el 2026-11-04): fuera relojes y rondas, sueño fuera de la garita (R5), IA de patrulla libre (R5c), correr solo con alarma (R5d) y final por tiempo para los guardias (R4).
 FEAT-034 amplía el museo: 20 candidatas, ventilación (R10), puerta de la garita (R11), 4 salidas y partida de 12 minutos; el nivel está en `docs/gdd/levels/museum_v2.md`.
 FEAT-033 añade el somnífero, la adrenalina y el bajón (R5b), el «Zzz» de las cabezadas y el peso del botín (R3).
 Entrega 1 implementada en FEAT-028 (lista, carta, escape, condiciones de victoria, combinación y robo a lo bruto). Entrega 4 en FEAT-032 (cambiazo con piezas de pega que los guardias examinan, y corte de corriente por ala con panel de pilotos): **las cuatro entregas están implementadas**. Entrega 3 en FEAT-031 (rastros, alerta, monedas, walkie y luces de alarma). Entrega 2 en FEAT-029 (sueño y café; la cafetera es el carrito CC0 de Poly Haven; el bostezo y el café, grabaciones CC-BY de OpenGameArt desde FEAT-030). Entregas, cada una se puede probar por separado:
@@ -233,6 +290,14 @@ Entrega 1 implementada en FEAT-028 (lista, carta, escape, condiciones de victori
 2. sueño y café;
 3. rastros + alerta + monedas + walkie;
 4. el cambiazo con piezas de pega y el corte de corriente.
+
+## Decisiones (usuario, 2026-10-30, #116, entrevista tras el playtest con amigos)
+1. Fuera los relojes de fichar y las rondas: relojes del mapa, tablilla de ronda, flecha al reloj (FEAT-042), faltas y relojes del informe y de los puntos, y rutas de ronda de la IA.
+2. El sueño sube fuera de la garita (andando o quieto) y no sube dentro, mire las cámaras o no; el café lo deja a 0 y da un rato despejado; desaparece acampar. Bostezos a los 3 minutos fuera sin café y cabezadas a los 4.
+3. Los guardias andan; solo corren con la alarma.
+4. Al acabarse el tiempo sin que el ladrón escape, ganan los guardias.
+5. La IA patrulla salas a su aire (sobre todo donde hay piezas) y vuelve a por café cuando le entra sueño.
+6. Puntos del guardia: visto, golpes, captura y cabezadas, sin relojes ni faltas (el sistema completo, en #123).
 
 ## Decisiones (usuario, 2026-10-28)
 1. **Poder de la alarma**: en «alarma», los guardias pueden **encender de golpe todas las luces de un ala durante 30 s** con los interruptores que ya existen. Las puertas, con «cerrar con llave» y puertas abiertas como rastro, irán en su propio diseño más adelante.

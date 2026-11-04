@@ -209,7 +209,7 @@ func test_ai_ignores_camera_alert_unless_watching() -> void:
 	ai.name = "GuardAI"
 	guard.add_child(ai)
 	SignalBus.thief_spotted.emit(Vector3(3.0, 0.0, 3.0))
-	assert_ne(ai.current_state, GuardAI3D.AIState.INVESTIGATE, "De ronda, la cámara no le avisa")
+	assert_ne(ai.current_state, GuardAI3D.AIState.INVESTIGATE, "Patrullando, la cámara no le avisa")
 	guard.monitor_watch.state = GuardMonitorWatch.State.WATCHING
 	SignalBus.thief_spotted.emit(Vector3(3.0, 0.0, 3.0))
 	assert_eq(ai.current_state, GuardAI3D.AIState.INVESTIGATE, "Mirando, sí")

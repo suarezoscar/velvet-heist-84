@@ -1,5 +1,5 @@
 ## Estados privados del mundo por audiencia (FEAT-014 y FEAT-016): la caja fuerte solo
-## para el ladrón y los relojes de ronda solo para los guardias. Cada nodo del grupo
+## para el ladrón y lo que sea solo de los guardias. Cada nodo del grupo
 ## net_state que tenga get_net_state_private() y net_private_audience() entra aquí.
 class_name NetPrivateStates
 extends RefCounted

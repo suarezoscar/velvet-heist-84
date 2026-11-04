@@ -1,6 +1,6 @@
 ## @file role_briefing_84.gd
 ## Tarjeta de objetivo al empezar la partida (FEAT-027): quién eres y qué tienes que hacer,
-## con las cifras de la partida (cuota, tiempo, relojes). Se cierra sola a los SHOW_TIME
+## con las cifras de la partida (cuota, tiempo). Se cierra sola a los SHOW_TIME
 ## segundos o con cualquier tecla o clic; no frena la partida ni consume la tecla.
 class_name RoleBriefing84
 extends CanvasLayer
@@ -37,7 +37,6 @@ func setup(map: HeistMap3D) -> void:
 ## Con encargo, sus líneas (heist.md); si no, las de la cuota. Con red, el encargo llega unos
 ## instantes después de cargar el mapa: por eso se vuelve a leer mientras la tarjeta está abierta
 func _refresh_lines() -> void:
-	var clocks: int = get_tree().get_nodes_in_group(&"time_clock").size()
 	var lines: Array[String] = []
 	if GameManager.heist != null:
 		lines = heist_objectives(
@@ -45,11 +44,10 @@ func _refresh_lines() -> void:
 			_contract_names(),
 			GameManager.heist.contract_size,
 			_minutes(),
-			clocks,
 			PlayerName.thief_signature(get_tree())
 		)
 	else:
-		lines = objectives(_is_thief, GameManager.quota_target, _minutes(), clocks)
+		lines = objectives(_is_thief, GameManager.quota_target, _minutes())
 	var text: String = "\n".join(PackedStringArray(lines))
 	if lines_label.text != text:
 		lines_label.text = text
@@ -61,7 +59,6 @@ static func heist_objectives(
 	pieces: Array[String],
 	size: int,
 	minutes: int,
-	_clocks: int,
 	signature: String = PlayerName.FALLBACK_SIGNATURE
 ) -> Array[String]:
 	if is_thief:
@@ -90,9 +87,10 @@ static func heist_objectives(
 			+ " No se sabe cuáles busca."
 		),
 		(
-			"• Atrapadlo con la porra antes de %d minutos. Cada uno tiene su ronda: no la dejéis."
+			"• Atrapadlo con la porra antes de %d minutos: si amanece y sigue dentro, ganáis."
 			% minutes
 		),
+		"• Fuera de la garita entra sueño; el café de la garita lo quita.",
 		"• Él ve tu linterna; tú no lo ves a oscuras. Escucha sus pasos.",
 	]
 
@@ -107,7 +105,7 @@ func _contract_names() -> Array[String]:
 
 
 ## Líneas del objetivo de cada bando (las usan los tests)
-static func objectives(is_thief: bool, quota: int, minutes: int, clocks: int) -> Array[String]:
+static func objectives(is_thief: bool, quota: int, minutes: int) -> Array[String]:
 	if is_thief:
 		return [
 			"• Llévate piezas por valor de %d y la Pieza Maestra de la cámara acorazada." % quota,
@@ -117,7 +115,7 @@ static func objectives(is_thief: bool, quota: int, minutes: int, clocks: int) ->
 		]
 	return [
 		"• Atrapa al ladrón con la porra antes de %d minutos." % minutes,
-		"• Ficha los %d relojes a tiempo: con demasiadas faltas, solo te vale atraparlo." % clocks,
+		"• Patrulla todo el museo: si amanece y el ladrón sigue dentro, ganas.",
 		"• Los monitores de la garita muestran lo que ven las cámaras.",
 		"• Él ve tu linterna; tú no lo ves a oscuras. Escucha sus pasos.",
 	]

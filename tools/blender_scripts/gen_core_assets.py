@@ -157,71 +157,6 @@ def generate_rotary_phone(filename: str):
     export_glb(filename)
 
 
-# 7. Reloj Mecánico de Fichar (time_clock_84.glb)
-def generate_time_clock(filename: str):
-    clear_scene()
-    mat_steel = create_pbr_material("Steel80s", "Steel80s")
-    mat_brass = create_pbr_material("BrassGold", "BrassGold")
-    mat_white = create_pbr_material("PaperWhite", "PaperWhite")
-
-    # Carcasa de pared (0.4m ancho x 0.22m prof x 0.6m alto)
-    bpy.ops.mesh.primitive_cube_add(
-        size=1.0, location=(0.0, 0.0, 0.30), scale=(0.40, 0.22, 0.60)
-    )
-    body = bpy.context.active_object
-    body.name = "TimeClock_Body"
-    bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
-    body.data.materials.append(mat_steel)
-    apply_bevel(body, width=0.015, segments=2)
-
-    # Esfera analógica
-    bpy.ops.mesh.primitive_cylinder_add(
-        radius=0.13, depth=0.03, location=(0.0, 0.12, 0.44), rotation=(1.5708, 0.0, 0.0)
-    )
-    face = bpy.context.active_object
-    face.name = "TimeClock_Dial"
-    bpy.ops.object.transform_apply(scale=True, rotation=True, location=False)
-    face.data.materials.append(mat_white)
-
-    # Bisel de latón
-    bpy.ops.mesh.primitive_cylinder_add(
-        radius=0.14, depth=0.02, location=(0.0, 0.115, 0.44), rotation=(1.5708, 0.0, 0.0)
-    )
-    ring = bpy.context.active_object
-    ring.name = "TimeClock_Ring"
-    bpy.ops.object.transform_apply(scale=True, rotation=True, location=False)
-    ring.data.materials.append(mat_brass)
-
-    # Ranura de fichaje
-    bpy.ops.mesh.primitive_cube_add(
-        size=1.0, location=(0.0, 0.12, 0.18), scale=(0.26, 0.04, 0.03)
-    )
-    slot = bpy.context.active_object
-    slot.name = "TimeClock_Slot"
-    bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
-    slot.data.materials.append(mat_brass)
-
-    # Palanca lateral de perforación
-    bpy.ops.mesh.primitive_cylinder_add(
-        radius=0.02, depth=0.25, location=(0.22, 0.05, 0.25), rotation=(0.5, 0.0, 0.0)
-    )
-    lever = bpy.context.active_object
-    lever.name = "TimeClock_Lever"
-    bpy.ops.object.transform_apply(scale=True, rotation=True, location=False)
-    lever.data.materials.append(mat_brass)
-
-    # Colisión centrada en el volumen combinado de carcasa y palanca
-    bpy.ops.mesh.primitive_cube_add(
-        size=1.0, location=(0.02, 0.015, 0.30), scale=(0.44, 0.25, 0.60)
-    )
-    col = bpy.context.active_object
-    col.name = "TimeClock-colonly"
-    bpy.ops.object.transform_apply(scale=True, location=False, rotation=False)
-
-    center_by_pivot(list(bpy.data.objects), "bottom_center")
-    export_glb(filename)
-
-
 # 8. Coche de Fuga 1984 (escape_car_84.glb)
 def generate_escape_car(filename: str):
     clear_scene()
@@ -331,7 +266,6 @@ def generate_loot_cash(filename: str):
 GENERATORS = {
     "safe_box_84": lambda: generate_safe_box("safe_box_84.glb"),
     "rotary_phone_84": lambda: generate_rotary_phone("rotary_phone_84.glb"),
-    "time_clock_84": lambda: generate_time_clock("time_clock_84.glb"),
     "escape_car_84": lambda: generate_escape_car("escape_car_84.glb"),
     "loot_cash": lambda: generate_loot_cash("loot_cash.glb"),
 }

@@ -129,13 +129,7 @@ func _refresh() -> void:
 	)
 	var elapsed: float = GameManager.match_duration_seconds - GameManager.match_timer
 	var seconds: int = maxi(roundi(elapsed), 0)
-	var allowed: int = RoundRules.allowed_faults(
-		get_tree().get_nodes_in_group(&"guard_round"), GameManager.CLOCK_RULES.allowed_misses
-	)
-	facts_label.text = (
-		"Duró %d:%02d · Faltas de ronda de la patrulla: %d de %d toleradas"
-		% [seconds / 60, seconds % 60, GameManager.round_faults, allowed]
-	)
+	facts_label.text = "Duró %d:%02d" % [seconds / 60, seconds % 60]
 	var recorder: MatchRecorder = MatchRecorder.of(get_tree())
 	var report: Dictionary = recorder.report if recorder != null else {}
 	if not _filled or report != _shown_report:
