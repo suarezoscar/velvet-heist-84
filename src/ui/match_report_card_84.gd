@@ -26,8 +26,9 @@ static func thief(data: Dictionary, best: bool) -> MatchReportCard84:
 		"Monedas: %d" % int(data.get("coins", 0)),
 		"Visto: %s" % _times(int(data.get("seen", 0))),
 	]
-	if bool(data.get("escaped", false)):
-		facts.append("Huida a los %d:%02d" % [seconds / 60, seconds % 60])
+	if bool(data.get("escaped", false)) or bool(data.get("partial", false)):
+		var kind: String = "Huida a medias" if bool(data.get("partial", false)) else "Huida"
+		facts.append("%s a los %d:%02d" % [kind, seconds / 60, seconds % 60])
 	box.add_child(_body(" · ".join(facts), MenuTheme84.DIM))
 	card.add_score(MatchScore.thief(data))
 	return card

@@ -7,23 +7,43 @@ extends RefCounted
 
 
 ## Bando que gana: &"thief", &"guards" o &"" (empate o partida sin terminar)
-static func winner(state: GameManager.MatchState) -> StringName:
+## (la huida a medias se decide por puntos con el informe)
+static func winner(state: GameManager.MatchState, report: Dictionary = {}) -> StringName:
 	match state:
 		GameManager.MatchState.THIEF_ESCAPED:
 			return &"thief"
+		GameManager.MatchState.THIEF_ESCAPED_PARTIAL:
+			return StringName(MatchScore.partial_result(report)["winner"])
 		GameManager.MatchState.THIEF_CAPTURED, GameManager.MatchState.TIME_EXPIRED:
+			return &"guards"
+		GameManager.MatchState.THIEF_LOCKED_IN, GameManager.MatchState.THIEF_NO_LOOT:
 			return &"guards"
 	return &""
 
 
 ## «HAS GANADO», «HAS PERDIDO» o «EMPATE» para el bando local (&"" si no juegas: servidor)
-static func verdict(state: GameManager.MatchState, local_side: StringName) -> String:
-	var side: StringName = winner(state)
+static func verdict(
+	state: GameManager.MatchState, local_side: StringName, report: Dictionary = {}
+) -> String:
+	var side: StringName = winner(state, report)
 	if side == &"":
 		return "EMPATE"
 	if local_side == &"":
 		return "GANA EL LADRÓN" if side == &"thief" else "GANAN LOS GUARDIAS"
 	return "HAS GANADO" if side == local_side else "HAS PERDIDO"
+
+
+## «Huida a medias: gana el ladrón, 215 a 65» (el primer número es el del bando que gana)
+static func partial_line(report: Dictionary) -> String:
+	var result: Dictionary = MatchScore.partial_result(report)
+	var thief: int = int(result["thief"])
+	var guards: int = int(result["guards"])
+	match result["winner"]:
+		&"thief":
+			return "Huida a medias: gana el ladrón, %d a %d" % [thief, guards]
+		&"guards":
+			return "Huida a medias: ganan los guardias, %d a %d" % [guards, thief]
+	return "Huida a medias: empate a %d" % thief
 
 
 ## Cifras de la partida, una por línea

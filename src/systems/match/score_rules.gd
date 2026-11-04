@@ -13,6 +13,8 @@ extends Resource
 @export var thief_alarm: int = -25
 ## Por cada vez que un guardia empezó a verlo
 @export var thief_seen: int = -10
+## Por la huida a medias (con la alarma, por una salida abierta con parte del botín)
+@export var thief_partial_escape: int = 50
 
 @export_group("Guardias")
 ## Por cada vez que empezó a ver al ladrón
@@ -23,3 +25,7 @@ extends Resource
 @export var guard_capture: int = 150
 ## Por cada cabezada
 @export var guard_nap: int = -15
+## Por cada pieza del encargo que sigue en su sitio al acabar
+@export var guard_protect: int = 60
+## Al encerrar al ladrón (las rejas bajan con él dentro)
+@export var guard_lockdown: int = 100

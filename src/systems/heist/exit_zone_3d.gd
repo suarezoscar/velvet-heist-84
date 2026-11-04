@@ -50,7 +50,10 @@ func _physics_process(_delta: float) -> void:
 		or GameManager.current_state != GameManager.MatchState.IN_PROGRESS
 	):
 		return
-	var ending: int = HeistLockdown.escape_state(GameManager.heist, HeistLockdown.of(get_tree()))
+	var lockdown: HeistLockdown = HeistLockdown.of(get_tree())
+	if outdoor and (lockdown == null or not lockdown.is_running()):
+		return  # el callejón solo es huida con la cuenta atrás en marcha (R3)
+	var ending: int = HeistLockdown.escape_state(GameManager.heist, lockdown)
 	if ending < 0:
 		return
 	for body: Node3D in get_overlapping_bodies():

@@ -1,13 +1,14 @@
 ## @file guard_ai_3d.gd
 ## Componente de Inteligencia Artificial para guardias de seguridad en solitario / coop.
 ## Gestiona la máquina de estados: PATROL (salas a su aire, más las que tienen piezas; #116),
-## COFFEE (a la cafetera cuando le entra sueño), INVESTIGATE (ruidos/CCTV) y CHASE (persecución).
+## COFFEE (a la cafetera cuando le entra sueño), INVESTIGATE (ruidos/CCTV), CHASE (persecución)
+## y COVER (con la cuenta atrás de las rejas, cubre una salida; GuardExitCover, #120).
 ## Solo decide la intención (dirección, sprint, mirada); el movimiento lo simula
 ## GuardController3D igual que para un humano. Requiere un GuardController3D como padre.
 class_name GuardAI3D
 extends Node
 
-enum AIState { IDLE, PATROL, INVESTIGATE, CHASE, COFFEE }
+enum AIState { IDLE, PATROL, INVESTIGATE, CHASE, COFFEE, COVER }
 
 ## Distancia horizontal (m) a la que un punto del camino se da por alcanzado
 const WAYPOINT_REACHED_DISTANCE: float = 0.8
@@ -17,22 +18,21 @@ const INVESTIGATE_REACHED_DISTANCE: float = 0.9
 const NOISE_INVESTIGATE_TIME: float = 5.0
 ## Segundos que inspecciona la última posición avistada del ladrón
 const SPOTTED_INVESTIGATE_TIME: float = 6.0
-## Distancia horizontal (m) al centro de la cafetera a la que se sirve: el carrito mide 2,2 m y
-## no deja acercarse más de ~1,5; por debajo del alcance de la E (2 m)
+## Distancia (m) al centro de la cafetera a la que se sirve: por debajo del alcance de la E
 const COFFEE_REACH: float = 1.9
 const PATROL_RULES: GuardPatrolRules = preload("res://data/balance/guard_patrol.tres")
 ## Atascado: menos de STUCK_SPEED m/s durante STUCK_TIME s patrullando
 const STUCK_SPEED: float = 0.3
 const STUCK_TIME: float = 1.5
 
-## Camino hasta la sala que patrulla (lo rellena _next_room con GuardPatrol)
 @export var patrol_waypoints: Array[Vector3] = []
 @export var is_ai_active: bool = true
 
 var current_state: AIState = AIState.PATROL
 var investigation_point: Vector3 = Vector3.ZERO
-## Sala a la que va ahora (la evitan los otros guardias de IA)
 var target_room: String = ""
+var cover_exit: ExitZone3D = null
+var _cover_point: Vector3 = Vector3.ZERO
 var _current_waypoint_idx: int = 0
 var _investigate_timer: float = 0.0
 var _stuck_time: float = 0.0
@@ -89,6 +89,14 @@ func _physics_process(_delta: float) -> void:
 	if current_state == AIState.PATROL and _wants_coffee():
 		current_state = AIState.COFFEE  # perseguir e investigar mandan sobre el café
 		_go_to(GuardPatrol.of(get_tree()), _coffee_machine().global_position)
+	if current_state == AIState.PATROL or current_state == AIState.COFFEE:
+		var point: Variant = (
+			_cover_point if cover_exit != null else GuardExitCover.pick(self, _guard)
+		)
+		if point is Vector3:
+			_cover_point = point
+			current_state = AIState.COVER
+			_go_to(GuardPatrol.of(get_tree()), _cover_point)
 	if current_state == AIState.CHASE or current_state == AIState.IDLE:
 		_stuck_time = 0.0
 
@@ -103,6 +111,11 @@ func _physics_process(_delta: float) -> void:
 			_process_chase()
 		AIState.COFFEE:
 			_process_coffee()
+		AIState.COVER:
+			if _flat_distance(_cover_point, _guard.global_position) > WAYPOINT_REACHED_DISTANCE:
+				_follow_path(_cover_point, true)  # con la alarma, corriendo
+			else:
+				GuardExitCover.watch(_guard, Time.get_ticks_msec() / 1000.0)
 
 
 ## Recorre el camino hasta la sala elegida, se queda ai_room_dwell s y elige otra
@@ -187,9 +200,9 @@ func _process_coffee() -> void:
 
 
 ## Sigue patrol_waypoints (por las puertas) y, acabado el camino, va directo a fallback
-func _follow_path(fallback: Vector3) -> void:
+func _follow_path(fallback: Vector3, sprint: bool = false) -> void:
 	if _current_waypoint_idx >= patrol_waypoints.size():
-		_steer_towards(fallback, false)
+		_steer_towards(fallback, sprint)
 		return
 	var target: Vector3 = patrol_waypoints[_current_waypoint_idx]
 	var stuck: bool = _update_stuck(get_physics_process_delta_time())
@@ -197,7 +210,7 @@ func _follow_path(fallback: Vector3) -> void:
 		_stuck_time = 0.0
 		_current_waypoint_idx += 1
 		return
-	_steer_towards(target, false)
+	_steer_towards(target, sprint)
 
 
 func _coffee_machine() -> CoffeeMachine3D:
