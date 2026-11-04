@@ -82,6 +82,8 @@ func apply_net_state(state: Dictionary) -> void:
 ## El informe con lo que ha pasado hasta ahora
 func build_report() -> Dictionary:
 	var guards: Array[Dictionary] = []
+	var protected_pieces: int = _protected_pieces()
+	var locked_in: bool = GameManager.current_state == GameManager.MatchState.THIEF_LOCKED_IN
 	var seen_total: int = 0
 	var index: int = 0
 	for guard: GuardController3D in _guards():
@@ -97,10 +99,24 @@ func build_report() -> Dictionary:
 					"hits": int(guard.get_meta(HITS_META, 0)),
 					"capture": bool(guard.get_meta(CAPTURE_META, false)),
 					"naps": int(_naps.get(String(guard.name), 0)),
+					"protected": protected_pieces,
+					"locked_in": locked_in,
 				}
 			)
 		)
 	return {"thief": _thief_report(seen_total), "guards": guards}
+
+
+## Piezas del encargo que siguen en su sitio (una falsificación cuenta como robada)
+func _protected_pieces() -> int:
+	var heist: HeistDirector = GameManager.heist
+	if heist == null:
+		return 0
+	var left: int = 0
+	for piece_id: StringName in heist.targets:
+		if not heist.stolen.has(piece_id):
+			left += 1
+	return left
 
 
 func _thief_report(seen: int) -> Dictionary:
@@ -124,6 +140,7 @@ func _thief_report(seen: int) -> Dictionary:
 			)
 	var alert: AlertDirector = AlertDirector.of(get_tree())
 	var escaped: bool = GameManager.current_state == GameManager.MatchState.THIEF_ESCAPED
+	var partial: bool = GameManager.current_state == GameManager.MatchState.THIEF_ESCAPED_PARTIAL
 	return {
 		"name": _thief_name(),
 		"pieces": pieces,
@@ -131,6 +148,7 @@ func _thief_report(seen: int) -> Dictionary:
 		"coins": coins_used,
 		"seen": seen,
 		"escaped": escaped,
+		"partial": partial,
 		"time": GameManager.match_duration_seconds - GameManager.match_timer,
 	}
 

@@ -256,8 +256,8 @@ func validate_melee_hit(target_thief: ThiefController3D) -> bool:
 
 ## Ejecuta un golpe con la porra de madera validado autoritativamente
 func swing_baton(target_thief: ThiefController3D = null) -> bool:
-	if baton_cooldown > 0.0:
-		return false
+	if baton_cooldown > 0.0 or GameManager.is_match_over():
+		return false  # con la partida acabada ya no se golpea (#120)
 
 	var valid_hit: bool = target_thief != null and validate_melee_hit(target_thief)
 

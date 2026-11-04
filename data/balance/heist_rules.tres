@@ -23,3 +23,7 @@ inspect_time = 2.0
 task_leash = 1.5
 loot_slow = 0.05
 loot_min_speed = 0.7
+lockdown_time = 30.0
+gate_drop_time = 1.5
+lockdown_warn_at = 10.0
+gate_radius = 10.0

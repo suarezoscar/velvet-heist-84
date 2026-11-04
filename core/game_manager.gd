@@ -19,6 +19,12 @@ enum MatchState {
 	TIME_EXPIRED_BREACH,
 	## Sin uso desde #116 (no se reordena el enum, viaja por red)
 	TIME_EXPIRED_DRAW,
+	## Huida a medias (#120): con la alarma y al menos una pieza; gana quien tenga más puntos
+	THIEF_ESCAPED_PARTIAL,
+	## Victoria de los Guardias (#120): bajan las rejas con el ladrón dentro
+	THIEF_LOCKED_IN,
+	## Victoria de los Guardias (#120): bajan las rejas con el ladrón en el callejón sin piezas
+	THIEF_NO_LOOT,
 }
 
 ## Cuota económica objetivo requerida para que el ladrón pueda escapar (en $)
@@ -41,6 +47,8 @@ var current_state: MatchState = MatchState.LOBBY
 
 ## Encargo del coleccionista del nivel (heist.md); null en los mapas con cuota y Pieza Maestra
 var heist: HeistDirector = null
+## Tick de física en que acabó la partida (end_match)
+var _ended_frame: int = -1
 
 
 func _ready() -> void:
@@ -121,7 +129,13 @@ func start_match() -> void:
 
 
 ## Finaliza la partida con el estado correspondiente
+## Una vez acabada no cambia (#120: un golpe tras la huida no la convierte en captura), salvo
+## una captura en el mismo tick del final (captura > huida > rejas > tiempo, heist.md R7b)
 func end_match(final_state: MatchState) -> void:
+	var frame: int = Engine.get_physics_frames()
+	if is_match_over() and (final_state != MatchState.THIEF_CAPTURED or frame != _ended_frame):
+		return
+	_ended_frame = frame
 	current_state = final_state
 	print("[GameManager] Fin de la partida. Estado final: %s" % MatchState.keys()[final_state])
 

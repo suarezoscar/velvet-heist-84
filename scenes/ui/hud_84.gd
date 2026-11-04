@@ -21,6 +21,7 @@ var noise_meter: NoiseMeter84 = null
 var cctv_feeds: CCTVFeeds84 = null
 ## Panel del dial de la caja fuerte del ladrón local (LocalViewPresenter)
 var safe_dial: SafeDial84 = null
+var lockdown_hud: LockdownHud84 = null
 ## Panel del minijuego de robo del ladrón local (#119, LocalViewPresenter)
 var steal_minigame: StealMinigame84 = null
 
@@ -77,6 +78,8 @@ func _ready() -> void:
 	move_child(cctv_feeds, 0)  # #118: el margen oscuro tapa el mundo, no el resto del HUD
 	safe_dial = SafeDial84.new()
 	add_child(safe_dial)
+	lockdown_hud = LockdownHud84.new()
+	add_child(lockdown_hud)
 	steal_minigame = StealMinigame84.new()
 	add_child(steal_minigame)
 
@@ -235,6 +238,24 @@ func _check_game_over_state() -> void:
 			_show_game_over_modal(
 				"¡LADRÓN CAPTURADO!",
 				"Dos golpes de porra y el caballero acaba en el furgón. La central da parte: sin novedad.",
+				Color(1.0, 0.25, 0.25)
+			)
+		GameManager.MatchState.THIEF_ESCAPED_PARTIAL:
+			_show_game_over_modal(
+				"¡HUIDA A MEDIAS!",
+				"Salió con parte del encargo antes de que bajaran las rejas: decide la cuenta de la noche.",
+				Color(0.95, 0.72, 0.29)
+			)
+		GameManager.MatchState.THIEF_LOCKED_IN:
+			_show_game_over_modal(
+				"¡ENCERRADO!",
+				"Las rejas bajan y el caballero se queda dentro. La central da parte: sin novedad.",
+				Color(1.0, 0.25, 0.25)
+			)
+		GameManager.MatchState.THIEF_NO_LOOT:
+			_show_game_over_modal(
+				"SIN BOTÍN",
+				"Las rejas bajan con el ladrón en el callejón y las manos vacías.",
 				Color(1.0, 0.25, 0.25)
 			)
 		GameManager.MatchState.TIME_EXPIRED:

@@ -18,6 +18,11 @@ static func thief(report: Dictionary, rules: ScoreRules = RULES) -> Dictionary:
 		[
 			_line("Piezas robadas", stolen, rules.thief_piece),
 			_line("Huida", 1 if bool(report.get("escaped", false)) else 0, rules.thief_escape),
+			_line(
+				"Huida a medias",
+				1 if bool(report.get("partial", false)) else 0,
+				rules.thief_partial_escape
+			),
 			_line("Alarmas", int(report.get("alarms", 0)), rules.thief_alarm),
 			_line("Visto por un guardia", int(report.get("seen", 0)), rules.thief_seen),
 		]
@@ -32,8 +37,31 @@ static func guard(report: Dictionary, rules: ScoreRules = RULES) -> Dictionary:
 			_line("Golpes de porra", int(report.get("hits", 0)), rules.guard_hit),
 			_line("Captura", 1 if bool(report.get("capture", false)) else 0, rules.guard_capture),
 			_line("Cabezadas", int(report.get("naps", 0)), rules.guard_nap),
+			_line("Piezas protegidas", int(report.get("protected", 0)), rules.guard_protect),
+			_line(
+				"Encerrado", 1 if bool(report.get("locked_in", false)) else 0, rules.guard_lockdown
+			),
 		]
 	)
+
+
+## Quién gana la huida a medias (heist.md R4b): el total del ladrón contra la media (redondeada)
+## de los totales de los guardias. {"winner": &"thief" | &"guards" | &"", "thief", "guards"}
+static func partial_result(report: Dictionary, rules: ScoreRules = RULES) -> Dictionary:
+	var thief_total: int = int(thief(report.get("thief", {}), rules)["total"])
+	var guards: Array = report.get("guards", [])
+	var guards_total: int = 0
+	if not guards.is_empty():
+		var sum: int = 0
+		for entry: Dictionary in guards:
+			sum += int(guard(entry, rules)["total"])
+		guards_total = floori(float(sum) / guards.size() + 0.5)  # los ,5 hacia arriba (R4b)
+	var winner: StringName = &""
+	if thief_total > guards_total:
+		winner = &"thief"
+	elif thief_total < guards_total:
+		winner = &"guards"
+	return {"winner": winner, "thief": thief_total, "guards": guards_total}
 
 
 ## Quién tiene más puntos: &"thief", el índice del guardia (como String) o &"" sin informe.

@@ -89,6 +89,12 @@ static func stamp_for(state: GameManager.MatchState) -> Array:
 			return ["ESCAPADO", TeamMarker3D.THIEF_COLOR]
 		GameManager.MatchState.THIEF_CAPTURED:
 			return ["CAPTURADO", TeamMarker3D.GUARD_COLOR]
+		GameManager.MatchState.THIEF_ESCAPED_PARTIAL:
+			return ["HUIDA A MEDIAS", MenuTheme84.AMBER]
+		GameManager.MatchState.THIEF_LOCKED_IN:
+			return ["ENCERRADO", TeamMarker3D.GUARD_COLOR]
+		GameManager.MatchState.THIEF_NO_LOOT:
+			return ["SIN BOTÍN", TeamMarker3D.GUARD_COLOR]
 	return ["AMANECE", MenuTheme84.AMBER]
 
 
@@ -117,8 +123,10 @@ func _process(delta: float) -> void:
 
 func _refresh() -> void:
 	var state: GameManager.MatchState = GameManager.current_state
-	verdict_label.text = MatchSummary.verdict(state, MatchSummary.local_side(_map))
-	var side: StringName = MatchSummary.winner(state)
+	var recorder: MatchRecorder = MatchRecorder.of(get_tree())
+	var report: Dictionary = recorder.report if recorder != null else {}
+	verdict_label.text = MatchSummary.verdict(state, MatchSummary.local_side(_map), report)
+	var side: StringName = MatchSummary.winner(state, report)
 	verdict_label.add_theme_color_override(
 		"font_color",
 		(
@@ -130,8 +138,8 @@ func _refresh() -> void:
 	var elapsed: float = GameManager.match_duration_seconds - GameManager.match_timer
 	var seconds: int = maxi(roundi(elapsed), 0)
 	facts_label.text = "Duró %d:%02d" % [seconds / 60, seconds % 60]
-	var recorder: MatchRecorder = MatchRecorder.of(get_tree())
-	var report: Dictionary = recorder.report if recorder != null else {}
+	if state == GameManager.MatchState.THIEF_ESCAPED_PARTIAL and not report.is_empty():
+		facts_label.text = MatchSummary.partial_line(report) + "\n" + facts_label.text
 	if not _filled or report != _shown_report:
 		_filled = true
 		_shown_report = report.duplicate(true)
