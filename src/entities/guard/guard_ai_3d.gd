@@ -9,11 +9,11 @@ extends Node
 
 enum AIState { IDLE, PATROL, INVESTIGATE, CHASE, COFFEE }
 
-## Distancia horizontal (m) a la que un waypoint de ronda se da por alcanzado
+## Distancia horizontal (m) a la que un punto del camino se da por alcanzado
 const WAYPOINT_REACHED_DISTANCE: float = 0.8
 ## Distancia horizontal (m) a la que el punto investigado se da por alcanzado
 const INVESTIGATE_REACHED_DISTANCE: float = 0.9
-## Segundos que el guardia inspecciona un ruido antes de volver a la ronda
+## Segundos que el guardia inspecciona un ruido antes de volver a patrullar
 const NOISE_INVESTIGATE_TIME: float = 5.0
 ## Segundos que inspecciona la última posición avistada del ladrón
 const SPOTTED_INVESTIGATE_TIME: float = 6.0
@@ -31,6 +31,8 @@ const STUCK_TIME: float = 1.5
 
 var current_state: AIState = AIState.PATROL
 var investigation_point: Vector3 = Vector3.ZERO
+## Sala a la que va ahora (la evitan los otros guardias de IA)
+var target_room: String = ""
 var _current_waypoint_idx: int = 0
 var _investigate_timer: float = 0.0
 var _stuck_time: float = 0.0
@@ -87,7 +89,7 @@ func _physics_process(_delta: float) -> void:
 	if current_state == AIState.PATROL and _wants_coffee():
 		current_state = AIState.COFFEE  # perseguir e investigar mandan sobre el café
 		_go_to(GuardPatrol.of(get_tree()), _coffee_machine().global_position)
-	if current_state != AIState.PATROL and current_state != AIState.COFFEE:
+	if current_state == AIState.CHASE or current_state == AIState.IDLE:
 		_stuck_time = 0.0
 
 	match current_state:
@@ -127,12 +129,19 @@ func _next_room() -> void:
 	var patrol: GuardPatrol = GuardPatrol.of(get_tree())
 	if patrol == null:
 		return
-	var room_id: String = patrol.pick_room(_recent_rooms, _rng)
+	var avoid: Array[String] = _recent_rooms.duplicate()
+	for node: Node in get_tree().get_nodes_in_group(&"guards"):
+		var other: GuardAI3D = node.get_node_or_null("GuardAI") as GuardAI3D
+		if other != null and other != self and other.target_room != "":
+			avoid.append(other.target_room)
+	var room_id: String = patrol.pick_room(avoid, _rng)
 	if room_id == "":
 		return
+	target_room = room_id
 	_recent_rooms.push_front(room_id)
 	_recent_rooms.resize(mini(_recent_rooms.size(), PATROL_RULES.ai_room_memory))
 	_go_to(patrol, patrol.room_center(room_id))
+	patrol_waypoints.append_array(patrol.piece_stops(room_id))  # pasa junto a cada candidata
 
 
 func _go_to(patrol: GuardPatrol, target: Vector3) -> void:
@@ -204,7 +213,10 @@ func _update_stuck(delta: float) -> bool:
 
 
 func _process_investigate(delta: float) -> void:
-	if _flat_distance(investigation_point, _guard.global_position) > INVESTIGATE_REACHED_DISTANCE:
+	var far: bool = (
+		_flat_distance(investigation_point, _guard.global_position) > INVESTIGATE_REACHED_DISTANCE
+	)
+	if far and not _update_stuck(delta):  # tras un muro: se rinde en vez de empujar la pared
 		_steer_towards(investigation_point, false)
 		return
 	_guard.apply_world_move(Vector3.ZERO)
@@ -256,6 +268,7 @@ func _on_noise_emitted(pos: Vector3, radius: float, source_team: StringName) -> 
 		investigation_point = pos
 		_investigate_timer = NOISE_INVESTIGATE_TIME
 		current_state = AIState.INVESTIGATE
+		_stuck_time = 0.0
 
 
 ## Aviso de una cámara: solo cuenta si este guardia está mirando los monitores (M7)
@@ -266,6 +279,7 @@ func _on_thief_spotted(pos: Vector3) -> void:
 		investigation_point = pos
 		_investigate_timer = SPOTTED_INVESTIGATE_TIME
 		current_state = AIState.INVESTIGATE
+		_stuck_time = 0.0
 
 
 func _on_thief_perceived(_pos: Vector3) -> void:

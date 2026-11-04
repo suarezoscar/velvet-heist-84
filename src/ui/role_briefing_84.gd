@@ -90,7 +90,7 @@ static func heist_objectives(
 			"• Atrapadlo con la porra antes de %d minutos: si amanece y sigue dentro, ganáis."
 			% minutes
 		),
-		"• Patrullad todo el museo: quien se queda quieto fuera de la garita acaba cabeceando.",
+		"• Fuera de la garita entra sueño; el café de la garita lo quita.",
 		"• Él ve tu linterna; tú no lo ves a oscuras. Escucha sus pasos.",
 	]
 

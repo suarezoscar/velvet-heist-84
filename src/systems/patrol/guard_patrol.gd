@@ -29,11 +29,12 @@ func in_guard_post(world: Vector3) -> bool:
 	return room_id != "" and bool(graph.data.room_by_id(room_id).get("guard_post", false))
 
 
-## Siguiente sala de la IA: al azar con peso 1 + piezas × ai_piece_weight, sin las de recent;
-## ni el exterior ni la garita
-func pick_room(recent: Array[String], rng: RandomNumberGenerator) -> String:
+## Siguiente sala de la IA (R5c): al azar con peso 1 + piezas × ai_piece_weight, sin las de
+## avoid (sus últimas salas y la que tienen como destino otros guardias de IA, si quedan otras);
+## ni el exterior, ni la garita, ni los pasillos
+func pick_room(avoid: Array[String], rng: RandomNumberGenerator) -> String:
 	var weights: Dictionary = room_weights(_piece_counts())
-	for room_id: String in recent:
+	for room_id: String in avoid:
 		if weights.size() > 1:
 			weights.erase(room_id)
 	var total: float = 0.0
@@ -53,7 +54,11 @@ func room_weights(pieces: Dictionary) -> Dictionary:
 	if graph == null:
 		return weights
 	for room: Dictionary in graph.data.section("rooms"):
-		if bool(room.get("exterior", false)) or bool(room.get("guard_post", false)):
+		if (
+			bool(room.get("exterior", false))
+			or bool(room.get("guard_post", false))
+			or bool(room.get("corridor", false))
+		):
 			continue
 		var room_id: String = String(room["id"])
 		weights[room_id] = 1.0 + float(pieces.get(room_id, 0)) * RULES.ai_piece_weight
@@ -79,10 +84,34 @@ func walk_between(from: Vector3, to: Vector3) -> Array[Vector3]:
 	return points
 
 
+## Puntos junto a cada pieza de la sala que sigue siéndolo para los guardias (a 1 m, hacia el
+## centro de la sala, para no chocar con la peana)
+func piece_stops(room_id: String) -> Array[Vector3]:
+	var stops: Array[Vector3] = []
+	var center: Vector3 = room_center(room_id)
+	for piece: Node3D in _live_pieces():
+		if graph.room_at(_design(piece.global_position)) != room_id:
+			continue
+		var toward: Vector3 = (center - piece.global_position).slide(Vector3.UP)
+		var stop: Vector3 = piece.global_position + toward.limit_length(1.0)
+		stops.append(Vector3(stop.x, center.y, stop.z))
+	return stops
+
+
+## Piezas que la IA tiene en cuenta: las descubiertas como robadas (R6) ya no
+func _live_pieces() -> Array[Node3D]:
+	var pieces: Array[Node3D] = []
+	for node: Node in get_tree().get_nodes_in_group(&"heist_targets"):
+		var piece: TargetPiece3D = node as TargetPiece3D
+		if piece != null and not piece.discovered:
+			pieces.append(piece)
+	return pieces
+
+
 func _piece_counts() -> Dictionary:
 	var counts: Dictionary = {}
-	for node: Node in get_tree().get_nodes_in_group(&"heist_targets"):
-		var room_id: String = graph.room_at(_design((node as Node3D).global_position))
+	for piece: Node3D in _live_pieces():
+		var room_id: String = graph.room_at(_design(piece.global_position))
 		counts[room_id] = int(counts.get(room_id, 0)) + 1
 	return counts
 
