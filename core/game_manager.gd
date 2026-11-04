@@ -111,17 +111,9 @@ func _physics_process(delta: float) -> void:
 			end_match(time_expired_state())
 
 
-## R4: resultado al acabar el tiempo según la hoja de ronda y la Pieza Maestra
+## R4 (#116): si se acaba el tiempo sin que el ladrón haya escapado, ganan los guardias
 func time_expired_state() -> MatchState:
-	var rounds: Array = _rounds()
-	var faults: int = RoundRules.team_faults(rounds)
-	var expired_now: bool = RoundRules.any_expired(rounds, get_physics_process_delta_time())
-	var allowed: int = RoundRules.allowed_faults(rounds, CLOCK_RULES.allowed_misses)
-	if RoundRules.is_on_time(faults, expired_now, allowed):
-		return MatchState.TIME_EXPIRED
-	if heist != null:
-		return MatchState.TIME_EXPIRED_DRAW  # heist.md R4: para ganar, el ladrón siempre escapa
-	return MatchState.TIME_EXPIRED_BREACH if has_masterpiece else MatchState.TIME_EXPIRED_DRAW
+	return MatchState.TIME_EXPIRED
 
 
 ## Inicializa una nueva ronda reiniciando contadores y objetivos

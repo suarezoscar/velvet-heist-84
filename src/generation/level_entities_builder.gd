@@ -56,10 +56,10 @@ static func build(data: LevelData, map: Node3D) -> Node3D:
 		_add_safe(data, props, data.entry("safe"))
 	for clock: Dictionary in data.section("clocks"):
 		_add_clock(data, props, clock)
-	if not data.section("clocks").is_empty():
-		var planner: RoundPlanner = RoundPlanner.new()
-		planner.graph = RoomGraph.from_level(data)
-		props.add_child(planner)
+	if not data.section("rooms").is_empty():  # garita y patrulla libre (#116)
+		var patrol: GuardPatrol = GuardPatrol.new()
+		patrol.graph = RoomGraph.from_level(data)
+		props.add_child(patrol)
 	var cameras: Dictionary = {}
 	for cam: Dictionary in data.section("cameras"):
 		cameras[String(cam["id"])] = _add_camera(data, props, cam)

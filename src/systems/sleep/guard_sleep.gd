@@ -1,12 +1,13 @@
 ## @file guard_sleep.gd
-## Sueño del guardia y café (heist.md R5). Hijo «Sleep» de cada guardia humano; lo coloca
-## HeistBuilder cuando el nivel tiene cafetera. El servidor (o la partida sin red) decide:
-## si el guardia acampa (CampingMeter), el sueño sube; somnoliento bosteza (un ruido que se
-## oye) y ve menos; agotado además da cabezadas sin ver nada. Solo se quita con café en la
-## cafetera de la garita, que deja un rato despejado. El nivel de sueño, las cabezadas y el
-## café van al cliente de su guardia como estado privado. FEAT-033: el café drogado por el
-## ladrón le duerme RULES.drug_nap_time s; la alarma le despeja (adrenalina) y, al apagarse las
-## luces de alarma, le da el bajón. Que da una cabezada lo ven todos («Zzz», SleepBubble3D).
+## Sueño del guardia y café (heist.md R5, #116). Hijo «Sleep» de cada guardia (también de la IA);
+## lo coloca HeistBuilder cuando el nivel tiene cafetera. El servidor (o la partida sin red)
+## decide: fuera de la garita el sueño sube poco a poco, dentro se congela (GuardPatrol);
+## somnoliento bosteza (un ruido que se oye) y ve menos; agotado además da cabezadas sin ver
+## nada. Solo se quita con café en la cafetera de la garita, que deja un rato despejado. El
+## nivel de sueño, las cabezadas y el café van al cliente de su guardia como estado privado.
+## FEAT-033: el café drogado por el ladrón le duerme RULES.drug_nap_time s; la alarma le
+## despeja (adrenalina) y, al apagarse las luces de alarma, le da el bajón. Que da una cabezada
+## lo ven todos («Zzz», SleepBubble3D).
 class_name GuardSleep
 extends Node
 
@@ -27,7 +28,6 @@ var drinking_left: float = 0.0
 var fresh_left: float = 0.0
 ## El café estaba drogado: está dormido (dura lo que su cabezada)
 var drugged: bool = false
-var _meter: CampingMeter = CampingMeter.new()
 var _yawn_timer: float = 0.0
 var _nod_timer: float = 0.0
 var _nod_left: float = 0.0
@@ -83,11 +83,10 @@ func stage() -> Stage:
 	return Stage.AWAKE
 
 
-## Solo duermen los guardias humanos, con la partida en marcha
+## Duermen todos los guardias (también la IA, #116), con la partida en marcha
 func is_active() -> bool:
 	return (
 		guard != null
-		and not guard.is_ai_controlled
 		and GameManager.is_simulating()
 		and GameManager.current_state == GameManager.MatchState.IN_PROGRESS
 	)
@@ -101,19 +100,23 @@ func _physics_process(delta: float) -> void:
 
 ## Un tick de la lógica del sueño (lo usan los tests)
 func step(delta: float) -> void:
-	var max_samples: int = roundi(RULES.window / CampingMeter.SAMPLE_STEP)
-	_meter.feed(guard.global_position, delta, max_samples)
 	if drinking_left > 0.0:
 		_drink(delta)
 	fresh_left = maxf(0.0, fresh_left - delta)
-	var camping: bool = _meter.is_camping(RULES.radius, RULES.linger_ratio, max_samples)
-	var alarm: AlertDirector = AlertDirector.of(get_tree())
-	var alarmed: bool = alarm != null and alarm.level == AlertDirector.Level.ALARM
-	if camping and fresh_left <= 0.0 and not guard.is_perceiving_thief and not alarmed:
+	if rises(delta):
 		level = minf(1.0, level + RULES.rise_rate * delta)
 	_update_yawn(delta)
 	_update_nod(delta)
 	_apply_perception()
+
+
+## true si el sueño sube este tick: fuera de la garita, sin el rato despejado del café, sin
+## ver al ladrón y sin la alarma sonando (la adrenalina lo mantiene despierto)
+func rises(_delta: float) -> bool:
+	if fresh_left > 0.0 or guard.is_perceiving_thief or AlertDirector.alarm_on(get_tree()):
+		return false
+	var patrol: GuardPatrol = GuardPatrol.of(get_tree())
+	return patrol == null or not patrol.in_guard_post(guard.global_position)
 
 
 ## La cafetera: empieza a servirse (false si ya se está sirviendo)
@@ -156,7 +159,6 @@ func _drink(delta: float) -> void:
 		nodding = false
 		_nod_left = 0.0
 		fresh_left = RULES.fresh_time
-		_meter.clear()
 
 
 ## Café drogado: se queda dormido RULES.drug_nap_time s y despierta agotado

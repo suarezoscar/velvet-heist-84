@@ -1,12 +1,13 @@
 ## @file guard_ai_3d.gd
 ## Componente de Inteligencia Artificial para guardias de seguridad en solitario / coop.
-## Gestiona la máquina de estados: PATROL (ronda), INVESTIGATE (ruidos/CCTV) y CHASE (persecución).
+## Gestiona la máquina de estados: PATROL (salas a su aire, más las que tienen piezas; #116),
+## COFFEE (a la cafetera cuando le entra sueño), INVESTIGATE (ruidos/CCTV) y CHASE (persecución).
 ## Solo decide la intención (dirección, sprint, mirada); el movimiento lo simula
 ## GuardController3D igual que para un humano. Requiere un GuardController3D como padre.
 class_name GuardAI3D
 extends Node
 
-enum AIState { IDLE, PATROL, INVESTIGATE, CHASE }
+enum AIState { IDLE, PATROL, INVESTIGATE, CHASE, COFFEE }
 
 ## Distancia horizontal (m) a la que un waypoint de ronda se da por alcanzado
 const WAYPOINT_REACHED_DISTANCE: float = 0.8
@@ -16,16 +17,15 @@ const INVESTIGATE_REACHED_DISTANCE: float = 0.9
 const NOISE_INVESTIGATE_TIME: float = 5.0
 ## Segundos que inspecciona la última posición avistada del ladrón
 const SPOTTED_INVESTIGATE_TIME: float = 6.0
-## Distancia horizontal (m) a la que ficha un reloj de ronda al pasar (alcance del interactor)
-const CLOCK_PUNCH_DISTANCE: float = 1.6
+## Distancia horizontal (m) a la que se sirve el café (dentro del alcance de la E)
+const COFFEE_REACH: float = 1.4
+const PATROL_RULES: GuardPatrolRules = preload("res://data/balance/guard_patrol.tres")
 ## Atascado: menos de STUCK_SPEED m/s durante STUCK_TIME s patrullando
 const STUCK_SPEED: float = 0.3
 const STUCK_TIME: float = 1.5
 
-## Rutas de patrulla configurables
+## Camino hasta la sala que patrulla (lo rellena _next_room con GuardPatrol)
 @export var patrol_waypoints: Array[Vector3] = []
-## Al acabar los waypoints vuelve a este (FEAT-034: de la garita a la ronda, y luego en bucle)
-@export var patrol_loop_start: int = 0
 @export var is_ai_active: bool = true
 
 var current_state: AIState = AIState.PATROL
@@ -36,6 +36,9 @@ var _stuck_time: float = 0.0
 var _guard: GuardController3D = null
 var _thief: ThiefController3D = null
 var _nav_agent: NavigationAgent3D = null
+var _recent_rooms: Array[String] = []
+var _dwell_left: float = 0.0
+var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
 
 func _ready() -> void:
@@ -80,7 +83,8 @@ func _physics_process(_delta: float) -> void:
 
 	if _thief != null and _guard.check_detection_on_thief(_thief):
 		current_state = AIState.CHASE
-	_punch_nearby_clocks()
+	if current_state == AIState.PATROL and _wants_coffee():
+		current_state = AIState.COFFEE  # perseguir e investigar mandan sobre el café
 	if current_state != AIState.PATROL:
 		_stuck_time = 0.0
 
@@ -93,34 +97,84 @@ func _physics_process(_delta: float) -> void:
 			_process_investigate(_delta)
 		AIState.CHASE:
 			_process_chase()
+		AIState.COFFEE:
+			_process_coffee()
 
 
-## Ficha el siguiente reloj de su ronda cuando lo tiene al alcance (FEAT-034: GuardRound)
-func _punch_nearby_clocks() -> void:
-	var round_node: GuardRound = GuardRound.of(_guard)
-	if round_node == null:
-		return
-	for node: Node in get_tree().get_nodes_in_group(&"time_clock"):
-		var clock: TimeClock3D = node as TimeClock3D
-		if clock == null or clock.clock_id != round_node.next_clock():
-			continue
-		if _flat_distance(clock.global_position, _guard.global_position) < CLOCK_PUNCH_DISTANCE:
-			clock.interact(_guard)
-
-
+## Recorre el camino hasta la sala elegida, se queda ai_room_dwell s y elige otra
 func _process_patrol() -> void:
-	if patrol_waypoints.is_empty():
+	var delta: float = get_physics_process_delta_time()
+	if _current_waypoint_idx >= patrol_waypoints.size():
 		_guard.apply_world_move(Vector3.ZERO)
+		_dwell_left -= delta
+		if _dwell_left <= 0.0:
+			_next_room()
 		return
 	var target: Vector3 = patrol_waypoints[_current_waypoint_idx]
-	var stuck: bool = _update_stuck(get_physics_process_delta_time())
+	var stuck: bool = _update_stuck(delta)
 	if stuck or _flat_distance(target, _guard.global_position) < WAYPOINT_REACHED_DISTANCE:
 		_stuck_time = 0.0
 		_current_waypoint_idx += 1
-		if _current_waypoint_idx >= patrol_waypoints.size():
-			_current_waypoint_idx = clampi(patrol_loop_start, 0, patrol_waypoints.size() - 1)
+		_dwell_left = PATROL_RULES.ai_room_dwell
 		return
 	_steer_towards(target, false)
+
+
+## Elige la siguiente sala (GuardPatrol) y el camino hasta su centro
+func _next_room() -> void:
+	var patrol: GuardPatrol = GuardPatrol.of(get_tree())
+	if patrol == null:
+		return
+	var room_id: String = patrol.pick_room(_recent_rooms, _rng)
+	if room_id == "":
+		return
+	_recent_rooms.push_front(room_id)
+	_recent_rooms.resize(mini(_recent_rooms.size(), PATROL_RULES.ai_room_memory))
+	_go_to(patrol, patrol.room_center(room_id))
+
+
+func _go_to(patrol: GuardPatrol, target: Vector3) -> void:
+	patrol_waypoints = patrol.walk_between(_guard.global_position, target)
+	_current_waypoint_idx = 0
+	_stuck_time = 0.0
+
+
+## true si le ha entrado sueño (ai_coffee_at) y no se está sirviendo ya
+func _wants_coffee() -> bool:
+	var sleep: GuardSleep = _guard.get_node_or_null("Sleep") as GuardSleep
+	return (
+		sleep != null
+		and sleep.drinking_left <= 0.0
+		and sleep.level >= GuardSleep.RULES.ai_coffee_at
+		and _coffee_machine() != null
+	)
+
+
+## Va a la cafetera, se sirve con la E y, despejado, vuelve a patrullar
+func _process_coffee() -> void:
+	var machine: CoffeeMachine3D = _coffee_machine()
+	var sleep: GuardSleep = _guard.get_node_or_null("Sleep") as GuardSleep
+	if machine == null or sleep == null:
+		current_state = AIState.PATROL
+		return
+	if sleep.drinking_left > 0.0:
+		_guard.apply_world_move(Vector3.ZERO)  # quieto mientras se sirve
+		return
+	if sleep.level < GuardSleep.RULES.ai_coffee_at:
+		current_state = AIState.PATROL  # ya despejado: a otra sala
+		_next_room()
+		return
+	if _flat_distance(machine.global_position, _guard.global_position) <= COFFEE_REACH:
+		_guard.apply_world_move(Vector3.ZERO)
+		_guard.look_target_position = machine.global_position
+		if machine.can_interact(_guard):
+			machine.interact(_guard)
+		return
+	_steer_towards(machine.global_position, false)
+
+
+func _coffee_machine() -> CoffeeMachine3D:
+	return get_tree().get_first_node_in_group(&"coffee_machine") as CoffeeMachine3D
 
 
 ## true si lleva STUCK_TIME casi sin moverse yendo a un waypoint (un mueble en medio): pasa al
@@ -175,6 +229,8 @@ func _flat_distance(a: Vector3, b: Vector3) -> float:
 func _on_noise_emitted(pos: Vector3, radius: float, source_team: StringName) -> void:
 	if source_team != &"thief" or _guard == null or radius <= 0.0:
 		return
+	if GuardSleep.sees_nothing(_guard):
+		return  # dando una cabezada tampoco atiende ruidos (#116)
 	if (
 		PerceptionRules.horizontal_distance(_guard.global_position, pos)
 		<= radius * _guard.perception.ai_hearing_factor

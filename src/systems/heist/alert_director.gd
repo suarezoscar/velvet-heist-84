@@ -40,6 +40,13 @@ func _ready() -> void:
 	add_to_group(&"heist_alert")
 
 
+## true si suena la alarma (nivel ALARM, que ya no baja): los guardias pueden correr y no les
+## entra sueño (#116)
+static func alarm_on(tree: SceneTree) -> bool:
+	var alert: AlertDirector = of(tree) if tree != null else null
+	return alert != null and alert.level == Level.ALARM
+
+
 ## La alerta del mapa (null si no hay golpe)
 static func of(tree: SceneTree) -> AlertDirector:
 	return tree.get_first_node_in_group(&"heist_alert") as AlertDirector
