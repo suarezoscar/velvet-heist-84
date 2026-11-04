@@ -28,11 +28,10 @@ static func text_for(seconds: float) -> String:
 
 
 func _ready() -> void:
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_label = Label.new()
-	_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_label.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)  # a lo ancho, centrada
 	_label.offset_top = TOP_OFFSET
 	_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_label.mouse_filter = Control.MOUSE_FILTER_IGNORE

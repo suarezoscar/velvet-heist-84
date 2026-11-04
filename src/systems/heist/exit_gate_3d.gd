@@ -10,6 +10,8 @@ const BAR_GAP: float = 0.22
 const BAR_SIZE: Vector3 = Vector3(0.05, HEIGHT, 0.05)
 const RAIL_SIZE: float = 0.08
 const COLOR: Color = Color("3b3f45")
+## Parte de la altura que se ve con la reja recogida
+const ROLLED: float = 0.12
 
 var width: float = 3.0
 var _bars: Node3D = null
@@ -68,9 +70,11 @@ func _process(_delta: float) -> void:
 	_apply(lockdown.drop_progress() if lockdown != null else 0.0)
 
 
-## progress: 0 recogida sobre la puerta, 1 en el suelo (cerrada)
+## progress: 0 recogida (enrollada bajo el dintel), 1 en el suelo (cerrada)
 func _apply(progress: float) -> void:
-	_bars.position.y = lerpf(HEIGHT * 1.5, HEIGHT * 0.5, progress)
+	var drop: float = lerpf(ROLLED, 1.0, progress)
+	_bars.scale.y = drop
+	_bars.position.y = HEIGHT - HEIGHT * 0.5 * drop  # colgada del dintel
 	_shape.disabled = progress < 1.0
 
 
