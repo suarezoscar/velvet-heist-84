@@ -210,7 +210,8 @@ func _trace_seen(piece: TargetPiece3D, guards: Array[GuardController3D], watchin
 			return true
 	if watching:
 		for node: Node in get_tree().get_nodes_in_group(&"security_camera"):
-			if (node as SecurityCamera3D).sees_point(target):
+			var cam: SecurityCamera3D = node as SecurityCamera3D
+			if cam.is_live and cam.sees_point(target):  # #118: solo la cámara que se mira
 				return true
 	return false
 

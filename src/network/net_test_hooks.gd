@@ -140,7 +140,7 @@ func _mount_loot() -> void:
 	print("[NetTestHooks] Montaje loot: ladrón a 1.0 m del botín '%s'" % loot.loot_name)
 
 
-## Guardia 1 sentado ante los monitores y ladrón a 4 m delante de CAM-1, bajo su lámpara
+## Guardia 1 sentado ante los monitores y ladrón a 4 m delante de CAM-01, bajo su lámpara
 func _mount_cctv() -> void:
 	var thief: ThiefController3D = _thief()
 	var guard: GuardController3D = _first_guard()
@@ -148,7 +148,7 @@ func _mount_cctv() -> void:
 	var desk: CCTVDesk3D = tree.get_first_node_in_group(&"cctv_desk") as CCTVDesk3D
 	var camera: SecurityCamera3D = null
 	for node: Node in tree.get_nodes_in_group(&"security_camera"):
-		if (node as SecurityCamera3D).camera_id == "CAM-1":
+		if (node as SecurityCamera3D).camera_id == "CAM-01":
 			camera = node as SecurityCamera3D
 	if thief == null or guard == null or desk == null or camera == null:
 		return
@@ -157,7 +157,7 @@ func _mount_cctv() -> void:
 	desk.interact(guard)
 	var ahead: Vector3 = camera.global_position - camera.global_transform.basis.z * 4.0
 	thief.global_position = Vector3(ahead.x, thief.global_position.y, ahead.z)
-	print("[NetTestHooks] Montaje cctv: guardia en la mesa y ladrón delante de CAM-1")
+	print("[NetTestHooks] Montaje cctv: guardia en la mesa y ladrón delante de CAM-01")
 
 
 func _thief() -> ThiefController3D:
