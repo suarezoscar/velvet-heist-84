@@ -1,7 +1,7 @@
 ## @file timed_task.gd
-## Una acción que tarda (heist.md R9: dar el cambiazo, examinar, cortar o restablecer la
-## corriente): el actor tiene que quedarse cerca (RULES.task_leash) hasta que acabe; si se
-## aleja, se cancela. Lo avanza quien tiene la autoridad. Lógica pura.
+## Una acción que tarda (heist.md R9: examinar una pieza): el actor tiene que quedarse cerca
+## (RULES.task_leash) hasta que acabe; si se aleja, se cancela. Lo avanza quien tiene la
+## autoridad. Lógica pura.
 class_name TimedTask
 extends RefCounted
 

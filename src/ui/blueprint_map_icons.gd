@@ -18,7 +18,6 @@ const COLOR_OUTLINE: Color = Color(0.02, 0.03, 0.07)
 const COLOR_OFF: Color = Color(0.36, 0.40, 0.46)
 const COLOR_POWER: Color = Color("ffd23d")
 const COLOR_DESK: Color = Color("5aa8ff")
-const COLOR_COPY: Color = Color("b98cff")
 const COLOR_LOOT: Color = Color("ffc93d")
 const BADGE: float = 11.0
 const FONT: FontFile = MenuTheme84.FONT_DISPLAY
@@ -32,13 +31,11 @@ const SPRITES: Dictionary = {
 	&"cross_mark": preload("res://assets/ui/map_icons/cross_mark.svg"),
 	&"cut_diamond": preload("res://assets/ui/map_icons/cut_diamond.svg"),
 	&"dial_padlock": preload("res://assets/ui/map_icons/dial_padlock.svg"),
-	&"easel": preload("res://assets/ui/map_icons/easel.svg"),
 	&"exit_door": preload("res://assets/ui/map_icons/exit_door.svg"),
 	&"floor_hatch": preload("res://assets/ui/map_icons/floor_hatch.svg"),
 	&"eye_target": preload("res://assets/ui/map_icons/eye_target.svg"),
 	&"light_bulb": preload("res://assets/ui/map_icons/light_bulb.svg"),
 	&"police_officer_head": preload("res://assets/ui/map_icons/police_officer_head.svg"),
-	&"power_lightning": preload("res://assets/ui/map_icons/power_lightning.svg"),
 	&"radar_sweep": preload("res://assets/ui/map_icons/radar_sweep.svg"),
 	&"ringing_bell": preload("res://assets/ui/map_icons/ringing_bell.svg"),
 	&"toggles": preload("res://assets/ui/map_icons/toggles.svg"),
@@ -174,14 +171,6 @@ static func glow(on: CanvasItem, pos: Vector2, color: Color, radius: float, alph
 ## Taza de café (la cafetera de la garita)
 static func cup(on: CanvasItem, pos: Vector2, color: Color) -> void:
 	badge(on, pos, color, &"coffee_cup")
-
-
-## Cuadro eléctrico: rayo; gris y tachado si el ala está cortada
-static func power(on: CanvasItem, pos: Vector2, cut: bool) -> void:
-	badge(on, pos, COLOR_OFF if cut else COLOR_POWER, &"power_lightning")
-	if cut:
-		on.draw_line(pos + Vector2(-9.0, -9.0), pos + Vector2(9.0, 9.0), COLOR_OUTLINE, 6.0)
-		on.draw_line(pos + Vector2(-9.0, -9.0), pos + Vector2(9.0, 9.0), COLOR_ALARM, 3.0)
 
 
 ## Lámpara: punto tenue (la luz se lee en el tinte de la sala), amarillo si da luz

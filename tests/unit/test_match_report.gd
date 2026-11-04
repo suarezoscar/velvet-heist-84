@@ -26,7 +26,7 @@ func test_how_each_piece_was_stolen() -> void:
 	var none: TargetPieceLook.Flaw = TargetPieceLook.Flaw.NONE
 	assert_eq(TargetPiece3D.steal_method(true, none, &"combination"), &"brute")
 	assert_eq(TargetPiece3D.steal_method(false, none, &"combination"), &"dial")
-	assert_eq(TargetPiece3D.steal_method(false, none, &"sensor"), &"power")
+	assert_eq(TargetPiece3D.steal_method(false, none, &"sensor"), &"bridge")
 	var flawed: TargetPieceLook.Flaw = TargetPieceLook.Flaw.values()[1]
 	assert_eq(TargetPiece3D.steal_method(false, flawed, &"pressure"), &"swap")
 

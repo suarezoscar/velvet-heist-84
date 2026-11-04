@@ -1,15 +1,15 @@
 ## @file blueprint_map_props.gd
-## Objetos interactivos del plano (#117): cafetera, monitores, cuadros eléctricos,
-## interruptores, lámparas, mesa de copias, coche de huida y objetos sueltos.
+## Objetos interactivos del plano (#117): cafetera, monitores,
+## interruptores, lámparas, coche de huida y objetos sueltos.
 ## Las puertas, las piezas (con su caja fuerte), las cámaras y las rejillas las dibuja
 ## BlueprintMapOverlay.
 ## Se buscan una vez al abrir el plano (collect) y cada icono sale con su estado actual; con el
-## cursor encima de un interruptor o un cuadro se ven los cables a sus lámparas (draw_wiring).
+## cursor encima de un interruptor se ven los cables a sus lámparas (draw_wiring).
 class_name BlueprintMapProps
 extends RefCounted
 
 const ICONS := preload("res://src/ui/blueprint_map_icons.gd")
-## Píxeles alrededor de un interruptor o cuadro para enseñar sus cables
+## Píxeles alrededor de un interruptor para enseñar sus cables
 const HOVER_RADIUS: float = 18.0
 
 
@@ -30,14 +30,10 @@ static func kind_of(node: Node) -> StringName:
 		return &"coffee"
 	if node is CCTVDesk3D:
 		return &"desk"
-	if node is PowerBox3D:
-		return &"power"
 	if node is LightSwitch3D:
 		return &"switch"
 	if node is Lamp3D:
 		return &"lamp"
-	if node is ReplicaTable3D:
-		return &"copy"
 	if node is EscapeCar3D:
 		return &"car"
 	if node is LootItem3D:
@@ -59,21 +55,17 @@ static func icon(on: CanvasItem, kind: StringName, pos: Vector2, prop: Node3D = 
 			ICONS.cup(on, pos, ICONS.COLOR_POST)
 		&"desk":
 			ICONS.badge(on, pos, ICONS.COLOR_DESK, &"tv")
-		&"power":
-			ICONS.power(on, pos, prop != null and (prop as PowerBox3D).is_cut)
 		&"switch":
 			ICONS.light_switch(on, pos)
 		&"lamp":
 			ICONS.lamp(on, pos, prop == null or (prop as Lamp3D).is_lit())
-		&"copy":
-			ICONS.badge(on, pos, ICONS.COLOR_COPY, &"easel")
 		&"car":
 			ICONS.car(on, pos)
 		&"loot":
 			ICONS.badge(on, pos, ICONS.COLOR_LOOT, &"coins")
 
 
-## Cables: con el cursor sobre un interruptor o un cuadro eléctrico, líneas a sus lámparas.
+## Cables: con el cursor sobre un interruptor, líneas a sus lámparas.
 ## live: con su estado (ladrón); los guardias las ven todas iguales (R9: no saben de cortes)
 static func draw_wiring(
 	on: CanvasItem,
@@ -85,7 +77,7 @@ static func draw_wiring(
 ) -> void:
 	ICONS.at(on, Vector2.ZERO, 1.0)
 	for prop: Node3D in props:
-		if not (prop is LightSwitch3D or prop is PowerBox3D) or not shown(prop):
+		if not (prop is LightSwitch3D) or not shown(prop):
 			continue
 		var from: Vector2 = to_map.call(prop.global_position)
 		if from.distance_to(mouse) > HOVER_RADIUS:
@@ -98,11 +90,9 @@ static func draw_wiring(
 				on.draw_arc(to, 6.0, 0.0, TAU, 16, Color(ICONS.COLOR_POWER, 0.9), 1.5)
 
 
-## true si prop (interruptor o cuadro) alimenta lamp
+## true si prop (interruptor) alimenta lamp
 static func _feeds(prop: Node3D, lamp: Lamp3D) -> bool:
-	if prop is LightSwitch3D:
-		return (prop as LightSwitch3D).circuit_id == lamp.circuit_id
-	return (prop as PowerBox3D).circuits.has(lamp.circuit_id)
+	return (prop as LightSwitch3D).circuit_id == lamp.circuit_id
 
 
 ## Cámaras con el abanico que cubren al barrer (orientación del nivel, alcance de la cámara),

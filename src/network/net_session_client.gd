@@ -197,7 +197,11 @@ func _polled_actions(delta: float) -> Array[StringName]:
 		actions.append(&"dial_left")
 	elif step > 0:
 		actions.append(&"dial_right")
-	if cracking and _just_pressed(&"ui_cancel"):
+	var thief: bool = _session.map.local_player is ThiefController3D  # #119: soltar E pausa
+	if thief and Input.is_action_just_released(&"interact"):  # aunque no llegara aún el estado
+		actions.append(&"interact_release")
+	var playing: bool = thief and StealMinigame.piece_of(_session.map.local_player) != null
+	if (cracking or playing) and _just_pressed(&"ui_cancel"):
 		actions.append(&"dial_cancel")
 	return actions
 

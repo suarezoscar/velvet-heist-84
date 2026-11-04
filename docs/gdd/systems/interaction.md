@@ -1,6 +1,6 @@
 # Interacción: monitores CCTV y selección de interactivos
 
-- **Estado**: aprobado (2026-10-24, con las 6 recomendaciones de «Decisiones abiertas»). Parte 1 de `interaction.md`: relojes de fichar (R) y monitores CCTV (M). **2026-10-30, #116: la parte R se retira** por decisión del usuario; la sustituyen el sueño nuevo y el final por tiempo de `heist.md` (R4, R5, R5c, R5d). **2026-11-04, #118: la parte M se reescribe** (una cámara en cada sala menos la garita; en la mesa, una imagen cada vez que se pasa con ← →; solo la cámara en pantalla ve al ladrón y enciende su piloto). Las reglas las decidió el usuario en la entrevista de #118; la lista de cámaras, `feed_height_frac` y las decisiones de #118 las aprobó el 2026-11-04. Cajas fuertes, puertas, teléfonos y el panel de pilotos (O3 de `stealth.md`) quedan para partes siguientes.
+- **Estado**: aprobado (2026-10-24, con las 6 recomendaciones de «Decisiones abiertas»). Parte 1 de `interaction.md`: relojes de fichar (R) y monitores CCTV (M). **2026-10-30, #116: la parte R se retira** por decisión del usuario; la sustituyen el sueño nuevo y el final por tiempo de `heist.md` (R4, R5, R5c, R5d). **2026-11-04, #118: la parte M se reescribe** (una cámara en cada sala menos la garita; en la mesa, una imagen cada vez que se pasa con ← →; solo la cámara en pantalla ve al ladrón y enciende su piloto). Las reglas las decidió el usuario en la entrevista de #118; la lista de cámaras, `feed_height_frac` y las decisiones de #118 las aprobó el 2026-11-04. Cajas fuertes, puertas y teléfonos quedan para partes siguientes; el panel de pilotos (O3 de `stealth.md`) sale del juego con #119 (aprobado por el usuario el 2026-11-04, `heist.md` R9d).
 - **Origen**: decisiones 3 y 5 de `docs/gdd/levels/museum_v2.md` (aprobadas por el usuario el 2026-10-24); MASTER_GSD §3.0 (relojes de 90 s); roadmap del PoC, cambio a internet con servidor dedicado (`docs/decisions/2026-10-23-roadmap-poc.md`).
 - **Relacionado**: `stealth.md` (P2.2 luz, P2.3 percepción por guardia, P2.4 ruido, filtro de red); `heist.md` (sueño, café y final por tiempo desde #116); `match.md` (por crear); `docs/tasks/FEAT-014-red-minima-lan.md` (filtro del ladrón, `net_state`); `vision.md` (las imágenes CCTV no llevan niebla; los pilotos se ven a través de ella). Código actual: `security_camera_3d.gd`, `cctv_monitor_3d.gd`, `core/game_manager.gd` (`time_clock_3d.gd` y `src/systems/rounds/` se borran con #116).
 - **Alcance**: PoC, 1 ladrón contra 2 guardias por internet; el servidor dedicado decide todo lo que aquí se describe.
@@ -89,18 +89,18 @@ Convención, la de las cámaras actuales: `pos` [x, y] en coordenadas de diseño
 | 08 | ARC | CAM 08 · ARCHIVO | [39.5, 13.5] | 332 | A lo largo de las estanterías; las filas se tapan entre sí |
 | 09 | OFF | CAM 09 · DESPACHO DEL CONSERVADOR | [40.5, 13.5] | 28 | T6 (a ~6 m) y P17; fuera, P25 |
 | 10 | ORI | CAM 10 · ARTE ORIENTAL | [65.5, 0.5] | 225 | Es CAM-5 (yaw actual) |
-| 11 | BIB | CAM 11 · BIBLIOTECA | [58.5, 14.5] | 142 | T9 y T19; fuera, el cuadro eléctrico del ala este (a ~10 m) |
+| 11 | BIB | CAM 11 · BIBLIOTECA | [58.5, 14.5] | 142 | T9 y T19 (#119: el cuadro eléctrico del ala este sale del juego) |
 | 12 | TAP | CAM 12 · TAPICES | [65.5, 24.5] | 204 | P32 y T18 (a ~8 m) |
 | 13 | PAT | CAM 13 · PATIO | [50.5, 24.5] | 135 | Es CAM-4 (yaw actual) |
 | 14 | JOY | CAM 14 · JOYAS Y RELOJES | [57.5, 14.5] | 218 | T7, T8 y P31 |
 | 15 | EPS | CAM 15 · PASILLO DE SERVICIO ESTE | [49.5, 14.5] | 183 | Tramo norte (P26, P29, P35); fuera, el tramo sur (P34, P36, P37) |
 | 16 | DOCK | CAM 16 · MUELLE DE CARGA | [47.5, 30.5] | 252 | P03 (salida) y P37; fuera, el extremo oeste y P23 |
 | 17 | VEST | CAM 17 · VESTUARIO | [42.5, 29.5] | 45 | La sala entera (6 × 6 m) |
-| 18 | MNT | CAM 18 · MANTENIMIENTO | [40.5, 23.5] | 38 | Movida (decisión 9): el cuadro eléctrico del ala de servicio queda fuera de alcance (~10,7 m) |
+| 18 | MNT | CAM 18 · MANTENIMIENTO | [40.5, 23.5] | 38 | Movida (decisión 9). #119: el cuadro eléctrico sale del juego; la cámara se queda donde está |
 | 19 | TAL | CAM 19 · TALLER | [39.5, 14.5] | 209 | T5 y P19 |
 | 20 | PS | CAM 20 · PASILLO DE SERVICIO | [33.5, 14.5] | 184 | Tramo norte (P15, P09, P18); fuera, el tramo junto a la garita (P20, P06, P23): sigue valiendo «cruzar el pasillo a su espalda» |
 
-Comprobaciones pendientes para la FEAT: que la esquina de la 02 quede dentro del círculo de la rotonda y la de la 07 fuera de las columnas; y que ninguna cámara quede encima de una puerta que tape su cono (los cuadros eléctricos quedan fuera de todas, decisión 9).
+Comprobaciones pendientes para la FEAT: que la esquina de la 02 quede dentro del círculo de la rotonda y la de la 07 fuera de las columnas; y que ninguna cámara quede encima de una puerta que tape su cono (los cuadros eléctricos quedaban fuera de todas, decisión 9; con #119 salen del juego).
 
 Rótulos todo en mayúsculas («CAM 07 · PIEZA MAESTRA»), como el resto (`estilo-de-textos.md` §5); la sala VLT se rotula «PIEZA MAESTRA» para no confundirla con una cámara de vigilancia. La porra sigue levantando y ↑ ↓ cuentan como W S (usuario, 2026-11-04).
 
@@ -113,7 +113,7 @@ Rótulos todo en mayúsculas («CAM 07 · PIEZA MAESTRA»), como el resto (`esti
 6. **Cómo pasa cámaras la IA sentada**: recomendación, en orden, `ai_camera_dwell` s en cada una (ritmo, 3-8 s, propuesto 5), y salta antes a la de una sala donde oyó un ruido. Sin red la IA patrulla a su aire (`heist.md` R5c); si nunca se sienta, basta con dejarlo anotado.
 7. **¿Qué ve el guardia alrededor de la imagen?**: la imagen casi a pantalla completa quita la mitad inferior del mundo, y el que mira se entera aún menos de quién se le acerca. Recomendación: margen oscuro, sin mundo, con la taza del sueño y el HUD propio; el oído y la proximidad siguen avisando (M3).
 8. **Las cámaras que «graban»**: recomendación, sin efecto en el juego por ahora (no hay cintas que rebobinar). Unas cintas VHS que revisar serían una mecánica nueva, al backlog.
-9. **Cámaras y cuadros eléctricos**: la propuesta deja el cuadro de servicio dentro de la CAM 18 y el del ala este fuera de la CAM 11. Recomendación: que ninguna cámara vea un cuadro, para que cortar la corriente dependa del oído y las patrullas, no de acertar la sala; habría que mover la CAM 18 a la esquina suroeste, [40.5, 23.5] con yaw 38 (el cuadro queda a ~10,7 m, fuera de alcance).
+9. **Cámaras y cuadros eléctricos**: la propuesta deja el cuadro de servicio dentro de la CAM 18 y el del ala este fuera de la CAM 11. Recomendación: que ninguna cámara vea un cuadro, para que cortar la corriente dependa del oído y las patrullas, no de acertar la sala; habría que mover la CAM 18 a la esquina suroeste, [40.5, 23.5] con yaw 38 (el cuadro queda a ~10,7 m, fuera de alcance). **#119** (aprobado el 2026-11-04): los cuadros salen del juego y la razón desaparece; la CAM 18 se queda en la esquina suroeste, que cubre bien Mantenimiento.
 10. **Los monitores de la mesa en el mundo**: hoy hay 5 CRT, uno por cámara. Con una imagen cada vez, recomendación: que se encienda uno con la imagen en pantalla y los demás queden apagados (también por M8).
 11. **¿Rastros con el ladrón sentado?**: R6 de `heist.md` dice «mientras alguien mira». Recomendación: con el ladrón en la mesa, la cámara no descubre rastros ni hace saltar la alarma (él no da parte); solo un guardia mirando.
 

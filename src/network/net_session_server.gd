@@ -146,6 +146,7 @@ func _on_peer_disconnected(peer: int) -> void:
 		return
 	if actor.has_method(&"stop_watching"):
 		actor.call(&"stop_watching")  # guardia o ladrón sentado ante los monitores
+	StealMinigame.cancel_for(actor)  # #119: sin quien lo juegue
 	if actor is GuardController3D:
 		(actor as GuardController3D).apply_flashlight_state(false)  # sin quien la sostenga
 	actor.apply_input(

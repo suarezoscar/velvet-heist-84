@@ -21,6 +21,9 @@ enum SafeState {
 	OPENED,
 }
 
+## Fallar un número suena como fallar cualquier minijuego de robo (#119)
+const STEAL_RULES: StealMinigameRules = preload("res://data/balance/steal_minigames.tres")
+
 ## Pasos a cada lado del número en los que el dial «suena cerca»
 const NEAR_STEPS: int = 2
 
@@ -77,7 +80,9 @@ func get_interaction_text(_actor: Node3D = null) -> String:
 			return ""
 		_:
 			if breakable:
-				return "Abrir la %s con la combinación [E] · Romper el cristal [Q]" % lock_name
+				return "Abrir la %s [E]\n%s" % [lock_name, TargetPiece3D.BRUTE_TEXT]
+			if contained_target != null:
+				return "Abrir la %s [E]\nLa %s no se puede forzar" % [lock_name, lock_name]
 			return "Abrir la %s [E]" % lock_name
 
 
@@ -156,7 +161,7 @@ func _confirm_current_number() -> void:
 			_unlock_and_open()
 	else:
 		print("[SafeBox3D] Fallo de combinación. Reseteando pestillos.")
-		_emit_acoustic_noise(7.5, &"dial")
+		_emit_acoustic_noise(STEAL_RULES.fail_noise_radius, &"dial")
 		current_stage = 0
 		fails += 1
 

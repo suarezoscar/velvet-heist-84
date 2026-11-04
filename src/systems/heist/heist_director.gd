@@ -17,12 +17,10 @@ var targets: Array[StringName] = []
 var contract_size: int = 0
 ## Ids de las piezas del encargo ya robadas (privado del ladrón)
 var stolen: Array[StringName] = []
-## Cómo se robó cada pieza del encargo: id → &"dial", &"brute", &"swap" o &"power" (FEAT-041)
+## Cómo se robó cada pieza del encargo: id → &"dial", &"brute", &"swap" o &"bridge" (FEAT-041)
 var stolen_how: Dictionary = {}
 ## Monedas que le quedan al ladrón (heist.md R8; privado del ladrón)
 var coins_left: int = RULES.coins
-## Lleva una pieza de pega del taller (heist.md R9; privado del ladrón)
-var carrying_fake: bool = false
 
 
 func _ready() -> void:
@@ -95,7 +93,6 @@ func get_net_state_private() -> Dictionary:
 		"targets": targets.duplicate(),
 		"stolen": stolen.duplicate(),
 		"coins": coins_left,
-		"fake": carrying_fake,
 	}
 
 
@@ -118,8 +115,6 @@ func apply_net_state(state: Dictionary) -> void:
 		targets.assign(state["targets"])
 	if state.has("coins"):
 		coins_left = int(state["coins"])
-	if state.has("fake"):
-		carrying_fake = bool(state["fake"])
 
 
 func _draw_contract() -> void:

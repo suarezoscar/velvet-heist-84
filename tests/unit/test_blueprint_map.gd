@@ -36,10 +36,8 @@ func test_kind_of_maps_each_prop() -> void:
 	var pairs: Array = [
 		[CoffeeMachine3D.new(), &"coffee"],
 		[CCTVDesk3D.new(), &"desk"],
-		[PowerBox3D.new(), &"power"],
 		[LightSwitch3D.new(), &"switch"],
 		[Lamp3D.new(), &"lamp"],
-		[ReplicaTable3D.new(), &"copy"],
 		[EscapeCar3D.new(), &"car"],
 		[LootItem3D.new(), &"loot"],
 		[Node3D.new(), &""],
@@ -55,7 +53,7 @@ func test_collect_finds_only_map_props() -> void:
 	root.add_child(Lamp3D.new())
 	var plain: Node3D = Node3D.new()
 	root.add_child(plain)
-	plain.add_child(PowerBox3D.new())
+	plain.add_child(LightSwitch3D.new())  # también los que cuelgan de un nodo cualquiera
 	assert_eq(PROPS.collect(root).size(), 2)
 	assert_eq(PROPS.collect(null).size(), 0)
 
@@ -105,7 +103,7 @@ func test_legend_groups_cover_every_layer() -> void:
 	var thief: Array = icons[LEGEND.THIEF_GROUPS]
 	var guard: Array = icons[LEGEND.GUARD_GROUPS]
 	assert_false(thief.has(&"mate") or thief.has(&"trace"), "el ladrón no ve compañero ni rastro")
-	for kind: StringName in [&"contract", &"car", &"copy"]:
+	for kind: StringName in [&"contract", &"car"]:
 		assert_false(guard.has(kind), "el guardia no ve %s" % kind)
 
 

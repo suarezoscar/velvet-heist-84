@@ -1,12 +1,13 @@
 ## @file target_piece_3d.gd
 ## Pieza candidata del encargo (heist.md R1 y R9): pedestal con su pieza y una protección.
-## - Combinación: la guarda un candado (SafeBox3D: vitrina o caja fuerte). Abierto, E la coge en
-##   silencio. Una vitrina se puede romper a lo bruto (Q); la caja fuerte, no.
-## - Presión: con una pieza de pega del taller, E da el cambiazo en silencio (RULES.swap_time).
-##   La copia se queda con un fallo sorteado (TargetPieceLook.Flaw) y no es un rastro hasta
-##   que un guardia la examina (E, RULES.inspect_time). Sin copia, E es a lo bruto.
-## - Sensor: con la corriente de su ala cortada (PowerBox3D), E la coge en silencio; si no,
-##   a lo bruto.
+## Todo pasa en la pieza (#119): E abre el minijuego de su protección y nunca roba a lo bruto;
+## Q es lo único a lo bruto.
+## - Combinación: la guarda un candado (SafeBox3D: vitrina o caja fuerte) con su dial. Abierto, E
+##   la coge en silencio. Una vitrina se puede romper a lo bruto (Q); la caja fuerte, no.
+## - Presión: E da el cambiazo con la balanza (StealMinigame SWAP). Queda una falsificación con
+##   un fallo sorteado (TargetPieceLook.Flaw) que no es rastro hasta que un guardia la examina
+##   (E, RULES.inspect_time).
+## - Sensor: E lo puentea con el piloto (StealMinigame BRIDGE) y la pieza sale en silencio.
 ## A lo bruto suena la campana (ruido de RULES.brute_radius) y salta la alarma. Solo el ladrón
 ## puede robarla, y solo si está en su encargo. El aspecto vive en TargetPieceLook.
 class_name TargetPiece3D
@@ -14,6 +15,7 @@ extends Area3D
 
 const RULES: HeistRules = preload("res://data/balance/heist_rules.tres")
 const SILENT_RADIUS: float = 2.5
+const BRUTE_TEXT: String = "A lo bruto [Q]: salta la alarma"
 
 var piece_id: StringName = &""
 var piece_name: String = ""
@@ -22,8 +24,6 @@ var room_name: String = ""
 var protection: StringName = &"combination"
 ## Candado de las piezas de combinación (null en las demás)
 var lock: SafeBox3D = null
-## Cuadro eléctrico del ala de las piezas de sensor (null en las demás)
-var power_box: PowerBox3D = null
 var variant: StringName = &"pedestal"
 var stolen: bool = false
 ## Fallo de la pieza de pega que quedó en su lugar (NONE: no hubo cambiazo)
@@ -32,8 +32,13 @@ var flaw: TargetPieceLook.Flaw = TargetPieceLook.Flaw.NONE
 var discovered: bool = false
 ## Un guardia la examinó y era auténtica
 var inspected: bool = false
+## Se la llevaron puenteando el sensor: el guardia lo ve al descubrirla (#119)
+var bridged: bool = false
 var model: Node3D = null
 var marker: Label3D = null
+## Minijuego del ladrón en curso (en la autoridad) y lo que llega de él por la red (cliente)
+var game: StealMinigame = null
+var _view: Dictionary = {}
 var _task: TimedTask = null
 var _marker_timer: float = 0.0
 
@@ -68,6 +73,12 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if _task != null and _task.tick(delta):
 		_task = null
+	if game != null:
+		match game.tick(delta):
+			StealMinigame.Result.DONE:
+				_finish_game()
+			StealMinigame.Result.CANCELLED:
+				game = null
 
 
 func _process(delta: float) -> void:
@@ -99,6 +110,8 @@ func can_inspect(actor: Node3D) -> bool:
 func can_interact(actor: Node3D = null) -> bool:
 	if can_inspect(actor):
 		return _task == null
+	if game != null:
+		return game.actor == actor
 	if not is_available(actor) or _task != null:
 		return false
 	if _lock_closed():
@@ -109,29 +122,64 @@ func can_interact(actor: Node3D = null) -> bool:
 func get_interaction_text(actor: Node3D = null) -> String:
 	if actor is GuardController3D:
 		return "Examinando…" if _task != null else "Examinar %s [E]" % piece_name
-	if _task != null:
-		return "Dando el cambiazo…"
+	if is_playing():
+		return ""  # lo enseña el panel del minijuego
 	if _lock_closed():
 		return lock.get_interaction_text(actor)
-	if lock != null or _silent_steal_ready():
+	if lock != null:
 		return "Coger %s [E]" % piece_name
-	if protection == &"pressure" and _has_fake():
-		return "Dar el cambiazo con la réplica [E]"
-	return "Robar %s a lo bruto: salta la alarma [E]" % piece_name
+	var verb: String = "Dar el cambiazo" if protection == &"pressure" else "Puentear el sensor"
+	return "%s [E]\n%s" % [verb, BRUTE_TEXT]
 
 
-## E: examinar (guardia), abrir el candado, dar el cambiazo, coger en silencio o a lo bruto
+## E: examinar (guardia), abrir el candado, coger lo abierto o el minijuego de la protección
 func interact(actor: Node3D) -> void:
 	if not can_interact(actor):
 		return
-	if actor is GuardController3D:
+	if game != null:
+		game.press()
+	elif actor is GuardController3D:
 		_task = TimedTask.start(actor, RULES.inspect_time, RULES.task_leash, _finish_inspect)
 	elif _lock_closed():
 		lock.interact(actor)
-	elif protection == &"pressure" and _has_fake():
-		_task = TimedTask.start(actor, RULES.swap_time, RULES.task_leash, _finish_swap)
+	elif lock != null:
+		steal(false)
 	else:
-		steal(lock == null and not _silent_steal_ready())
+		var kind: StealMinigame.Kind = (
+			StealMinigame.Kind.SWAP if protection == &"pressure" else StealMinigame.Kind.BRIDGE
+		)
+		game = StealMinigame.start(kind, actor)
+
+
+## true mientras el ladrón juega su minijuego (también en el cliente, por la red)
+func is_playing() -> bool:
+	return game != null or int(_view.get("game", 0)) != 0
+
+
+## Lo que enseña el panel del minijuego ({} sin minijuego)
+func minigame_view() -> Dictionary:
+	if game != null:
+		return game.to_view()
+	return _view if is_playing() else {}
+
+
+## E (un intento o volver a sujetar), soltar E (la balanza se pausa) o Esc (sale)
+func minigame_action(actor: Node3D, action: StringName) -> void:
+	if game == null or game.actor != actor:
+		return
+	match action:
+		&"interact":
+			game.press()
+		&"interact_release":
+			game.release()
+		&"dial_cancel":
+			game = null
+
+
+## Teclas de movimiento del ladrón durante el minijuego
+func steer(actor: Node3D, move: Vector2) -> void:
+	if game != null and game.actor == actor:
+		game.steer(move)
 
 
 ## Q: a lo bruto. Vale si no hay candado o es una vitrina (la caja fuerte no se rompe)
@@ -144,20 +192,19 @@ func can_force(actor: Node3D) -> bool:
 func force(actor: Node3D) -> bool:
 	if not can_force(actor):
 		return false
+	game = null  # Q en mitad del minijuego lo abandona
 	steal(lock == null or lock.current_state != SafeBox3D.SafeState.OPENED)
 	return true
 
 
-## Cómo se ha robado (para el informe final, FEAT-041): a lo bruto, con el cambiazo, con la
-## corriente cortada (sensor) o abriendo el dial
-static func steal_method(
-	brute: bool, fake: TargetPieceLook.Flaw, piece_protection: StringName
-) -> StringName:
+## Cómo se ha robado (para el informe final, FEAT-041): a lo bruto, con el cambiazo,
+## puenteando el sensor o abriendo el dial
+static func steal_method(brute: bool, fake: TargetPieceLook.Flaw, kind: StringName) -> StringName:
 	if brute:
 		return &"brute"
 	if fake != TargetPieceLook.Flaw.NONE:
 		return &"swap"
-	return &"power" if piece_protection == &"sensor" else &"dial"
+	return &"bridge" if kind == &"sensor" else &"dial"
 
 
 ## Autoridad: la pieza sale del pedestal y cuenta para el encargo
@@ -166,7 +213,9 @@ func steal(brute: bool, fake: TargetPieceLook.Flaw = TargetPieceLook.Flaw.NONE) 
 		return
 	stolen = true
 	flaw = fake
+	bridged = not brute and protection == &"sensor"
 	inspected = false
+	game = null
 	if lock != null and lock.current_state != SafeBox3D.SafeState.OPENED:
 		lock.break_open()
 	_apply_stolen()
@@ -180,18 +229,29 @@ func steal(brute: bool, fake: TargetPieceLook.Flaw = TargetPieceLook.Flaw.NONE) 
 	if brute and alert != null:
 		alert.raise(AlertDirector.Level.ALARM, global_position)  # R9: a lo bruto salta la alarma
 		discovered = true
-	print("[TargetPiece3D] %s robada%s" % [piece_name, " a lo bruto" if brute else ""])
+
+
+func get_net_state_private() -> Dictionary:  # solo para el ladrón: su minijuego
+	return game.to_view() if game != null else {"game": 0}
+
+
+func net_private_audience() -> StringName:
+	return &"thief"
 
 
 ## Público: si el pedestal está vacío, el fallo de la copia (se ve) y si un guardia la
 ## examinó y era auténtica. Lo que ya saben los guardias va solo a ellos (AlertDirector)
 func get_net_state() -> Dictionary:
-	return {"stolen": stolen, "flaw": int(flaw), "inspected": inspected}
+	return {"stolen": stolen, "flaw": int(flaw), "inspected": inspected, "bridged": bridged}
 
 
 func apply_net_state(state: Dictionary) -> void:
+	if state.has("game"):
+		_view = state.duplicate()
+		return
 	inspected = bool(state.get("inspected", inspected))
 	var new_flaw: TargetPieceLook.Flaw = int(state.get("flaw", 0)) as TargetPieceLook.Flaw
+	bridged = bool(state.get("bridged", bridged))
 	if bool(state.get("stolen", false)) and not stolen:
 		stolen = true
 		flaw = new_flaw
@@ -202,15 +262,17 @@ func in_contract() -> bool:
 	return GameManager.heist != null and GameManager.heist.is_in_contract(piece_id)
 
 
-func _finish_swap(actor: Node3D) -> void:
-	if stolen or GameManager.heist == null or not GameManager.heist.carrying_fake:
+## Minijuego completado: el cambiazo deja la falsificación; el puente se lleva la pieza
+func _finish_game() -> void:
+	var swapped: bool = game.kind == StealMinigame.Kind.SWAP
+	game = null
+	if not swapped:
+		steal(false)
 		return
-	GameManager.heist.carrying_fake = false
 	var flaws: Array = [
 		TargetPieceLook.Flaw.TINT, TargetPieceLook.Flaw.SIZE, TargetPieceLook.Flaw.POSE
 	]
 	steal(false, flaws.pick_random() as TargetPieceLook.Flaw)
-	print("[TargetPiece3D] Cambiazo en %s por %s" % [piece_name, actor.name])
 
 
 func _finish_inspect(_actor: Node3D) -> void:
@@ -218,7 +280,6 @@ func _finish_inspect(_actor: Node3D) -> void:
 		return  # se la llevaron a lo bruto mientras la examinaba: ya está descubierta
 	if is_faked():
 		discovered = true
-		print("[TargetPiece3D] ¡%s es una falsificación!" % piece_name)
 	else:
 		inspected = true
 
@@ -236,11 +297,3 @@ func _looks_whole() -> bool:
 
 func _lock_closed() -> bool:
 	return lock != null and lock.current_state != SafeBox3D.SafeState.OPENED
-
-
-func _silent_steal_ready() -> bool:
-	return protection == &"sensor" and power_box != null and power_box.is_cut
-
-
-func _has_fake() -> bool:
-	return GameManager.heist != null and GameManager.heist.carrying_fake

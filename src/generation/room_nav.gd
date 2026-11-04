@@ -1,9 +1,9 @@
 ## @file room_nav.gd
 ## Caminos dentro de una sala que rodean los muebles (FEAT-034), en coordenadas del diseño.
 ## Los obstáculos salen de los datos del nivel: coberturas, pedestales y vitrinas de las piezas,
-## tabiques, la cafetera, la mesa de monitores y las mesas de réplicas, inflados con el radio de
-## un personaje. Si la recta está libre, va recta; si no, A* en una rejilla de CELL m dentro de
-## la sala y luego se estira el camino quitando los puntos que sobran. Lo usa RoomGraph.
+## tabiques, la cafetera y la mesa de monitores, inflados con el radio de un personaje. Si la
+## recta está libre, va recta; si no, A* en una rejilla de CELL m dentro de la sala y
+## luego se estira el camino quitando los puntos que sobran. Lo usa RoomGraph.
 class_name RoomNav
 extends RefCounted
 
@@ -29,8 +29,6 @@ static func from_level(data: LevelData) -> RoomNav:
 	for target: Dictionary in data.section("targets"):
 		var side: float = float(PIECE_SIZES.get(String(target.get("variant", "pedestal")), 0.9))
 		nav._add_box(target["pos"], Vector2(side, side), 0)
-	for table: Dictionary in data.section("replica_tables"):
-		nav._add_box(table["pos"], Vector2(1.2, 0.6), 0)
 	if not data.entry("coffee").is_empty():
 		var coffee: Dictionary = data.entry("coffee")
 		nav._add_box(coffee["pos"], Vector2(2.2, 1.1), coffee.get("rot_deg", 0))
