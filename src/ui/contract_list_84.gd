@@ -58,7 +58,7 @@ static func compose(heist: HeistDirector) -> String:
 static func hint(piece: TargetPiece3D) -> String:
 	match piece.protection:
 		&"pressure":
-			return "cambiazo con una réplica"
+			return "da el cambiazo"
 		&"sensor":
-			return "corta la alarma del ala"
+			return "puentea el sensor"
 	return "abre el dial"
