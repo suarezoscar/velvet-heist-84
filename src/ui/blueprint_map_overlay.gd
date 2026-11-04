@@ -2,8 +2,8 @@
 ## Plano táctico del museo (FEAT-034, #117), con [M] o [TAB], estilo monitor de 1984. Sale de los
 ## datos del nivel (el mapa los deja en su meta «level_data»): la arquitectura la dibuja
 ## BlueprintMapRooms; los objetos interactivos, BlueprintMapProps; la leyenda por capas,
-## BlueprintMapLegend. Aquí van tu puntero, los compañeros, las piezas, las cámaras con su
-## abanico, las campanas de alarma («hace 1:20») y el walkie.
+## BlueprintMapLegend; las piezas, BlueprintMapPieces. Aquí van tu puntero, los compañeros, las
+## cámaras con su abanico, las campanas de alarma («hace 1:20») y el walkie.
 ## Rueda: zoom hacia el cursor; botón central: mover; [1]-[4]: encender y apagar capas.
 ## Solo lee el estado que ya tiene el cliente.
 class_name BlueprintMapOverlay
@@ -13,6 +13,7 @@ const ICONS := preload("res://src/ui/blueprint_map_icons.gd")
 const PROPS := preload("res://src/ui/blueprint_map_props.gd")
 const ROOMS := preload("res://src/ui/blueprint_map_rooms.gd")
 const LEGEND := preload("res://src/ui/blueprint_map_legend.gd")
+const PIECES := preload("res://src/ui/blueprint_map_pieces.gd")
 const COLOR_BG: Color = ICONS.COLOR_BG
 const MARGIN: float = 16.0
 const HEADER: float = 76.0
@@ -137,20 +138,22 @@ func _draw() -> void:
 	_fit(panel)
 	ROOMS.draw_grid(self, _to_map(_bounds.position), _to_map(_bounds.end), _scale * 2.0)
 	var power: bool = layers[&"power"]
-	ROOMS.draw(self, data, _to_map, _scale, ROOMS.light_levels(data, _lamps) if power else {})
+	var thief_view: bool = HeistDirector.local_is_thief(get_tree())  # R9: la luz, solo el ladrón
+	var light: Dictionary = ROOMS.light_levels(data, _lamps) if power and thief_view else {}
+	ROOMS.draw(self, data, _to_map, _scale, light)
 	ROOMS.draw_doors(self, data, _to_map, _scale)
-	var thief_view: bool = HeistDirector.local_is_thief(get_tree())
 	_draw_props(thief_view)
 	if layers[&"security"]:
 		PROPS.draw_cameras(self, data, _to_map, pow(zoom, ICON_GROWTH))
 	if thief_view and layers[&"places"]:
 		_draw_vents()
-	_draw_pieces(thief_view)
+	if layers[&"people" if thief_view else &"security"]:
+		PIECES.draw(self, thief_view, func(pos: Vector3) -> Vector2: return _at(_world(pos)))
 	if not thief_view and layers[&"people"]:
 		_draw_pings()
 		_draw_mates()
 	if power:
-		PROPS.draw_wiring(self, _props, _lamps, get_local_mouse_position(), _world)
+		PROPS.draw_wiring(self, _props, _lamps, get_local_mouse_position(), _world, thief_view)
 	if layers[&"security"]:
 		_draw_alarms()
 	if layers[&"people"]:
@@ -214,7 +217,7 @@ func _draw_props(thief_view: bool) -> void:
 		if not PROPS.shown(prop) or not layers[PROP_LAYER.get(kind, &"places")]:
 			continue
 		if thief_view or not THIEF_ONLY.has(kind):
-			PROPS.icon(self, kind, _at(_world(prop.global_position)), prop)
+			PROPS.icon(self, kind, _at(_world(prop.global_position)), prop if thief_view else null)
 
 
 func _draw_vents() -> void:
@@ -222,34 +225,6 @@ func _draw_vents() -> void:
 		var vent: Vent3D = node as Vent3D
 		var at: Vector2 = _at(_world(vent.global_position))
 		ICONS.vent(self, at, vent.network.substr(0, 1).to_upper())
-
-
-## El encargo del ladrón (capa de personas) o las candidatas de los guardias (seguridad)
-func _draw_pieces(thief_view: bool) -> void:
-	if not layers[&"people" if thief_view else &"security"]:
-		return
-	var heist: HeistDirector = GameManager.heist
-	for node: Node in get_tree().get_nodes_in_group(&"heist_targets"):
-		var piece: TargetPiece3D = node as TargetPiece3D
-		var pos: Vector2 = _at(_world(piece.global_position))
-		if thief_view:
-			if heist == null or not heist.is_in_contract(piece.piece_id):
-				continue
-			var pink: Color = TeamMarker3D.THIEF_COLOR
-			ICONS.glow(self, pos, pink, 20.0, 0.5)
-			ICONS.piece(self, pos, &"cut_diamond", pink)
-			if heist.stolen.has(piece.piece_id):
-				ICONS.glyph(self, pos + Vector2(9.0, -9.0), "✔", 18, ICONS.COLOR_OK)
-			ICONS.text(self, pos + Vector2(15.0, 7.0), piece.piece_name, 17, pink)
-			continue
-		var icon: StringName = ICONS.PROTECTION_SPRITES.get(piece.protection, &"cut_diamond")
-		var color: Color = TeamMarker3D.GUARD_COLOR
-		if piece.discovered:
-			icon = &"cross_mark"
-			color = ICONS.COLOR_ALARM
-		elif piece.inspected:
-			color = ICONS.COLOR_OK
-		ICONS.piece(self, pos, icon, color)
 
 
 func _draw_pings() -> void:

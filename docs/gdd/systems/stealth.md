@@ -253,6 +253,7 @@ d_h(G, L) ≤ F_alcance   y   ángulo_h(frente_G, L − G) ≤ F_semiángulo   y
 
 ### P2.3 Información entre guardias
 - **La percepción es por guardia**: lo que detecta un guardia (proximidad, linterna, luz) solo hace visible al ladrón en la pantalla de ese guardia, y lo que oye solo le suena a él (regla de la parte 1). Un guardia **no oye** los ruidos que alcanzan a sus compañeros pero no a él.
+- **Excepción (#117, 2026-11-04)**: cuando un guardia ve al ladrón y salta la alarma, todo el equipo ve en el plano una campana donde estaba el ladrón en ese momento (no le sigue después). Detalle en `heist.md` R7.
 - **Walkie-talkie: ping** (MASTER_GSD §3.2): el guardia marca un punto de su pantalla; todos los guardias ven un marcador allí durante `ping_marker_time` 3,0 s; el walkie del que marca emite estática (categoría mecanismo, P2.4) con radio `ping_noise_radius` 6,0 m. Enfriamiento `ping_cooldown` 1,5 s.
 - **Voz**: hablar por el walkie es pulsar para hablar; al empezar y cada `voice_pulse_interval` 2,0 s mientras se habla, el walkie emite la misma estática.
 - **Supuesto de diseño**: los guardias pueden hablar por un canal externo (Discord). El balance no puede depender de que no lo hagan; por eso lo que se comparte de verdad (posiciones exactas en pantalla) es la percepción por guardia, y lo que la voz externa no da es el marcador preciso del ping.

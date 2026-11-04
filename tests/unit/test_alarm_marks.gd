@@ -42,3 +42,37 @@ func test_marks_travel_in_public_state() -> void:
 	copy.apply_net_state(alert.get_net_state())
 	assert_eq(copy.alarm_marks.size(), 1)
 	assert_eq(copy.alarm_marks[0]["pos"], Vector3(1, 0, 2))
+	assert_eq(float(copy.alarm_marks[0]["t"]), 300.0, "el momento llega redondeado al segundo")
+	copy.apply_net_state(alert.get_net_state())
+	assert_eq(copy.alarm_marks.size(), 1, "aplicar el mismo estado dos veces no duplica")
+
+
+func test_alarm_without_point_leaves_no_bell() -> void:
+	alert.raise(AlertDirector.Level.ALARM)
+	assert_eq(alert.alarm_triggers, 1, "la alarma salta igual")
+	assert_eq(alert.alarm_marks.size(), 0, "sin punto no hay campana (ni se usa la del ladrón)")
+
+
+func test_old_marks_are_forgotten() -> void:
+	for i: int in range(AlertDirector.MAX_MARKS + 3):
+		alert._last_alarm_call = -INF  # cada una, una situación nueva
+		alert.raise(AlertDirector.Level.ALARM, Vector3(i, 0, 0))
+	assert_eq(alert.alarm_marks.size(), AlertDirector.MAX_MARKS)
+	assert_eq(alert.alarm_marks[0]["pos"], Vector3(3, 0, 0), "se olvidan las más antiguas")
+
+
+## Revisión #117: la alarma por rastros no puede poner la campana donde está el ladrón
+func test_trace_alarm_does_not_reveal_thief() -> void:
+	var thief := Node3D.new()
+	add_child_autofree(thief)
+	thief.add_to_group(&"thief")
+	thief.global_position = Vector3(40, 0, 40)
+	for i: int in range(2):  # RULES.alarm_traces = 2 cortes ya descubiertos
+		var box := PowerBox3D.new()
+		add_child_autofree(box)
+		box.is_cut = true
+		box.noticed = true
+	alert.scan()
+	assert_eq(alert.level, AlertDirector.Level.ALARM)
+	for mark: Dictionary in alert.alarm_marks:
+		assert_ne(mark["pos"], thief.global_position, "la campana no delata al ladrón")

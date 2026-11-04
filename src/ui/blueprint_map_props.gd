@@ -73,9 +73,15 @@ static func icon(on: CanvasItem, kind: StringName, pos: Vector2, prop: Node3D = 
 			ICONS.badge(on, pos, ICONS.COLOR_LOOT, &"coins")
 
 
-## Cables: con el cursor sobre un interruptor o un cuadro eléctrico, líneas a sus lámparas
+## Cables: con el cursor sobre un interruptor o un cuadro eléctrico, líneas a sus lámparas.
+## live: con su estado (ladrón); los guardias las ven todas iguales (R9: no saben de cortes)
 static func draw_wiring(
-	on: CanvasItem, props: Array[Node3D], lamps: Array[Lamp3D], mouse: Vector2, to_map: Callable
+	on: CanvasItem,
+	props: Array[Node3D],
+	lamps: Array[Lamp3D],
+	mouse: Vector2,
+	to_map: Callable,
+	live: bool = true
 ) -> void:
 	ICONS.at(on, Vector2.ZERO, 1.0)
 	for prop: Node3D in props:
@@ -88,7 +94,7 @@ static func draw_wiring(
 			if is_instance_valid(lamp) and _feeds(prop, lamp):
 				var to: Vector2 = to_map.call(lamp.global_position)
 				on.draw_dashed_line(from, to, Color(ICONS.COLOR_POWER, 0.7), 1.5, 6.0)
-				ICONS.lamp(on, to, lamp.is_lit())
+				ICONS.lamp(on, to, lamp.is_lit() or not live)
 				on.draw_arc(to, 6.0, 0.0, TAU, 16, Color(ICONS.COLOR_POWER, 0.9), 1.5)
 
 

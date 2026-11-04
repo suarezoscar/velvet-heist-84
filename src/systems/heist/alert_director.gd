@@ -20,6 +20,8 @@ const RULES: HeistRules = preload("res://data/balance/heist_rules.tres")
 ## Segundos sin llamadas a la alarma para que la siguiente cuente como otra (FEAT-041)
 const ALARM_GAP: float = 3.0
 const TICK: float = 0.2
+## Campanas que se recuerdan (las más antiguas se olvidan): acota el estado replicado
+const MAX_MARKS: int = 8
 
 var level: Level = Level.CALM
 ## Marcas del walkie: [{"pos": Vector3, "left": float}]
@@ -31,6 +33,8 @@ var alarm_triggers: int = 0
 ## [{"pos": Vector3, "t": float}], t = GameManager.match_timer en ese momento (cuenta atrás)
 var alarm_marks: Array[Dictionary] = []
 var _last_alarm_call: float = -INF
+## Dónde está el último rastro descubierto (la campana de los rastros va ahí, no en el ladrón)
+var _last_trace_pos: Variant = null
 ## Reloj de la partida (s de física): la pausa no cuenta
 var _clock: float = 0.0
 var _timer: float = 0.0
@@ -86,16 +90,17 @@ func scan() -> void:
 			and _trace_seen(piece, guards, watching)
 		):
 			piece.discovered = true
+			_last_trace_pos = piece.global_position
 			print("[AlertDirector] Rastro descubierto: %s" % piece.piece_name)
 	_notice_cuts(guards)
 	var thief_seen: bool = guards.any(
 		func(g: GuardController3D) -> bool: return g.is_perceiving_thief
 	)
 	if thief_seen or (watching and SecurityCamera3D.any_detects(self)):
-		raise(Level.ALARM)
+		raise(Level.ALARM, _thief_pos())  # alguien lo ve: la campana va donde está
 	var traces: int = discovered_count()
 	if traces >= RULES.alarm_traces and level < Level.ALARM:
-		raise(Level.ALARM)  # los rastros hacen saltar la alarma una vez, al llegar al umbral
+		raise(Level.ALARM, _last_trace_pos)  # al llegar al umbral, una vez; campana en el rastro
 	elif traces >= 1:
 		raise(Level.SUSPICION)
 
@@ -104,7 +109,10 @@ func raise(new_level: Level, where: Variant = null) -> void:
 	if new_level == Level.ALARM:
 		if _clock - _last_alarm_call > ALARM_GAP:
 			alarm_triggers += 1
-			alarm_marks.append({"pos": _alarm_pos(where), "t": GameManager.match_timer})
+			if where is Vector3:  # sin punto (p. ej. llamada externa) salta, pero sin campana
+				alarm_marks.append({"pos": where, "t": GameManager.match_timer})
+				if alarm_marks.size() > MAX_MARKS:
+					alarm_marks.pop_front()
 		_last_alarm_call = _clock
 	if new_level > level:
 		level = new_level
@@ -138,6 +146,7 @@ func _notice_cuts(guards: Array[GuardController3D]) -> void:
 			)
 			if near_panel or box.contains(guard.global_position):
 				box.noticed = true
+				_last_trace_pos = box.global_position
 				print("[AlertDirector] Los guardias saben del corte en %s" % box.wing_name)
 				break
 
@@ -219,10 +228,8 @@ func _guards() -> Array[GuardController3D]:
 	return guards
 
 
-## Dónde saltó: el punto dado o, si no, donde está el ladrón
-func _alarm_pos(where: Variant) -> Vector3:
-	if where is Vector3:
-		return where
+## Donde está el ladrón (solo para las alarmas en las que alguien lo ve)
+func _thief_pos() -> Vector3:
 	var thief: Node3D = get_tree().get_first_node_in_group(&"thief") as Node3D
 	return thief.global_position if thief != null else Vector3.ZERO
 
