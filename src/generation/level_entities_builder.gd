@@ -62,7 +62,7 @@ static func build(data: LevelData, map: Node3D) -> Node3D:
 		cameras[String(cam["id"])] = _add_camera(data, props, cam)
 	var monitors: Array = data.section("monitors")
 	for i: int in range(monitors.size()):  # #118: solo el del centro se enciende
-		_add_monitor(data, props, monitors[i], cameras, i == monitors.size() / 2)
+		_add_monitor(data, props, monitors[i], cameras, i == monitors.size() >> 1)
 	if not data.entry("cctv_desk").is_empty():
 		_add_desk(data, props, data.entry("cctv_desk"))
 	if not data.section("vents").is_empty():

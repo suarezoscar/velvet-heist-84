@@ -40,7 +40,7 @@ func _process(_delta: float) -> void:
 	var desk: CCTVDesk3D = CCTVDesk3D.of(get_tree())
 	var cam: SecurityCamera3D = desk.on_screen() if desk != null else null
 	if cam != null and cam != linked_camera:
-		if linked_camera != null:
+		if is_instance_valid(linked_camera):
 			linked_camera.target_detected.disconnect(_on_camera_target_detected)
 			linked_camera.target_lost.disconnect(_on_camera_target_lost)
 			_on_camera_target_lost()

@@ -154,3 +154,14 @@ func test_net_state_replicates_the_current_camera() -> void:
 	client.apply_net_state(state)
 	assert_eq(client.current, 1, "El cliente recibe el índice")
 	assert_true(client.is_occupied())
+
+
+func test_desk_remembers_the_camera_after_standing_up() -> void:
+	var desk: CCTVDesk3D = _desk()
+	var guard: GuardController3D = _guard()
+	_sit(guard, desk)
+	desk.step(1)
+	guard.monitor_watch.stop(guard)
+	assert_eq(desk.current, 1, "Al levantarse no vuelve a CAM-01")
+	_sit(guard, desk)
+	assert_eq(desk.on_screen().camera_id, "CAM-02", "Al volver a sentarse sigue en CAM-02")

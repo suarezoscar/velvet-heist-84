@@ -38,7 +38,10 @@ func cameras() -> Array[SecurityCamera3D]:
 	if not is_inside_tree():
 		return _cameras
 	var found: Array[Node] = get_tree().get_nodes_in_group(&"security_camera")
-	if found.size() != _cameras.size():  # una cámara nueva (o quitada) rehace la lista
+	var stale: bool = _cameras.any(
+		func(c: SecurityCamera3D) -> bool: return not is_instance_valid(c)
+	)
+	if stale or found.size() != _cameras.size():  # una cámara nueva, quitada o sustituida
 		_cameras.assign(found)
 		_cameras.sort_custom(
 			func(a: SecurityCamera3D, b: SecurityCamera3D) -> bool:
