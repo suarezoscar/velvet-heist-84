@@ -15,5 +15,9 @@
 - (usuario) Todas las de #116 y los números de game-designer (Q1-Q7, 2026-11-04), y el pilar 5.
 - (agente) Los estados TIME_EXPIRED_BREACH/_DRAW se quedan en el enum (no se reordenan los valores que viajan por red) aunque ya no se usan.
 
+## Revisión
+- (Opus) La IA iba en línea recta a la cafetera y se atascaba a 1,54 m: ahora sigue el camino por las puertas (`_follow_path`), se sirve a 1,9 m y detecta atascos también en COFFEE. Test desde el vestíbulo.
+- 403/403 tests. Falta: reviewer y PR.
+
 ## Preguntas pendientes al usuario
 - Ninguna.

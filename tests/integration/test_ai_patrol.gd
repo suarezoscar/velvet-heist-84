@@ -55,15 +55,13 @@ func test_ai_guard_patrols_and_changes_room() -> void:
 	assert_gte(rooms.size(), 3, "Pasa por varias salas (%s)" % str(rooms.keys()))
 
 
-## OJO: desde lejos la IA va en línea recta a la cafetera y se atasca a 1,5 m (COFFEE_REACH es
-## 1,4), así que aquí se prueba el ciclo de café con el guardia ya a su lado
+## Desde otra sala (el vestíbulo), la IA va a la cafetera por las puertas y se sirve
 func test_sleepy_ai_guard_goes_for_coffee() -> void:
 	var map: HeistMap3D = await _start()
 	var patrol: GuardPatrol = GuardPatrol.of(get_tree())
 	var guard: GuardController3D = map.guards[0]
-	# Junto a la cafetera (ver la nota del test)
 	guard.global_position = patrol.graph.data.to_world(
-		[39.5, 29.0], LevelEntitiesBuilder.ACTOR_HEIGHT
+		[24.0, 31.0], LevelEntitiesBuilder.ACTOR_HEIGHT
 	)
 	var sleep: GuardSleep = _sleep(guard)
 	sleep.level = GuardSleep.RULES.ai_coffee_at

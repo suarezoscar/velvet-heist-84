@@ -17,8 +17,9 @@ const INVESTIGATE_REACHED_DISTANCE: float = 0.9
 const NOISE_INVESTIGATE_TIME: float = 5.0
 ## Segundos que inspecciona la última posición avistada del ladrón
 const SPOTTED_INVESTIGATE_TIME: float = 6.0
-## Distancia horizontal (m) a la que se sirve el café (dentro del alcance de la E)
-const COFFEE_REACH: float = 1.4
+## Distancia horizontal (m) al centro de la cafetera a la que se sirve: el carrito mide 2,2 m y
+## no deja acercarse más de ~1,5; por debajo del alcance de la E (2 m)
+const COFFEE_REACH: float = 1.9
 const PATROL_RULES: GuardPatrolRules = preload("res://data/balance/guard_patrol.tres")
 ## Atascado: menos de STUCK_SPEED m/s durante STUCK_TIME s patrullando
 const STUCK_SPEED: float = 0.3
@@ -85,7 +86,8 @@ func _physics_process(_delta: float) -> void:
 		current_state = AIState.CHASE
 	if current_state == AIState.PATROL and _wants_coffee():
 		current_state = AIState.COFFEE  # perseguir e investigar mandan sobre el café
-	if current_state != AIState.PATROL:
+		_go_to(GuardPatrol.of(get_tree()), _coffee_machine().global_position)
+	if current_state != AIState.PATROL and current_state != AIState.COFFEE:
 		_stuck_time = 0.0
 
 	match current_state:
@@ -134,7 +136,9 @@ func _next_room() -> void:
 
 
 func _go_to(patrol: GuardPatrol, target: Vector3) -> void:
-	patrol_waypoints = patrol.walk_between(_guard.global_position, target)
+	patrol_waypoints = (
+		patrol.walk_between(_guard.global_position, target) if patrol != null else [target]
+	)
 	_current_waypoint_idx = 0
 	_stuck_time = 0.0
 
@@ -170,7 +174,21 @@ func _process_coffee() -> void:
 		if machine.can_interact(_guard):
 			machine.interact(_guard)
 		return
-	_steer_towards(machine.global_position, false)
+	_follow_path(machine.global_position)
+
+
+## Sigue patrol_waypoints (por las puertas) y, acabado el camino, va directo a fallback
+func _follow_path(fallback: Vector3) -> void:
+	if _current_waypoint_idx >= patrol_waypoints.size():
+		_steer_towards(fallback, false)
+		return
+	var target: Vector3 = patrol_waypoints[_current_waypoint_idx]
+	var stuck: bool = _update_stuck(get_physics_process_delta_time())
+	if stuck or _flat_distance(target, _guard.global_position) < WAYPOINT_REACHED_DISTANCE:
+		_stuck_time = 0.0
+		_current_waypoint_idx += 1
+		return
+	_steer_towards(target, false)
 
 
 func _coffee_machine() -> CoffeeMachine3D:
