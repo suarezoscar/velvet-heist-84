@@ -1,6 +1,6 @@
 # El golpe: la lista del coleccionista, el café y la alerta
 
-- **Estado**: aprobado por el usuario el 2026-10-28 (decisiones tomadas en conversación). **2026-10-30, #116**: R4, R5, R7 y R11 reescritas y R5c y R5d nuevas (fuera relojes y rondas; sueño fuera de la garita; IA de patrulla libre; correr solo con alarma). Las reglas las decidió el usuario en la entrevista de #116; los números nuevos los aprobó el 2026-11-04.
+- **Estado**: aprobado por el usuario el 2026-10-28 (decisiones tomadas en conversación). **2026-10-30, #116**: R4, R5, R7 y R11 reescritas y R5c y R5d nuevas (fuera relojes y rondas; sueño fuera de la garita; IA de patrulla libre; correr solo con alarma). Las reglas las decidió el usuario en la entrevista de #116; los números nuevos los aprobó el 2026-11-04. **2026-11-04, #118**: «cámara vigilada» pasa a ser la cámara que está en pantalla en la mesa (una cada vez, `interaction.md` M5); R5, R6, R7 y el contrajuego ajustados.
 - **Origen**: rediseño pedido por el usuario el 2026-10-28 para que los guardias no acampen en un sitio y para que su turno sea divertido. Temática: `docs/decisions/2026-10-28-tematica-caballero-ladron.md`.
 - **Relacionado**: `interaction.md` (CCTV; su parte R, relojes de ronda, se retiró el 2026-10-30, #116), `vision.md` (niebla y filtro de red), `stealth.md` (percepción y ruido), `gentleman.md` (temática; sus M1-M3 quedan sustituidas por este documento), `docs/gdd/levels/museum_v2.md`.
 
@@ -90,7 +90,7 @@ Rango: con `rise_rate` entre 1/300 y 1/180 por s y los umbrales aprobados (0,75 
   - Al empezar la partida, los guardias salen de la garita con el sueño a 0 y sin rato despejado.
 - El guardia ve su nivel de sueño en el HUD (una taza que se vacía). El ladrón no lo ve, pero lo oye bostezar.
 - **Cabezadas a la vista** (FEAT-033): sobre un guardia que da una cabezada sale un «Zzz» que ve cualquiera que lo tenga a la vista (la niebla lo oculta como al cuerpo).
-- **Presión sobre los guardias** (sin relojes): en la garita no se duermen, pero desde ella solo ven lo que enseñan las cámaras con luz; el ladrón roba en silencio y escapa sin que nadie lo vea. Fuera ven y oyen, pero cada 3-4 minutos el sueño los devuelve a la garita. El ritmo de los guardias es ese vaivén, y el ladrón lo oye (bostezos, café, la puerta que cruje).
+- **Presión sobre los guardias** (sin relojes): en la garita no se duermen, pero desde ella solo ven lo que enseña, con luz, la cámara que tienen en pantalla, una sala cada vez (#118); el ladrón roba en silencio y escapa sin que nadie lo vea. Fuera ven y oyen, pero cada 3-4 minutos el sueño los devuelve a la garita. El ritmo de los guardias es ese vaivén, y el ladrón lo oye (bostezos, café, la puerta que cruje).
 
 ### R5b. Somnífero, adrenalina y bajón (FEAT-033)
 - **Somnífero**: el ladrón tiene `drug_doses` dosis por partida. Con E en la cafetera la droga en silencio (`drug_time` s, sin alejarse). Solo él sabe que está drogada.
@@ -128,7 +128,7 @@ w(sala) = 1 + ai_piece_weight × n(sala)
 
 ### R6. Rastros
 - Cada pieza robada deja su **pedestal vacío**.
-- Cuando un guardia lo ve, o lo ve una cámara mientras alguien mira los monitores, el rastro queda **descubierto**:
+- Cuando un guardia lo ve, o lo ve la cámara que está en pantalla mientras alguien mira los monitores (2026-11-04, #118: las demás no ven nada, `interaction.md` M5), el rastro queda **descubierto**:
   - aparece en el plano de todo el equipo;
   - sube la alerta (R7);
   - esa pieza deja de ser candidata en el plano de los guardias. Saben que el ladrón la tenía en su lista y deducen cuántas le quedan.
@@ -139,12 +139,12 @@ w(sala) = 1 + ai_piece_weight × n(sala)
 |---|---|---|
 | **Calma** | Al empezar | — |
 | **Sospecha** | 1 rastro descubierto | Los rastros se ven en el plano del equipo (R6) |
-| **Alarma** | 2 rastros descubiertos, o que un guardia (o una cámara vigilada) vea al ladrón | Encender de golpe todas las luces de un ala durante 30 s (decisión 1). El sueño deja de subir. Pueden correr (R5d, desde el 2026-10-30) |
+| **Alarma** | 2 rastros descubiertos, o que un guardia (o una cámara vigilada: desde #118, solo la que está en pantalla en la mesa) vea al ladrón | Encender de golpe todas las luces de un ala durante 30 s (decisión 1). El sueño deja de subir. Pueden correr (R5d, desde el 2026-10-30) |
 
 - La alerta **nunca baja** durante la partida.
 - Todos la ven, el ladrón también: sabe que le han descubierto, y la tensión sube.
 - **Campanas en el plano** (2026-11-04, #117): cada vez que salta la alarma queda una campana con «hace m:ss» en el plano de los dos bandos (las 8 últimas). Va donde saltó:
-  - un guardia o una cámara vigilada ve al ladrón: donde estaba el ladrón en ese momento (excepción a la percepción por guardia, ver `stealth.md` P2.3);
+  - un guardia o una cámara vigilada (la que está en pantalla, #118) ve al ladrón: donde estaba el ladrón en ese momento (excepción a la percepción por guardia, ver `stealth.md` P2.3);
   - robo a lo bruto: en la pieza;
   - 2 rastros descubiertos: en el último rastro, nunca donde está el ladrón.
 - **Cortes y luz en el plano** (#117): solo el ladrón ve en su plano qué cuadros están cortados y cuánta luz da cada sala. El de los guardias los enseña siempre en estado normal, para no saltarse R9.
@@ -232,7 +232,7 @@ Viven en `data/balance/heist_rules.tres` (`HeistRules`) salvo donde se indica ot
 |---|---|---|---|
 | Plantarse junto a una candidata o una salida | Guardia | Su linterna; a los 3 minutos fuera, bostezos; después, el «Zzz» de las cabezadas | Robar las otras piezas, esperar a que vaya a por café o cruzar durante una cabezada |
 | Ir a por café | Guardia | Los bostezos de camino, el crujido de la puerta de la garita y el ruido de la cafetera | Aprovechar el hueco: el ala que deja tarda ~15 s en volver a estar vigilada |
-| Quedarse en la garita (#116: no da sueño) | Guardia | Los pilotos rojos de las cámaras si mira; ninguna linterna fuera | Apagar las luces de las salas con cámara y robar en silencio: desde la garita no se descubren rastros sin cámara |
+| Quedarse en la garita (#116: no da sueño) | Guardia | Si mira, el piloto rojo de la cámara que tiene en pantalla, una sala cada vez (#118); ninguna linterna fuera | Robar donde no está el piloto, o apagar la luz de la sala que miran, y robar en silencio: desde la garita solo se descubren rastros por la cámara en pantalla |
 | Saltarse el café | Guardia | Bostezos y el «Zzz» | Cruzar durante la cabezada (2,5 s ciego cada 10 s) |
 | Correr con la alarma (#116) | Guardia | Pasos fuertes (×2 de radio) | Esconderse y dejar que pase; romper la línea de visión |
 | Drogar la cafetera | Ladrón | Nada, hasta que alguien cae dormido | Vigilar la garita de paso; no servirse café a ciegas tras un rato sin ver la cafetera |
@@ -287,6 +287,7 @@ Viven en `data/balance/heist_rules.tres` (`HeistRules`) salvo donde se indica ot
 | `coin_thrown` / `walkie` | ¿Se usan las herramientas? | Menos de 1 uso por partida |
 
 ## Estado
+#118 (2026-11-04, a falta de su FEAT): una cámara en cada sala y solo la que está en pantalla ve al ladrón (`interaction.md` parte M).
 #116 (2026-10-30, implementado el 2026-11-04): fuera relojes y rondas, sueño fuera de la garita (R5), IA de patrulla libre (R5c), correr solo con alarma (R5d) y final por tiempo para los guardias (R4).
 FEAT-034 amplía el museo: 20 candidatas, ventilación (R10), puerta de la garita (R11), 4 salidas y partida de 12 minutos; el nivel está en `docs/gdd/levels/museum_v2.md`.
 FEAT-033 añade el somnífero, la adrenalina y el bajón (R5b), el «Zzz» de las cabezadas y el peso del botín (R3).

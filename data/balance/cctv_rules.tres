@@ -5,4 +5,5 @@
 [resource]
 script = ExtResource("1_cctv")
 monitor_enter_time = 0.4
-feed_height_frac = 0.4
+feed_height_frac = 0.9
+switch_time = 0.25

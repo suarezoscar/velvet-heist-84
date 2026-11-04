@@ -122,8 +122,8 @@ func test_museum_v2_data_matches_design() -> void:
 	assert_eq(data.section("doors").size(), 36, "P01–P38 sin P21 ni P24 (la garita tiene una)")
 	assert_eq(data.section("windows").size(), 1, "V1")
 	assert_true(data.section("clocks").is_empty(), "#116: el nivel ya no tiene relojes")
-	assert_eq(data.section("cameras").size(), 5, "CAM-1..5")
-	assert_eq(data.section("monitors").size(), 5, "Un monitor por cámara")
+	assert_eq(data.section("cameras").size(), 20, "CAM-01..20: una por sala (#118)")
+	assert_eq(data.section("monitors").size(), 5, "Cinco monitores en la mesa (CAM-01..05)")
 	assert_eq((data.entry("spawns").get("guards", []) as Array).size(), 3, "Tres guardias")
 	# FEAT-034: 20 candidatas (7 combinación, 7 presión, 6 sensor) y 4 salidas exteriores
 	var kinds: Dictionary = {}

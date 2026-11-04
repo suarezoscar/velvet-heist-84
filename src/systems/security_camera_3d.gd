@@ -3,7 +3,9 @@
 ## Realiza barridos de paneo motorizados, proyecta su imagen en un SubViewport
 ## y detecta al ladrón con su cono, línea de visión y solo si está iluminado (interaction.md M5).
 ## El barrido y la detección los simula el servidor; los clientes siguen el giro replicado.
-## Mientras un guardia mira los monitores, enciende un piloto rojo de grabación (M4).
+## Solo la cámara en pantalla de la mesa enciende su piloto rojo (M4) y solo ella detecta (M5,
+## #118): lo decide CCTVDesk3D con on_screen e is_live. Su SubViewport solo renderiza cuando la
+## enseña el HUD de quien está sentado (CCTVFeeds84, M8).
 class_name SecurityCamera3D
 extends Node3D
 
@@ -35,6 +37,10 @@ const NET_ROT_FOLLOW: float = 10.0
 var is_alert_active: bool = false
 ## Piloto rojo encendido: algún guardia mira los monitores
 var is_recording: bool = false
+## En la pantalla de la mesa, con alguien sentado y pasada la nieve (servidor; #118)
+var on_screen: bool = false
+## Puede ver al ladrón: en pantalla y con un guardia despierto mirando (servidor; M5, #118)
+var is_live: bool = false
 var mount: Node3D = self
 var _sweep_time: float = 0.0
 var _base_rotation_y: float = 0.0
@@ -59,6 +65,8 @@ func _ready() -> void:
 	_setup_internal_camera_binding()
 	if internal_cam != null:
 		internal_cam.set_cull_mask_value(FogOfWar3D.FOG_LAYER, false)  # sin niebla en el CCTV
+	if sub_viewport != null:  # M8: solo renderiza la que se ve (CCTVFeeds84 la enciende)
+		sub_viewport.render_target_update_mode = SubViewport.UPDATE_DISABLED
 	_find_thief_reference()
 	_build_pilot()
 	for body: Node in find_children("*", "CollisionObject3D", true, false):
@@ -90,8 +98,8 @@ static func any_detects(context: Node) -> bool:
 	return false
 
 
-## true si alguna cámara ve al guardia (FEAT-042: el ladrón ante los monitores): en su cono y
-## alcance, sin muros de por medio y con luz (una lámpara o su propia linterna), como M5
+## true si la cámara en pantalla ve al guardia (FEAT-042: el ladrón ante los monitores; #118):
+## en su cono y alcance, sin muros de por medio y con luz (una lámpara o su linterna), como M5
 static func any_sees_guard(context: Node, guard: GuardController3D, lamps: Array[Lamp3D]) -> bool:
 	if context == null or guard == null or not context.is_inside_tree():
 		return false
@@ -103,7 +111,8 @@ static func any_sees_guard(context: Node, guard: GuardController3D, lamps: Array
 	if not lit:
 		return false
 	for node: Node in context.get_tree().get_nodes_in_group(&"security_camera"):
-		if (node as SecurityCamera3D).sees_point(chest):
+		var cam: SecurityCamera3D = node as SecurityCamera3D
+		if cam.on_screen and cam.sees_point(chest):
 			return true
 	return false
 
@@ -182,7 +191,7 @@ func _process_detection() -> void:
 		_find_thief_reference()
 		return
 
-	var can_see: bool = _check_line_of_sight(_thief_ref)
+	var can_see: bool = is_live and _check_line_of_sight(_thief_ref)  # #118: solo la mirada
 	if can_see and not is_alert_active:
 		is_alert_active = true
 		target_detected.emit(_thief_ref)

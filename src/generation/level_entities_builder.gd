@@ -60,8 +60,9 @@ static func build(data: LevelData, map: Node3D) -> Node3D:
 	var cameras: Dictionary = {}
 	for cam: Dictionary in data.section("cameras"):
 		cameras[String(cam["id"])] = _add_camera(data, props, cam)
-	for monitor: Dictionary in data.section("monitors"):
-		_add_monitor(data, props, monitor, cameras)
+	var monitors: Array = data.section("monitors")
+	for i: int in range(monitors.size()):  # #118: solo el del centro se enciende
+		_add_monitor(data, props, monitors[i], cameras, i == monitors.size() >> 1)
 	if not data.entry("cctv_desk").is_empty():
 		_add_desk(data, props, data.entry("cctv_desk"))
 	if not data.section("vents").is_empty():
@@ -152,12 +153,13 @@ static func _add_camera(data: LevelData, props: Node3D, cam: Dictionary) -> Secu
 
 
 static func _add_monitor(
-	data: LevelData, props: Node3D, monitor: Dictionary, cameras: Dictionary
+	data: LevelData, props: Node3D, monitor: Dictionary, cameras: Dictionary, main: bool
 ) -> void:
 	var node: CCTVMonitor3D = MONITOR_SCENE.instantiate() as CCTVMonitor3D
 	var cam_id: String = String(monitor["camera"])
 	node.name = "Monitor_%s" % cam_id.replace("-", "_")
 	node.monitor_title = cam_id
+	node.follows_desk = main
 	node.position = data.to_world(monitor["pos"], MONITOR_HEIGHT)
 	# El modelo muestra la pantalla hacia +Z: girarlo 180° hace que rot_deg sea hacia donde mira
 	node.rotation.y = deg_to_rad(180.0 - float(monitor.get("rot_deg", 0.0)))

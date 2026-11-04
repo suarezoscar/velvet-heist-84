@@ -65,12 +65,32 @@ func test_first_move_input_exits_without_moving() -> void:
 	var desk: CCTVDesk3D = _desk()
 	var guard: GuardController3D = _guard(Vector3(0.0, 0.0, 1.0))
 	_sit(guard, desk)
-	guard.apply_input({"movement_vector": Vector2(1.0, 0.0)})
+	guard.apply_input({"movement_vector": Vector2(0.0, -1.0)})
 	assert_eq(guard.current_input_dir, Vector2.ZERO, "Ese primer input no lo mueve")
-	assert_false(guard.monitor_watch.is_active(), "El movimiento lo levanta")
+	assert_false(guard.monitor_watch.is_active(), "W/S lo levanta")
 	assert_false(desk.is_occupied(), "Libera la mesa")
+	guard.apply_input({"movement_vector": Vector2(0.0, -1.0)})
+	assert_eq(guard.current_input_dir, Vector2(0.0, -1.0), "Ya de pie, se mueve")
+
+
+func test_side_input_changes_camera_without_standing_up() -> void:
+	var desk: CCTVDesk3D = _desk()
+	var cameras: Array[SecurityCamera3D] = [_camera(), _camera()]
+	cameras[0].camera_id = "CAM-01"
+	cameras[1].camera_id = "CAM-02"
+	var guard: GuardController3D = _guard(Vector3(0.0, 0.0, 1.0))
+	_sit(guard, desk)
+	assert_eq(desk.current, 0)
 	guard.apply_input({"movement_vector": Vector2(1.0, 0.0)})
-	assert_eq(guard.current_input_dir, Vector2(1.0, 0.0), "Ya de pie, se mueve")
+	assert_true(guard.monitor_watch.is_active(), "A/D no lo levanta")
+	assert_true(desk.is_occupied())
+	assert_eq(desk.current, 1, "→ pasa a la siguiente")
+	guard.apply_input({"movement_vector": Vector2(1.0, 0.0)})
+	assert_eq(desk.current, 1, "Mantenerla no repite")
+	guard.apply_input({"movement_vector": Vector2.ZERO})
+	guard.apply_input({"movement_vector": Vector2(-1.0, 0.0)})
+	assert_eq(desk.current, 0, "← vuelve a la anterior")
+	assert_eq(guard.current_input_dir, Vector2.ZERO, "Sentado no se mueve")
 
 
 func test_interact_and_match_end_exit() -> void:
@@ -106,9 +126,11 @@ func test_single_chair() -> void:
 	assert_eq(desk.watcher, first)
 
 
-func test_pilots_on_only_while_someone_watches() -> void:
+func test_pilots_on_only_on_screen_camera_while_someone_watches() -> void:
 	var desk: CCTVDesk3D = _desk()
 	var cameras: Array[SecurityCamera3D] = [_camera(), _camera()]
+	cameras[0].camera_id = "CAM-01"
+	cameras[1].camera_id = "CAM-02"
 	var guard: GuardController3D = _guard(Vector3(0.0, 0.0, 1.0))
 	for camera: SecurityCamera3D in cameras:
 		assert_false(camera.get_node("CameraMount/RecordingPilot").visible, "Piloto apagado")
@@ -116,10 +138,13 @@ func test_pilots_on_only_while_someone_watches() -> void:
 	for camera: SecurityCamera3D in cameras:
 		assert_false(camera.is_recording, "Sentándose todavía no mira: piloto apagado")
 	guard.monitor_watch.tick(guard, RULES.monitor_enter_time + 0.01)
+	var shown: SecurityCamera3D = desk.on_screen()
+	assert_eq(shown, cameras[0], "En pantalla, CAM-01")
 	for camera: SecurityCamera3D in cameras:
-		assert_true(camera.is_recording, "Piloto encendido con alguien mirando")
-		assert_true(camera.get_node("CameraMount/RecordingPilot").visible)
-		assert_true(bool(camera.get_net_state()["rec"]), "Se replica a todos")
+		var is_shown: bool = camera == shown
+		assert_eq(camera.is_recording, is_shown, "Piloto solo en la de pantalla")
+		assert_eq(camera.get_node("CameraMount/RecordingPilot").visible, is_shown)
+		assert_eq(bool(camera.get_net_state()["rec"]), is_shown, "Se replica a todos")
 	guard.stop_watching()
 	for camera: SecurityCamera3D in cameras:
 		assert_false(camera.is_recording, "Se apaga al levantarse")

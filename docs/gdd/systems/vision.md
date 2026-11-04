@@ -63,7 +63,7 @@ El servidor decide; cada cliente solo recibe lo que su jugador ve.
 | Estado de un guardia (posición, giro, linterna) | El ladrón | Solo si R3 lo hace visible. Si no lo ve pero el guardia lleva la linterna encendida, le llega marcado `beam_only` con posición, mirada y linterna: el cliente dibuja **solo el haz**, nunca el cuerpo (P2.1) |
 | Estado del ladrón | Cada guardia | Como hoy: su percepción (FEAT-014) o `cctv_only` (FEAT-017) |
 | Estado de un compañero guardia | Los otros guardias | Siempre |
-| Guardia visto por una cámara (FEAT-042) | El ladrón, sentado ante los monitores | Si alguna cámara lo ve con luz: marcado «solo CCTV», se dibuja solo en las imágenes |
+| Guardia visto por una cámara (FEAT-042) | El ladrón, sentado ante los monitores | Si la cámara que tiene en pantalla lo ve con luz (2026-11-04, #118; antes, cualquiera): marcado «solo CCTV», se dibuja solo en la imagen |
 | Moneda en vuelo (FEAT-038) | El ladrón siempre; cada guardia despierto | Al lanzarse (no fiable), si la salida o la caída están en su zona visible (`CoinFlightPresenter.view_for`). Quien no ve la salida recibe solo el tramo desde donde entra en su vista: sabe de qué lado viene, no desde dónde se lanzó. El ruido va aparte, al caer |
 | Botín, lámparas, caja fuerte (sin relojes desde #116) | Todos | Como hoy. La memoria de R2 la aplica el cliente al dibujar (D4). Sin filtro en el servidor en el PoC: hacer trampa con eso vale poco |
 
@@ -75,7 +75,7 @@ El servidor decide; cada cliente solo recibe lo que su jugador ve.
 - **Guardia sentado ante los monitores**:
   - su zona visible es la de su cuerpo;
   - las imágenes CCTV no llevan niebla, porque son la vista de la cámara (M6);
-  - los pilotos siguen visibles en la niebla para el ladrón (M4).
+  - los pilotos siguen visibles en la niebla para el ladrón (M4); desde #118 solo hay uno encendido, el de la cámara en pantalla.
 - **Ladrón en una sala a oscuras**: él ve su entorno con normalidad. Apagar la luz le esconde de los guardias, pero también le impide ver a un guardia a oscuras más allá de `dark_sight_radius`. Es un compromiso a propósito.
 - **Fin de la partida**: la niebla se retira para todos, para que vean dónde estaba cada uno.
 - **Desconexión**: el actor que se queda quieto se trata como cualquier otro.

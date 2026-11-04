@@ -72,6 +72,7 @@ func _ready() -> void:
 	cctv_feeds = CCTVFeeds84.new()
 	cctv_feeds.visible = false
 	add_child(cctv_feeds)
+	move_child(cctv_feeds, 0)  # #118: el margen oscuro tapa el mundo, no el resto del HUD
 	safe_dial = SafeDial84.new()
 	add_child(safe_dial)
 
