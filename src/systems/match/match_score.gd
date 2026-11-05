@@ -29,7 +29,9 @@ static func thief(report: Dictionary, rules: ScoreRules = RULES) -> Dictionary:
 			_hide(_line("Robo limpio", int(report.get("clean", 0)), rules.thief_clean_piece, "")),
 			_line("Huida", 1 if bool(report.get("escaped", false)) else 0, rules.thief_escape, ""),
 			_line("Huida a medias", partial, rules.partial_escape_for(guards), ""),
-			_line("Huida rápida (s)", int(report.get("fast", 0)), rules.thief_fast_escape, ""),
+			_line(
+				"Segundos de sobra al huir", int(report.get("fast", 0)), rules.thief_fast_escape, ""
+			),
 			_hide(
 				_line("Rejas saboteadas", int(report.get("sabotaged", 0)), rules.thief_sabotage, "")
 			),

@@ -45,20 +45,42 @@ func test_losing_them_needs_time_without_being_seen_or_hit() -> void:
 	assert_eq(events.lost, 1, "Una vez por cada vez que lo ven")
 
 
-func test_walkie_hits_when_a_teammate_sees_him_near_the_mark() -> void:
+func test_walkie_hits_when_a_teammate_starts_seeing_him_near_the_mark() -> void:
 	var events: ScoreEvents = ScoreEvents.new()
 	events.on_ping("G1", Vector3(10, 0, 0), 0.0)
 	events.tick({"G1": true}, Vector3(10, 0, 0), 0, 1.0)
 	assert_eq(int(events.walkie.get("G1", 0)), 0, "Si lo ve el mismo, no")
 	events.tick({"G2": true}, Vector3(10 + RULES.walkie_hit_radius + 1.0, 0, 0), 0, 2.0)
 	assert_eq(int(events.walkie.get("G1", 0)), 0, "Lejos de la marca, no")
+	events.tick({}, Vector3(12, 0, 0), 0, 2.5)
 	events.tick({"G2": true}, Vector3(12, 0, 0), 0, 3.0)
-	assert_eq(int(events.walkie.get("G1", 0)), 1)
+	assert_eq(int(events.walkie.get("G1", 0)), 1, "Empieza a verlo cerca de la marca")
+	events.tick({}, Vector3(12, 0, 0), 0, 3.5)
 	events.tick({"G2": true}, Vector3(12, 0, 0), 0, 4.0)
 	assert_eq(int(events.walkie.get("G1", 0)), 1, "Cada marca, una vez")
 	events.on_ping("G1", Vector3(10, 0, 0), 5.0)
+	events.tick({}, Vector3(10, 0, 0), 0, 5.0 + RULES.walkie_hit_window)
 	events.tick({"G2": true}, Vector3(10, 0, 0), 0, 5.0 + RULES.walkie_hit_window + 0.5)
 	assert_eq(int(events.walkie.get("G1", 0)), 1, "Fuera de tiempo, no")
+
+
+func test_walkie_on_someone_a_teammate_already_sees_does_not_count() -> void:
+	var events: ScoreEvents = ScoreEvents.new()
+	for i: int in range(3):  # persecución: los dos lo ven y G1 marca a sus pies cada 10 s
+		var now: float = i * 10.0
+		events.tick({"G1": true, "G2": true}, Vector3.ZERO, 0, now)
+		events.on_ping("G1", Vector3.ZERO, now)
+		events.tick({"G1": true, "G2": true}, Vector3.ZERO, 0, now + 0.1)
+	assert_eq(int(events.walkie.get("G1", 0)), 0)
+
+
+func test_live_note_survives_the_sighting_turning_into_the_alarm() -> void:
+	var live: LiveScore = autofree(LiveScore.create(&"guard_1"))
+	live.update(MatchScore.live(MatchScore.guard({"seen": 1})))  # antes de decidir la alarma
+	live.update(MatchScore.live(MatchScore.guard({"alarm": true})))  # esa vista era la alarma
+	live.update(MatchScore.live(MatchScore.guard({"alarm": true, "seen": 1})))  # otra de verdad
+	assert_eq(live.total, 75)
+	assert_eq(live.notes, [[1, "+25 VISTO"], [2, "+50 ALARMA"], [3, "+25 VISTO"]])
 
 
 func test_silent_theft_near_a_guard_costs_him() -> void:

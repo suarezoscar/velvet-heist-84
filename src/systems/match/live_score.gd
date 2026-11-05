@@ -56,14 +56,20 @@ func _ready() -> void:
 	add_to_group(&"live_scores")
 
 
-## Autoridad: nuevo desglose en vivo (MatchScore.live); un aviso por cada línea que cambia
+## Autoridad: nuevo desglose en vivo (MatchScore.live); un aviso por cada línea que crece en
+## valor absoluto. Una línea que baja o desaparece (la vista que pasa a ser la de la alarma, que
+## AlertDirector decide un poco después) se apunta sin aviso, para no perder el siguiente
 func update(live: Dictionary) -> void:
 	var lines: Dictionary = live.get("lines", {})
+	for label: String in _last.keys():
+		if not lines.has(label):
+			_last[label] = 0
 	for label: String in lines:
 		var points: int = int(lines[label][0])
-		var change: int = points - int(_last.get(label, 0))
+		var before: int = int(_last.get(label, 0))
+		var change: int = points - before
 		var note: String = String(lines[label][1])
-		if change != 0 and not note.is_empty():
+		if absi(points) > absi(before) and not note.is_empty():
 			notes.append([_next_id, "%s%d %s" % ["+" if change > 0 else "−", absi(change), note]])
 			_next_id += 1
 		_last[label] = points

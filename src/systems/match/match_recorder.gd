@@ -38,6 +38,7 @@ var _naps: Dictionary = {}
 var _nodding: Dictionary = {}
 var _time: float = 0.0
 var _live_timer: float = 0.0
+var _own_name: Variant = null
 
 
 func _ready() -> void:
@@ -109,6 +110,9 @@ static func note_silent_theft(tree: SceneTree, pos: Vector3) -> void:
 
 
 func _publish_live() -> void:
+	var alert: AlertDirector = AlertDirector.of(get_tree())
+	if alert != null:
+		alert.scan()  # que la alarma de una vista nueva ya esté decidida (si no, +25 y luego +50)
 	var live: Dictionary = build_report()
 	var thief_score: LiveScore = LiveScore.of(get_tree(), NetConfig.ROLES[0])
 	if thief_score != null:
@@ -270,7 +274,9 @@ func _guards() -> Array[GuardController3D]:
 func _thief_name() -> String:
 	if NetManager.is_online():
 		return _player_name(NetManagerNode.ROLE_THIEF, "Ladrón")
-	var own: String = GameSettings.load_saved().player_name
+	if _own_name == null:  # se lee del disco una vez, no en cada puntuación en vivo
+		_own_name = GameSettings.load_saved().player_name
+	var own: String = _own_name
 	return own if not own.is_empty() else "Tú"
 
 
