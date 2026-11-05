@@ -11,11 +11,14 @@ const SIGN_COLOR: Color = Color("4be38a")
 
 ## El callejón (sala exterior), no una puerta: no tiene cartel ni reja
 var outdoor: bool = false
+## Id de la salida en el nivel (P01…), para saber si su reja está abierta (#121)
+var exit_id: String = ""
 
 
 static func create(id: String, size: Vector3, is_outdoor: bool = false) -> ExitZone3D:
 	var zone: ExitZone3D = ExitZone3D.new()
 	zone.outdoor = is_outdoor
+	zone.exit_id = id
 	zone.add_to_group(&"heist_exits")
 	zone.name = "Exit_%s" % id
 	zone.collision_layer = 0
@@ -51,13 +54,17 @@ func _physics_process(_delta: float) -> void:
 	):
 		return
 	var lockdown: HeistLockdown = HeistLockdown.of(get_tree())
-	if outdoor and (lockdown == null or not lockdown.is_running()):
-		return  # el callejón solo es huida con la cuenta atrás en marcha (R3)
+	if outdoor and (lockdown == null or not lockdown.escapes_open()):
+		return  # el callejón solo es huida con la cuenta atrás o una salida abierta (R3, R7c)
+	if not outdoor and lockdown != null and not lockdown.exit_open(exit_id):
+		return  # la reja en el suelo tapa el paso
 	var ending: int = HeistLockdown.escape_state(GameManager.heist, lockdown)
 	if ending < 0:
 		return
 	for body: Node3D in get_overlapping_bodies():
 		if body is ThiefController3D:
 			print("[ExitZone3D] El ladrón sale por %s" % name)
+			if lockdown != null and lockdown.closed:
+				lockdown.sabotage_escape = true  # R11: +60, salió por una salida saboteada
 			GameManager.end_match(ending as GameManager.MatchState)
 			return

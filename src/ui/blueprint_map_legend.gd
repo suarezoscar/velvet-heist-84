@@ -16,7 +16,11 @@ const LAYERS: Array[StringName] = [&"people", &"security", &"power", &"places"]
 ## Por bando: capa → [título, [[icono, texto], ...]]
 const THIEF_GROUPS: Dictionary = {
 	&"people": ["TÚ Y ENCARGO", [[&"you", "TÚ"], [&"contract", "TU ENCARGO (✔ ROBADA)"]]],
-	&"security": ["SEGURIDAD Y EVENTOS", [[&"camera", "CÁMARA"], [&"alarm", "ALARMA (HACE…)"]]],
+	&"security":
+	[
+		"SEGURIDAD Y EVENTOS",
+		[[&"camera", "CÁMARA"], [&"gate_box", "CAJA DE LA REJA"], [&"alarm", "ALARMA (HACE…)"]]
+	],
 	&"power": ["RED ELÉCTRICA", [[&"switch", "INTERRUPTOR"], [&"lamp", "LÁMPARA"]]],
 	&"places":
 	[
@@ -38,6 +42,7 @@ const GUARD_GROUPS: Dictionary = {
 		"SEGURIDAD Y EVENTOS",
 		[
 			[&"camera", "CÁMARA"],
+			[&"gate_box", "CAJA DE LA REJA"],
 			[&"sensor", "SENSOR"],
 			[&"pressure", "PRESIÓN"],
 			[&"combination", "COMBINACIÓN"],

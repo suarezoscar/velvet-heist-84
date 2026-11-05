@@ -81,7 +81,10 @@ func _physics_process(_delta: float) -> void:
 	# 5. Panel del minijuego de robo (#119)
 	if _map.hud != null and _map.hud.steal_minigame != null:
 		var thief: bool = _map.local_player is ThiefController3D
-		_map.hud.steal_minigame.bind(StealMinigame.piece_of(_map.local_player) if thief else null)
+		var active: Node3D = StealMinigame.piece_of(_map.local_player) if thief else null
+		_map.hud.steal_minigame.bind(active as TargetPiece3D)
+		if _map.hud.gate_box_panel != null:  # #121: el sabotaje de la caja de la reja
+			_map.hud.gate_box_panel.bind(active as GateBox3D)
 
 
 ## Caja fuerte que el ladrón local está abriendo (en red, la que llega con el estado privado)

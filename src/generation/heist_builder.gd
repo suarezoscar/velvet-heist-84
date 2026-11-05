@@ -29,6 +29,11 @@ static func build(data: LevelData, props: Node3D, targets: Array) -> void:
 		var gate: ExitGate3D = ExitGate3D.create(String(exit_data["id"]), float(size[0]))
 		gate.position = zone.position  # #120: la reja, recogida sobre la puerta
 		props.add_child(gate)
+		if exit_data.has("gate_box"):  # #121: su caja, en la pared de dentro junto a la puerta
+			var box: GateBox3D = GateBox3D.create(String(exit_data["id"]))
+			box.position = data.to_world(exit_data["gate_box"])
+			box.rotation.y = PI  # mira hacia dentro del edificio (las salidas dan al sur)
+			props.add_child(box)
 	_add_outdoors(data, props)
 	var director: HeistDirector = HeistDirector.new()
 	props.add_child(director)

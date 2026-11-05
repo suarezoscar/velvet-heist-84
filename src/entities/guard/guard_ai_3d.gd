@@ -2,13 +2,14 @@
 ## Componente de Inteligencia Artificial para guardias de seguridad en solitario / coop.
 ## Gestiona la máquina de estados: PATROL (salas a su aire, más las que tienen piezas; #116),
 ## COFFEE (a la cafetera cuando le entra sueño), INVESTIGATE (ruidos/CCTV), CHASE (persecución)
-## y COVER (con la cuenta atrás de las rejas, cubre una salida; GuardExitCover, #120).
+## COVER (con la cuenta atrás, cubre una salida; #120) y REPAIR (repara una caja de la reja que
+## ve saboteada; #121). Las dos últimas las decide GuardExitCover.
 ## Solo decide la intención (dirección, sprint, mirada); el movimiento lo simula
 ## GuardController3D igual que para un humano. Requiere un GuardController3D como padre.
 class_name GuardAI3D
 extends Node
 
-enum AIState { IDLE, PATROL, INVESTIGATE, CHASE, COFFEE, COVER }
+enum AIState { IDLE, PATROL, INVESTIGATE, CHASE, COFFEE, COVER, REPAIR }
 
 ## Distancia horizontal (m) a la que un punto del camino se da por alcanzado
 const WAYPOINT_REACHED_DISTANCE: float = 0.8
@@ -32,7 +33,8 @@ var current_state: AIState = AIState.PATROL
 var investigation_point: Vector3 = Vector3.ZERO
 var target_room: String = ""
 var cover_exit: ExitZone3D = null
-var _cover_point: Vector3 = Vector3.ZERO
+var cover_point: Vector3 = Vector3.ZERO
+var repair_box: GateBox3D = null
 var _current_waypoint_idx: int = 0
 var _investigate_timer: float = 0.0
 var _stuck_time: float = 0.0
@@ -88,15 +90,8 @@ func _physics_process(_delta: float) -> void:
 		current_state = AIState.CHASE
 	if current_state == AIState.PATROL and _wants_coffee():
 		current_state = AIState.COFFEE  # perseguir e investigar mandan sobre el café
-		_go_to(GuardPatrol.of(get_tree()), _coffee_machine().global_position)
-	if current_state == AIState.PATROL or current_state == AIState.COFFEE:
-		var point: Variant = (
-			_cover_point if cover_exit != null else GuardExitCover.pick(self, _guard)
-		)
-		if point is Vector3:
-			_cover_point = point
-			current_state = AIState.COVER
-			_go_to(GuardPatrol.of(get_tree()), _cover_point)
+		go_to(GuardPatrol.of(get_tree()), _coffee_machine().global_position)
+	GuardExitCover.update(self, _guard)  # cubrir una salida o reparar una caja (#120, #121)
 	if current_state == AIState.CHASE or current_state == AIState.IDLE:
 		_stuck_time = 0.0
 
@@ -111,11 +106,8 @@ func _physics_process(_delta: float) -> void:
 			_process_chase()
 		AIState.COFFEE:
 			_process_coffee()
-		AIState.COVER:
-			if _flat_distance(_cover_point, _guard.global_position) > WAYPOINT_REACHED_DISTANCE:
-				_follow_path(_cover_point, true)  # con la alarma, corriendo
-			else:
-				GuardExitCover.watch(_guard, Time.get_ticks_msec() / 1000.0)
+		AIState.COVER, AIState.REPAIR:
+			GuardExitCover.process(self, _guard)
 
 
 ## Recorre el camino hasta la sala elegida, se queda ai_room_dwell s y elige otra
@@ -153,11 +145,11 @@ func _next_room() -> void:
 	target_room = room_id
 	_recent_rooms.push_front(room_id)
 	_recent_rooms.resize(mini(_recent_rooms.size(), PATROL_RULES.ai_room_memory))
-	_go_to(patrol, patrol.room_center(room_id))
+	go_to(patrol, patrol.room_center(room_id))
 	patrol_waypoints.append_array(patrol.piece_stops(room_id))  # pasa junto a cada candidata
 
 
-func _go_to(patrol: GuardPatrol, target: Vector3) -> void:
+func go_to(patrol: GuardPatrol, target: Vector3) -> void:
 	patrol_waypoints = (
 		patrol.walk_between(_guard.global_position, target) if patrol != null else [target]
 	)
@@ -196,11 +188,11 @@ func _process_coffee() -> void:
 		if machine.can_interact(_guard):
 			machine.interact(_guard)
 		return
-	_follow_path(machine.global_position)
+	follow_path(machine.global_position)
 
 
 ## Sigue patrol_waypoints (por las puertas) y, acabado el camino, va directo a fallback
-func _follow_path(fallback: Vector3, sprint: bool = false) -> void:
+func follow_path(fallback: Vector3, sprint: bool = false) -> void:
 	if _current_waypoint_idx >= patrol_waypoints.size():
 		_steer_towards(fallback, sprint)
 		return
