@@ -8,7 +8,9 @@ render_mode unshaded, depth_draw_never, depth_test_disabled, cull_disabled, shad
  * del jugador local, dada como distancia por ángulo alrededor de sus ojos (polígono en estrella
  * que calcula FogOfWar3D). Fuera de la zona, oscurece y desatura; con un borde suave. Las luces
  * (pilotos, bombillas) atraviesan la niebla: el píxel cuyo canal más alto pasa de light_keep
- * no se oscurece (vision.md D5).
+ * no se oscurece (vision.md D5). #163: dos grados con la misma zona; el suelo lleva la niebla
+ * entera y lo que se alza de él (más de raised_from m, del todo desde raised_to) solo un
+ * oscurecido suave, para que el borde de la vista no barra las paredes al andar.
  */
 
 uniform sampler2D screen_texture : hint_screen_texture, filter_linear;
@@ -21,6 +23,10 @@ uniform float edge_feather = 1.0;
 uniform float fog_brightness : hint_range(0.0, 1.0) = 0.35;
 uniform float fog_desaturation : hint_range(0.0, 1.0) = 0.7;
 uniform float light_keep = 0.9;
+uniform float raised_brightness : hint_range(0.0, 1.0) = 0.8;
+uniform float raised_desaturation : hint_range(0.0, 1.0) = 0.3;
+uniform float raised_from = 0.08;
+uniform float raised_to = 0.2;
 
 void vertex() {
 	POSITION = vec4(VERTEX.xy, 1.0, 1.0);
@@ -50,7 +56,10 @@ void fragment() {
 	float peak = max(color.r, max(color.g, color.b));
 	visible = max(visible, smoothstep(light_keep, light_keep + 0.3, peak));
 	float gray = dot(color, vec3(0.299, 0.587, 0.114));
-	vec3 fogged = mix(color, vec3(gray), fog_desaturation) * fog_brightness;
+	float raised = smoothstep(raised_from, raised_to, world.y);
+	float brightness = mix(fog_brightness, raised_brightness, raised);
+	float desaturation = mix(fog_desaturation, raised_desaturation, raised);
+	vec3 fogged = mix(color, vec3(gray), desaturation) * brightness;
 	ALBEDO = mix(fogged, color, visible);
 	ALPHA = 1.0;
 }
