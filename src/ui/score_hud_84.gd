@@ -43,6 +43,7 @@ func _ready() -> void:
 	_notes_box = Control.new()
 	_notes_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_notes_box)
+	_notes_box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)  # si no, mide 0 en (0, 0)
 	visible = false
 
 
