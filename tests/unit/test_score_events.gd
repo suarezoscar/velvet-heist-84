@@ -174,3 +174,21 @@ func test_each_player_gets_only_its_live_score() -> void:
 	var thief_live: LiveScore = LiveScore.of(get_tree(), &"thief")
 	assert_eq(thief_live.total, RULES.thief_seen)
 	assert_eq(LiveScore.local_role(map), &"thief", "Sin red se juega con el ladrón")
+
+
+func test_a_guard_whose_player_left_stops_counting() -> void:
+	var map: HeistMap3D = await _map()
+	var gone: GuardController3D = map.guards[0]
+	var session: NetSession = autofree(NetSession.new())
+	session.map = map
+	var server: NetSessionServer = NetSessionServer.new()
+	server._session = session
+	server._peer_roles[7] = LiveScore.guard_role(gone)
+	server._on_peer_disconnected(7)
+	var recorder: MatchRecorder = MatchRecorder.of(get_tree())
+	recorder.track(String(gone.name), true, false, 1.0)
+	await wait_physics_frames(2)
+	var report: Dictionary = recorder.build_report()
+	assert_eq((report["guards"] as Array).size(), map.guards.size() - 1, "Sin su ficha")
+	assert_eq(int(report["thief"]["guards"]), map.guards.size() - 1, "G son los que siguen")
+	assert_eq(int(report["guards"][0]["guards"]), map.guards.size() - 1)

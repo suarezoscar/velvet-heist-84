@@ -135,7 +135,8 @@ func _actor_for_peer(peer: int) -> PlayerBase3D:
 	return _session.actor_for_role(role) if role != &"" else null
 
 
-## Un peer se va: deja de recibir y su actor se queda quieto (sin sprint ni sigilo)
+## Un peer se va: deja de recibir y su actor se queda quieto (sin sprint ni sigilo); un guardia
+## deja de contar en el informe y en los puntos (#158, heist.md casos límite de #123)
 func _on_peer_disconnected(peer: int) -> void:
 	_ready_peers.erase(peer)
 	_last_tick.erase(peer)
@@ -149,6 +150,7 @@ func _on_peer_disconnected(peer: int) -> void:
 	StealMinigame.cancel_for(actor)  # #119: sin quien lo juegue
 	if actor is GuardController3D:
 		(actor as GuardController3D).apply_flashlight_state(false)  # sin quien la sostenga
+		actor.set_meta(MatchRecorder.LEFT_META, true)
 	actor.apply_input(
 		{"movement_vector": Vector2.ZERO, "is_sprinting": false, "is_sneaking": false}
 	)
