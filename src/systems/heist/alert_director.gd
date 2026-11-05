@@ -32,6 +32,13 @@ var alarm_triggers: int = 0
 ## Dónde y cuándo saltó cada alarma (#117), para el plano de los dos bandos:
 ## [{"pos": Vector3, "t": float}], t = GameManager.match_timer en ese momento (cuenta atrás)
 var alarm_marks: Array[Dictionary] = []
+## Quién hizo saltar la alarma (#123: nombre del guardia; vacío si nadie, p. ej. a lo bruto) y
+## si fue viéndolo (él o su cámara en pantalla) o por el último rastro
+var alarm_by: String = ""
+var alarm_sight: bool = false
+## Quién descubrió cada rastro: pieza → nombre del guardia (también la falsificación examinada)
+var trace_by: Dictionary = {}
+var _last_trace_by: String = ""
 var _last_alarm_call: float = -INF
 ## Dónde está el último rastro descubierto (la campana de los rastros va ahí, no en el ladrón)
 var _last_trace_pos: Variant = null
@@ -84,30 +91,28 @@ func scan() -> void:
 	for node: Node in get_tree().get_nodes_in_group(&"heist_targets"):
 		var piece: TargetPiece3D = node as TargetPiece3D
 		# Una pieza de pega no es un rastro: hay que examinarla (TargetPiece3D)
-		if (
-			piece.stolen
-			and not piece.is_faked()
-			and not piece.discovered
-			and _trace_seen(piece, guards, watching)
-		):
-			piece.discovered = true
-			print("[AlertDirector] Rastro descubierto: %s" % piece.piece_name)
+		if piece.stolen and not piece.is_faked() and not piece.discovered:
+			var finder: String = _trace_finder(piece, guards, watching)
+			if not finder.is_empty():
+				piece.discovered = true
+				trace_by[piece] = finder
+				print("[AlertDirector] Rastro descubierto: %s" % piece.piece_name)
 		if piece.discovered and not _traced.has(piece):  # también la falsificación examinada
 			_traced[piece] = true
 			_last_trace_pos = piece.global_position
-	var thief_seen: bool = guards.any(
-		func(g: GuardController3D) -> bool: return g.is_perceiving_thief
-	)
-	if thief_seen or (watching and SecurityCamera3D.any_detects(self)):
-		raise(Level.ALARM, _thief_pos())  # alguien lo ve: la campana va donde está
+			_last_trace_by = String(trace_by.get(piece, ""))
+	var spotter: String = _spotter(guards, watching)
+	if not spotter.is_empty():
+		raise(Level.ALARM, _thief_pos(), spotter, true)  # alguien lo ve: la campana va donde está
 	var traces: int = discovered_count()
 	if traces >= RULES.alarm_traces and level < Level.ALARM:
-		raise(Level.ALARM, _last_trace_pos)  # al llegar al umbral, una vez; campana en el rastro
+		raise(Level.ALARM, _last_trace_pos, _last_trace_by)  # una vez; campana en el rastro
 	elif traces >= 1:
 		raise(Level.SUSPICION)
 
 
-func raise(new_level: Level, where: Variant = null) -> void:
+## by: el guardia que la hace saltar (#123, para sus puntos); sight: si fue viéndolo
+func raise(new_level: Level, where: Variant = null, by: String = "", sight: bool = false) -> void:
 	if new_level == Level.ALARM:
 		if _clock - _last_alarm_call > ALARM_GAP:
 			alarm_triggers += 1
@@ -120,6 +125,8 @@ func raise(new_level: Level, where: Variant = null) -> void:
 		level = new_level
 		print("[AlertDirector] Alerta: %s" % Level.keys()[level])
 		if level == Level.ALARM:
+			alarm_by = by
+			alarm_sight = sight
 			for sleep: GuardSleep in _sleeps():
 				sleep.wake_up()  # FEAT-033: adrenalina
 
@@ -174,7 +181,27 @@ func _age_pings(delta: float) -> void:
 	pings = pings.filter(func(p: Dictionary) -> bool: return float(p["left"]) > 0.0)
 
 
-func _trace_seen(piece: TargetPiece3D, guards: Array[GuardController3D], watching: bool) -> bool:
+## El primer guardia que ve al ladrón, o el que mira la cámara en pantalla que lo ve ("" si nadie)
+func _spotter(guards: Array[GuardController3D], watching: bool) -> String:
+	for guard: GuardController3D in guards:
+		if guard.is_perceiving_thief:
+			return String(guard.name)
+	if watching and SecurityCamera3D.any_detects(self):
+		return _watcher(guards)
+	return ""
+
+
+func _watcher(guards: Array[GuardController3D]) -> String:
+	for guard: GuardController3D in guards:
+		if GuardSleep.sees_cameras(guard):
+			return String(guard.name)
+	return ""
+
+
+## Quién ve el pedestal vacío: un guardia o el que mira la cámara en pantalla ("" si nadie)
+func _trace_finder(
+	piece: TargetPiece3D, guards: Array[GuardController3D], watching: bool
+) -> String:
 	var space: PhysicsDirectSpaceState3D = get_viewport().world_3d.direct_space_state
 	var target: Vector3 = piece.global_position + Vector3.UP * 1.1
 	for guard: GuardController3D in guards:
@@ -185,13 +212,13 @@ func _trace_seen(piece: TargetPiece3D, guards: Array[GuardController3D], watchin
 			eye.distance_to(target) <= RULES.trace_sight
 			and VisionLogic.wall_free(space, eye, target)
 		):
-			return true
+			return String(guard.name)
 	if watching:
 		for node: Node in get_tree().get_nodes_in_group(&"security_camera"):
 			var cam: SecurityCamera3D = node as SecurityCamera3D
 			if cam.is_live and cam.sees_point(target):  # #118: solo la cámara que se mira
-				return true
-	return false
+				return _watcher(guards)
+	return ""
 
 
 func _sleeps() -> Array[GuardSleep]:

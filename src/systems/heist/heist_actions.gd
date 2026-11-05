@@ -66,5 +66,6 @@ static func walkie(guard: GuardController3D, alert: AlertDirector) -> bool:
 		return false
 	guard.set_meta(&"walkie_ready_at", now + RULES.walkie_cooldown)
 	alert.add_ping(guard.look_target_position)
+	MatchRecorder.note_ping(guard.get_tree(), guard, guard.look_target_position)  # #123
 	NoiseEmit.emit(guard.global_position, RULES.walkie_radius, &"guard", NoiseEmit.MECHANISM, guard)
 	return true

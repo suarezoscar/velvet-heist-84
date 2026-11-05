@@ -4,17 +4,29 @@
 
 [resource]
 script = ExtResource("1")
-thief_piece = 100
+thief_piece_pool = 300
 thief_escape = 150
-thief_partial_escape = 50
-thief_alarm = -25
+thief_partial_escape_by_guards = Array[int]([75, 60, 54, 50])
+thief_clean_piece = 20
+thief_fast_escape = 2
+thief_lose_them = 25
+lose_them_time = 8.0
+thief_sabotage = 30
+thief_sabotage_escape = 60
+thief_alarm = -15
 thief_seen = -10
+thief_hit_taken = -20
+guard_alarm = 50
 guard_seen = 25
+guard_examine_fake = 40
+guard_walkie = 30
+walkie_hit_window = 10.0
+walkie_hit_radius = 6.0
+guard_near_theft = -30
+near_theft_radius = 5.0
 guard_hit = 50
 guard_capture = 150
 guard_nap = -15
-guard_protect = 60
-guard_lockdown = 100
-thief_sabotage = 30
-thief_sabotage_escape = 60
 guard_repair = 40
+team_protect_pool = 300
+team_lockdown_pool = 150

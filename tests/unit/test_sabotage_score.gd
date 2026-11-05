@@ -12,9 +12,9 @@ func _line(score: Dictionary, label: String) -> Dictionary:
 
 func test_thief_lines() -> void:
 	var score: Dictionary = MatchScore.thief({"sabotaged": 2, "sabotage_escape": true})
-	assert_eq(
-		_line(score, "Rejas saboteadas"), {"label": "Rejas saboteadas", "count": 2, "points": 60}
-	)
+	var line: Dictionary = _line(score, "Rejas saboteadas")
+	assert_eq([line["count"], line["points"]], [2, 60])
+	assert_true(line["hidden"], "No sale en vivo: delataría la reparación")
 	assert_eq(_line(score, "Huida por una reja saboteada")["points"], 60)
 	assert_eq(score["total"], 120)
 
@@ -32,7 +32,8 @@ func test_guard_repair_line() -> void:
 
 
 func test_resolved_example_with_sabotage() -> void:
-	# heist.md R11: 1 pieza, una alarma, visto una vez, sabotea P02 y huye por ella
+	# heist.md (#123): 1 pieza de 3, una alarma, visto una vez, sabotea P02 y huye por ella;
+	# con 2 guardias pasa a perder por 10
 	var report: Dictionary = {
 		"thief":
 		{
@@ -42,13 +43,14 @@ func test_resolved_example_with_sabotage() -> void:
 			"seen": 1,
 			"sabotaged": 1,
 			"sabotage_escape": true,
+			"guards": 2,
 		},
-		"guards": [{"seen": 1, "protected": 2}, {"protected": 2}],
+		"guards": [{"alarm": true, "protected": 2, "k": 3}, {"protected": 2, "k": 3}],
 	}
 	var result: Dictionary = MatchScore.partial_result(report)
-	assert_eq(result["thief"], 205)
-	assert_eq(result["guards"], 133)
-	assert_eq(result["winner"], &"thief")
+	assert_eq(result["thief"], 225)
+	assert_eq(result["guards"], 235)
+	assert_eq(result["winner"], &"guards")
 
 
 func test_gate_box_is_a_blueprint_prop() -> void:
