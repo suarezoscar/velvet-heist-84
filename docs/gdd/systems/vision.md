@@ -1,7 +1,7 @@
 # Visión y niebla de guerra
 
 - **Estado**: aprobado por el usuario el 2026-10-24, con las 5 recomendaciones de «Decisiones». Nota del 2026-10-30 (#112): el personaje mira hacia donde anda; el ratón solo cuenta al apuntar la moneda o barrer con la linterna (que solo se enciende mientras se mantiene el clic derecho). La zona visible sigue siendo de 360°.
-  - **#163, pendiente de aprobación del usuario** (2026-11-05): niebla en dos grados, uno para el suelo y otro, más suave, para lo que se alza del suelo (R1, R2, R5, «Números», «Invariantes», «Qué medir» y «Decisiones de #163»). Hasta que se apruebe, mandan las reglas de antes, que se citan junto a cada cambio.
+  - **#163, aprobado por el usuario el 2026-11-05**: niebla en dos grados, uno para el suelo y otro, más suave, para lo que se alza del suelo (R1, R2, R5, «Números», «Invariantes», «Qué medir» y «Decisiones de #163»). Las reglas de antes se citan junto a cada cambio. El usuario aceptó también que la pieza robada, la falsificación, la vitrina y la caja fuerte abiertas se dibujen como se vieron la última vez (en el mismo PR), que la puerta de la garita no tenga memoria y que los compañeros guardias en la niebla no lleven silueta propia de momento.
 - **Origen**: petición del usuario del 2026-10-24, tras jugar: «Como ladrón veo dónde están los guardias por la vista cenital de la cámara. Quiero una especie de field of view: fuera del campo de visión, una niebla de guerra que impida ver la posición de guardias o ciertos objetos dentro de las salas.»
 - **Relacionado**:
   - `stealth.md`: percepción de los guardias, P2.1 (el ladrón ve todos los haces), P2.2 luz, P2.4 ruido y chevrons, O2 última posición;
@@ -34,7 +34,7 @@ Las reglas de abajo describen la opción A.
   - Los muebles, mostradores y coberturas no la cortan; ocultarse detrás de ellos ya lo resuelve la percepción de `stealth.md` con sus puntos de visibilidad.
   - Las puertas son huecos y dejan ver. La ventana V1 también, porque su alféizar mide 1,0 m y queda por debajo de los ojos.
   - Agacharse no cambia la zona visible.
-- **Fuera de la zona visible está la niebla**: se ve el edificio (el plano se conoce) y nada vivo. La niebla tiene dos grados (#163, pendiente de aprobación; antes, un solo grado para todo: `fog_brightness` y `fog_desaturation`):
+- **Fuera de la zona visible está la niebla**: se ve el edificio (el plano se conoce) y nada vivo. La niebla tiene dos grados (#163, aprobado el 2026-11-05; antes, un solo grado para todo: `fog_brightness` y `fog_desaturation`):
   - **El suelo** lleva la niebla de siempre, oscura y gris (`fog_brightness`, `fog_desaturation`). Es la que dice «esto no lo ves»: el borde entre suelo claro y suelo en niebla es la frontera de la vista.
   - **Lo que se alza del suelo** (muros, tabiques, muebles, pedestales, cuadros, puertas) lleva solo un **oscurecido suave** (`fog_raised_brightness`, `fog_raised_desaturation`): se nota que no está a la vista, pero el borde de la vista ya no lo barre con un salto de contraste al andar.
   - Qué cuenta como alzado lo decide la **altura de cada punto sobre el suelo** (el suelo pisable está a 0 m en todos los niveles): hasta `fog_raised_from` es suelo; desde `fog_raised_to`, alzado; en medio, un paso gradual (suave) entre los dos grados.
@@ -88,7 +88,7 @@ El servidor decide; cada cliente solo recibe lo que su jugador ve.
 - **Fin de la partida**: la niebla se retira para todos, para que vean dónde estaba cada uno.
 - **Desconexión**: el actor que se queda quieto se trata como cualquier otro.
 - **Sin red** (un jugador o depuración): la niebla se calcula igual, desde el jugador local.
-- **Los dos grados de la niebla** (#163, pendiente de aprobación):
+- **Los dos grados de la niebla** (#163, aprobado el 2026-11-05):
   - **Alfombras, suelos de moqueta y lo que va pegado al suelo** (monedas caídas, manchas, sombras): son suelo, porque no pasan de `fog_raised_from` (0,08 m). Llevan la niebla del suelo.
   - **Zócalos** (0,16 m de alto): caen en el paso gradual y quedan entre los dos grados. Hace de sombra de contacto al pie del muro y no se nota como franja. El pie de cada muro, de 0 a 0,08 m, lleva la niebla del suelo, con la misma lectura.
   - **Mesas, bancos, mostradores**: el tablero y los laterales son alzados; el suelo de debajo (y su sombra) es suelo. Lo que está encima de la mesa también es alzado.
