@@ -67,6 +67,7 @@ func _ready() -> void:
 	collision_mask = 2
 	monitoring = true
 	door_pivot = get_node_or_null("DoorPivot") as Node3D
+	add_to_group(&"fog_memory_state")
 
 
 ## Contrato de interacción: solo puede interactuarse si no está abierta
@@ -222,6 +223,18 @@ func break_open() -> void:
 	active_thief = null
 
 
+## Abierta como la conoce el jugador local (#163, vision.md D4): la puerta abierta solo se ve
+## al mirarla; hasta entonces, como se vio por última vez
+func shown_open() -> bool:
+	return bool(FogMemory.shown(self, current_state == SafeState.OPENED))
+
+
+## Lo llama FogMemory al muestrear y la red al cambiar (solo en los clientes: el servidor anima)
+func refresh_look() -> void:
+	if door_pivot != null and not GameManager.is_simulating():
+		door_pivot.rotation_degrees.y = -110.0 if shown_open() else 0.0
+
+
 ## Devuelve el estado público de red (abierta o no)
 func get_net_state() -> Dictionary:
 	return {
@@ -250,12 +263,9 @@ func apply_net_state(state: Dictionary) -> void:
 	if state.has("opened"):
 		if bool(state["opened"]):
 			current_state = SafeState.OPENED
-			if door_pivot != null:
-				door_pivot.rotation_degrees.y = -110.0
 		elif current_state == SafeState.OPENED:
 			current_state = SafeState.LOCKED
-			if door_pivot != null:
-				door_pivot.rotation_degrees.y = 0.0
+		refresh_look()
 	if not was_opened and current_state == SafeState.OPENED:
 		_spawn_loot_contents()
 

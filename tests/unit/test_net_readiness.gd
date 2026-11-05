@@ -122,14 +122,14 @@ func test_input_injection_produces_expected_sprint_velocity() -> void:
 
 	thief.apply_input({"movement_vector": Vector2(1.0, 0.0), "is_sprinting": true})
 
-	# Simular tiempo suficiente para alcanzar velocidad de carrera del perfil (7.5 m/s)
+	# Simular tiempo suficiente para alcanzar la velocidad de carrera del perfil (6,0 m/s, #166)
 	for i in range(20):
 		thief.simulate_movement(0.05)
 
 	var expected_sprint: float = thief.movement_profile.speed_for(MovementProfile.Mode.SPRINT)
-	assert_eq(thief.current_speed, expected_sprint, "current_speed es sprint_speed (7.5)")
+	assert_eq(thief.current_speed, expected_sprint, "current_speed es sprint_speed (6,0)")
 	var horizontal_speed: float = Vector2(thief.velocity.x, thief.velocity.z).length()
-	assert_almost_eq(horizontal_speed, 7.5, 0.1, "Velocidad horizontal converge a 7.5 m/s")
+	assert_almost_eq(horizontal_speed, 6.0, 0.1, "Velocidad horizontal converge a 6,0 m/s")
 
 
 func test_presentation_decoupling_does_not_mutate_physics() -> void:

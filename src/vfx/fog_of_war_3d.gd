@@ -45,6 +45,10 @@ func _ready() -> void:
 	_material.set_shader_parameter("fog_brightness", RULES.fog_brightness)
 	_material.set_shader_parameter("fog_desaturation", RULES.fog_desaturation)
 	_material.set_shader_parameter("light_keep", RULES.fog_light_keep)
+	_material.set_shader_parameter("raised_brightness", RULES.fog_raised_brightness)  # #163
+	_material.set_shader_parameter("raised_desaturation", RULES.fog_raised_desaturation)
+	_material.set_shader_parameter("raised_from", RULES.fog_raised_from)
+	_material.set_shader_parameter("raised_to", RULES.fog_raised_to)
 	material_override = _material
 	layers = 1 << (FOG_LAYER - 1)
 	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
