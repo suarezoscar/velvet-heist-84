@@ -19,16 +19,23 @@ static func thief(data: Dictionary, best: bool) -> MatchReportCard84:
 		var line: String = ("✔ " if stolen else "✘ ") + String(piece.get("name", ""))
 		if stolen and not String(piece.get("how", "")).is_empty():
 			line += ", " + String(piece["how"])
+		if stolen and bool(piece.get("clean", false)):
+			line += ", sin que nadie lo notara"
 		box.add_child(_body(line, MenuTheme84.TEXT if stolen else MenuTheme84.DIM))
 	var seconds: int = maxi(roundi(float(data.get("time", 0.0))), 0)
 	var facts: PackedStringArray = [
 		"Alarmas: %d" % int(data.get("alarms", 0)),
 		"Monedas: %d" % int(data.get("coins", 0)),
 		"Visto: %s" % _times(int(data.get("seen", 0))),
+		"Golpes recibidos: %d" % int(data.get("hits_taken", 0)),
+		"Despistes: %d" % int(data.get("lost", 0)),
 	]
 	if bool(data.get("escaped", false)) or bool(data.get("partial", false)):
 		var kind: String = "Huida a medias" if bool(data.get("partial", false)) else "Huida"
-		facts.append("%s a los %d:%02d" % [kind, seconds / 60, seconds % 60])
+		var escape: String = "%s a los %d:%02d" % [kind, seconds / 60, seconds % 60]
+		if int(data.get("fast", 0)) > 0:
+			escape += " (sobraban %d s)" % int(data["fast"])
+		facts.append(escape)
 	box.add_child(_body(" · ".join(facts), MenuTheme84.DIM))
 	card.add_score(MatchScore.thief(data))
 	return card
@@ -46,12 +53,20 @@ static func guard(data: Dictionary, number: int, best: bool) -> MatchReportCard8
 	var facts: PackedStringArray = [
 		"Vio al ladrón: %s" % _times(int(data.get("seen", 0))),
 	]
+	if bool(data.get("alarm", false)):
+		facts.insert(0, "Dio la alarma")
 	box.add_child(_body(" · ".join(facts), MenuTheme84.TEXT))
 	var more: PackedStringArray = [
 		"Golpes: %d" % int(data.get("hits", 0)), "Cabezadas: %d" % int(data.get("naps", 0))
 	]
 	if bool(data.get("capture", false)):
 		more.append("¡Lo atrapó!")
+	if int(data.get("examined", 0)) > 0:
+		more.append("Falsificaciones: %d" % int(data["examined"]))
+	if int(data.get("walkie", 0)) > 0:
+		more.append("Walkie: %d" % int(data["walkie"]))
+	if int(data.get("near_theft", 0)) > 0:
+		more.append("Robos cerca: %d" % int(data["near_theft"]))
 	box.add_child(_body(" · ".join(more), MenuTheme84.DIM))
 	card.add_score(MatchScore.guard(data))
 	return card

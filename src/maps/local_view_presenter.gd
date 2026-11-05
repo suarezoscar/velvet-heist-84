@@ -35,6 +35,8 @@ func setup(map: HeistMap3D) -> void:
 func _physics_process(_delta: float) -> void:
 	if _map == null:
 		return
+	if _map.hud != null and _map.hud.score_hud != null:
+		_map.hud.score_hud.role = LiveScore.local_role(_map)
 
 	if _map.local_player != _previous_local_player:
 		_previous_local_player = _map.local_player
