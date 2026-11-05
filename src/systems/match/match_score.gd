@@ -23,9 +23,7 @@ static func thief(report: Dictionary, rules: ScoreRules = RULES) -> Dictionary:
 				1 if bool(report.get("partial", false)) else 0,
 				rules.thief_partial_escape
 			),
-			_line(
-				"Cajas de reja saboteadas", int(report.get("sabotaged", 0)), rules.thief_sabotage
-			),
+			_line("Rejas saboteadas", int(report.get("sabotaged", 0)), rules.thief_sabotage),
 			_line(
 				"Huida por una reja saboteada",
 				1 if bool(report.get("sabotage_escape", false)) else 0,

@@ -46,8 +46,8 @@ func _physics_process(delta: float) -> void:
 		if alert != null and alert.level == AlertDirector.Level.ALARM:
 			left = RULES.lockdown_time
 		return
+	_tick_late(delta)
 	if closed:
-		_tick_late(delta)
 		return
 	var before: float = left
 	left = maxf(0.0, left - delta)
@@ -167,7 +167,8 @@ func _tick_late(delta: float) -> void:
 		if float(late[exit_id]) <= 0.0:
 			late.erase(exit_id)
 			_gate_noise(exit_id)  # toca el suelo
-			_close()
+			if closed:
+				_close()
 
 
 ## Al empezar a bajar, las rejas de las cajas saboteadas se quedan arriba

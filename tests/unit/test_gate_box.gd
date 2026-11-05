@@ -179,3 +179,32 @@ func test_ai_guard_spots_a_tampered_box_nearby() -> void:
 	guard.global_position = box.global_position + Vector3(0.0, 0.1, -6.0)
 	await wait_physics_frames(2)
 	assert_null(GuardExitCover.spot_box(guard), "Lejos, no")
+
+
+func test_ai_waiting_at_an_exit_sees_its_box() -> void:
+	var map: HeistMap3D = MAP_SCENE.instantiate() as HeistMap3D
+	add_child_autofree(map)
+	for guard: GuardController3D in map.guards:
+		guard.set_physics_process(false)
+	await wait_physics_frames(2)
+	GameManager.current_state = GameManager.MatchState.IN_PROGRESS
+	var lockdown: HeistLockdown = HeistLockdown.of(get_tree())
+	lockdown.left = 20.0
+	var guard: GuardController3D = map.guards[0]
+	var ai: GuardAI3D = guard.get_node("GuardAI") as GuardAI3D
+	for exit_id: String in ["P01", "P02", "P03", "P38"]:
+		var box: GateBox3D = map.find_child("GateBox_%s" % exit_id, true, false) as GateBox3D
+		box.step = GateBox3D.Step.SABOTAGED
+		var door: Node3D = map.find_child("Exit_%s" % exit_id, true, false)
+		guard.global_position = door.global_position + Vector3(-3.0, 0.1, -3.0)  # llega en diagonal
+		ai.cover_exit = null
+		for other: Node in get_tree().get_nodes_in_group(&"guards"):
+			var other_ai: GuardAI3D = other.get_node_or_null("GuardAI") as GuardAI3D
+			if other_ai != null and other_ai != ai:
+				other_ai.cover_exit = null  # libres: elige la más cercana, la suya
+		var point: Variant = GuardExitCover.pick(ai, guard)
+		assert_true(point is Vector3, exit_id)
+		guard.global_position = point
+		await wait_physics_frames(2)
+		assert_eq(GuardExitCover.spot_box(guard), box, "Desde la espera de %s ve su caja" % exit_id)
+		box.step = GateBox3D.Step.WHOLE

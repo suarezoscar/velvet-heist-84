@@ -13,8 +13,7 @@ func _line(score: Dictionary, label: String) -> Dictionary:
 func test_thief_lines() -> void:
 	var score: Dictionary = MatchScore.thief({"sabotaged": 2, "sabotage_escape": true})
 	assert_eq(
-		_line(score, "Cajas de reja saboteadas"),
-		{"label": "Cajas de reja saboteadas", "count": 2, "points": 60}
+		_line(score, "Rejas saboteadas"), {"label": "Rejas saboteadas", "count": 2, "points": 60}
 	)
 	assert_eq(_line(score, "Huida por una reja saboteada")["points"], 60)
 	assert_eq(score["total"], 120)
@@ -22,7 +21,7 @@ func test_thief_lines() -> void:
 
 func test_thief_without_sabotage_has_no_lines() -> void:
 	var score: Dictionary = MatchScore.thief({})
-	assert_true(_line(score, "Cajas de reja saboteadas").is_empty())
+	assert_true(_line(score, "Rejas saboteadas").is_empty())
 	assert_true(_line(score, "Huida por una reja saboteada").is_empty())
 
 

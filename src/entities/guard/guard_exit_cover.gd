@@ -9,8 +9,10 @@ class_name GuardExitCover
 extends RefCounted
 
 const RULES: HeistRules = preload("res://data/balance/heist_rules.tres")
-## Metros a los que se pone a reparar una caja
+## Metros a los que se pone a reparar una caja (técnico: por debajo del alcance de la E)
 const REPAIR_REACH: float = 1.2
+## Segundos andando hacia la caja antes de rendirse (un mueble bajo en medio)
+const REPAIR_GIVE_UP: float = 6.0
 ## Metros hacia dentro de la puerta donde espera (no en el umbral)
 const INSIDE: float = 1.5
 ## Radianes por segundo que gira la linterna mientras espera
@@ -43,8 +45,13 @@ static func pick(ai: GuardAI3D, guard: Node3D) -> Variant:
 	if best == null:
 		return null
 	ai.cover_exit = best
+	var anchor: Vector3 = best.global_position
 	var inward: Vector3 = (guard.global_position - best.global_position).slide(Vector3.UP)
-	return best.global_position + inward.normalized() * INSIDE
+	var box: GateBox3D = _box_of(tree, best.exit_id)
+	if box != null:  # #121: entre la puerta y su caja, para ver la caja al llegar
+		anchor = (best.global_position + box.global_position) * 0.5
+		inward = box.global_transform.basis.z.slide(Vector3.UP)
+	return anchor + inward.normalized() * INSIDE
 
 
 ## Cada tick: reparar una caja que ve manda sobre cubrir; con la cuenta atrás (o salidas abiertas
@@ -61,6 +68,7 @@ static func update(ai: GuardAI3D, guard: GuardController3D) -> void:
 		if box != null:
 			ai.repair_box = box
 			ai.current_state = GuardAI3D.AIState.REPAIR
+			ai.set_meta(&"repair_walk", 0.0)
 			return
 	if ai.current_state == GuardAI3D.AIState.PATROL or ai.current_state == GuardAI3D.AIState.COFFEE:
 		var point: Variant = ai.cover_point if ai.cover_exit != null else pick(ai, guard)
@@ -109,6 +117,14 @@ static func _repair(ai: GuardAI3D, guard: GuardController3D) -> void:
 	var to_box: Vector3 = (box.global_position - guard.global_position).slide(Vector3.UP)
 	guard.look_target_position = box.global_position
 	if to_box.length() > REPAIR_REACH:
+		var walked: float = (
+			float(ai.get_meta(&"repair_walk", 0.0)) + ai.get_physics_process_delta_time()
+		)
+		ai.set_meta(&"repair_walk", walked)
+		if walked > REPAIR_GIVE_UP:  # algo en medio: se rinde y vuelve a lo suyo
+			ai.repair_box = null
+			ai.current_state = GuardAI3D.AIState.PATROL
+			return
 		guard.apply_world_move(to_box.normalized())
 		return
 	guard.apply_world_move(Vector3.ZERO)
@@ -121,6 +137,13 @@ static func watch(guard: GuardController3D, time: float) -> void:
 	guard.apply_world_move(Vector3.ZERO)
 	var angle: float = time * SWEEP_SPEED
 	guard.look_target_position = guard.global_position + Vector3(sin(angle), 0.0, cos(angle)) * 3.0
+
+
+static func _box_of(tree: SceneTree, exit_id: String) -> GateBox3D:
+	for node: Node in tree.get_nodes_in_group(&"gate_boxes"):
+		if (node as GateBox3D).exit_id == exit_id:
+			return node as GateBox3D
+	return null
 
 
 static func _flat(a: Vector3, b: Vector3) -> float:

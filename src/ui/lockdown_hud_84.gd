@@ -29,6 +29,8 @@ static func text_for(seconds: float) -> String:
 
 ## La cifra con las rejas ya cerradas: cuántas salidas quedan abiertas
 static func closed_text(open: int) -> String:
+	if open <= 0:
+		return "REJAS CERRADAS"
 	return "REJAS CERRADAS · %d %s" % [open, "SALIDA ABIERTA" if open == 1 else "SALIDAS ABIERTAS"]
 
 
@@ -69,12 +71,10 @@ func _process(delta: float) -> void:
 	var warn: bool = not lockdown.closed and shown <= RULES.lockdown_warn_at
 	if not lockdown.closed:
 		_label.text = text_for(shown)
-	if lockdown.closed:
-		pass
-	elif warn:
+	if warn:
 		var wave: float = 0.5 + 0.5 * sin(_clock * TAU * PULSE_HZ)
 		_set_look(WARN_COLOR, 1.0 + 0.1 * wave, 0.6 + 0.4 * wave)
-	else:
+	elif not lockdown.closed:
 		_set_look(MenuTheme84.AMBER, 1.0)
 	_bell_in -= delta
 	if _bell_in <= 0.0:

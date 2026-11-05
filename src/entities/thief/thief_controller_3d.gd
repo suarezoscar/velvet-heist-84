@@ -121,7 +121,8 @@ func perform_action(action: StringName) -> bool:
 				safe.cancel_cracking()
 				result = true
 		&"force":
-			StealMinigame.cancel_for(self)  # Q sobre otra pieza también suelta el minijuego
+			if StealMinigame.piece_of(self) is TargetPiece3D:  # Q no hace nada en la caja (R7c)
+				StealMinigame.cancel_for(self)  # Q sobre otra pieza también suelta el minijuego
 			var target: TargetPiece3D = HeistReach.forceable(self)
 			result = target != null and target.force(self)
 		_:

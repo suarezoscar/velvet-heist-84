@@ -46,9 +46,10 @@ static func update(box: GateBox3D) -> void:
 	if cover == null or wires == null:
 		return
 	var open: bool = box.step == GateBox3D.Step.CUT  # con la tapa fuera se ven los cables
-	cover.visible = not open
-	wires.visible = open
-	cover.rotation_degrees.z = 9.0 if box.is_tampered() else 0.0  # la tapa mal cerrada
+	var seen: bool = _close_enough(box)  # R7c: de lejos parece entera
+	cover.visible = not (open and seen)
+	wires.visible = open and seen
+	cover.rotation_degrees.z = 9.0 if box.is_tampered() and seen else 0.0  # la tapa mal cerrada
 	var spark: OmniLight3D = box.get_node_or_null("Spark") as OmniLight3D
 	var flash: float = float(box.get_meta(&"look_flash", 0.0))
 	if box.sparks != int(box.get_meta(&"look_sparks", 0)):
@@ -58,6 +59,19 @@ static func update(box: GateBox3D) -> void:
 	box.set_meta(&"look_flash", flash)
 	if spark != null:
 		spark.light_energy = 4.0 if flash > 0.0 else 0.0
+
+
+## El ladrón ve su caja como está; un guardia, solo a box_notice_distance m o menos
+static func _close_enough(box: GateBox3D) -> bool:
+	var tree: SceneTree = box.get_tree()
+	if HeistDirector.local_is_thief(tree):
+		return true
+	for node: Node in tree.get_nodes_in_group(&"guards"):
+		var guard: PlayerBase3D = node as PlayerBase3D
+		if guard != null and guard.is_locally_controlled:
+			var gap: Vector3 = (guard.global_position - box.global_position).slide(Vector3.UP)
+			return gap.length() <= GateBox3D.RULES.box_notice_distance
+	return false
 
 
 static func _box(node_name: String, size: Vector3, color: Color) -> MeshInstance3D:

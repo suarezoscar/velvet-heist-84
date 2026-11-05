@@ -68,10 +68,16 @@ func _physics_process(delta: float) -> void:
 		_repair_noise -= delta
 		if _repair_noise <= 0.0:
 			_repair_noise = 1.0
-			NoiseEmit.emit(global_position, 2.0, &"guard", NoiseEmit.MECHANISM, _repair.actor)
+			var radius: float = SabotageSession.STEAL.work_noise_radius
+			NoiseEmit.emit(global_position, radius, &"guard", NoiseEmit.MECHANISM, _repair.actor)
 		if _repair.tick(delta):
 			_repair = null
-	if step == Step.SABOTAGED and GameManager.current_state == GameManager.MatchState.IN_PROGRESS:
+	if (
+		step == Step.SABOTAGED
+		and _repair == null
+		and GameManager.is_simulating()
+		and GameManager.current_state == GameManager.MatchState.IN_PROGRESS
+	):
 		_spark_left -= delta
 		if _spark_left <= 0.0:
 			_spark_left = _spark_time()
