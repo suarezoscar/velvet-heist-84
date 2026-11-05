@@ -6,7 +6,7 @@
 script = ExtResource("1_profile")
 walk_speed = 5.0
 sneak_ratio = 0.48
-sprint_ratio = 1.5
+sprint_ratio = 1.2
 crouch_ratio = 0.4
 can_crouch = true
 team_noise_mult = 1.0
