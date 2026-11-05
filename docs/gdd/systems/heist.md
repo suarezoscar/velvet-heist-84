@@ -2,6 +2,7 @@
 
 - **Estado**: aprobado por el usuario el 2026-10-28 (decisiones tomadas en conversación). **2026-11-04, #119, aprobado por el usuario el 2026-11-04**: R9 reescrita (todo lo necesario para robar está en la pieza: minijuego con E, Q a lo bruto; fuera las mesas de copias, cuadros eléctricos de las alas y panel de pilotos) y R1, R6, R7, R11, números, contrajuego y casos límite ajustados. **2026-10-30, #116**: R4, R5, R7 y R11 reescritas y R5c y R5d nuevas (fuera relojes y rondas; sueño fuera de la garita; IA de patrulla libre; correr solo con alarma). Las reglas las decidió el usuario en la entrevista de #116; los números nuevos los aprobó el 2026-11-04. **2026-11-04, #118**: «cámara vigilada» pasa a ser la cámara que está en pantalla en la mesa (una cada vez, `interaction.md` M5); R5, R6, R7 y el contrajuego ajustados.
 - **2026-11-04, #120, aprobado por el usuario el 2026-11-04**: con la alarma, el ladrón tiene `lockdown_time` s para huir con lo que lleve; después bajan las rejas de las 4 salidas. R3 y R4 reescritas, R4b y R7b nuevas, R11 (informe y puntos, con «proteger» y «encerrado» traídos de #123), números, contrajuego, casos límite, red, nivel y «Qué medir» ajustados. La regla la decidió el usuario tras el playtest; los detalles los propuso `game-designer` y el usuario los aprobó (ver «Decisiones (usuario, 2026-11-04, #120)»).
+- **2026-11-05, #121, pendiente de aprobación**: el ladrón puede sabotear la caja de la reja de cada salida para que esa reja no baje con la alarma. R7c nueva; R3, R4, R7b, R11 (puntos e informe), números, contrajuego, casos límite, red, nivel y «Qué medir» ajustados. La regla es del usuario (issue #121, tras el playtest); los detalles los propone `game-designer` y están pendientes de su aprobación (ver «Decisiones abiertas (#121)»).
 - **Origen**: rediseño pedido por el usuario el 2026-10-28 para que los guardias no acampen en un sitio y para que su turno sea divertido. Temática: `docs/decisions/2026-10-28-tematica-caballero-ladron.md`.
 - **Relacionado**: `interaction.md` (CCTV; su parte R, relojes de ronda, se retiró el 2026-10-30, #116), `vision.md` (niebla y filtro de red), `stealth.md` (percepción y ruido), `gentleman.md` (temática; sus M1-M3 quedan sustituidas por este documento), `docs/gdd/levels/museum_v2.md`.
 
@@ -48,7 +49,7 @@ El número es el del encargo. La carta no da ninguna pista de cuáles son.
 - En `museum_v2` hay **4 salidas exteriores** (FEAT-034): P01 (vestíbulo), P02 (galería suroeste), P03 (muelle) y P38 (patio). Las cuatro dan al callejón, que es «fuera». El coche queda como decorado.
 - **Los conductos no son salidas**: todas las rejillas dan a salas de dentro (R10).
 - **Sin alarma** (como hasta ahora): el ladrón huye y gana al **cruzar cualquier salida con todas las piezas del encargo**. Sin todas, las salidas no hacen nada y el callejón es un pasillo más.
-- **Con la alarma** (R7b), mientras corre la cuenta atrás y la salida no tiene la reja bajada, el ladrón **huye en el acto en cuanto está fuera** (en una zona de salida o ya en el callejón) con:
+- **Con la alarma** (R7b), mientras corre la cuenta atrás y la salida no tiene la reja bajada, o, ya cerradas las rejas, por una salida cuya reja no bajó porque su caja está saboteada (R7c, #121, pendiente de aprobación), el ladrón **huye en el acto en cuanto está fuera** (en una zona de salida o ya en el callejón) con:
   - **el encargo completo**: **huida completa**, la de siempre (gana el ladrón, sello «ESCAPADO»);
   - **al menos 1 pieza del encargo**: **huida a medias** (R4: gana quien tenga más puntos, sello «HUIDA A MEDIAS»);
   - **0 piezas**: no pasa nada; la salida no le deja huir sin botín (decisión 2 de #120). Si sigue así al bajar las rejas, ganan los guardias (R7b).
@@ -61,8 +62,8 @@ El número es el del encargo. La carta no da ninguna pista de cuáles son.
 | **Gana el ladrón** | «ESCAPADO» | Huida completa (R3): sale con todo el encargo, con o sin alarma, antes de que acabe el tiempo y de que bajen las rejas |
 | **Gana quien tenga más puntos**, o empate (#120) | «HUIDA A MEDIAS» | Huida a medias (R3): con la cuenta atrás en marcha, sale con al menos 1 pieza del encargo pero sin todas |
 | **Ganan los guardias** | «CAPTURADO» | Lo atrapan (la porra, como hoy) |
-| **Ganan los guardias** (#120) | «ENCERRADO» | Bajan las rejas (R7b) con el ladrón dentro del edificio, también si está en un conducto |
-| **Ganan los guardias** (#120) | «SIN BOTÍN» | Bajan las rejas con el ladrón fuera, en el callejón, sin ninguna pieza (decisión 2 de #120) |
+| **Ganan los guardias** (#120) | «ENCERRADO» | Bajan las rejas (R7b) con el ladrón dentro del edificio, también si está en un conducto, y no queda ninguna salida abierta (con #121, R7c: también cuando baja la última reja saboteada al repararla) |
+| **Ganan los guardias** (#120) | «SIN BOTÍN» | Bajan las rejas con el ladrón fuera, en el callejón, sin ninguna pieza y sin ninguna salida abierta (decisión 2 de #120; R7c) |
 | **Ganan los guardias** | «AMANECE» | Se acaba el tiempo sin que haya huido (`TIME_EXPIRED`) |
 
 - Desde #116 no hay «ronda rota» (`TIME_EXPIRED_BREACH` y `TIME_EXPIRED_DRAW` siguen sin uso). Con #120 vuelve a haber **empate, solo en la huida a medias**.
@@ -197,12 +198,12 @@ w(sala) = 1 + ai_piece_weight × n(sala)
 - **Las rejas**: cada salida exterior tiene una reja de barrotes de acero recogida sobre la puerta, a la vista de todos desde el principio (en P03, la propia persiana del muelle hace de reja).
   - Empiezan a bajar a los `lockdown_time − gate_drop_time` s, todas a la vez, con un chirrido metálico que se oye en su salida (radio `gate_radius`), y tocan el suelo a los `lockdown_time` s con un golpe seco.
   - **Mientras bajan, la salida sigue abierta**: se puede pasar por debajo hasta el último instante. Al tocar el suelo, la salida queda **cerrada**: no se cruza (tapa el paso a los dos bandos) y ya no deja huir. Entre los barrotes se ve: la reja tapa el paso, no la vista.
-- **Al cerrarse las rejas**, si el ladrón no ha huido, la partida acaba en el acto y ganan los guardias:
+- **Al cerrarse las rejas**, si el ladrón no ha huido y no queda ninguna salida abierta (R7c), la partida acaba en el acto y ganan los guardias:
   - dentro del edificio, también en un conducto (R10): sello **«ENCERRADO»**;
   - fuera, en el callejón, sin ninguna pieza: sello **«SIN BOTÍN»** (con al menos una ya habría huido, R3).
-- **La IA sin red** (decisión 7 de #120): durante la cuenta atrás, el guardia de IA que no persigue ni investiga va corriendo a la salida libre más cercana a la última campana (una salida por guardia, sin repetir la de otro) y espera allí girando la linterna.
+- **La IA sin red** (decisión 7 de #120): durante la cuenta atrás, el guardia de IA que no persigue ni investiga va corriendo a la salida libre más cercana a la última campana (una salida por guardia, sin repetir la de otro) y espera allí girando la linterna. Con #121 (R7c), mira la caja de esa salida al llegar y, si está saboteada, la repara; con las rejas cerradas, solo cubre las salidas que siguen abiertas.
 - **Orden en el mismo instante**: captura > huida > rejas > fin del tiempo. Quien está en una zona de salida con botín en el instante en que la reja toca el suelo, huye.
-- **Con #121** (sabotear la caja de la reja, por diseñar): una salida con su caja saboteada no baja la reja. Si al cumplirse la cuenta atrás queda **alguna salida abierta**, la partida **no** acaba en el acto: sigue, con el timbre sonando, hasta que el ladrón huya por una salida abierta (con las mismas reglas de R3), lo atrapen o amanezca. «ENCERRADO» pasa a ser «bajan las rejas y no queda ninguna salida abierta». Esta regla se escribe así desde ya para que #121 no tenga que cambiarla.
+- **Con #121** (R7c, pendiente de aprobación): una salida con su caja saboteada no baja la reja. Si al cumplirse la cuenta atrás queda **alguna salida abierta**, la partida **no** acaba en el acto: sigue, con el timbre sonando, hasta que el ladrón huya por una salida abierta (con las mismas reglas de R3), lo atrapen o amanezca. «ENCERRADO» pasa a ser «bajan las rejas y no queda ninguna salida abierta».
 
 ```
 t_rejas = min(lockdown_time − (t_ahora − t_alarma), match_timer)
@@ -216,12 +217,87 @@ t_rejas = min(lockdown_time − (t_ahora − t_alarma), match_timer)
 
 Rango: con `lockdown_time` entre 20 y 45 s. La ruta más larga de `museum_v2` desde una pieza hasta la salida más cercana ronda los 45 m (Arte Oriental → P38, la Cámara de la Pieza Maestra → P01); el ladrón corriendo con 3 piezas va a 7,5 × 0,85 = 6,4 m/s (R3, peso del botín), unos 7 s. Un guardia corriendo (6,3 m/s) va de la garita a la salida más lejana, P02 (~45 m), en unos 7 s: cada guardia llega a cubrir una salida, pero 2-3 guardias no cubren las 4. Ejemplo: salta la alarma a 7:12 de partida (le quedan 4:48); la cuenta atrás va de 0:30 a 0:00 y las rejas tocan el suelo a 7:42; empiezan a bajar a 7:40,5.
 
+### R7c. Sabotear la caja de la reja (#121, pendiente de aprobación)
+> Regla decidida por el usuario tras el playtest (#121): «sabotear la reja de una salida para poder huir aunque salte la alarma». Los detalles (el minijuego, qué se nota, qué hace la IA y los casos límite) los propone `game-designer` y están **pendientes de aprobación**.
+
+- **No es un robo.** La caja de la reja no protege ninguna pieza ni hace falta para robar nada: la regla de R9 («todo lo necesario para robar una pieza está en la propia pieza») sigue intacta. Sabotear es **preparar la huida**, opcional y en otro sitio del mapa, como apagar una luz o abrir una rejilla. Por eso tiene sus propias reglas, que se parecen a R9a pero no son iguales (ver «Qué cambia respecto a R9a»).
+- **La caja**: cada salida exterior tiene una **caja de la reja** en la pared de dentro, junto a la puerta (una caja de chapa gris con cuatro tornillos y una placa «REJA»), a la altura de la mano. Es el freno de la reja: mientras está entera, la reja baja con la alarma (R7b). En `museum_v2`, una por salida (P01, P02, P03 y P38: cuatro cajas). Sale en el plano de los dos bandos como un icono fijo, sin estado.
+- **Por qué funciona** (pilar 1): la caja tiene un **circuito de seguridad**. Si se corta un cable fuera de orden, el relé salta (chispazo); si la tapa se queda abierta, su microinterruptor suelta el freno y la reja baja igual. Por eso hay que quitar la tapa, cortar en orden y volver a cerrarla.
+
+#### El minijuego: «Sabotear la reja»
+E junto a una caja entera abre el minijuego. Tres pasos seguidos, en este orden:
+
+| Paso | Qué hace el ladrón | Teclas | Cómo se falla | Se oye |
+|---|---|---|---|---|
+| **1. Quitar la tapa** | Desatornilla los `box_screws` tornillos, uno tras otro, `box_screw_time` s cada uno, mientras mantiene E | Mantener E. Soltar E pausa: los tornillos ya quitados se quedan fuera y el que estaba a medias vuelve a empezar | No se falla: es tiempo | Un chirrido de tornillo de radio `work_noise_radius` (2 m) por tornillo |
+| **2. Cortar los cables en orden** | Dentro hay `box_wires` cables de colores, enredados, que van de un lado (donde se cortan) a unos bornes numerados del 1 al 4 en el otro. Hay que cortar primero el que llega al borne 1, después el del 2, y así. Se elige el cable por su punta con ← → (o A D) y se corta con E | ← → o A D eligen; E corta | Cortar un cable que no toca: **chispazo** (ruido de fallo, `fail_noise_radius`, 7,5 m, como fallar un número del dial) y `box_splice_time` s empalmándolo, sin poder hacer nada. Los cables bien cortados siguen cortados | Un chasquido de 2 m por cable bien cortado |
+| **3. Cerrar la tapa** | Vuelve a atornillar los tornillos, como en el paso 1 | Mantener E, igual que el paso 1 | No se falla | Igual que el paso 1 |
+
+- **Al acabar el paso 3, la caja queda saboteada**. Antes no hace nada: con la tapa fuera, la reja baja igual.
+- **Los cables**: el orden (qué cable llega a cada borne) lo sortea el servidor para cada caja al empezar la partida y otra vez cada vez que un guardia la repara, así que no se aprende de memoria. Cada cable bien cortado queda flojo en el dibujo, y lo que falta por seguir se ve más claro. Los cables se distinguen por el color **y por el dibujo** (liso, rayado, punteado, a cuadros), para no depender solo del color.
+- **Duración**: unos 15-17 s si se hace bien, con cada fallo sumando unos 2 s (fórmula abajo). Es el doble que robar una pieza en silencio: sabotear es una inversión.
+- **Textos** (`estilo-de-textos.md`): en una caja entera, «Sabotear la reja [E]»; a medias, «Seguir con la reja [E]»; saboteada, «Reja saboteada» (sin tecla). Mientras dura, «Quitando la tapa…», «Corta los cables por orden de borne» (con la línea de teclas «← → elegir · E cortar») y «Cerrando la tapa…». Con su reja ya bajando o bajada, «La reja ya ha bajado». Q no hace nada en la caja (no hay sabotaje a lo bruto) y no sale en el aviso.
+
+```
+T = 2 × box_screws × box_screw_time + box_wires × t_cable + f × box_splice_time
+```
+| Variable | Significado | Fuente |
+|---|---|---|
+| `T` | Segundos del sabotaje entero, sin interrupciones | resultado |
+| `box_screws` | Tornillos de la tapa (se quitan en el paso 1 y se ponen en el 3) | `heist_rules.tres` |
+| `box_screw_time` | Segundos por tornillo | `heist_rules.tres` |
+| `box_wires` | Cables que hay que cortar | `heist_rules.tres` |
+| `t_cable` | Lo que tarda el jugador en seguir un cable con la vista, elegirlo y cortarlo (~1-1,5 s; menos con cada cable cortado) | jugador |
+| `f` | Cables mal cortados | jugador |
+| `box_splice_time` | Segundos empalmando tras un fallo | `heist_rules.tres` |
+
+Rango: con los valores propuestos (4 tornillos de 1,25 s, 4 cables, 2 s de empalme), los pasos 1 y 3 son 10 s fijos y el 2, de 4 a 6 s sin fallos: `T` va de 14 a 16 s, y con un fallo, de 16 a 18 s. Es la franja de 15-20 s que pidió el usuario. Ejemplo: `t_cable` = 1,25 s y un fallo: 2 × 4 × 1,25 + 4 × 1,25 + 1 × 2 = 10 + 5 + 2 = **17 s**.
+
+#### Qué cambia respecto a R9a
+- **Igual que R9a**: el ladrón está **quieto** mientras trabaja; lo **cancela** alejarse más de `task_leash` m, cualquier tecla de movimiento que el paso no use (en los pasos 1 y 3, todas; en el 2, W y S), Esc, un golpe de porra o la captura; cancelar **no hace ruido**; fallar suena a `fail_noise_radius` y **nunca hace saltar la alarma**; trabajar se oye a `work_noise_radius`; trabajando se le ve y se le oye como siempre (si lo ven, salta la alarma, R7, y puede terminar).
+- **Distinto de R9a: se retoma.** Cancelar no lo devuelve a cero: el estado queda **en la caja** (los tornillos quitados siguen fuera y los cables cortados siguen cortados) y E lo retoma desde ahí. Solo se pierde el tornillo que estaba a medias. Es lo que pide el issue («se retoma desde el paso alcanzado») y es lo físico: lo hecho en la caja se queda hecho. En una pieza no tiene sentido porque el robo es un único gesto.
+- **Q no hace nada** en la caja.
+
+#### El efecto
+- **Con la alarma**, una reja cuya caja está saboteada **no baja**: cuando las demás empiezan a bajar (a `lockdown_time − gate_drop_time` s), la suya suelta un zumbido del motor y un chasquido seco que se oyen en su salida (radio `gate_radius`, como el chirrido de las otras), y se queda recogida. La salida sigue **abierta**: se huye por ella con las reglas de R3, aunque la cuenta atrás haya terminado.
+- **Lo que cuenta** es el estado de la caja en el instante en que las rejas empiezan a bajar. Una caja que se termina de sabotear después, con su reja ya bajando o bajada, no hace nada: **sabotear no vuelve a subir una reja**. Por eso, con la reja bajando o en el suelo, la caja ya no se puede sabotear («La reja ya ha bajado»). Si el ladrón está a mitad de sabotaje en ese instante, el minijuego se corta (sin ruido).
+- **Durante la cuenta atrás** se puede sabotear (si da tiempo: unos 15 s de los 28,5 antes de que bajen). Es la jugada desesperada de quien está cerca de una caja.
+- **Sin aviso**: la alarma, el timbre y la cuenta atrás suenan y se ven igual. Nada avisa a los guardias de que una caja está saboteada antes de que bajen las rejas: ni la garita, ni el plano, ni la cuenta atrás.
+- **Al cerrarse las rejas con alguna salida abierta**:
+  - la partida sigue (R7b), con el timbre sonando, hasta que el ladrón huya por una salida abierta, lo atrapen o amanezca;
+  - la cifra grande cambia a «REJAS CERRADAS · 1 SALIDA ABIERTA» (o «2 SALIDAS ABIERTAS»…), para los dos bandos;
+  - las salidas abiertas se marcan en el plano de los dos bandos (pendiente de aprobación: ver «Decisiones abiertas (#121)», pregunta 2). Ya no es un secreto: la reja recogida se ve desde la sala y el callejón y el chasquido se ha oído en la salida.
+- **Sin límite de cajas**: el límite es el tiempo (el issue). Sabotear las cuatro cuesta más de un minuto (ver «El riesgo de sabotearlo todo»).
+
+#### La contra: notarla y repararla
+- **Se nota de cerca**:
+  - **la tapa mal cerrada**: un guardia que tiene la caja en su zona visible (`vision.md` R1) y a menos de `box_notice_distance` m la ve torcida, con un tornillo flojo. Más lejos parece entera. Una caja a medias (tapa fuera o en el suelo, cables a la vista) se nota igual, a la misma distancia;
+  - **la chispa**: una caja saboteada echa una chispa cada `box_spark_min`-`box_spark_max` s (al azar). Es un destello que ve cualquiera que tenga la caja en su zona visible, a cualquier distancia, y un chisporroteo de radio `box_spark_radius` m que se oye como cualquier ruido (pilar 2): la percepción de los guardias lo oye y la IA lo investiga. Nadie distingue una chispa de otro ruido pequeño hasta que va a mirar. Una caja a medias no echa chispas.
+- **Reparar**: un guardia junto a una caja saboteada o a medias ve «Reparar la caja de la reja [E]» (en una caja entera no sale nada: no hay nada que revisar a ciegas). Son `box_repair_time` s quieto, con «Reparando la caja…» y un ruido de trabajo de 2 m cada segundo que el ladrón oye si está cerca. Se cancela como un minijuego (R9a) y, si se cancela, vuelve a empezar de cero (es un solo gesto, como examinar). Al acabar, la caja queda entera, con un orden de cables nuevo, y el guardia gana `guard_repair` (+40).
+- **Reparar con las rejas ya bajando o en el suelo**: la reja de esa salida baja entonces, en `gate_drop_time` s y con su chirrido. Si era la última salida abierta, al tocar el suelo acaba la partida como en R7b («ENCERRADO» o «SIN BOTÍN», con +100 de «encerrado» a cada guardia). Reparar durante la cuenta atrás, antes de que bajen, deja la caja entera: la reja baja con las demás.
+- **No es un rastro** (R6): notar o reparar una caja no sube la alerta ni sale en el plano del equipo. Para contarlo, el walkie (R8). Lo que gana el guardia es el +40 y saber que el ladrón piensa salir por ahí (pendiente de aprobación: pregunta 4).
+- **Las cámaras**: la cámara en pantalla ve al ladrón saboteando, como siempre (y salta la alarma). La tapa torcida no se distingue en el monitor; **la chispa sí**, porque es luz: un guardia que mira justo esa cámara puede verla. No es un aviso: hay que estar mirando esa sala en ese momento (pendiente de aprobación: pregunta 3).
+- **Lo que sabe el ladrón**: su plano marca sus cajas saboteadas tal como las vio por última vez (la memoria de `vision.md`). Si un guardia repara una a sus espaldas, no lo sabe hasta que pasa a verla, oye la reparación o, con la alarma, oye bajar esa reja.
+
+#### La IA sin red
+- **Patrulla** (R5c): en una sala con caja de reja (VES, GSW, DOCK y PAT), pasa junto a la caja como pasa junto a cada candidata. Sin peso extra en el sorteo de salas.
+- **Nota y repara** como un humano: si ve una caja saboteada o a medias a menos de `box_notice_distance` m, o investiga una chispa y la encuentra, la repara (salvo si persigue o investiga otra cosa, que manda). No sabe más que un humano: no va a las cajas a tiro hecho.
+- **Durante la cuenta atrás** (R7b, decisión 7 de #120): no sabe qué salidas están saboteadas, así que las cubre igual que hasta ahora; al llegar, la caja de su salida está a menos de 3 m de donde espera, así que la ve y, si está saboteada, la repara (8 s quieto en la salida).
+- **Con las rejas cerradas y alguna salida abierta**: cubre solo las salidas abiertas (una por guardia, la más cercana a la última campana) y repara su caja al llegar. Si hay más guardias de IA que salidas abiertas, los que sobran persiguen, investigan o vuelven a patrullar.
+
+#### El riesgo de sabotearlo todo (pilar 4)
+- **Coste**: unos 15 s por caja y unos 25 s de camino entre las cuatro (por el callejón, que sin alarma es un pasillo más): **~85 s para las cuatro**, el 12 % de una partida de 12 minutos, quieto junto a salidas con cámara (las cuatro salas de salida tienen una) y con P03 a pocos metros de la garita.
+- **Respuesta**: reparar cuesta 8 s, la mitad que sabotear, y da +40. Las cuatro cajas están en el muro sur, en salas por las que se pasa. Con las rejas cerradas, los guardias saben qué salidas siguen abiertas y corren a repararlas (~7 s de carrera y 8 s de reparación): el sabotaje compra **unos 15 s de huida extra por salida**, no una partida sin cuenta atrás. Con 2 guardias, sabotear 3 o 4 cajas sí los desborda: es el caso a vigilar («Qué medir»).
+- **Sin alarma, el sabotaje no da nada** salvo los +30 por caja, que solo cuentan para «MEJOR DE LA NOCHE»: sin alarma no hay huida a medias (R3), y la huida completa o el final por tiempo deciden la partida sin puntos (R4b).
+
 ### R11. Informe de la noche (FEAT-041; sin relojes ni faltas desde el 2026-10-30, #116)
 - Al acabar la partida, todos los personajes se quedan quietos y el informe ocupa la pantalla: primero un sello 1,5 s («ESCAPADO», «HUIDA A MEDIAS», «CAPTURADO», «ENCERRADO», «SIN BOTÍN» o «AMANECE»; #120 añade los tres nuevos), después el veredicto y una ficha por jugador.
 - **Veredicto de la huida a medias** (#120): como siempre «HAS GANADO», «HAS PERDIDO» o «EMPATE» según el bando local, y debajo la cuenta de R4b: «Huida a medias: gana el ladrón, 215 a 65», «Huida a medias: ganan los guardias, 125 a 115» o «Huida a medias: empate a 120». El primer número es siempre el del bando que gana (en el empate, uno solo).
-- **Ladrón**: cada pieza del encargo con ✔/✘ y cómo se robó (abriendo el dial, a lo bruto, con el cambiazo, puenteando el sensor; #119: antes «con la corriente cortada»), alarmas que hizo saltar, monedas, veces que lo vieron y la hora de la huida (con #120, «Huida a medias» o «Huida» según el caso).
-- **Cada guardia**: veces que vio al ladrón (cuenta cuando empieza a verlo; perderlo menos de 2 s no cuenta otra vez; las cámaras no cuentan), golpes de porra, captura y cabezadas.
+- **Ladrón**: (con #121) las rejas saboteadas al acabar y si huyó por una; cada pieza del encargo con ✔/✘ y cómo se robó (abriendo el dial, a lo bruto, con el cambiazo, puenteando el sensor; #119: antes «con la corriente cortada»), alarmas que hizo saltar, monedas, veces que lo vieron y la hora de la huida (con #120, «Huida a medias» o «Huida» según el caso).
+- **Cada guardia**: (con #121) cajas reparadas; veces que vio al ladrón (cuenta cuando empieza a verlo; perderlo menos de 2 s no cuenta otra vez; las cámaras no cuentan), golpes de porra, captura y cabezadas.
 - **Puntos** (`score_rules.tres`; desde #120 sí deciden un resultado, la huida a medias, R4b): ladrón +100 por pieza robada (`thief_piece`, acabe como acabe la partida), +150 por la huida completa (`thief_escape`, con o sin alarma), +50 por la huida a medias (`thief_partial_escape`, #120; no se suma a los +150), −25 por alarma, −10 por cada vez que lo ven; guardia +25 por cada vez que lo ve, +50 por golpe, +150 por la captura, −15 por cabezada; y, traídos de #123 con #120, **+60 a cada guardia por cada pieza del encargo que sigue en su sitio al acabar** (`guard_protect`, «proteger»: cuenta en cualquier final, y una falsificación sin descubrir no está en su sitio) y **+100 a cada guardia si el ladrón queda encerrado** (`guard_lockdown`, sello «ENCERRADO»; no con «SIN BOTÍN»). El que más tiene lleva el sello «MEJOR DE LA NOCHE».
+  - **Con #121** (R7c, pendiente de aprobación): ladrón **+30 por cada caja saboteada que siga así al acabar** (`thief_sabotage`, en cualquier final; una caja a medias no cuenta) y **+60 si huye por una salida con su caja saboteada después de cerrarse las demás rejas** (`thief_sabotage_escape`, una vez, en huida completa o a medias; pendiente de aprobación, pregunta 1); guardia **+40 por cada caja que repara** (`guard_repair`, saboteada o a medias). En el informe, el ladrón suma las líneas «Rejas saboteadas» y «Huida por una reja saboteada», y cada guardia «Cajas reparadas».
+  - **Efecto en la huida a medias** (R4b): la huida por una reja saboteada suma +90 al ladrón (30 + 60), casi una pieza. El equilibrio pasa a `s = (60 k − 25 − 90) / 160`: con 2 guardias y un encargo de 3, 0,4 piezas, así que con 1 pieza gana con holgura. Es lo que se busca (premia la preparación), pero ese sabotaje ha costado ~15 s y el guardia que lo repara a tiempo se lleva +40 y, si era la última salida, +100 a cada guardia. Ejemplo (2 guardias, encargo de 3): el ladrón sabotea P02, roba 1 pieza, lo ven una vez y, con las rejas cerradas, sale por P02 antes de que lleguen: 100 + 50 − 25 − 10 + 30 + 60 = **205**; guardia A, 2 × 60 + 25 = 145, y B, 120: media 133. «Huida a medias: gana el ladrón, 205 a 133» (sin sabotaje habría sido 115 a 133 para los guardias). Si B llega antes y repara P02: «ENCERRADO»; A 245 y B 260.
   - «+50 más las piezas» (#120) se lee así: los +50 de la huida a medias se suman a los +100 de cada pieza robada, que el ladrón ya cobra siempre. Una huida a medias con 2 piezas y una alarma da 200 + 50 − 25 = 225 (menos 10 por cada vez que lo vieron).
   - 2026-10-30, #116: fuera los puntos por reloj (`guard_clock`) y por falta (`guard_fault`), que se borran de `score_rules.tres`; la hoja de ronda desaparece del informe. Lo que queda es provisional: el resto del sistema de puntos de los guardias (detectar, engaños, equipo, restas) sigue en #123; «proteger» y «encerrado» entraron con #120.
   - Un guardia que se queda toda la partida en la garita y no ve al ladrón cobra solo «proteger»: 60 por pieza que el ladrón no se lleva, como los que patrullan. #123 premiará además detectar y descubrir engaños, para que patrullar valga más que la garita.
@@ -401,6 +477,22 @@ Viven en `data/balance/heist_rules.tres` (`HeistRules`) salvo donde se indica ot
 | Ruido al fallar | `fail_noise_radius` | sensación | 5-10 m | **7,5 m**, el de fallar un número del dial (hoy una constante en `safe_box_3d.gd`; la FEAT la pasa a este recurso y el dial la lee de aquí): se oye desde la sala de al lado, nunca alarma |
 | Ruido de trabajar | `work_noise_radius` | sensación | 1,5-3 m | **2 m**, cada `work_noise_interval` **1 s** en la balanza y en cada acierto del puente: como los clics del dial (1,8 m), solo lo oye quien está encima |
 
+**Sabotear la caja de la reja (#121, pendiente de aprobación).** Los de la caja, en `heist_rules.tres` (campos `box_*`); los puntos, en `score_rules.tres`. Ya están escritos en sus `.tres` con estos valores; la FEAT añade los campos a `HeistRules` y `ScoreRules` (hasta entonces Godot los ignora). Reutiliza de `steal_minigames.tres` `fail_noise_radius` (7,5 m, el chispazo) y `work_noise_radius` (2 m, tornillos, cortes y reparación), y de `heist_rules.tres` `task_leash`, `gate_drop_time` y `gate_radius`.
+
+| Mando | Campo | Tipo | Rango | Propuesto |
+|---|---|---|---|---|
+| Tornillos de la tapa | `box_screws` | ritmo | 3-6 | **4**: se cuentan de un vistazo; cada uno es un ruido pequeño |
+| Segundos por tornillo | `box_screw_time` | ritmo | 0,75-1,5 s | **1,25 s**: 5 s por tapa, 10 s entre quitarla y ponerla. Es el mando principal de la duración: ±0,25 s mueven el total ±2 s |
+| Cables | `box_wires` | curva | 3-5 | **4**: con 3 se adivina a la primera demasiado a menudo (1 de 6 órdenes); con 5 el enredo ya no se lee en la isométrica |
+| Empalme tras cortar mal | `box_splice_time` | ritmo | 1-3 s | **2 s**: lo que cuesta un fallo de la balanza; junto al chispazo de 7,5 m, adivinar sale caro |
+| Distancia a la que se nota | `box_notice_distance` | sensación | 2-4 m | **3 m**: hay que pasar junto a ella, pero el guardia que cubre una salida (a 1,5 m de la puerta) la ve; más lejos sería un aviso gratis desde la puerta de la sala |
+| Chispa, cada | `box_spark_min` / `box_spark_max` | ritmo | 3-12 s | **5 / 9 s**: un guardia que cruza la sala andando (~10 s) ve u oye al menos una casi siempre; uno que solo asoma, no |
+| Chisporroteo | `box_spark_radius` | sensación | 2-4 m | **3 m**: lo mismo que se nota la tapa; se oye al pasar, no desde la sala de al lado |
+| Reparar | `box_repair_time` | ritmo | 5-10 s | **8 s** (lo pidió el usuario): la mitad que sabotear; un guardia que repara en la cuenta atrás se queda 8 s quieto en su salida |
+| Caja saboteada al acabar | `thief_sabotage` (`score_rules.tres`) | curva | 0-50 | **30** (lo pidió el usuario): menos de un tercio de una pieza; sin alarma solo cuenta para «MEJOR DE LA NOCHE» |
+| Huida por una reja saboteada | `thief_sabotage_escape` (`score_rules.tres`) | curva | 30-100 | **60** (lo pidió el usuario): con los +30, casi lo que vale una pieza en la huida a medias |
+| Reparar una caja | `guard_repair` (`score_rules.tres`) | curva | 20-60 | **40** (lo pidió el usuario): más que los +30 que pierde el ladrón, a un solo guardia |
+
 ## Contrajuego
 | Acción | Quién | Qué percibe el otro | Cómo responde |
 |---|---|---|---|
@@ -422,6 +514,10 @@ Viven en `data/balance/heist_rules.tres` (`HeistRules`) salvo donde se indica ot
 | Puentear el sensor (#119) | Ladrón | Chasquidos suaves junto a la pieza; después, el pedestal vacío («sensor puenteado») | El rastro a la vista, como una vitrina vacía |
 | Fallar un minijuego (#119) | Ladrón | Un ruido mecánico de 7,5 m, como fallar el dial | Acercarse a la sala de donde viene: el ladrón está quieto en una pieza |
 | Robar a lo bruto | Ladrón | La campana y la alarma al momento | Ir todos hacia allí y cerrar las salidas de esa zona |
+| Sabotear una caja (#121) | Ladrón | Tornillos y cortes de 2 m; el chispazo de 7,5 m si corta mal; después, la tapa torcida a 3 m y una chispa cada 5-9 s (vista desde lejos, oída a 3 m, también por la cámara en pantalla) | Pasar junto a las cajas al patrullar las salas de salida y repararlas (8 s, +40) |
+| Dejar una caja a medias (#121) | Ladrón | La tapa fuera, a 3 m; sin chispas | Repararla igual (8 s, +40): el ladrón pierde lo hecho |
+| Reparar una caja (#121) | Guardia | Ruido de trabajo de 2 m cada segundo; con la alarma, la reja que no baja o la que baja tarde | Volver a sabotearla cuando se vaya (sin alarma) o ir a otra salida abierta |
+| La reja que no baja (#121) | Ladrón | El zumbido y el chasquido de su salida (10 m), «REJAS CERRADAS · N SALIDAS ABIERTAS» y la salida marcada en el plano | Correr a esa salida y repararla; si era la última, «ENCERRADO» |
 
 ## Casos límite
 - **El ladrón roba la última pieza junto a una salida**: gana al cruzarla. Es lo que se busca: elegir bien el orden es parte del juego.
@@ -445,6 +541,19 @@ Viven en `data/balance/heist_rules.tres` (`HeistRules`) salvo donde se indica ot
   - **Alarma con menos de `lockdown_time` s de partida**: manda el reloj de la partida; la cuenta atrás grande enseña lo que llegue antes y el final es «AMANECE».
   - **Huida a medias con los guardias en negativo** (cabezadas): la media puede ser negativa; se compara igual.
   - **Un guardia se desconecta**: su ficha no está en el informe y no cuenta en la media (`G` son los que siguen).
+- **Sabotear la caja (#121, pendiente de aprobación)**:
+  - **Sabotea antes de la alarma y la alarma nunca salta**: la reja no hace nada; la caja vale +30 si sigue saboteada al acabar (solo para «MEJOR DE LA NOCHE»: sin alarma, los puntos no deciden nada).
+  - **Sabotea durante la cuenta atrás**: vale si termina antes de que las rejas empiecen a bajar. Si no le da tiempo, el minijuego se corta y la caja se queda a medias.
+  - **Con la reja bajando o en el suelo**: no se puede sabotear («La reja ya ha bajado»); sabotear nunca vuelve a subir una reja.
+  - **Reparar durante la cuenta atrás**: la caja queda entera y su reja baja con las demás. Si la reparación acaba durante la bajada, esa reja baja entonces, en `gate_drop_time` s.
+  - **Reparar con las rejas cerradas**: esa reja baja en `gate_drop_time` s, con chirrido; se puede pasar por debajo hasta que toca el suelo (R7b). Si era la última salida abierta, al tocar el suelo es «ENCERRADO» (o «SIN BOTÍN»).
+  - **Amanece con una salida abierta**: «AMANECE», como siempre; sin los +100 de «encerrado».
+  - **El ladrón, en el callejón sin piezas al cerrarse las rejas, con una salida abierta**: no es «SIN BOTÍN»; la partida sigue y puede entrar a por una pieza por la salida abierta.
+  - **En un conducto al cerrarse las rejas, con una salida abierta**: la partida sigue.
+  - **Un guardia llega mientras el ladrón sabotea**: lo ve (alarma, R7); no puede reparar una caja en la que está trabajando el ladrón. Si el ladrón se va, la repara con lo que haya hecho.
+  - **Dos guardias en la misma caja**: la repara el primero; el segundo no ve el aviso mientras tanto.
+  - **Huida a medias por una salida saboteada durante la cuenta atrás** (con todas las rejas aún arriba): es una huida a medias normal; los +60 solo cuentan con las rejas cerradas (pendiente: pregunta 1). La caja sigue valiendo +30.
+  - **Revancha**: las cajas vuelven enteras, con cables nuevos.
 - **Minijuegos (#119)**:
   - **Un guardia lo ve a mitad de minijuego**: salta la alarma como siempre que lo ven (R7); el minijuego sigue si el ladrón no se va, y la pieza sale en silencio si lo termina (ya no hay alarma que ahorrar, pero sí el rastro: la falsificación sigue sin ser rastro hasta que la examinen).
   - **Se acaba la partida a mitad**: no termina nada (como `TimedTask` hoy).
@@ -456,6 +565,9 @@ Viven en `data/balance/heist_rules.tres` (`HeistRules`) salvo donde se indica ot
 - **A los guardias**: las candidatas, el número de piezas y los rastros descubiertos. Nunca el encargo.
 - **A todos**: la alerta, los ruidos (bostezos, café, monedas, walkie) y si cada pedestal está ocupado o vacío. Estos últimos solo se dibujan si se ven, por la niebla y la memoria de `vision.md`.
 - **Al propio guardia**: su sueño, como estado privado.
+- **#121** (pendiente de aprobación): el servidor lleva el estado de cada caja (tornillos, cables cortados, saboteada), el orden de sus cables y la reparación, y decide aciertos y fallos; el cliente del ladrón manda las teclas, como en R9.
+  - **Al ladrón**, como estado privado: el estado completo de la caja en la que trabaja, con el orden de sus cables (nunca a los guardias), y el de sus cajas para su plano.
+  - **A todos**: si cada caja está entera, a medias o saboteada (para dibujar la tapa y la chispa; el cliente del guardia solo dibuja la tapa torcida a menos de `box_notice_distance` m, como el pedestal vacío, que solo se dibuja si se ve), las chispas como ruido y el estado de cada reja por separado (arriba, bajando, cerrada, o recogida porque su caja la frena).
 - **A todos (#120)**: el instante en que empezó la cuenta atrás (cada cliente la dibuja con su reloj) y el estado de cada reja (arriba, bajando, cerrada). El servidor decide la huida, el tipo de huida y el cierre; el resultado de la huida a medias sale del informe, que ya tienen todos (MatchScore lo calcula igual en cada cliente).
 
 ## Cambios en el nivel (`museum_v2`)
@@ -471,6 +583,7 @@ Viven en `data/balance/heist_rules.tres` (`HeistRules`) salvo donde se indica ot
   - #119: fuera de `data/levels/museum_v2.json` las secciones `replica_tables` (2 mesas), `wings` (4 cuadros; solo los usa `PowerBox3D`) y `pilot_panel`. Las protecciones de las 20 piezas no cambian.
 - Las salidas exteriores P01, P02 y P03 marcadas como «salida» (FEAT-034 añadió P38: son 4, en `exits` de `data/levels/museum_v2.json`).
 - #120: una reja recogida sobre cada una de las 4 salidas (en P03, la persiana). Sale de `exits`; no hace falta un dato nuevo en el nivel.
+- #121 (pendiente de aprobación): una caja de la reja por salida, en la pared de dentro (muro sur, z = 35,8), junto a la puerta y a la altura de la mano. Dato nuevo `"gate_box": [x, z]` en cada entrada de `exits` de `data/levels/museum_v2.json` (ya escrito; hasta la FEAT nadie lo lee): P01 en (26,4, 35,8), al este de la puerta doble; P02 en (4,2, 35,8), al oeste (al este está el interruptor de C7); P03 en (47,3, 35,8), al este de la persiana, pasado el palé 4; P38 en (57,4, 35,8), al este. La FEAT comprueba en el editor que se llega a cada una sin que la tape un mueble.
 
 ## Qué medir
 | Evento | Pregunta | Alarma |
@@ -484,9 +597,12 @@ Viven en `data/balance/heist_rules.tres` (`HeistRules`) salvo donde se indica ot
 | `coin_thrown` / `walkie` | ¿Se usan las herramientas? | Menos de 1 uso por partida |
 | Resultado con la alarma (#120) | ¿La cuenta atrás da decisiones o solo una carrera? | Más del 70 % de las alarmas acaban en «ENCERRADO» (30 s es poco o los guardias cubren todo), o más del 70 % en huida (sobra tiempo) |
 | Huidas a medias con 1 pieza (#120) | ¿Q a la pieza más cercana y correr es la jugada óptima? | El ladrón gana más de la mitad de las huidas a medias con 1 sola pieza |
+| Cajas saboteadas y reparadas por partida (#121) | ¿Sabotear es la apertura obligada? ¿La contra funciona? | El ladrón sabotea 3 o más cajas en más de la mitad de las partidas (seguro gratis); ninguna en 5 partidas (no compensa); o los guardias reparan menos del 20 % de las saboteadas (la contra no se ve) |
+| Final de las partidas con rejas cerradas y salidas abiertas (#121) | ¿El sabotaje compra unos segundos o la partida entera? | Más del 70 % acaban en huida por una reja saboteada, o la prórroga dura de media más de 60 s |
 | Robos por método y fallos de minijuego (#119) | ¿Se entiende y compensa robar en silencio? | Más de la mitad de las piezas a lo bruto en 3 de 5 partidas, o más de 3 fallos por pieza de media (el minijuego es demasiado duro) |
 
 ## Estado
+#121 (pendiente de aprobación): sabotear la caja de la reja de una salida (minijuego de tres pasos, ~15 s) para que esa reja no baje con la alarma; la caja se nota de cerca y un guardia la repara en 8 s (R7c). Números en `heist_rules.tres` (`box_*`) y `score_rules.tres`; cajas en `exits` de `museum_v2.json`.
 #120 (aprobado por el usuario el 2026-11-04, a falta de su FEAT): con la alarma, `lockdown_time` s para huir con lo puesto (huida completa o a medias) antes de que bajen las rejas de las 4 salidas; si no, «ENCERRADO». Lo siguiente, #121 (sabotear la caja de una reja), parte de R7b tal como está escrita.
 #119 (aprobado por el usuario el 2026-11-04, a falta de su FEAT): todo lo necesario para robar está en la pieza; robo silencioso con E y su minijuego (R9); Q, lo único a lo bruto; fuera las mesas de copias, los cuadros eléctricos de las alas y el panel de pilotos.
 #118 (2026-11-04, a falta de su FEAT): una cámara en cada sala y solo la que está en pantalla ve al ladrón (`interaction.md` parte M).
@@ -532,3 +648,12 @@ La regla es del issue #120; los detalles los propuso `game-designer` y el usuari
 6. **El timbre**: suena desde la alarma hasta el final, a golpes y por debajo de los pasos, y no es ruido para la percepción.
 7. **La IA sin red**: la que no persigue ni investiga cubre la salida libre más cercana a la última campana, una por guardia.
 8. **La media de los guardias**: redondeada al entero más cercano; se compara lo que se enseña.
+
+## Decisiones abiertas (#121, pendientes del usuario)
+La regla es del issue #121. Lo que sigue lo propone `game-designer`; cada punto lleva su recomendación, ya escrita arriba.
+1. **Los +60, ¿solo con las rejas cerradas?** Recomendación: sí, solo si huye por la salida saboteada después de que bajen las demás (cuando el sabotaje le ha salvado de verdad). Durante la cuenta atrás todas las salidas están abiertas y el sabotaje no ha hecho nada. Cuenta en huida completa y a medias.
+2. **¿Las salidas abiertas salen en el plano de los dos bandos al cerrarse las rejas?** Recomendación: sí, con «REJAS CERRADAS · N SALIDAS ABIERTAS». La reja recogida se ve y su chasquido se oye; marcarla evita que un humano tarde en entender por qué sigue la partida, y la IA lo sabría igual.
+3. **¿La chispa se ve por la cámara en pantalla?** Recomendación: sí, porque es luz (y sale sola en el render); la tapa torcida, no. No es un aviso: hay que estar mirando esa sala en ese momento.
+4. **¿Una caja saboteada descubierta es un rastro (R6) que sube la alerta?** Recomendación: no. Si lo fuera, dos cajas descubiertas harían saltar la alarma y empezaría la cuenta atrás que el sabotaje quería esquivar. El guardia gana +40 y la pista de por dónde quiere salir; para contarlo, el walkie.
+5. **¿El paso 3 tiene que tener habilidad?** Recomendación: no, como el paso 1 (mantener E con los tornillos). La habilidad está en los cables; los tornillos son tiempo a la vista y al oído. Alternativa: que cerrar la tapa use el piloto del sensor (R9c) como «encajar la tapa entre dos pruebas del relé»; da más tensión, pero hace el sabotaje más largo y repite un minijuego de robo.
+

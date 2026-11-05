@@ -15,3 +15,6 @@ guard_capture = 150
 guard_nap = -15
 guard_protect = 60
 guard_lockdown = 100
+thief_sabotage = 30
+thief_sabotage_escape = 60
+guard_repair = 40
