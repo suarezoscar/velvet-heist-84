@@ -75,7 +75,7 @@ func test_piece_stolen_out_of_view_stays_on_its_pedestal_until_seen() -> void:
 	map.thief.set_physics_process(false)
 	await wait_physics_frames(3)
 	var fog: FogOfWar3D = map.fog
-	var piece: TargetPiece3D = _far_piece(fog)
+	var piece: TargetPiece3D = _far(fog, &"pedestal")
 	assert_not_null(piece, "Una pieza fuera de la vista del ladrón")
 	var memory: FogMemory = get_tree().get_first_node_in_group(&"fog_memories") as FogMemory
 	memory.sample()
@@ -91,10 +91,74 @@ func test_piece_stolen_out_of_view_stays_on_its_pedestal_until_seen() -> void:
 	assert_true(piece.shown_stolen, "Al mirar, se ve")
 
 
-func _far_piece(fog: FogOfWar3D) -> TargetPiece3D:
+## La falsificación se recuerda como el original y su fallo se aplica una sola vez, al mirarla
+func test_forgery_flaw_only_once_when_seen() -> void:
+	var map: HeistMap3D = await _map()
+	var piece: TargetPiece3D = _far(map.fog, &"pedestal")
+	map.fog_memory.sample()
+	var scale0: Vector3 = piece.model.scale
+	piece.apply_net_state({"stolen": true, "flaw": int(TargetPieceLook.Flaw.SIZE)})
+	for i: int in range(5):
+		map.fog_memory.sample()
+	assert_eq(piece.model.scale, scale0, "En la niebla, la de antes")
+	map.thief.global_position = piece.global_position + Vector3(1.0, 0.1, 0.0)
+	await wait_physics_frames(1)
+	map.fog.recompute()
+	for i: int in range(5):
+		map.fog_memory.sample()
+		piece.refresh_look()
+	assert_almost_eq(piece.model.scale.x, scale0.x * TargetPieceLook.SMALL, 0.0001, "Una vez")
+
+
+## Al acabar la partida se retira la niebla y todo se pone al día (vision.md, fin de partida)
+func test_match_end_reveals_what_was_stolen() -> void:
+	var map: HeistMap3D = await _map()
+	var piece: TargetPiece3D = _far(map.fog, &"pedestal")
+	map.fog_memory.sample()
+	piece.apply_net_state({"stolen": true, "flaw": 0})
+	map.fog_memory.sample()
+	assert_true(piece.model.visible)
+	GameManager.current_state = GameManager.MatchState.THIEF_ESCAPED
+	map.fog_memory.sample()
+	assert_false(piece.model.visible, "Al acabar, el pedestal vacío")
+
+
+## La caja fuerte abierta en la niebla sigue cerrada para quien no la ve
+func test_safe_opened_out_of_view_stays_closed_until_seen() -> void:
+	var map: HeistMap3D = await _map()
+	var piece: TargetPiece3D = _far(map.fog, &"safe")
+	if piece == null:
+		pending("Sin caja fuerte lejos del ladrón")
+		return
+	map.fog_memory.sample()
+	piece._process(1.0)
+	assert_false(piece.model.visible)
+	piece.lock.apply_net_state({"opened": true})
+	map.fog_memory.sample()
+	piece._process(1.0)
+	assert_false(piece.model.visible, "Abierta en la niebla: cerrada para mí")
+	map.thief.global_position = piece.global_position + Vector3(1.0, 0.1, 0.0)
+	await wait_physics_frames(1)
+	map.fog.recompute()
+	map.fog_memory.sample()
+	piece._process(1.0)
+	assert_true(piece.model.visible, "Al mirar, abierta")
+
+
+func _map() -> HeistMap3D:
+	var map: HeistMap3D = MAP_SCENE.instantiate() as HeistMap3D
+	add_child_autofree(map)
+	for guard: GuardController3D in map.guards:
+		guard.set_physics_process(false)
+	map.thief.set_physics_process(false)
+	await wait_physics_frames(3)
+	return map
+
+
+func _far(fog: FogOfWar3D, variant: StringName) -> TargetPiece3D:
 	fog.recompute()
 	for node: Node in get_tree().get_nodes_in_group(&"heist_targets"):
 		var piece: TargetPiece3D = node as TargetPiece3D
-		if piece.variant != &"safe" and not fog.is_point_visible(piece.global_position):
+		if piece.variant == variant and not fog.is_point_visible(piece.global_position):
 			return piece
 	return null

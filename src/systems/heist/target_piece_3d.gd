@@ -283,17 +283,17 @@ func _finish_inspect(actor: Node3D) -> void:
 		MatchRecorder.note_examined(get_tree(), actor, self)  # #123: sus puntos
 
 
-## Robada como la conoce el jugador local (#163, vision.md D4): solo cuando ve el pedestal
-func refresh_look() -> void:
+func refresh_look() -> void:  # robada como la ve el jugador local (#163, D4)
 	if not shown_stolen and model != null and bool(FogMemory.shown(self, stolen)):
 		shown_stolen = true
 		model.visible = is_faked()
 		TargetPieceLook.apply_flaw(model, flaw)
-	TargetPieceLook.update_marker(self)
+		TargetPieceLook.update_marker(self)  # si no, la pone al día _process
 
 
-func _looks_whole() -> bool:
-	return (not stolen or is_faked()) and model != null and model.visible
+func _looks_whole() -> bool:  # estado real, no el recordado (#163): es simulación
+	var hidden: bool = variant == &"safe" and _lock_closed()
+	return (not stolen or is_faked()) and model != null and not hidden
 
 
 func _lock_closed() -> bool:
