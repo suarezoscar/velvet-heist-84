@@ -41,8 +41,8 @@ func _ready() -> void:
 func _check_cli_arguments() -> void:
 	var args: PackedStringArray = OS.get_cmdline_args()
 	args.append_array(OS.get_cmdline_user_args())
-	var port: int = NetConfig.cli_port(args, DEFAULT_PORT)
-	if not (args.has("--server") or args.has("--dedicated")):
+	var port: int = NetPeerFactory.dedicated_port(args, DEFAULT_PORT)
+	if port < 0:
 		return
 	print("[NetManager] Modo Servidor Dedicado detectado por CLI en puerto %d" % port)
 	is_dedicated_server = true
@@ -51,12 +51,9 @@ func _check_cli_arguments() -> void:
 
 ## Inicia el servidor dedicado headless
 func start_dedicated_server(port: int = DEFAULT_PORT) -> Error:
-	var peer: ENetMultiplayerPeer = ENetMultiplayerPeer.new()
-	var err: Error = peer.create_server(port, MAX_PLAYERS)
-	if err != OK:
-		var err_str: String = error_string(err)
-		push_error("[NetManager] Error al crear servidor dedicado en %d: %s" % [port, err_str])
-		return err
+	var peer: ENetMultiplayerPeer = NetPeerFactory.create_server(port, MAX_PLAYERS)
+	if peer == null:
+		return FAILED
 	multiplayer.multiplayer_peer = peer
 	_setup_network_signals()
 	is_dedicated_server = true
@@ -75,12 +72,9 @@ func start_host(_port: int = DEFAULT_PORT, _max_players: int = MAX_PLAYERS) -> E
 
 ## Se conecta a un servidor remoto
 func join_server(ip: String = "127.0.0.1", port: int = DEFAULT_PORT) -> Error:
-	var peer: ENetMultiplayerPeer = ENetMultiplayerPeer.new()
-	var err: Error = peer.create_client(ip, port)
-	if err != OK:
-		push_error("[NetManager] Error al conectar a %s:%d: %s" % [ip, port, error_string(err)])
-		return err
-
+	var peer: ENetMultiplayerPeer = NetPeerFactory.create_client(ip, port)
+	if peer == null:
+		return FAILED
 	multiplayer.multiplayer_peer = peer
 	_setup_network_signals()
 	is_dedicated_server = false
