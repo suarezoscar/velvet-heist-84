@@ -257,7 +257,8 @@ func _setup_interactor() -> void:
 
 
 ## Girando el dial de una caja fuerte, las teclas de movimiento solo mueven el dial: el ladrón
-## se queda quieto (y sin girarse, #164) hasta confirmar la combinación o salir con Esc
+## se queda quieto hasta confirmar la combinación o salir con Esc (que no se gire lo decide
+## LocalInput3D.look_target, #164, para que la moneda siga apuntando al ratón)
 func apply_input(input_data: Dictionary) -> void:
 	var piece: Node3D = StealMinigame.piece_of(self)
 	if piece != null:
@@ -266,8 +267,6 @@ func apply_input(input_data: Dictionary) -> void:
 		input_data = input_data.duplicate()
 		input_data["movement_vector"] = Vector2.ZERO
 		input_data["is_sprinting"] = false
-		for key: String in ["look_target", "look_target_position"]:
-			input_data.erase(key)  # A/D giran el dial, no al ladrón
 	super.apply_input(monitor_watch.filter_input(self, input_data))
 
 

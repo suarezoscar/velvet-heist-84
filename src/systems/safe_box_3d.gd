@@ -27,7 +27,8 @@ const STEAL_RULES: StealMinigameRules = preload("res://data/balance/steal_miniga
 ## Pasos a cada lado del número en los que el dial «suena cerca»
 const NEAR_STEPS: int = 2
 ## Con red, ms que el cliente deja de aplicar el dial del servidor tras girarlo él (#164): el
-## estado que llega es de hace un viaje de ida y vuelta y haría retroceder la flecha
+## estado que llega es de hace un viaje de ida y vuelta y haría retroceder la flecha. La
+## corrección depende de que el servidor aplique todos los pasos (RPC fiable y en orden)
 const PREDICT_HOLD_MS: int = 600
 
 ## Combinación mecánica de 3 dígitos (entre 0 y 99)
@@ -259,6 +260,8 @@ func apply_net_state(state: Dictionary) -> void:
 		_spawn_loot_contents()
 
 	if state.has("cracking"):
+		if bool(state["cracking"]) != (current_state == SafeState.CRACKING):
+			_predict_until = 0  # empieza o acaba la sesión: manda el servidor (Esc y volver)
 		if bool(state["cracking"]):
 			current_state = SafeState.CRACKING
 		elif current_state == SafeState.CRACKING:
