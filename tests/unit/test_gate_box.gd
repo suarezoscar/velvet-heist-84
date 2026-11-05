@@ -208,3 +208,21 @@ func test_ai_waiting_at_an_exit_sees_its_box() -> void:
 		await wait_physics_frames(2)
 		assert_eq(GuardExitCover.spot_box(guard), box, "Desde la espera de %s ve su caja" % exit_id)
 		box.step = GateBox3D.Step.WHOLE
+
+
+func test_thief_facing_the_box_can_reach_it() -> void:
+	var map: HeistMap3D = MAP_SCENE.instantiate() as HeistMap3D
+	add_child_autofree(map)
+	for guard: GuardController3D in map.guards:
+		guard.set_physics_process(false)
+	await wait_physics_frames(2)
+	GameManager.current_state = GameManager.MatchState.IN_PROGRESS
+	for exit_id: String in ["P01", "P02", "P03", "P38"]:
+		var box: GateBox3D = map.find_child("GateBox_%s" % exit_id, true, false) as GateBox3D
+		map.thief.global_position = box.global_position + Vector3(0.0, 0.1, -1.0)
+		map.thief.set_physics_process(false)  # que no se gire solo
+		map.thief.rotation.y = PI  # mirando hacia la caja (al sur, +Z)
+		await wait_physics_frames(1)
+		assert_eq(
+			map.thief.interactor._find_best_target(), box, "La E llega a la caja de %s" % exit_id
+		)
