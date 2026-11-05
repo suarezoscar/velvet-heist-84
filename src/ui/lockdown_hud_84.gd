@@ -27,6 +27,11 @@ static func text_for(seconds: float) -> String:
 	return "REJAS %d:%02d" % [whole / 60, whole % 60]
 
 
+## La cifra con las rejas ya cerradas: cuántas salidas quedan abiertas
+static func closed_text(open: int) -> String:
+	return "REJAS CERRADAS · %d %s" % [open, "SALIDA ABIERTA" if open == 1 else "SALIDAS ABIERTAS"]
+
+
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -58,13 +63,15 @@ func _process(delta: float) -> void:
 		return
 	_clock += delta
 	if lockdown.closed:
-		_label.text = "REJAS CERRADAS"
+		_label.text = closed_text(lockdown.open_count())
 		_set_look(WARN_COLOR, 1.0)
-		return
 	var shown: float = lockdown.shown_time()
-	var warn: bool = shown <= RULES.lockdown_warn_at
-	_label.text = text_for(shown)
-	if warn:
+	var warn: bool = not lockdown.closed and shown <= RULES.lockdown_warn_at
+	if not lockdown.closed:
+		_label.text = text_for(shown)
+	if lockdown.closed:
+		pass
+	elif warn:
 		var wave: float = 0.5 + 0.5 * sin(_clock * TAU * PULSE_HZ)
 		_set_look(WARN_COLOR, 1.0 + 0.1 * wave, 0.6 + 0.4 * wave)
 	else:

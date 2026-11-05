@@ -14,6 +14,7 @@ const COLOR: Color = Color("3b3f45")
 const ROLLED: float = 0.12
 
 var width: float = 3.0
+var exit_id: String = ""
 var _bars: Node3D = null
 var _body: StaticBody3D = null
 var _shape: CollisionShape3D = null
@@ -23,6 +24,7 @@ static func create(id: String, gate_width: float) -> ExitGate3D:
 	var gate: ExitGate3D = ExitGate3D.new()
 	gate.name = "Gate_%s" % id
 	gate.width = gate_width
+	gate.exit_id = id
 	return gate
 
 
@@ -67,7 +69,7 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	var lockdown: HeistLockdown = HeistLockdown.of(get_tree())
-	_apply(lockdown.drop_progress() if lockdown != null else 0.0)
+	_apply(lockdown.gate_progress(exit_id) if lockdown != null else 0.0)
 
 
 ## progress: 0 recogida (enrollada bajo el dintel), 1 en el suelo (cerrada)

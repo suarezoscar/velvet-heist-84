@@ -24,6 +24,7 @@ var safe_dial: SafeDial84 = null
 var lockdown_hud: LockdownHud84 = null
 ## Panel del minijuego de robo del ladrón local (#119, LocalViewPresenter)
 var steal_minigame: StealMinigame84 = null
+var gate_box_panel: GateBox84 = null
 
 var _exposure_state: StringName = &""
 var _exposure_blink_timer: float = 0.0
@@ -82,6 +83,8 @@ func _ready() -> void:
 	add_child(lockdown_hud)
 	steal_minigame = StealMinigame84.new()
 	add_child(steal_minigame)
+	gate_box_panel = GateBox84.new()
+	add_child(gate_box_panel)
 
 
 func _process(delta: float) -> void:

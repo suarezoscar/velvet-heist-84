@@ -85,7 +85,11 @@ func can_open() -> bool:
 		return false
 	if _map == null or _map.hud == null:
 		return true
-	for panel: Control in [_map.hud.safe_dial, _map.hud.steal_minigame]:  # allí Esc lo suelta
+	# En estos paneles Esc suelta la tarea, no abre la pausa
+	var panels: Array[Control] = [
+		_map.hud.safe_dial, _map.hud.steal_minigame, _map.hud.gate_box_panel
+	]
+	for panel: Control in panels:
 		if panel != null and panel.visible:
 			return false
 	return true

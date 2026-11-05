@@ -38,6 +38,8 @@ static func kind_of(node: Node) -> StringName:
 		return &"car"
 	if node is LootItem3D:
 		return &"loot"
+	if node is GateBox3D:
+		return &"gate_box"
 	return &""
 
 
@@ -63,6 +65,8 @@ static func icon(on: CanvasItem, kind: StringName, pos: Vector2, prop: Node3D = 
 			ICONS.car(on, pos)
 		&"loot":
 			ICONS.badge(on, pos, ICONS.COLOR_LOOT, &"coins")
+		&"gate_box":
+			ICONS.gate_box(on, pos)
 
 
 ## Cables: con el cursor sobre un interruptor, líneas a sus lámparas.

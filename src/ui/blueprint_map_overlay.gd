@@ -33,6 +33,7 @@ const PROP_LAYER: Dictionary = {
 	&"desk": &"places",
 	&"car": &"places",
 	&"loot": &"places",
+	&"gate_box": &"security",
 }
 
 var data: LevelData = null
@@ -154,6 +155,8 @@ func _draw() -> void:
 		PROPS.draw_wiring(self, _props, _lamps, get_local_mouse_position(), _world, thief_view)
 	if layers[&"security"]:
 		_draw_alarms()
+	if layers[&"places"]:
+		_draw_open_exits()
 	if layers[&"people"]:
 		_draw_player()
 	ICONS.at(self, Vector2.ZERO, 1.0)  # lo que sigue, sin escalar
@@ -216,6 +219,22 @@ func _draw_props(thief_view: bool) -> void:
 			continue
 		if thief_view or not THIEF_ONLY.has(kind):
 			PROPS.icon(self, kind, _at(_world(prop.global_position)), prop if thief_view else null)
+
+
+## Con las rejas cerradas, un marco verde y «ABIERTA» en las salidas que siguen abiertas
+func _draw_open_exits() -> void:
+	var lockdown: HeistLockdown = HeistLockdown.of(get_tree())
+	if lockdown == null or not lockdown.closed or lockdown.open_count() <= 0:
+		return
+	for node: Node in get_tree().get_nodes_in_group(&"heist_exits"):
+		var zone: ExitZone3D = node as ExitZone3D
+		if zone == null or zone.outdoor or not lockdown.exit_open(zone.exit_id):
+			continue
+		var at: Vector2 = _at(_world(zone.global_position))
+		var frame: Rect2 = Rect2(at - Vector2(15.0, 15.0), Vector2(30.0, 30.0))
+		draw_rect(frame, Color(ICONS.COLOR_OK, 0.2))
+		draw_rect(frame, ICONS.COLOR_OK, false, 2.5)
+		ICONS.text_centered(self, at + Vector2(0.0, -20.0), "ABIERTA", 15, ICONS.COLOR_OK)
 
 
 func _draw_vents() -> void:

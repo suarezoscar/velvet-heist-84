@@ -45,6 +45,20 @@ extends Resource
 @export var lockdown_warn_at: float = 10.0
 ## R7b: radio del chirrido y del golpe de las rejas
 @export var gate_radius: float = 10.0
+## R7c (#121): la caja de la reja. Tornillos de la tapa y segundos por tornillo
+@export var box_screws: int = 4
+@export var box_screw_time: float = 1.25
+## R7c: cables que hay que cortar en orden y segundos empalmando tras cortar uno que no toca
+@export var box_wires: int = 4
+@export var box_splice_time: float = 2.0
+## R7c: metros a los que un guardia nota una caja saboteada o a medias
+@export var box_notice_distance: float = 3.0
+## R7c: segundos entre chispas de una caja saboteada (al azar) y radio de su chisporroteo
+@export var box_spark_min: float = 5.0
+@export var box_spark_max: float = 9.0
+@export var box_spark_radius: float = 3.0
+## R7c: segundos que tarda un guardia en reparar la caja
+@export var box_repair_time: float = 8.0
 ## R3: peso del botín: el ladrón pierde esta parte de su velocidad por cada pieza que lleva
 @export var loot_slow: float = 0.05
 ## R3: velocidad mínima con todo el botín (parte de la normal)

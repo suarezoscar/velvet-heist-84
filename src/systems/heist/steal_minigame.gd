@@ -54,24 +54,26 @@ static func start(game_kind: Kind, who: Node3D) -> StealMinigame:
 	return game
 
 
-## Pieza en cuyo minijuego está actor (en el cliente, la que llega con su estado privado:
-## solo hay un ladrón)
-static func piece_of(who: Node3D) -> TargetPiece3D:
+## Pieza (o caja de la reja, #121) en cuyo minijuego está actor (en el cliente, la que llega
+## con su estado privado: solo hay un ladrón). Las dos tienen game, is_playing, minigame_action,
+## steer y minigame_view
+static func piece_of(who: Node3D) -> Node3D:
 	if who == null or not who.is_inside_tree():
 		return null
-	for node: Node in who.get_tree().get_nodes_in_group(&"heist_targets"):
-		var piece: TargetPiece3D = node as TargetPiece3D
-		if piece != null and piece.is_playing():
-			if piece.game == null or piece.game.actor == who:
-				return piece
+	for group: StringName in [&"heist_targets", &"gate_boxes"]:
+		for node: Node in who.get_tree().get_nodes_in_group(group):
+			if bool(node.call(&"is_playing")):
+				var game: Variant = node.get(&"game")
+				if game == null or (game as Object).get(&"actor") == who:
+					return node as Node3D
 	return null
 
 
 ## Cierra el minijuego que esté jugando who (golpe de porra, Q, desconexión)
 static func cancel_for(who: Node3D) -> void:
-	var piece: TargetPiece3D = piece_of(who)
-	if piece != null and piece.game != null:
-		piece.game = null
+	var node: Node3D = piece_of(who)
+	if node != null and node.get(&"game") != null:
+		node.set(&"game", null)
 
 
 ## Sin red, las teclas del ladrón local que no son movimiento: soltar E y Esc

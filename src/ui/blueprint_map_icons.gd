@@ -194,6 +194,15 @@ static func exit_door(on: CanvasItem, pos: Vector2, size: float = 20.0) -> void:
 	sticker(on, pos, &"exit_door", size, COLOR_OK)
 
 
+## Caja de la reja: rectángulo pequeño con una «R» (sin estado)
+static func gate_box(on: CanvasItem, pos: Vector2) -> void:
+	var box: Rect2 = Rect2(pos - Vector2(9.0, 10.0), Vector2(18.0, 20.0))
+	on.draw_rect(box.grow(2.0), COLOR_OUTLINE)
+	on.draw_rect(box, Color(COLOR_POST, 0.45))
+	on.draw_rect(box, COLOR_POST, false, 2.0)
+	glyph(on, pos, "R", 15, COLOR_YOU)
+
+
 ## Pieza: pegatina de su protección (guardias) o del diamante del encargo (ladrón)
 static func piece(on: CanvasItem, pos: Vector2, kind: StringName, color: Color) -> void:
 	sticker(on, pos, kind, 24.0, color)

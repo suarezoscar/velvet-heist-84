@@ -15,6 +15,10 @@ extends Resource
 @export var thief_seen: int = -10
 ## Por la huida a medias (con la alarma, por una salida abierta con parte del botín)
 @export var thief_partial_escape: int = 50
+## Por cada caja de reja que dejó saboteada al acabar
+@export var thief_sabotage: int = 30
+## Por huir por una reja que seguía arriba gracias al sabotaje (con la alarma, rejas cerradas)
+@export var thief_sabotage_escape: int = 60
 
 @export_group("Guardias")
 ## Por cada vez que empezó a ver al ladrón
@@ -29,3 +33,5 @@ extends Resource
 @export var guard_protect: int = 60
 ## Al encerrar al ladrón (las rejas bajan con él dentro)
 @export var guard_lockdown: int = 100
+## Por cada caja de reja saboteada que reparó
+@export var guard_repair: int = 40

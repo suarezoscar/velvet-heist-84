@@ -40,6 +40,7 @@ func test_kind_of_maps_each_prop() -> void:
 		[Lamp3D.new(), &"lamp"],
 		[EscapeCar3D.new(), &"car"],
 		[LootItem3D.new(), &"loot"],
+		[GateBox3D.new(), &"gate_box"],
 		[Node3D.new(), &""],
 	]
 	for pair: Array in pairs:

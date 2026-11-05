@@ -99,6 +99,7 @@ func build_report() -> Dictionary:
 					"hits": int(guard.get_meta(HITS_META, 0)),
 					"capture": bool(guard.get_meta(CAPTURE_META, false)),
 					"naps": int(_naps.get(String(guard.name), 0)),
+					"repairs": int(guard.get_meta(GateBox3D.REPAIRS_META, 0)),
 					"protected": protected_pieces,
 					"locked_in": locked_in,
 				}
@@ -141,8 +142,11 @@ func _thief_report(seen: int) -> Dictionary:
 	var alert: AlertDirector = AlertDirector.of(get_tree())
 	var escaped: bool = GameManager.current_state == GameManager.MatchState.THIEF_ESCAPED
 	var partial: bool = GameManager.current_state == GameManager.MatchState.THIEF_ESCAPED_PARTIAL
+	var lockdown: HeistLockdown = HeistLockdown.of(get_tree())
 	return {
 		"name": _thief_name(),
+		"sabotaged": _sabotaged_boxes(),
+		"sabotage_escape": lockdown != null and lockdown.sabotage_escape,
 		"pieces": pieces,
 		"alarms": alert.alarm_triggers if alert != null else 0,
 		"coins": coins_used,
@@ -151,6 +155,16 @@ func _thief_report(seen: int) -> Dictionary:
 		"partial": partial,
 		"time": GameManager.match_duration_seconds - GameManager.match_timer,
 	}
+
+
+## Cajas de reja que siguen saboteadas al acabar
+func _sabotaged_boxes() -> int:
+	var count: int = 0
+	for node: Node in get_tree().get_nodes_in_group(&"gate_boxes"):
+		var box: GateBox3D = node as GateBox3D
+		if box != null and box.is_sabotaged():
+			count += 1
+	return count
 
 
 func _guards() -> Array[GuardController3D]:

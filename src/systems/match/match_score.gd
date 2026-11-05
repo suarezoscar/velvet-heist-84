@@ -23,6 +23,14 @@ static func thief(report: Dictionary, rules: ScoreRules = RULES) -> Dictionary:
 				1 if bool(report.get("partial", false)) else 0,
 				rules.thief_partial_escape
 			),
+			_line(
+				"Cajas de reja saboteadas", int(report.get("sabotaged", 0)), rules.thief_sabotage
+			),
+			_line(
+				"Huida por una reja saboteada",
+				1 if bool(report.get("sabotage_escape", false)) else 0,
+				rules.thief_sabotage_escape
+			),
 			_line("Alarmas", int(report.get("alarms", 0)), rules.thief_alarm),
 			_line("Visto por un guardia", int(report.get("seen", 0)), rules.thief_seen),
 		]
@@ -38,6 +46,7 @@ static func guard(report: Dictionary, rules: ScoreRules = RULES) -> Dictionary:
 			_line("Captura", 1 if bool(report.get("capture", false)) else 0, rules.guard_capture),
 			_line("Cabezadas", int(report.get("naps", 0)), rules.guard_nap),
 			_line("Piezas protegidas", int(report.get("protected", 0)), rules.guard_protect),
+			_line("Cajas reparadas", int(report.get("repairs", 0)), rules.guard_repair),
 			_line(
 				"Encerrado", 1 if bool(report.get("locked_in", false)) else 0, rules.guard_lockdown
 			),
