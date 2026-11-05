@@ -67,7 +67,7 @@ El servidor decide; cada cliente solo recibe lo que su jugador ve.
 | Moneda en vuelo (FEAT-038) | El ladrón siempre; cada guardia despierto | Al lanzarse (no fiable), si la salida o la caída están en su zona visible (`CoinFlightPresenter.view_for`). Quien no ve la salida recibe solo el tramo desde donde entra en su vista: sabe de qué lado viene, no desde dónde se lanzó. El ruido va aparte, al caer |
 | Botín, lámparas, caja fuerte (sin relojes desde #116) | Todos | Como hoy. La memoria de R2 la aplica el cliente al dibujar (D4). Sin filtro en el servidor en el PoC: hacer trampa con eso vale poco |
 
-- **Coste**: para cada guardia, entre 1 y 3 rayos ladrón-guardia por tick de snapshot (20 Hz). El polígono que se dibuja lo calcula cada cliente para su propio jugador: unos `fog_rays` rayos a 30 Hz.
+- **Coste**: para cada guardia, entre 1 y 3 rayos ladrón-guardia por tick de snapshot (20 Hz). El polígono que se dibuja lo calcula cada cliente para su propio jugador: unos `fog_rays` rayos en cada fotograma en que se mueve (#161; antes a 30 Hz).
 
 ### R5. Casos límite
 - **Esquinas y marcos de puerta**: la vista pasa por el hueco. Un guardia pegado a la pared de al lado del marco queda en la niebla.
@@ -87,9 +87,11 @@ El servidor decide; cada cliente solo recibe lo que su jugador ve.
 | Radio de visión del ladrón | `thief_view_radius` | sensación | 12-25 m | 18. Cubre una galería entera y lo que asoma por su puerta. Mayor que el de los guardias (pilar 3, visión amplia) |
 | Radio de visión del guardia | `guard_view_radius` | sensación | 9-15 m | 12. Igual que `lit_sight_range`: el guardia ve el entorno hasta donde podría ver al ladrón iluminado |
 | Vista a oscuras del ladrón | `dark_sight_radius` | ritmo | 3-9 m | 6. Un guardia quieto a oscuras se descubre a dos pasos de una puerta; más lejos solo se le oye (pasos ×1,5) |
-| Brillo de la niebla | `fog_brightness` | sensación | 0,2-0,6 | 0,35. El plano se lee, pero se nota que es «recuerdo» |
+| Brillo de la niebla | `fog_brightness` | sensación | 0,2-0,6 | 0,5 (#161, antes 0,35: menos contraste en el borde, que barría las paredes al andar junto a un hueco). El plano se lee, pero se nota que es «recuerdo» |
 | Desaturación de la niebla | `fog_desaturation` | sensación | 0,4-1,0 | 0,7. Gris de foto vieja, a juego con el tono neo-noir |
-| Borde suave | `fog_edge_feather` | sensación | 0,3-2,0 m | 1,0. Sin corte duro: la vista se apaga al girar una esquina |
+| Borde suave | `fog_edge_feather` | sensación | 0,3-4,0 m | 3,0 (#161, antes 1,0). Sin corte duro: la vista se apaga al girar una esquina |
+| Fundido del borde | `fog_fade_time` | sensación | 0-0,5 s | 0,3 (#161). Al moverse, el borde se funde hacia la zona nueva en vez de saltar; lo oculto en la niebla sigue ese mismo borde |
+| Rendijas de un rayo | `fog_drop_slivers` | sensación | sí/no | sí (#161). Una cuña de un solo rayo de ancho (un hueco lejano) no cuenta como visible |
 | Rayos del polígono | `fog_rays` | técnico | 8-256 | 256. Bordes limpios a 30 Hz: unos 0,6 ms por recálculo en `museum_v2`, y solo se recalcula si el jugador se mueve |
 | Luz que atraviesa la niebla | `fog_light_keep` | técnico | 0,7-1,5 | 0,9. Canal más brillante de un píxel a partir del cual no se oscurece: pilotos y bombillas se ven en la niebla (D5); el suelo iluminado, no |
 

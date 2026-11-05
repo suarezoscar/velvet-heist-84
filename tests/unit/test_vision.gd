@@ -160,3 +160,31 @@ func test_loot_memory_ghost_until_seen() -> void:
 	assert_true(memory.is_hidden(fresh), "Lo nuevo tras el tabique no aparece hasta verlo")
 	fresh.visible = true
 	assert_true(memory.is_hidden(fresh), "Aunque la red toque la raíz, sigue oculto")
+
+
+func test_single_ray_slivers_are_dropped() -> void:
+	var rays: PackedFloat32Array = PackedFloat32Array([3.0, 3.0, 15.0, 3.0, 3.0, 15.0, 15.0, 3.0])
+	var out: PackedFloat32Array = FogOfWar3D.drop_slivers(rays, rays.size())
+	assert_eq(out[2], 3.0, "Rendija de un rayo: fuera")
+	assert_eq([out[5], out[6]], [15.0, 15.0], "Un hueco de dos rayos se queda")
+	assert_eq(out[0], 3.0)
+
+
+func test_fog_edge_fades_instead_of_jumping() -> void:
+	var thief: ThiefController3D = _actor(THIEF_SCENE, Vector3(4.0, 0.0, 4.0)) as ThiefController3D
+	var fog: FogOfWar3D = FogOfWar3D.new()
+	add_child_autofree(fog)
+	fog.viewer = thief
+	await wait_physics_frames(2)
+	fog.recompute()
+	fog.set_process(false)  # el test lleva el tiempo a mano
+	var before: PackedFloat32Array = fog.distances.duplicate()
+	thief.global_position = Vector3(10.0, 0.0, 4.0)  # otra sala: la zona cambia de golpe
+	await wait_physics_frames(1)
+	fog.recompute(false)
+	assert_true(fog.distances == before, "Sin fundir aún, el borde no salta")
+	fog._blend(RULES.fog_fade_time * 0.5)
+	assert_true(fog.distances != before and fog.distances != fog._target, "A medias")
+	for i: int in range(30):
+		fog._blend(RULES.fog_fade_time)
+	assert_true(fog.distances == fog._target, "Llega a la zona nueva")

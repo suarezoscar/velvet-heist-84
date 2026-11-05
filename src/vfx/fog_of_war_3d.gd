@@ -2,6 +2,9 @@
 ## Niebla de guerra (vision.md R1-R2): malla de pantalla completa (fog_of_war.gdshader) hija de
 ## la cámara del mapa. Calcula la zona visible del jugador local con fog_rays rayos contra la
 ## capa de muros y se la pasa al shader como distancia por ángulo. Se apaga al acabar la partida.
+## #161 (parpadeo al andar): se recalcula cada fotograma, se quitan las rendijas de un solo rayo
+## y el borde se funde en RULES.fog_fade_time s hacia la zona nueva en vez de saltar; lo que
+## responde is_point_visible (lo oculto en la niebla) es ese mismo borde fundido.
 class_name FogOfWar3D
 extends MeshInstance3D
 
@@ -11,17 +14,19 @@ const SHADER: Shader = preload("res://assets/shaders/fog_of_war.gdshader")
 const FOG_LAYER: int = 19
 ## Tamaño del array del shader (fog_rays no puede pasar de aquí)
 const MAX_RAYS: int = 256
-const UPDATE_INTERVAL: float = 1.0 / 30.0
 ## Margen (m) tras el choque con un muro para que su cara visible no quede en la niebla
 const WALL_MARGIN: float = 0.35
 
 ## Personaje desde el que se ve (el jugador local); null apaga la niebla
 var viewer: Node3D = null
+## Borde que se dibuja (y el que oculta), fundiéndose hacia _target
 var distances: PackedFloat32Array = PackedFloat32Array()
+## Zona visible que dan los rayos ahora
+var _target: PackedFloat32Array = PackedFloat32Array()
+var _settled: bool = false
 var _ray_count: int = 0
 var _eye: Vector3 = Vector3.ZERO
 var _radius: float = 0.0
-var _timer: float = 0.0
 var _material: ShaderMaterial = null
 var _query: PhysicsRayQueryParameters3D = null
 
@@ -47,6 +52,8 @@ func _ready() -> void:
 	_ray_count = clampi(RULES.fog_rays, 8, MAX_RAYS)
 	distances.resize(MAX_RAYS)
 	distances.fill(0.0)
+	_target.resize(MAX_RAYS)
+	_target.fill(0.0)
 	_query = PhysicsRayQueryParameters3D.new()
 	_query.collision_mask = LevelArchitectureBuilder.LAYER_WALLS
 
@@ -54,14 +61,14 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	visible = is_active()
 	if not visible:
+		_settled = false
 		return
-	_timer -= delta
-	if _timer > 0.0:
-		return
-	_timer = UPDATE_INTERVAL
 	# Los muros no se mueven: si los ojos y el radio siguen igual, la zona tampoco cambia
 	if VisionLogic.eye(viewer) != _eye or VisionLogic.view_radius(viewer) != _radius:
-		recompute()
+		recompute(not _settled)  # la primera vez, de golpe: no se funde desde nada
+	elif not _settled:
+		recompute(true)
+	_blend(delta)
 
 
 ## true si hay a quién seguir y la partida no ha terminado
@@ -74,13 +81,14 @@ func is_active() -> bool:
 	)
 
 
-## Recalcula la zona visible desde los ojos del espectador y actualiza el shader
-func recompute() -> void:
+## Recalcula la zona visible desde los ojos del espectador; con snap, el borde salta a ella (los
+## tests y la primera vez), si no se funde en _blend
+func recompute(snap: bool = true) -> void:
 	_eye = VisionLogic.eye(viewer)
 	_radius = VisionLogic.view_radius(viewer)
 	var space: PhysicsDirectSpaceState3D = viewer.get_world_3d().direct_space_state
 	for i: int in range(MAX_RAYS):
-		distances[i] = _radius
+		_target[i] = _radius
 	for i: int in range(_ray_count):
 		var angle: float = TAU * float(i) / float(_ray_count)
 		var target: Vector3 = _eye + Vector3(cos(angle), 0.0, sin(angle)) * _radius
@@ -90,11 +98,40 @@ func recompute() -> void:
 		if not hit.is_empty():
 			var at: Vector3 = hit["position"]
 			var reach: float = Vector2(at.x - _eye.x, at.z - _eye.z).length() + WALL_MARGIN
-			distances[i] = minf(reach, _radius)
+			_target[i] = minf(reach, _radius)
+	if RULES.fog_drop_slivers:
+		_target = drop_slivers(_target, _ray_count)
+	if snap:
+		distances = _target.duplicate()
+		_settled = true
 	_material.set_shader_parameter("distances", distances)
 	_material.set_shader_parameter("ray_count", _ray_count)
 	_material.set_shader_parameter("eye_xz", Vector2(_eye.x, _eye.z))
 	_material.set_shader_parameter("view_radius", _radius)
+
+
+## Un rayo que llega más lejos que sus dos vecinos es una rendija de un rayo de ancho (una cuña
+## fina por un hueco lejano): se recorta al más largo de los dos
+static func drop_slivers(rays: PackedFloat32Array, count: int) -> PackedFloat32Array:
+	var out: PackedFloat32Array = rays.duplicate()
+	for i: int in range(count):
+		var longest: float = maxf(rays[(i + count - 1) % count], rays[(i + 1) % count])
+		out[i] = minf(rays[i], longest)
+	return out
+
+
+## Funde el borde dibujado hacia la zona de los rayos (~95 % en RULES.fog_fade_time s)
+func _blend(delta: float) -> void:
+	if distances == _target:
+		return
+	var weight: float = 1.0
+	if RULES.fog_fade_time > 0.0:
+		weight = 1.0 - exp(-3.0 * delta / RULES.fog_fade_time)
+	for i: int in range(_ray_count):
+		distances[i] = lerpf(distances[i], _target[i], weight)
+		if absf(distances[i] - _target[i]) < 0.01:
+			distances[i] = _target[i]
+	_material.set_shader_parameter("distances", distances)
 
 
 ## true si el punto queda dentro de la zona visible (la misma cuenta que el shader, sin borde)
