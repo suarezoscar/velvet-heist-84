@@ -3,6 +3,7 @@
 - **Estado**: aprobado por el usuario el 2026-10-28 (decisiones tomadas en conversación). **2026-11-04, #119, aprobado por el usuario el 2026-11-04**: R9 reescrita (todo lo necesario para robar está en la pieza: minijuego con E, Q a lo bruto; fuera las mesas de copias, cuadros eléctricos de las alas y panel de pilotos) y R1, R6, R7, R11, números, contrajuego y casos límite ajustados. **2026-10-30, #116**: R4, R5, R7 y R11 reescritas y R5c y R5d nuevas (fuera relojes y rondas; sueño fuera de la garita; IA de patrulla libre; correr solo con alarma). Las reglas las decidió el usuario en la entrevista de #116; los números nuevos los aprobó el 2026-11-04. **2026-11-04, #118**: «cámara vigilada» pasa a ser la cámara que está en pantalla en la mesa (una cada vez, `interaction.md` M5); R5, R6, R7 y el contrajuego ajustados.
 - **2026-11-04, #120, aprobado por el usuario el 2026-11-04**: con la alarma, el ladrón tiene `lockdown_time` s para huir con lo que lleve; después bajan las rejas de las 4 salidas. R3 y R4 reescritas, R4b y R7b nuevas, R11 (informe y puntos, con «proteger» y «encerrado» traídos de #123), números, contrajuego, casos límite, red, nivel y «Qué medir» ajustados. La regla la decidió el usuario tras el playtest; los detalles los propuso `game-designer` y el usuario los aprobó (ver «Decisiones (usuario, 2026-11-04, #120)»).
 - **2026-11-05, #121, aprobado por el usuario el 2026-11-05**: el ladrón puede sabotear la caja de la reja de cada salida para que esa reja no baje con la alarma. R7c nueva; R3, R4, R7b, R11 (puntos e informe), números, contrajuego, casos límite, red, nivel y «Qué medir» ajustados. La regla es del usuario (issue #121, tras el playtest); los detalles los propuso `game-designer` y el usuario los aprobó (ver «Decisiones (usuario, 2026-11-05, #121)»).
+- **2026-11-05, #123, aprobado por el usuario el 2026-11-05**: los puntos de los dos bandos. Las reglas las decidió el usuario en la entrevista de #123 (2026-11-05): piezas por fracción del encargo, puntuación individual y de equipo, puntos nuevos de guardias y ladrón y puntuación en vivo. Los números, la definición de «puntos de equipo» y la tabla de escenarios los propone `game-designer`. R4b y R11 (puntos) reescritas; números, casos límite y «Qué medir» ajustados (ver «Puntos (#123)»).
 - **Origen**: rediseño pedido por el usuario el 2026-10-28 para que los guardias no acampen en un sitio y para que su turno sea divertido. Temática: `docs/decisions/2026-10-28-tematica-caballero-ladron.md`.
 - **Relacionado**: `interaction.md` (CCTV; su parte R, relojes de ronda, se retiró el 2026-10-30, #116), `vision.md` (niebla y filtro de red), `stealth.md` (percepción y ruido), `gentleman.md` (temática; sus M1-M3 quedan sustituidas por este documento), `docs/gdd/levels/museum_v2.md`.
 
@@ -60,7 +61,7 @@ El número es el del encargo. La carta no da ninguna pista de cuáles son.
 | Resultado | Sello | Cuándo |
 |---|---|---|
 | **Gana el ladrón** | «ESCAPADO» | Huida completa (R3): sale con todo el encargo, con o sin alarma, antes de que acabe el tiempo y de que bajen las rejas |
-| **Gana quien tenga más puntos**, o empate (#120) | «HUIDA A MEDIAS» | Huida a medias (R3): con la cuenta atrás en marcha, sale con al menos 1 pieza del encargo pero sin todas |
+| **Gana quien tenga más puntos**, o empate (#120; con #123, el ladrón contra la puntuación de equipo de los guardias, R4b) | «HUIDA A MEDIAS» | Huida a medias (R3): con la cuenta atrás en marcha, sale con al menos 1 pieza del encargo pero sin todas |
 | **Ganan los guardias** | «CAPTURADO» | Lo atrapan (la porra, como hoy) |
 | **Ganan los guardias** (#120) | «ENCERRADO» | Bajan las rejas (R7b) con el ladrón dentro del edificio, también si está en un conducto, y no queda ninguna salida abierta (con #121, R7c: también cuando baja la última reja saboteada al repararla) |
 | **Ganan los guardias** (#120) | «SIN BOTÍN» | Bajan las rejas con el ladrón fuera, en el callejón, sin ninguna pieza y sin ninguna salida abierta (decisión 2 de #120; R7c) |
@@ -69,27 +70,52 @@ El número es el del encargo. La carta no da ninguna pista de cuáles son.
 - Desde #116 no hay «ronda rota» (`TIME_EXPIRED_BREACH` y `TIME_EXPIRED_DRAW` siguen sin uso). Con #120 vuelve a haber **empate, solo en la huida a medias**.
 - **Por qué**: sin relojes, el tiempo es la presión del ladrón; la de los guardias es que, si se quedan en la garita, él se lleva el encargo sin que nadie lo vea (R5, «Presión sobre los guardias»). Con #120, la alarma deja de ser «ya da igual, que me pillen»: es el momento de decidir entre una pieza más o salir con lo puesto.
 
-#### R4b. Quién gana la huida a medias (#120)
+#### R4b. Quién gana la huida a medias (#120; reescrita con #123, aprobado por el usuario el 2026-11-05)
+> Reglas del usuario (#123, entrevista del 2026-11-05): las piezas cuentan por fracción del encargo, con una bolsa de 300; cada jugador tiene su puntuación individual completa, y en la huida a medias el ladrón se compara con la **puntuación de equipo** de los guardias. La definición de «puntos de equipo», el redondeo y los números los propone `game-designer`.
+
+**Puntos de equipo y puntos personales.** Los puntos de los guardias son de dos clases:
+- **De equipo**: los que gana el equipo entero por cómo acaba la noche, no un guardia por lo que hace él. Son dos **bolsas**, y nada más:
+  - **proteger**: `team_protect_pool` × (k − s) / k, con s piezas del encargo robadas (300 × lo que queda en su sitio);
+  - **encerrado**: `team_lockdown_pool`, si la partida acaba en «ENCERRADO» (nunca en una huida a medias).
+- **Personales**: todo lo que hace cada guardia (alarma, verlo, engaños, walkie, golpe, captura, reparar, cabezadas y el −30 por un robo cerca; R11). La captura y el golpe son de quien los da, aunque el cerco sea de todos.
+
+Con eso salen dos puntuaciones:
+- **Individual** de cada guardia (su ficha del informe, «MEJOR DE LA NOCHE» y, más adelante, las rondas): sus personales + **su parte** de cada bolsa, `redondear(bolsa / G)`.
+- **De equipo** (solo en la huida a medias): las bolsas **una vez** + los personales de todos entre √G. No se suman las partes de las fichas: si se sumaran, la bolsa contaría dos veces.
+
 ```
-P_ladrón   = total del ladrón en el informe (R11)
-P_guardias = redondear( (Σ total de cada guardia) / G )
-gana el ladrón si P_ladrón > P_guardias · ganan los guardias si P_ladrón < P_guardias · empate si son iguales
+P_ladrón = total individual del ladrón (R11)
+P_equipo = redondear( team_protect_pool × (k − s) / k  +  (Σ personales de los guardias) / √G )
+gana el ladrón si P_ladrón > P_equipo · ganan los guardias si P_ladrón < P_equipo · empate si son iguales
 ```
 | Variable | Significado | Fuente |
 |---|---|---|
-| `P_ladrón` | Sus puntos: piezas, huida a medias, alarmas y veces que lo vieron (R11) | `score_rules.tres` |
-| `P_guardias` | La **media de los guardias**: la suma de los totales de cada ficha de guardia del informe (con sus negativos y con «proteger», R11) entre su número, redondeada al entero más cercano (los ,5 hacia arriba). Lo que se compara es lo que se enseña | `score_rules.tres` |
-| `G` | Guardias con ficha en el informe: humanos y de IA, los que siguen en la partida al acabar | estado de la partida |
+| `P_ladrón` | Su total individual: piezas, huida a medias, huida rápida, despistes, robo limpio, sabotaje, alarmas, vistas y golpes (R11) | `score_rules.tres` |
+| `P_equipo` | La puntuación de equipo, la que sale en el veredicto | resultado, entero |
+| `k`, `s` | Piezas del encargo (R1) y piezas del encargo en el maletín al acabar | estado del golpe |
+| `team_protect_pool` | La bolsa de las piezas: 300, la misma que la del ladrón (`thief_piece_pool`) | `score_rules.tres` |
+| `Σ personales` | La suma de los puntos personales de cada guardia con ficha, con sus negativos | `score_rules.tres` |
+| `G` | Guardias con ficha al acabar: humanos y de IA, los que siguen en la partida | estado de la partida |
 
-Rango: el ladrón saca en una huida a medias entre 100 × 1 + 50 − 25 − 10 × v (1 pieza, una alarma, visto v veces) y 100 × (k − 1) + 50, con k piezas del encargo. Cada guardia cobra «proteger» (`guard_protect`, +60) por cada pieza del encargo que sigue en su sitio, así que la media de los guardias parte de 60 × (k − s), con s piezas robadas, y sube +12,5 (2 guardias) por cada vez que alguno lo vio. Punto de equilibrio con una alarma y sin más puntos por ningún lado: `100 s + 25 = 60 (k − s)`, es decir `s = (60 k − 25) / 160` piezas:
+- **Rango** (huida a medias): «proteger» va de 300 / k (s = k − 1) a 300 × (k − 1) / k (s = 1), de 75 a 225; los personales entre √G suman de −50 a +300 en partidas normales (tabla de escenarios: de 3 a 175). El ladrón va de ~90 (1 pieza de 4 y una persecución) a ~400 (3 de 4, sin descubrir y deprisa).
+- **Redondeo**: uno solo, al final, al entero más cercano y con los ,5 hacia arriba (como en #120); √G y la división van sin redondear. La parte de cada ficha se redondea igual, por separado, así que las fichas pueden no sumar justo la bolsa (con 4 guardias y 150 de «proteger», 37,5 → 38 cada uno). Se compara lo que se enseña.
+- **Por qué √G**: la media de #120 (dividir entre G) hacía que más guardias no sumaran más; sumar sin dividir haría que 3 guardias valieran el triple que uno. Con √G el equipo crece con su número, pero menos deprisa. Y lo que mueve una pieza de un bando a otro (600 / k: 150, 200 y 300 con 1, 2 y 3 guardias) crece al mismo ritmo que √G (150 / 1, 200 / 1,41 y 300 / 1,73 dan 150, 141 y 173): la misma partida pesa parecido sea cual sea el número de guardias.
+- **El equilibrio** (lo pidió el usuario): una **huida limpia** (una alarma porque un guardia lo ve una vez, y nada más) empata justo en la mitad del encargo, s = k/2, con cualquier número de guardias. En s = k/2 las piezas se anulan (el ladrón cobra 150 y «proteger» vale 150), así que el empate pide que la huida a medias compense la alarma de los dos lados: `E(G) = −thief_alarm − thief_seen + guard_alarm / √G`. Con −15, −10 y +50, `E(G)` = **75, 60, 54 y 50** con 1, 2, 3 y 4 guardias (`thief_partial_escape_by_guards`). Como las piezas se anulan en s = k/2 para cualquier k, el empate se mantiene aunque un guardia se desconecte (k no cambia y G sí; `E` y √G usan el mismo G).
 
-| Guardias | Encargo k | Equilibrio s | Huida a medias con 1 pieza (sin más puntos) |
-|---|---|---|---|
-| 1 | 4 | 1,3 | ladrón 125, guardia 180: **ganan los guardias**; con 2 piezas, 225 a 120 para el ladrón |
-| 2 | 3 | 1,0 | ladrón 125, media 120: **gana el ladrón por poco**; cada vez que lo ven (−10 y +12,5 de media) le da la vuelta |
-| 3 | 2 | 0,6 | ladrón 125, media 60: **gana el ladrón** con holgura. Es el caso a vigilar en el playtest («Qué medir») |
+| Guardias | Encargo k | Una pieza para el ladrón (300 / k) | Huida a medias `E` | Huida limpia con s = k/2 | Con una pieza menos | Con una pieza más |
+|---|---|---|---|---|---|---|
+| 1 | 4 | 75 | 75 | s = 2: **empate a 200** | s = 1: guardias, 275 a 125 | s = 3: ladrón, 275 a 125 |
+| 2 | 3 | 100 | 60 | s = 1,5 no existe: el corte cae entre 1 y 2 | s = 1: guardias, 235 a 135 | s = 2: ladrón, 235 a 135 |
+| 3 | 2 | 150 | 54 | s = 1: **empate a 179** | — | — |
+| 4 (k como con 3, R1) | 2 | 150 | 50 | s = 1: **empate a 175** | — | — |
 
-Ejemplo (2 guardias, encargo de 3): el ladrón roba 1 pieza en silencio, el guardia A lo ve (alarma) y el ladrón huye a medias. Ladrón: 100 + 50 − 25 − 10 = **115**. Guardia A: 2 piezas en su sitio × 60 + 25 por verlo = 145; guardia B: 120 − 15 (una cabezada) = 105. Media: 250 / 2 = **125**. El informe: «Huida a medias: ganan los guardias, 125 a 115». Si hubiera robado 2 piezas: ladrón 200 + 50 − 25 − 10 = 215; guardias A 60 + 25 = 85 y B 60 − 15 = 45, media 65; «Huida a medias: gana el ladrón, 215 a 65».
+Con 3 o 4 guardias el encargo es de 2, así que toda huida a medias es de 1 pieza, justo la mitad: la deciden solo las acciones de cada bando. Es lo que se busca (la huida a medias es un duelo de juego), y la tabla de escenarios («Puntos (#123): tabla de escenarios») comprueba que ninguna acción suelta la decide siempre.
+
+Ejemplo (2 guardias, encargo de 3, la partida «media» de la tabla de escenarios): el ladrón roba 2 piezas. El guardia A lo ve (alarma) y después pone una marca de walkie que acierta; el guardia B lo vuelve a ver más tarde (segunda alarma), le da un golpe, repara una caja y da una cabezada. El ladrón los despista una vez y sale con 10 s de cuenta atrás.
+- Ladrón: 300 × 2/3 + 60 − 15 × 2 − 10 × 2 − 20 + 25 + 2 × 10 = 200 + 60 − 30 − 20 − 20 + 25 + 20 = **235**.
+- Personales: A, 50 + 30 = 80; B, 25 + 50 + 40 − 15 = 100. Equipo: 300 × 1/3 + 180 / √2 = 100 + 127,3 = 227,3 → **227**.
+- Veredicto: «Huida a medias: gana el ladrón, 235 a 227». Fichas: A, 80 + 50 = 130; B, 100 + 50 = 150; el ladrón, 235, es «MEJOR DE LA NOCHE».
+- Con la misma partida y 1 sola pieza: ladrón 135, equipo 200 + 127 = 327; ganan los guardias.
 
 ### R5. El sueño y el café (reescrita el 2026-10-30, #116; sustituye a la regla de acampar)
 - **La garita** es la sala del nivel marcada como puesto de los guardias: en `museum_v2`, el rectángulo entero de GAR (8 × 6 m, con la cafetera y la mesa de monitores). Todo lo demás es «fuera», también el vestuario, el pasillo de servicio y el umbral de la puerta P20. Dato de nivel nuevo: `"guard_post": true` en la sala (`data/levels/museum_v2.json`).
@@ -290,17 +316,55 @@ Rango: con los valores propuestos (4 tornillos de 1,25 s, 4 cables, 2 s de empal
 - **Respuesta**: reparar cuesta 8 s, la mitad que sabotear, y da +40. Las cuatro cajas están en el muro sur, en salas por las que se pasa. Con las rejas cerradas, los guardias saben qué salidas siguen abiertas y corren a repararlas (~7 s de carrera y 8 s de reparación): el sabotaje compra **unos 15 s de huida extra por salida**, no una partida sin cuenta atrás. Con 2 guardias, sabotear 3 o 4 cajas sí los desborda: es el caso a vigilar («Qué medir»).
 - **Sin alarma, el sabotaje no da nada** salvo los +30 por caja, que solo cuentan para «MEJOR DE LA NOCHE»: sin alarma no hay huida a medias (R3), y la huida completa o el final por tiempo deciden la partida sin puntos (R4b).
 
-### R11. Informe de la noche (FEAT-041; sin relojes ni faltas desde el 2026-10-30, #116)
+### R11. Informe de la noche (FEAT-041; sin relojes ni faltas desde el 2026-10-30, #116; puntos de #123 aprobados el 2026-11-05)
 - Al acabar la partida, todos los personajes se quedan quietos y el informe ocupa la pantalla: primero un sello 1,5 s («ESCAPADO», «HUIDA A MEDIAS», «CAPTURADO», «ENCERRADO», «SIN BOTÍN» o «AMANECE»; #120 añade los tres nuevos), después el veredicto y una ficha por jugador.
-- **Veredicto de la huida a medias** (#120): como siempre «HAS GANADO», «HAS PERDIDO» o «EMPATE» según el bando local, y debajo la cuenta de R4b: «Huida a medias: gana el ladrón, 215 a 65», «Huida a medias: ganan los guardias, 125 a 115» o «Huida a medias: empate a 120». El primer número es siempre el del bando que gana (en el empate, uno solo).
-- **Ladrón**: (con #121) las rejas saboteadas al acabar y si huyó por una; cada pieza del encargo con ✔/✘ y cómo se robó (abriendo el dial, a lo bruto, con el cambiazo, puenteando el sensor; #119: antes «con la corriente cortada»), alarmas que hizo saltar, monedas, veces que lo vieron y la hora de la huida (con #120, «Huida a medias» o «Huida» según el caso).
-- **Cada guardia**: (con #121) cajas reparadas; veces que vio al ladrón (cuenta cuando empieza a verlo; perderlo menos de 2 s no cuenta otra vez; las cámaras no cuentan), golpes de porra, captura y cabezadas.
-- **Puntos** (`score_rules.tres`; desde #120 sí deciden un resultado, la huida a medias, R4b): ladrón +100 por pieza robada (`thief_piece`, acabe como acabe la partida), +150 por la huida completa (`thief_escape`, con o sin alarma), +50 por la huida a medias (`thief_partial_escape`, #120; no se suma a los +150), −25 por alarma, −10 por cada vez que lo ven; guardia +25 por cada vez que lo ve, +50 por golpe, +150 por la captura, −15 por cabezada; y, traídos de #123 con #120, **+60 a cada guardia por cada pieza del encargo que sigue en su sitio al acabar** (`guard_protect`, «proteger»: cuenta en cualquier final, y una falsificación sin descubrir no está en su sitio) y **+100 a cada guardia si el ladrón queda encerrado** (`guard_lockdown`, sello «ENCERRADO»; no con «SIN BOTÍN»). El que más tiene lleva el sello «MEJOR DE LA NOCHE».
-  - **Con #121** (R7c, aprobado por el usuario el 2026-11-05): ladrón **+30 por cada caja saboteada que siga así al acabar** (`thief_sabotage`, en cualquier final; una caja a medias no cuenta) y **+60 si huye por una salida con su caja saboteada después de cerrarse las demás rejas** (`thief_sabotage_escape`, una vez, en huida completa o a medias); guardia **+40 por cada caja que repara** (`guard_repair`, saboteada o a medias). En el informe, el ladrón suma las líneas «Rejas saboteadas» y «Huida por una reja saboteada», y cada guardia «Cajas reparadas».
-  - **Efecto en la huida a medias** (R4b): la huida por una reja saboteada suma +90 al ladrón (30 + 60), casi una pieza. El equilibrio pasa a `s = (60 k − 25 − 90) / 160`: con 2 guardias y un encargo de 3, 0,4 piezas, así que con 1 pieza gana con holgura. Es lo que se busca (premia la preparación), pero ese sabotaje ha costado ~15 s y el guardia que lo repara a tiempo se lleva +40 y, si era la última salida, +100 a cada guardia. Ejemplo (2 guardias, encargo de 3): el ladrón sabotea P02, roba 1 pieza, lo ven una vez y, con las rejas cerradas, sale por P02 antes de que lleguen: 100 + 50 − 25 − 10 + 30 + 60 = **205**; guardia A, 2 × 60 + 25 = 145, y B, 120: media 133. «Huida a medias: gana el ladrón, 205 a 133» (sin sabotaje habría sido 115 a 133 para los guardias). Si B llega antes y repara P02: «ENCERRADO»; A 245 y B 260.
-  - «+50 más las piezas» (#120) se lee así: los +50 de la huida a medias se suman a los +100 de cada pieza robada, que el ladrón ya cobra siempre. Una huida a medias con 2 piezas y una alarma da 200 + 50 − 25 = 225 (menos 10 por cada vez que lo vieron).
-  - 2026-10-30, #116: fuera los puntos por reloj (`guard_clock`) y por falta (`guard_fault`), que se borran de `score_rules.tres`; la hoja de ronda desaparece del informe. Lo que queda es provisional: el resto del sistema de puntos de los guardias (detectar, engaños, equipo, restas) sigue en #123; «proteger» y «encerrado» entraron con #120.
-  - Un guardia que se queda toda la partida en la garita y no ve al ladrón cobra solo «proteger»: 60 por pieza que el ladrón no se lleva, como los que patrullan. #123 premiará además detectar y descubrir engaños, para que patrullar valga más que la garita.
+- **Veredicto de la huida a medias** (#120; con #123, contra la puntuación de equipo): como siempre «HAS GANADO», «HAS PERDIDO» o «EMPATE» según el bando local, y debajo la cuenta de R4b: «Huida a medias: gana el ladrón, 235 a 227», «Huida a medias: ganan los guardias, 327 a 135» o «Huida a medias: empate a 179». El primer número es siempre el del bando que gana (en el empate, uno solo). Debajo, en pequeño, «Equipo: 100 de las piezas + 127 de lo que hicisteis» para que se entienda de dónde sale (texto a pulir en la FEAT con `estilo-de-textos.md`).
+- **Ladrón**: (con #121) las rejas saboteadas al acabar y si huyó por una; cada pieza del encargo con ✔/✘, cómo se robó (abriendo el dial, a lo bruto, con el cambiazo, puenteando el sensor) y, con #123, si nadie la notó («robo limpio»); alarmas que hizo saltar, monedas, veces que lo vieron, golpes que recibió, veces que los despistó y la hora de la huida («Huida a medias» o «Huida», con los segundos de cuenta atrás que le sobraban).
+- **Cada guardia**: (con #121) cajas reparadas; con #123, si dio la alarma, veces que vio al ladrón (cuenta cuando empieza a verlo; perderlo menos de 2 s no cuenta otra vez), falsificaciones descubiertas, marcas de walkie que acertaron, robos cerca de él, golpes de porra, captura, cabezadas y su parte de «proteger» y «encerrado».
+- **Puntos** (#123, aprobado por el usuario el 2026-11-05; `score_rules.tres`). Deciden la huida a medias (R4b); en los demás finales solo dan «MEJOR DE LA NOCHE», la mayor puntuación **individual** (si empatan, el ladrón o el guardia de número más bajo, como hasta ahora). Cada jugador tiene la suya completa: es la que sumarán las rondas (fuera de #123, en su propio issue).
+
+  **Ladrón**
+
+  | Acción | Puntos | Campo | Cuándo exactamente | En vivo |
+  |---|---|---|---|---|
+  | Piezas robadas | 300 × s / k (75, 100 o 150 cada una con 1, 2 o 3 guardias) | `thief_piece_pool` (antes `thief_piece`, +100 por pieza) | Cada pieza del encargo en el maletín al acabar, acabe como acabe | Sí, al robarla |
+  | Huida completa | +150 | `thief_escape` (sin cambios) | Sale con todo el encargo, con o sin alarma | Al acabar |
+  | Huida a medias | +75, +60, +54 o +50 con 1, 2, 3 o 4 guardias (R4b) | `thief_partial_escape_by_guards` (antes `thief_partial_escape`, +50) | Huida a medias (R3), con G = guardias con ficha al acabar. No se suma a la huida completa | Al acabar |
+  | Huida rápida | +2 por segundo entero de cuenta atrás que sobra | `thief_fast_escape` | Huida completa o a medias con la cuenta atrás en marcha: `floor(lockdown_time − (t_huida − t_alarma))` × 2, de 0 a 60. Sin alarma o con las rejas ya cerradas, 0 | Al acabar |
+  | Despistar | +25 | `thief_lose_them` | Tras un rato en que algún guardia lo veía, `lose_them_time` (8) s seguidos sin que ningún guardia lo vea ni le golpee. Uno por cada vez que lo ven (vuelve a contar solo si lo ven otra vez). Si huye o acaba la partida antes de los 8 s, no cuenta | Sí |
+  | Robo limpio | +20 por pieza | `thief_clean_piece` | Pieza robada con E (en silencio) cuyo rastro sigue sin descubrir al acabar (R6). Una falsificación sin examinar cuenta; una pieza robada a lo bruto, nunca | Solo en el informe |
+  | Rejas saboteadas | +30 por caja | `thief_sabotage` (sin cambios, #121) | Caja saboteada al acabar | Al acabar |
+  | Huida por una reja saboteada | +60 | `thief_sabotage_escape` (sin cambios, #121) | Huye por una salida con su caja saboteada después de cerrarse las demás rejas | Al acabar |
+  | Alarma | **−15** (antes −25) | `thief_alarm` | Cada vez que salta la alarma (como hasta ahora: dos llamadas a menos de 3 s son la misma) | Sí |
+  | Visto | −10 | `thief_seen` (sin cambios) | Cada vez que un guardia empieza a verlo (2 s, como hasta ahora) | Sí |
+  | Golpe recibido | −20 | `thief_hit_taken` | Cada golpe de porra que recibe (con 2 golpes lo capturan, así que en una huida a medias es como mucho uno) | Sí |
+  | Monedas | 0 | — | No puntúan (lo decidió el usuario) | — |
+
+  **Guardias, personales**
+
+  | Acción | Puntos | Campo | Cuándo exactamente | En vivo |
+  |---|---|---|---|---|
+  | Alarma | +50 | `guard_alarm` | Al guardia que hace pasar la alerta a «alarma»: lo ve él o lo ve la cámara que tiene en pantalla. Propuesta: también quien descubre el rastro que la hace saltar (el segundo). Una vez por partida. Un robo a lo bruto no da la alarma a nadie | Sí |
+  | Verlo | +25 | `guard_seen` (sin cambios) | Cada vez que empieza a verlo tras 2 s sin verlo, salvo la vez que da la alarma (esa vale +50, no +75) | Sí |
+  | Descubrir un engaño | +40 | `guard_examine_fake` | Examina una pieza y es una falsificación (R9b) | Sí |
+  | Walkie que acierta | +30 | `guard_walkie` | A quien puso la marca, si en `walkie_hit_window` (10) s otro guardia empieza a verlo con el ladrón a menos de `walkie_hit_radius` (6) m de la marca. Una vez por marca | Sí |
+  | Robo cerca | −30 | `guard_near_theft` | A cada guardia que está a menos de `near_theft_radius` (5) m de una pieza, en línea recta y sin muro entre medias, en el instante en que sale en silencio (E). Despierto o dando una cabezada | Solo en el informe |
+  | Golpe | +50 | `guard_hit` (sin cambios) | Cada golpe de porra que acierta | Sí |
+  | Captura | +150 | `guard_capture` (sin cambios) | Al que da el golpe que lo atrapa | Al acabar |
+  | Reparar | +40 | `guard_repair` (sin cambios, #121) | Cada caja de reja saboteada o a medias que repara | Sí |
+  | Cabezada | −15 | `guard_nap` (sin cambios) | Cada cabezada | Sí |
+
+  **Guardias, de equipo** (bolsas, R4b): cada ficha lleva su parte, `redondear(bolsa / G)`; la puntuación de equipo, la bolsa entera una vez.
+
+  | Bolsa | Puntos | Campo | Cuándo exactamente | En vivo |
+  |---|---|---|---|---|
+  | Proteger | 300 × (k − s) / k | `team_protect_pool` (antes `guard_protect`, +60 por pieza a cada guardia) | Piezas del encargo en su sitio al acabar, en cualquier final. Una falsificación, descubierta o no, no está en su sitio | Solo en el informe |
+  | Encerrado | 150 | `team_lockdown_pool` (antes `guard_lockdown`, +100 a cada guardia) | Sello «ENCERRADO» (no con «SIN BOTÍN») | Al acabar |
+
+  - **En vivo** (lo decidió el usuario): cada jugador ve solo **su** total individual en el HUD y, al puntuar, un aviso breve con el valor y el motivo («+25 VISTO», «−15 ALARMA», «+25 DESPISTADO»; los textos, en la FEAT con `estilo-de-textos.md`). Nunca el del rival ni el de los compañeros. Robo limpio, «proteger» y el −30 por un robo cerca solo salen en el informe, porque dan información oculta (cuántas piezas faltan, que un robo pasó a su lado sin que lo viera). El total en vivo del guardia no lleva su parte de las bolsas. Viaja en el estado privado de cada jugador (`get_net_state_private()`).
+  - **Con #121**: la huida por una reja saboteada suma +90 al ladrón (30 + 60), y como la cuenta atrás ya ha acabado, sin huida rápida. Con 2 guardias y 1 pieza, en una huida limpia: 100 + 60 − 15 − 10 + 30 + 60 = **225**, contra 200 + 50 / √2 = **235**: ganan los guardias por 10, y un despiste (+25) o que la pieza siga sin descubrir (+20) le dan la vuelta. La preparación pesa casi una pieza, pero ya no gana sola (con los números de #120 ganaba con holgura). Si el guardia B llega antes y repara P02, la última salida abierta: «ENCERRADO»; fichas A 50 + 100 + 75 = 225 y B 40 + 100 + 75 = 215.
+  - 2026-10-30, #116: fuera los puntos por reloj (`guard_clock`) y por falta (`guard_fault`); la hoja de ronda desaparece del informe.
+  - **La garita**: un guardia que se queda toda la partida en ella y no ve al ladrón solo cobra su parte de «proteger», la misma que los que patrullan, pero nada de alarma, verlo, engaños ni reparar, que piden salir o estar atento a la cámara en pantalla. En la puntuación de equipo, sus personales a 0 no restan, pero tampoco suman.
 - **Acciones**: «REVANCHA» (todos votan, mismos bandos), «VOLVER A LA SALA» (con red: cualquiera con bando lleva a todos a la sala sin desconectar, para cambiar de bandos) y «SALIR».
 
 ### R8. Una herramienta por bando
@@ -458,9 +522,9 @@ Viven en `data/balance/heist_rules.tres` (`HeistRules`) salvo donde se indica ot
 | Aviso final | `lockdown_warn_at` (`heist_rules.tres`) | sensación | 5-10 s | **10 s**: el número late en rojo y el timbre se acelera; a 6,4 m/s son ~60 m, la salida más lejana desde casi cualquier sala |
 | Chirrido de las rejas | `gate_radius` (`heist_rules.tres`) | sensación | 8-15 m | **10 m**: quien está cerca de una salida la oye bajar aunque no la vea |
 | Huida completa | `thief_escape` (`score_rules.tres`) | curva | — | **150** (sin cambios; con #120 solo la huida completa, con o sin alarma) |
-| Huida a medias | `thief_partial_escape` (`score_rules.tres`, nuevo) | curva | 0-100 | **50** (lo pidió el usuario): un tercio de la huida completa; con las piezas, una huida a medias con 1 pieza vale 150 y con 2, 250, frente a 450 de un encargo de 3 completo |
-| Proteger | `guard_protect` (`score_rules.tres`, nuevo, de #123) | curva | 40-80 | **60** (lo pidió el usuario en #123): cada pieza que se queda vale algo más de la mitad de lo que gana el ladrón al llevársela, y pone el equilibrio de la huida a medias en torno a 1 pieza con 2 guardias (R4b) |
-| Encerrado | `guard_lockdown` (`score_rules.tres`, nuevo, de #123) | curva | 50-150 | **100** (lo pidió el usuario en #123): a cada guardia, como premio de equipo por cerrarle las salidas; menos que la captura (+150, a uno solo) |
+| Huida a medias | `thief_partial_escape` (`score_rules.tres`, nuevo) | curva | 0-100 | **50** (lo pidió el usuario; con #123 pasa a `thief_partial_escape_by_guards`, ver «Puntos (#123)»): un tercio de la huida completa; con las piezas, una huida a medias con 1 pieza vale 150 y con 2, 250, frente a 450 de un encargo de 3 completo |
+| Proteger | `guard_protect` (`score_rules.tres`, nuevo, de #123) | curva | 40-80 | **60** (lo pidió el usuario en #123; con #123 pasa a la bolsa `team_protect_pool`): cada pieza que se queda vale algo más de la mitad de lo que gana el ladrón al llevársela, y pone el equilibrio de la huida a medias en torno a 1 pieza con 2 guardias (R4b) |
+| Encerrado | `guard_lockdown` (`score_rules.tres`, nuevo, de #123) | curva | 50-150 | **100** (lo pidió el usuario en #123; con #123 pasa a la bolsa `team_lockdown_pool`): a cada guardia, como premio de equipo por cerrarle las salidas; menos que la captura (+150, a uno solo) |
 
 **Minijuegos de robo (#119, aprobado por el usuario el 2026-11-04).** Viven en un recurso nuevo, `data/balance/steal_minigames.tres` (`StealMinigameRules`), para que `heist_rules.tres` no crezca más y quede junto a `safe_dial.tres`. Con #119 se borran de `heist_rules.tres` `swap_time` (pasa al recurso nuevo con otro valor), `cut_time`, `restore_time` y `pilot_sight`.
 
@@ -492,6 +556,85 @@ Viven en `data/balance/heist_rules.tres` (`HeistRules`) salvo donde se indica ot
 | Caja saboteada al acabar | `thief_sabotage` (`score_rules.tres`) | curva | 0-50 | **30** (lo pidió el usuario): menos de un tercio de una pieza; sin alarma solo cuenta para «MEJOR DE LA NOCHE» |
 | Huida por una reja saboteada | `thief_sabotage_escape` (`score_rules.tres`) | curva | 30-100 | **60** (lo pidió el usuario): con los +30, casi lo que vale una pieza en la huida a medias |
 | Reparar una caja | `guard_repair` (`score_rules.tres`) | curva | 20-60 | **40** (lo pidió el usuario): más que los +30 que pierde el ladrón, a un solo guardia |
+
+**Puntos (#123, aprobado por el usuario el 2026-11-05).** Todos en `score_rules.tres` (`ScoreRules`). La FEAT añade los campos nuevos, cambia `thief_piece`, `thief_partial_escape`, `guard_protect` y `guard_lockdown` por los de la tabla y escribe los valores en el `.tres`. Los de valor fijado por el usuario en la entrevista van con «(usuario)»; los demás los propone `game-designer` con la tabla de escenarios de abajo.
+
+| Mando | Campo | Tipo | Rango | Propuesto |
+|---|---|---|---|---|
+| Bolsa de las piezas del ladrón | `thief_piece_pool` | curva | — | **300** (usuario): 300 × s / k. Un encargo entero vale lo mismo con cualquier número de guardias |
+| Bolsa de «proteger» | `team_protect_pool` | curva | — | **300** (usuario): la misma que la del ladrón, para que en s = k/2 las piezas se anulen |
+| Huida a medias | `thief_partial_escape_by_guards` | curva | 25-100 | **[75, 60, 54, 50]** con 1, 2, 3 y 4 guardias (antes +50 fijo). Sale de `−thief_alarm − thief_seen + guard_alarm / √G` redondeado: compensa la alarma de una huida limpia en los dos lados y deja el empate en s = k/2 (R4b). Si cambia `thief_alarm`, `thief_seen` o `guard_alarm`, se recalcula |
+| Alarma (ladrón) | `thief_alarm` | curva | −10 a −30 | **−15** (antes −25). Cada vez que lo vuelven a ver tras perderlo es otra alarma; con −25, verlo y perderlo (−25 − 10 + 25 de despistar) le costaba 10 y una persecución movía el empate más de una pieza (de s = 2 a 3,5 con 1 guardia). Con −15, verlo y despistarlos le sale a 0 y lo que gana el equipo es el +25 del guardia |
+| Visto (ladrón) | `thief_seen` | curva | −5 a −15 | **−10** (sin cambios) |
+| Despistar | `thief_lose_them` / `lose_them_time` | curva / ritmo | 15-40 / 5-12 s | **25** (usuario) / **8 s** (usuario): lo mismo que gana el guardia al verlo; 8 s son ~60 m de carrera, salir de una sala y doblar una esquina |
+| Robo limpio | `thief_clean_piece` | curva | 10-40 | **20** (usuario): un cuarto de la pieza más barata; premia el cambiazo sin descubrir y a la vez da a los guardias un motivo para mirar pedestales |
+| Huida rápida | `thief_fast_escape` | curva | 1-3 por s | **2 por s** (usuario): de 0 a 60. Nunca vale una pieza (la más barata, 75), así que no compensa salir antes que robar otra si da tiempo; desempata cuando no la hay. Si «a lo bruto y correr» gana demasiado, es el primer mando a bajar (a 1) |
+| Golpe recibido | `thief_hit_taken` | curva | −10 a −30 | **−20** (usuario) |
+| Alarma (guardia) | `guard_alarm` | curva | 30-75 | **50** (usuario): el doble de verlo; con √G, entre 50 y 29 en la puntuación de equipo |
+| Verlo | `guard_seen` | curva | 15-40 | **25** (usuario; sin cambios, ahora sin contar la vez que da la alarma) |
+| Descubrir un engaño | `guard_examine_fake` | curva | 20-60 | **40** (usuario): con los +20 de robo limpio que le quita al ladrón, mueve unos 50 |
+| Walkie que acierta | `guard_walkie` / `walkie_hit_window` / `walkie_hit_radius` | curva / ritmo / sensación | 15-50 / 6-15 s / 4-8 m | **30** / **10 s** / **6 m** (usuario): la ventana es la de la marca (`ping_time` 8 s) más el giro de cabeza; 6 m es el radio del chasquido |
+| Robo cerca | `guard_near_theft` / `near_theft_radius` | curva / sensación | −15 a −50 / 3-8 m | **−30** / **5 m** (usuario): a 5 m lo vería si mirase (el trabajo del minijuego solo se oye a 2 m); es el precio de no mirar |
+| Golpe, captura, cabezada, reparar | `guard_hit` / `guard_capture` / `guard_nap` / `guard_repair` | curva | — | **50 / 150 / −15 / 40** (sin cambios) |
+| Bolsa de «encerrado» | `team_lockdown_pool` | curva | 100-300 | **150** (antes +100 a cada guardia): lo que vale la captura, que también acaba la partida; atraparlo entre todos vale lo que atraparlo uno. Con 2 guardias, 75 cada uno. No toca la huida a medias |
+
+## Puntos (#123): tabla de escenarios
+Comprueba los números de arriba (aprobados el 2026-11-05). En cada celda, **ladrón – equipo** y quién gana (L, G o =). `s*` es dónde se cruzan (las piezas a partir de las que gana el ladrón, en continuo); el objetivo es s* = k/2 en la huida limpia y que el juego de cada bando lo mueva menos de una pieza y media hacia cada lado.
+
+**Los escenarios** (con G guardias; «otra alarma» es que lo vuelvan a ver tras perderlo más de 3 s: −15 y −10 al ladrón, +25 al guardia):
+
+| Escenario | Guardias (personales) | Ladrón (aparte de piezas y huida a medias) |
+|---|---|---|
+| **Tranquila** (huida limpia) | Uno lo ve una vez: alarma, +50 | −15 (alarma), −10 (visto) |
+| **Media** | Alarma (+50); lo vuelven a ver una vez (+25); un golpe (+50); repara una caja (+40); un walkie que acierta (+30, con 2 o más); una cabezada (−15). Suma 180 (150 con 1 guardia) | 2 alarmas (−30), 2 vistas (−20), un golpe (−20), un despiste (+25), sale con 10 s (+20): −25 |
+| **Persecución** | Alarma (+50); lo vuelven a ver 2 + G veces (+25 cada una); un golpe (+50; el segundo sería la captura); un walkie (+30, con 2 o más). Suma 175, 230 y 255 | 4 alarmas (−60), 3 + G vistas, un golpe (−20), 2 despistes (+50), sale con 5 s (+10) |
+| **Ladrón fino** | Alarma (+50), una cabezada (−15), uno estaba a < 5 m de un robo (−30). Suma 5 | Alarma y visto (−25), todas sus piezas sin descubrir (+20 cada una), un despiste (+25), sale con 15 s (+30) |
+| **A lo bruto y correr** | Nada: nadie lo ve | Q a una pieza junto a una salida y fuera con 25 s (+50); alarma (−15); las otras piezas, descubiertas |
+
+**Resultados** (ladrón – equipo):
+
+| G (k) | Escenario | s = 1 | s = 2 | s = 3 | s* (k/2) |
+|---|---|---|---|---|---|
+| 1 (4) | Tranquila | 125 – 275 G | **200 – 200 =** | 275 – 125 L | **2,00** (2) |
+| 1 (4) | Media | 125 – 375 G | 200 – 300 G | 275 – 225 L | 2,67 |
+| 1 (4) | Persecución | 90 – 400 G | 165 – 325 G | 240 – 250 G | 3,07 |
+| 1 (4) | Ladrón fino | 200 – 230 G | 295 – 155 L | 390 – 80 L | 1,18 |
+| 1 (4) | A lo bruto y correr | 185 – 225 G | 260 – 150 L | 335 – 75 L | 1,27 |
+| 2 (3) | Tranquila | 135 – 235 G | 235 – 135 L | — | **1,50** (1,5) |
+| 2 (3) | Media | 135 – 327 G | 235 – 227 L | — | 1,96 |
+| 2 (3) | Persecución | 90 – 363 G | 190 – 263 G | — | 2,36 |
+| 2 (3) | Ladrón fino | 210 – 204 L | 330 – 104 L | — | 0,97 |
+| 2 (3) | A lo bruto y correr | 195 – 200 G | 295 – 100 L | — | 1,02 |
+| 3 (2) | Tranquila | **179 – 179 =** | — | — | **1,00** (1) |
+| 3 (2) | Media | 179 – 254 G | — | — | 1,25 |
+| 3 (2) | Persecución | 124 – 297 G | — | — | 1,58 |
+| 3 (2) | Ladrón fino | 254 – 153 L | — | — | 0,68 |
+| 3 (2) | A lo bruto y correr | 239 – 150 L | — | — | 0,70 |
+
+Con 4 guardias (k = 2, `E` = 50) sale casi igual que con 3: tranquila 175 – 175, media 175 – 240, persecución 110 – 290, fino 250 – 153, a lo bruto 235 – 150.
+
+**Lo que dice la tabla:**
+- **La huida limpia empata en s = k/2 con 1, 2, 3 y 4 guardias**, como pidió el usuario. Con los números del issue (`E` = 50 y alarma −25) caía en s = 2,23, 1,60 y 1,05: con 1 guardia, 2 piezas de 4 perdían (165 – 200).
+- **Los guardias mueven el resultado hacia arriba**, entre un cuarto de pieza (media con 3) y una (persecución con 1), y **el ladrón hacia abajo**, entre un tercio y cuatro quintos (fino o a lo bruto). Con los números del issue, la persecución lo movía hasta pieza y media (s* = 3,50 con 1 guardia: con 3 piezas de 4 perdía por 75); con la alarma a −15, se queda en una (3,07: pierde por 10, casi empate).
+- **Ninguna acción suelta decide fuera de la mitad.** Lo que mueve cada acción la diferencia ladrón − equipo, con 1 / 2 / 3 guardias:
+
+  | Acción | Mueve |
+  |---|---|
+  | Verlo otra vez, tras perderlo (otra alarma) | 50 / 43 / 39 hacia los guardias |
+  | Lo ve a la vez otro guardia (sin otra alarma) | — / 28 / 24 |
+  | Golpe | 70 / 55 / 49 |
+  | Descubrir una falsificación (y quitarle el robo limpio) | 60 / 48 / 43 |
+  | Reparar una caja que seguiría saboteada (+40 y −30) | 70 / 58 / 53; si era su salida tras las rejas, 90 más |
+  | Walkie que acierta | — / 21 / 17 |
+  | Cabezada, robo cerca | 15 / 11 / 9 y 30 / 21 / 17 hacia el ladrón |
+  | Despistar, robo limpio | 25 y 20 por pieza hacia el ladrón |
+  | Huida rápida | de 0 a 60 hacia el ladrón |
+  | Q en vez de que lo vean al dar la alarma | 40 / 25 / 19 hacia el ladrón (no le ven, pero pierde el robo limpio de esa pieza) |
+  | Huida por una reja saboteada | 90 hacia el ladrón |
+
+  La mayor es 90; media pieza de distancia a la mitad (solo existe con k = 3, s = 1 o 2) son 100, y una pieza entera con k = 4, 150. Con s = k/2 cualquier cosa desempata: es lo que se busca.
+- **Los +2/s no dominan**: como mucho 60, menos que la pieza más barata (75); en los escenarios dan 10-30. Salir antes nunca compensa dejar una pieza que da tiempo a robar.
+- **Lo que hay que vigilar**: «a lo bruto y correr» con 3 o 4 guardias (s = 1 es la mitad): gana por ~89 si nadie lo ve antes de salir. Le hacen falta 2-3 vistas o un golpe a los guardias para darle la vuelta. Va a «Qué medir».
 
 ## Contrajuego
 | Acción | Quién | Qué percibe el otro | Cómo responde |
@@ -539,8 +682,8 @@ Viven en `data/balance/heist_rules.tres` (`HeistRules`) salvo donde se indica ot
   - **A mitad de minijuego al bajar las rejas**: no termina (como al acabarse la partida) y es «ENCERRADO».
   - **Pasa bajo la reja mientras baja**: huye; la reja solo cierra al tocar el suelo.
   - **Alarma con menos de `lockdown_time` s de partida**: manda el reloj de la partida; la cuenta atrás grande enseña lo que llegue antes y el final es «AMANECE».
-  - **Huida a medias con los guardias en negativo** (cabezadas): la media puede ser negativa; se compara igual.
-  - **Un guardia se desconecta**: su ficha no está en el informe y no cuenta en la media (`G` son los que siguen).
+  - **Huida a medias con los guardias en negativo** (cabezadas): la media puede ser negativa; se compara igual (con #123, la puntuación de equipo).
+  - **Un guardia se desconecta**: su ficha no está en el informe y no cuenta en la media (`G` son los que siguen; con #123, ver «Puntos (#123)» abajo).
 - **Sabotear la caja (#121)**:
   - **Sabotea antes de la alarma y la alarma nunca salta**: la reja no hace nada; la caja vale +30 si sigue saboteada al acabar (solo para «MEJOR DE LA NOCHE»: sin alarma, los puntos no deciden nada).
   - **Sabotea durante la cuenta atrás**: vale si termina antes de que las rejas empiecen a bajar. Si no le da tiempo, el minijuego se corta y la caja se queda a medias.
@@ -559,6 +702,23 @@ Viven en `data/balance/heist_rules.tres` (`HeistRules`) salvo donde se indica ot
   - **Se acaba la partida a mitad**: no termina nada (como `TimedTask` hoy).
   - **Dos piezas a menos de `reach_distance`**: la E va a la que señala el cursor (`interaction.md`, selección de interactivos); el minijuego es de esa.
   - **Con red**: el servidor lleva el estado del minijuego (aguja, progreso, piloto, aciertos) y decide fallos y aciertos; el cliente del ladrón manda las teclas, como con el dial. El sorteo de la aguja y del piloto lo hace el servidor.
+- **Puntos (#123, aprobado por el usuario el 2026-11-05)**:
+  - **Empate en la huida a medias**: «EMPATE», como en #120 («Huida a medias: empate a 179»). Con la huida limpia en s = k/2 es exacto (1 guardia con 2 piezas de 4; 3 o 4 guardias con 1 de 2); cualquier otra acción lo rompe.
+  - **Empate en «MEJOR DE LA NOCHE»**: el ladrón, o el guardia de número más bajo (sin cambios).
+  - **Un guardia se desconecta**: su ficha no sale y sus personales no cuentan (como en #120). *Pendiente*: hoy su personaje se queda en la escena y sigue contando (issue #158). `G` son los que siguen al acabar: las bolsas se reparten entre ellos y `E(G)` y √G usan ese mismo G. El encargo (k) no cambia, y como en s = k/2 las piezas se anulan para cualquier k, la huida limpia sigue empatando (3 guardias y k = 2; se va uno: ladrón 150 + 60 − 25 = 185, equipo 150 + 50 / √2 = 185). Si se fue justo el que dio la alarma, sus +50 se pierden con su ficha y el ladrón sale ganando: es raro y no se corrige.
+  - **Sin ningún guardia con ficha** (no debería pasar: la partida se cierra antes): `P_equipo` = la bolsa de «proteger» y `E` la de 1 guardia.
+  - **Guardias de IA**: puntúan igual que un humano, con la misma ficha. No usan el walkie (R5c), así que nunca cobran sus +30; el −30 por un robo cerca y las cabezadas, sí. Sin red, 2 guardias de IA: G = 2.
+  - **La alarma la ven dos guardias a la vez**: los +50 son del primero que procesa el servidor (en el mismo instante, el de número más bajo); el otro cobra +25 por verlo. El ladrón, −10 por cada uno y −15 una vez.
+  - **Alarma a lo bruto**: nadie cobra los +50; el primero que lo ve después cobra +25.
+  - **Alarma por dos rastros** (decisión 6): los +50, a quien descubre el segundo, en persona o con la cámara en pantalla.
+  - **La alarma lo pilla fuera con botín**: huye en el acto (R3) con toda la cuenta atrás: +60 de huida rápida. Para llegar ahí tiene que dejarse ver desde fuera o tener a alguien que descubra dos rastros; se mide («Qué medir»).
+  - **Despistar en un conducto**: cuenta (nadie lo ve dentro, R10). Si huye o acaba la partida antes de los 8 s, no cuenta.
+  - **Robo limpio en cualquier final**: cuenta para su ficha («MEJOR DE LA NOCHE»), también si lo capturan.
+  - **Varios guardias cerca de un robo**: −30 a cada uno. Uno al otro lado de un muro, a menos de 5 m, no.
+  - **Walkie**: si el que lo ve es el mismo que puso la marca, no cuenta; dos marcas a la vez pueden cobrar cada una. Con la cámara en pantalla de un compañero, también cuenta (decisión 7).
+  - **Puntuación de equipo negativa** (muchas cabezadas y robos cerca): se compara igual.
+  - **El aviso «−10 VISTO»** le dice al ladrón que lo están viendo. La primera vez ya lo dice la alarma; las siguientes es información que el ladrón no siempre tenía (pilar 3: él sabe más). Si en el playtest se nota como un chivato, el aviso de las restas del ladrón puede esperar a que deje de verlo.
+  - **Revancha**: todo a 0.
 
 ## Red
 - **Al ladrón**: su encargo, como estado privado (`#private`, igual que la caja fuerte), y el estado de su minijuego (#119).
@@ -568,6 +728,7 @@ Viven en `data/balance/heist_rules.tres` (`HeistRules`) salvo donde se indica ot
 - **#121**: el servidor lleva el estado de cada caja (tornillos, cables cortados, saboteada), el orden de sus cables y la reparación, y decide aciertos y fallos; el cliente del ladrón manda las teclas, como en R9.
   - **Al ladrón**, como estado privado: el estado completo de la caja en la que trabaja, con el orden de sus cables (nunca a los guardias), y el de sus cajas para su plano.
   - **A todos**: si cada caja está entera, a medias o saboteada (para dibujar la tapa y la chispa; el cliente del guardia solo dibuja la tapa torcida a menos de `box_notice_distance` m, como el pedestal vacío, que solo se dibuja si se ve), las chispas como ruido y el estado de cada reja por separado (arriba, bajando, cerrada, o recogida porque su caja la frena).
+- **#123**: el servidor lleva todos los puntos. A cada jugador, como estado privado (`get_net_state_private()`), solo su total en vivo y sus avisos («+25 VISTO»); nunca los de otro. Lo oculto (robo limpio, «proteger», robos cerca) solo llega con el informe, al acabar, y el resultado de la huida a medias se calcula del informe en cada cliente, como en #120.
 - **A todos (#120)**: el instante en que empezó la cuenta atrás (cada cliente la dibuja con su reloj) y el estado de cada reja (arriba, bajando, cerrada). El servidor decide la huida, el tipo de huida y el cierre; el resultado de la huida a medias sale del informe, que ya tienen todos (MatchScore lo calcula igual en cada cliente).
 
 ## Cambios en el nivel (`museum_v2`)
@@ -596,12 +757,18 @@ Viven en `data/balance/heist_rules.tres` (`HeistRules`) salvo donde se indica ot
 | `trace_found` | ¿Los rastros dan juego? | Más del 50 % de los robos se descubren antes de 20 s (el ladrón no puede esconderse) |
 | `coin_thrown` / `walkie` | ¿Se usan las herramientas? | Menos de 1 uso por partida |
 | Resultado con la alarma (#120) | ¿La cuenta atrás da decisiones o solo una carrera? | Más del 70 % de las alarmas acaban en «ENCERRADO» (30 s es poco o los guardias cubren todo), o más del 70 % en huida (sobra tiempo) |
-| Huidas a medias con 1 pieza (#120) | ¿Q a la pieza más cercana y correr es la jugada óptima? | El ladrón gana más de la mitad de las huidas a medias con 1 sola pieza |
+| Huidas a medias por G y s (#120; con #123) | ¿El empate cae en la mitad del encargo? | Con s < k/2, el ladrón gana más de un tercio; o con s > k/2, los guardias ganan más de un tercio (el juego de un bando pesa más que una pieza) |
+| Huidas a medias tras un robo a lo bruto con 3-4 guardias (#123) | ¿Q a la pieza más cercana y correr es la jugada óptima? | El ladrón gana más de 2 de cada 3. Primer mando: `thief_fast_escape` a 1 |
+| Desglose de la puntuación de equipo (#123) | ¿Qué decide la huida a medias? | Una sola línea (verlo, golpes o huida rápida) da más de la mitad de la diferencia en más de la mitad de las huidas |
+| Despistes, walkies que aciertan y robos cerca por partida (#123) | ¿Los puntos nuevos pasan? | Más de 4 despistes por partida (no pueden seguirlo) o ninguno en 5; ningún walkie que acierte en 5 partidas con 2 o más humanos (la ventana es corta); más de 1 robo cerca por guardia y partida (5 m es mucho) |
+| «MEJOR DE LA NOCHE» por bando (#123) | ¿Las fichas individuales están equilibradas? | El ladrón lo gana más del 70 % de las partidas, o menos del 15 % |
+| Personales de quien pasa más tiempo en la garita (#123) | ¿Patrullar vale más que la garita? | El guardia de la garita tiene más personales que el que patrulla en más de la mitad de las partidas |
 | Cajas saboteadas y reparadas por partida (#121) | ¿Sabotear es la apertura obligada? ¿La contra funciona? | El ladrón sabotea 3 o más cajas en más de la mitad de las partidas (seguro gratis); ninguna en 5 partidas (no compensa); o los guardias reparan menos del 20 % de las saboteadas (la contra no se ve) |
 | Final de las partidas con rejas cerradas y salidas abiertas (#121) | ¿El sabotaje compra unos segundos o la partida entera? | Más del 70 % acaban en huida por una reja saboteada, o la prórroga dura de media más de 60 s |
 | Robos por método y fallos de minijuego (#119) | ¿Se entiende y compensa robar en silencio? | Más de la mitad de las piezas a lo bruto en 3 de 5 partidas, o más de 3 fallos por pieza de media (el minijuego es demasiado duro) |
 
 ## Estado
+#123 (aprobado por el usuario el 2026-11-05, a falta de su FEAT): puntos de los dos bandos. Reglas del usuario (entrevista del 2026-11-05); números, «puntos de equipo» (las bolsas de «proteger» y «encerrado») y tabla de escenarios propuestos por `game-designer` (R4b, R11, «Puntos (#123)»). Decisiones en «Decisiones (usuario, 2026-11-05, #123)».
 #121 (aprobado por el usuario el 2026-11-05, a falta de su FEAT): sabotear la caja de la reja de una salida (minijuego de tres pasos, ~15 s) para que esa reja no baje con la alarma; la caja se nota de cerca y un guardia la repara en 8 s (R7c). Números en `heist_rules.tres` (`box_*`) y `score_rules.tres`; cajas en `exits` de `museum_v2.json`.
 #120 (aprobado por el usuario el 2026-11-04, a falta de su FEAT): con la alarma, `lockdown_time` s para huir con lo puesto (huida completa o a medias) antes de que bajen las rejas de las 4 salidas; si no, «ENCERRADO». Lo siguiente, #121 (sabotear la caja de una reja), parte de R7b tal como está escrita.
 #119 (aprobado por el usuario el 2026-11-04, a falta de su FEAT): todo lo necesario para robar está en la pieza; robo silencioso con E y su minijuego (R9); Q, lo único a lo bruto; fuera las mesas de copias, los cuadros eléctricos de las alas y el panel de pilotos.
@@ -614,6 +781,17 @@ Entrega 1 implementada en FEAT-028 (lista, carta, escape, condiciones de victori
 2. sueño y café;
 3. rastros + alerta + monedas + walkie;
 4. el cambiazo con piezas de pega y el corte de corriente.
+
+## Decisiones (usuario, 2026-11-05, #123)
+El usuario aceptó todas las recomendaciones de `game-designer` (entre paréntesis), y que la huida por una reja saboteada de #121 pase de ganar con holgura a un resultado ajustado (si el playtest muestra que sabotear no compensa, `thief_sabotage_escape` de 60 a 80).
+1. ¿«Σ individuales» del issue son los **personales** (sin la parte de las bolsas)? (Sí: si no, la bolsa cuenta dos veces, una entera y otra repartida entre √G.)
+2. ¿«Su parte» de «proteger» y «encerrado» es la bolsa entre G? (Sí: cada ficha `redondear(bolsa / G)`.)
+3. ¿La huida a medias depende del número de guardias, [75, 60, 54, 50], para que la huida limpia empate justo en la mitad, o un valor fijo? (Por guardias. Con un fijo de 60, el corte queda en s = 2,10, 1,50 y 0,98: casi, pero el empate exacto con 1 y 3 guardias se pierde.)
+4. ¿La alarma del ladrón baja a −15? (Sí: con −25 una persecución mueve el empate pieza y media.)
+5. ¿«Encerrado» pasa a bolsa de 150? (Sí: lo que vale la captura. Con 100 en bolsa, 3 guardias cobrarían 33 cada uno, menos que reparar una caja.)
+6. ¿La alarma por dos rastros da los +50 a quien descubre el segundo? (Sí: es detectar, que es lo que #123 quiere premiar frente a la garita.)
+7. ¿Las vistas por la cámara en pantalla cuentan para «verlo» (+25 al que mira, −10 al ladrón), para cortar el despiste y para el walkie? (Sí, como ya cuentan para la alarma: mirar la cámara justa es jugar. Hasta ahora no contaban en el informe.)
+8. «Descubrir un engaño» incluye el sensor puenteado, pero con #119 un sensor puenteado es un pedestal vacío que no se examina. ¿Solo la falsificación? (Sí; descubrir cualquier rastro ya le quita al ladrón los +20 de robo limpio.)
 
 ## Decisiones (usuario, 2026-10-30, #116, entrevista tras el playtest con amigos)
 1. Fuera los relojes de fichar y las rondas: relojes del mapa, tablilla de ronda, flecha al reloj (FEAT-042), faltas y relojes del informe y de los puntos, y rutas de ronda de la IA.

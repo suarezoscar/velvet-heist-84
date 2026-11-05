@@ -275,13 +275,13 @@ func _finish_game() -> void:
 	steal(false, flaws.pick_random() as TargetPieceLook.Flaw)
 
 
-func _finish_inspect(_actor: Node3D) -> void:
+func _finish_inspect(actor: Node3D) -> void:
 	if stolen and not is_faked():
 		return  # se la llevaron a lo bruto mientras la examinaba: ya está descubierta
+	inspected = not is_faked()
 	if is_faked():
 		discovered = true
-	else:
-		inspected = true
+		MatchRecorder.note_examined(get_tree(), actor, self)  # #123: sus puntos
 
 
 func _apply_stolen() -> void:

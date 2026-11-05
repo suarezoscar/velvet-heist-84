@@ -78,6 +78,8 @@ func mark_stolen(piece_id: StringName, how: StringName = &"dial") -> void:
 	if is_in_contract(piece_id) and not stolen.has(piece_id):
 		stolen.append(piece_id)
 		stolen_how[piece_id] = how
+		if how != &"brute" and piece(piece_id) != null:  # #123: robos en silencio cerca
+			MatchRecorder.note_silent_theft(get_tree(), piece(piece_id).global_position)
 		print("[HeistDirector] Robada %s (%d/%d)" % [piece_id, stolen.size(), contract_size])
 
 

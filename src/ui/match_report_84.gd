@@ -139,7 +139,13 @@ func _refresh() -> void:
 	var seconds: int = maxi(roundi(elapsed), 0)
 	facts_label.text = "Duró %d:%02d" % [seconds / 60, seconds % 60]
 	if state == GameManager.MatchState.THIEF_ESCAPED_PARTIAL and not report.is_empty():
-		facts_label.text = MatchSummary.partial_line(report) + "\n" + facts_label.text
+		facts_label.text = (
+			MatchSummary.partial_line(report)
+			+ "\n"
+			+ MatchSummary.team_line(report)
+			+ "\n"
+			+ facts_label.text
+		)
 	if not _filled or report != _shown_report:
 		_filled = true
 		_shown_report = report.duplicate(true)

@@ -46,6 +46,15 @@ static func partial_line(report: Dictionary) -> String:
 	return "Huida a medias: empate a %d" % thief
 
 
+## «Equipo: 200 de las piezas + 35 de lo que hicisteis»
+static func team_line(report: Dictionary) -> String:
+	var result: Dictionary = MatchScore.partial_result(report)
+	return (
+		"Equipo: %d de las piezas + %d de lo que hicisteis"
+		% [int(result["pieces"]), int(result["play"])]
+	)
+
+
 ## Cifras de la partida, una por línea
 static func stats(loot: int, quota: int, masterpiece: bool, elapsed: float) -> String:
 	var seconds: int = maxi(roundi(elapsed), 0)
