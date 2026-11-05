@@ -4,6 +4,9 @@
 ## queda un fantasma hasta que vuelves a mirar; un objeto nuevo que no has visto (el botín de
 ## la caja fuerte) no aparece hasta que lo ves. Al empezar, todo cuenta como visto (el plano).
 ## Oculta los hijos visuales, no la raíz: la red puede cambiar la visibilidad de la raíz.
+## #163: los nodos del grupo fog_memory_state (piezas, cajas fuertes, vitrinas) preguntan con
+## shown() cómo dibujarse: su estado real si se ven, y si no el último visto (un pedestal que se
+## vacía en la niebla sigue con su pieza hasta que se vuelve a mirar).
 class_name FogMemory
 extends Node3D
 
@@ -17,6 +20,35 @@ var _ghosts: Dictionary = {}
 var _hidden_by_me: Dictionary = {}
 var _seeded: bool = false
 var _timer: float = 0.0
+## Último estado visto de cada nodo con memoria de estado (#163): id → valor
+var _states: Dictionary = {}
+
+
+func _ready() -> void:
+	add_to_group(&"fog_memories")
+
+
+## Estado que conoce el jugador local de node (#163): actual si lo ve (o sin niebla, o antes de
+## empezar), si no el último visto
+static func shown(node: Node3D, actual: Variant) -> Variant:
+	if node == null or not node.is_inside_tree():
+		return actual
+	var memory: FogMemory = node.get_tree().get_first_node_in_group(&"fog_memories") as FogMemory
+	return memory._shown(node, actual) if memory != null else actual
+
+
+func _shown(node: Node3D, actual: Variant) -> Variant:
+	var id: int = node.get_instance_id()
+	if (
+		fog == null
+		or not fog.is_active()
+		or not _seeded
+		or not _states.has(id)
+		or fog.is_point_visible(node.global_position)
+	):
+		_states[id] = actual
+		return actual
+	return _states[id]
 
 
 func _process(delta: float) -> void:
@@ -32,6 +64,8 @@ func sample() -> void:
 	if fog == null or not fog.is_active():
 		_reset()
 		return
+	for node: Node in get_tree().get_nodes_in_group(&"fog_memory_state"):
+		node.call(&"refresh_look")  # se apunta lo que ve; lo que entra en la vista se pone al día
 	for node: Node in get_tree().get_nodes_in_group(&"fog_memory"):
 		var item: Node3D = node as Node3D
 		var id: int = item.get_instance_id()
@@ -138,4 +172,7 @@ func _reset() -> void:
 	for node: Node in get_tree().get_nodes_in_group(&"fog_memory"):
 		_unhide(node as Node3D)
 	_seen.clear()
+	_states.clear()
 	_seeded = false
+	for node: Node in get_tree().get_nodes_in_group(&"fog_memory_state"):
+		node.call(&"refresh_look")

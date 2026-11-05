@@ -1,7 +1,6 @@
 ## @file target_piece_3d.gd
 ## Pieza candidata del encargo (heist.md R1 y R9): pedestal con su pieza y una protección.
-## Todo pasa en la pieza (#119): E abre el minijuego de su protección y nunca roba a lo bruto;
-## Q es lo único a lo bruto.
+## Todo pasa en la pieza (#119): E abre el minijuego de su protección; Q es lo único a lo bruto.
 ## - Combinación: la guarda un candado (SafeBox3D: vitrina o caja fuerte) con su dial. Abierto, E
 ##   la coge en silencio. Una vitrina se puede romper a lo bruto (Q); la caja fuerte, no.
 ## - Presión: E da el cambiazo con la balanza (StealMinigame SWAP). Queda una falsificación con
@@ -34,6 +33,7 @@ var discovered: bool = false
 var inspected: bool = false
 ## Se la llevaron puenteando el sensor: el guardia lo ve al descubrirla (#119)
 var bridged: bool = false
+var shown_stolen: bool = false  # lo que ve el jugador local (#163)
 var model: Node3D = null
 var marker: Label3D = null
 ## Minijuego del ladrón en curso (en la autoridad) y lo que llega de él por la red (cliente)
@@ -87,7 +87,7 @@ func _process(delta: float) -> void:
 		return
 	_marker_timer = 0.25
 	if variant == &"safe" and model != null and lock != null:
-		model.visible = not stolen and lock.current_state == SafeBox3D.SafeState.OPENED
+		model.visible = not shown_stolen and lock.shown_open()
 	TargetPieceLook.update_marker(self)
 
 
@@ -197,8 +197,7 @@ func force(actor: Node3D) -> bool:
 	return true
 
 
-## Cómo se ha robado (para el informe final, FEAT-041): a lo bruto, con el cambiazo,
-## puenteando el sensor o abriendo el dial
+## Cómo se ha robado (informe, FEAT-041): a lo bruto, cambiazo, sensor puenteado o dial
 static func steal_method(brute: bool, fake: TargetPieceLook.Flaw, kind: StringName) -> StringName:
 	if brute:
 		return &"brute"
@@ -218,7 +217,7 @@ func steal(brute: bool, fake: TargetPieceLook.Flaw = TargetPieceLook.Flaw.NONE) 
 	game = null
 	if lock != null and lock.current_state != SafeBox3D.SafeState.OPENED:
 		lock.break_open()
-	_apply_stolen()
+	refresh_look()
 	if GameManager.heist != null:
 		GameManager.heist.mark_stolen(piece_id, steal_method(brute, fake, protection))
 	var thief: Node3D = get_tree().get_first_node_in_group(&"thief") as Node3D
@@ -255,7 +254,7 @@ func apply_net_state(state: Dictionary) -> void:
 	if bool(state.get("stolen", false)) and not stolen:
 		stolen = true
 		flaw = new_flaw
-		_apply_stolen()
+		refresh_look()
 
 
 func in_contract() -> bool:
@@ -284,8 +283,10 @@ func _finish_inspect(actor: Node3D) -> void:
 		MatchRecorder.note_examined(get_tree(), actor, self)  # #123: sus puntos
 
 
-func _apply_stolen() -> void:
-	if model != null:
+## Robada como la conoce el jugador local (#163, vision.md D4): solo cuando ve el pedestal
+func refresh_look() -> void:
+	if not shown_stolen and model != null and bool(FogMemory.shown(self, stolen)):
+		shown_stolen = true
 		model.visible = is_faked()
 		TargetPieceLook.apply_flaw(model, flaw)
 	TargetPieceLook.update_marker(self)

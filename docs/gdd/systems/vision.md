@@ -45,7 +45,7 @@ Las reglas de abajo describen la opción A.
 | Cosa | Dentro de tu visión | En la niebla |
 |---|---|---|
 | Suelos (y lo que no pasa de `fog_raised_from`: alfombras, monedas caídas, sombras en el suelo) | Normal | Niebla del suelo: oscuros y grises (#163; antes, igual que los muros) |
-| Muros, tabiques, muebles fijos, pedestales, cuadros colgados, puertas | Normal | Oscurecido suave (#163, pendiente; antes, la niebla del suelo). Sigue siendo «recuerdo del plano» |
+| Muros, tabiques, muebles fijos, pedestales, cuadros colgados, puertas | Normal | Oscurecido suave (#163; antes, la niebla del suelo). Sigue siendo «recuerdo del plano» |
 | Personajes del otro bando | Según R3 | **Ocultos** (por la red y R3, no por el shader) |
 | Compañeros de bando (guardias entre sí) | Normal | Visibles (D2). Con #163, con el oscurecido suave: se leen mejor que antes |
 | Botín y caja fuerte (las banderolas de reloj se retiraron con #116, 2026-10-30) | Estado actual | **Último estado visto** (D4), con el oscurecido suave. Si te robaron el cuadro, lo descubres al volver a mirar |
@@ -109,8 +109,8 @@ El servidor decide; cada cliente solo recibe lo que su jugador ve.
 | Vista a oscuras del ladrón | `dark_sight_radius` | ritmo | 3-9 m | 6. Un guardia quieto a oscuras se descubre a dos pasos de una puerta; más lejos solo se le oye (pasos ×1,5) |
 | Brillo de la niebla | `fog_brightness` | sensación | 0,2-0,6 | 0,5 (#161, antes 0,35: menos contraste en el borde, que barría las paredes al andar junto a un hueco). El plano se lee, pero se nota que es «recuerdo» |
 | Desaturación de la niebla | `fog_desaturation` | sensación | 0,4-1,0 | 0,7. Gris de foto vieja, a juego con el tono neo-noir |
-| Brillo de lo alzado en la niebla | `fog_raised_brightness` | sensación | 0,6-1,0, y nunca menor que `fog_brightness` | 0,8 (#163, pendiente; lo vio el usuario el 2026-11-05). En el borde, un salto del 20 % de luz, frente al 50 % del suelo: el barrido deja de parecer un parpadeo y se sigue leyendo «no visto». Con 1,0 (primer prototipo) no se distingue lo visto de lo no visto en las paredes; por debajo de ~0,65 vuelve el parpadeo |
-| Desaturación de lo alzado en la niebla | `fog_raised_desaturation` | sensación | 0-0,7, y nunca mayor que `fog_desaturation` | 0,3 (#163, pendiente). Las paredes conservan su color, algo apagado: el plano se reconoce de un vistazo. Desaturar más también delata el barrido, porque el color salta en el borde |
+| Brillo de lo alzado en la niebla | `fog_raised_brightness` | sensación | 0,6-1,0, y nunca menor que `fog_brightness` | 0,8 (#163, aprobado; lo vio el usuario el 2026-11-05). En el borde, un salto del 20 % de luz, frente al 50 % del suelo: el barrido deja de parecer un parpadeo y se sigue leyendo «no visto». Con 1,0 (primer prototipo) no se distingue lo visto de lo no visto en las paredes; por debajo de ~0,65 vuelve el parpadeo |
+| Desaturación de lo alzado en la niebla | `fog_raised_desaturation` | sensación | 0-0,7, y nunca mayor que `fog_desaturation` | 0,3 (#163, aprobado). Las paredes conservan su color, algo apagado: el plano se reconoce de un vistazo. Desaturar más también delata el barrido, porque el color salta en el borde |
 | Altura donde empieza lo alzado | `fog_raised_from` | sensación | 0,02-0,15 m | 0,08 (#163). Por encima de lo pegado al suelo (alfombras, monedas, el grosor de las baldosas) y por debajo del zócalo (0,16 m) |
 | Altura donde lo alzado es completo | `fog_raised_to` | sensación | 0,15-0,5 m, mayor que `fog_raised_from` | 0,2 (#163). Justo sobre el zócalo, para que el pie de cada muro haga de sombra de contacto y no de franja; un banco (0,45 m) ya es alzado entero |
 | Borde suave | `fog_edge_feather` | sensación | 0,3-4,0 m | 3,0 (#161, antes 1,0). Sin corte duro: la vista se apaga al girar una esquina |
@@ -164,7 +164,7 @@ El servidor decide; cada cliente solo recibe lo que su jugador ve.
 | 3. Información frente a número | El ladrón ve más lejos (18 frente a 12 m), ve todos los haces y oye más. Los guardias se ven siempre entre sí. Tensión declarada: el ladrón pierde la visión total de hoy, que era un error y no una regla |
 | 4. Respuesta | Cada acción tiene su fila en el contrajuego. La emboscada a oscuras se contesta con luz, oído y señuelos |
 | 5. Partidas cortas | La niebla no frena el ritmo: el plano se ve siempre y nadie se pierde |
-| #163 (pendiente) | Pilar 3: no cambia lo que sabe cada bando, porque personas y estado del botín no dependen del grado de la niebla, siempre que el estado de las piezas siga la memoria (R5). Legibilidad del sigilo: el suelo sigue marcando la frontera de la vista. Tensión declarada: las salas lejanas parecen más «a la vista» y un jugador puede confiarse; se mide abajo. Pilar 5: el plano se lee aún mejor |
+| #163 (aprobado) | Pilar 3: no cambia lo que sabe cada bando, porque personas y estado del botín no dependen del grado de la niebla, siempre que el estado de las piezas siga la memoria (R5). Legibilidad del sigilo: el suelo sigue marcando la frontera de la vista. Tensión declarada: las salas lejanas parecen más «a la vista» y un jugador puede confiarse; se mide abajo. Pilar 5: el plano se lee aún mejor |
 | 6. No violento | Sin cambios |
 
 ## Qué medir
@@ -189,11 +189,11 @@ Implementado en FEAT-020 (2026-10-28). Simplificación del PoC: la vista ladrón
 4. **► Botín y objetos en la niebla: ¿último estado visto o estado real?** Recomendación: **último visto**. Descubrir que falta el cuadro al pasar es buena tensión, y cuesta poco.
 5. **► ¿La luz (lámparas y pilotos CCTV) se ve a través de la niebla?** Recomendación: **sí**. La luz se ve de lejos en la realidad y mantiene la contramedida de los pilotos (M4).
 
-## Decisiones de #163 (pendientes del usuario)
-1. **► ¿Se aprueban los dos grados de la niebla de R1 (suelo 0,5/0,7; lo alzado 0,8/0,3; paso entre 0,08 y 0,2 m)?** Recomendación: **sí**, es lo que el usuario vio y eligió en el prototipo.
-2. **► ¿El estado de las piezas (pedestal vacío, falsificación, vitrina y caja fuerte abiertas) sigue el último visto, como dice D4, y se arregla en #163?** Recomendación: **sí, en el mismo PR y antes de integrar**. Hoy esas piezas no tienen memoria (solo el botín suelto la tiene) y un guardia ve vaciarse un pedestal en la niebla; con el oscurecido suave se vería claro desde lejos.
-3. **► ¿La hoja de la puerta de la garita también sigue el último visto?** Recomendación: **no**. Al abrirse cruje y se cierra sola: la información ya es pública por el sonido (pilar 2).
-4. **► ¿Los compañeros guardias en la niebla, más claros con #163, necesitan su silueta propia (D2) para no confundirse con «a la vista»?** Recomendación: **no por ahora**. Medirlo en el playtest con la pregunta de «Qué medir».
+## Decisiones de #163 (aprobadas por el usuario el 2026-11-05)
+1. **► ¿Se aprueban los dos grados de la niebla de R1 (suelo 0,5/0,7; lo alzado 0,8/0,3; paso entre 0,08 y 0,2 m)?** Recomendación: **sí**, es lo que el usuario vio y eligió en el prototipo. **Usuario: sí.**
+2. **► ¿El estado de las piezas (pedestal vacío, falsificación, vitrina y caja fuerte abiertas) sigue el último visto, como dice D4, y se arregla en #163?** Recomendación: **sí, en el mismo PR y antes de integrar**. Hoy esas piezas no tienen memoria (solo el botín suelto la tiene) y un guardia ve vaciarse un pedestal en la niebla; con el oscurecido suave se vería claro desde lejos. **Usuario: sí.**
+3. **► ¿La hoja de la puerta de la garita también sigue el último visto?** Recomendación: **no**. Al abrirse cruje y se cierra sola: la información ya es pública por el sonido (pilar 2). **Usuario: no, sin memoria.**
+4. **► ¿Los compañeros guardias en la niebla, más claros con #163, necesitan su silueta propia (D2) para no confundirse con «a la vista»?** Recomendación: **no por ahora**. Medirlo en el playtest con la pregunta de «Qué medir». **Usuario: no por ahora.**
 
 ## Autorrevisión
 - **Completitud**: las siete secciones tienen contenido.
