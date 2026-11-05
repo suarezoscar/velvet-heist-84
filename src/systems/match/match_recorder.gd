@@ -12,6 +12,8 @@ extends Node
 
 const HITS_META: StringName = &"match_baton_hits"
 const CAPTURE_META: StringName = &"match_capture"
+## Guardia cuyo jugador se ha ido (NetSessionServer): sin ficha y sin puntos (#158)
+const LEFT_META: StringName = &"match_left"
 const HEIST_RULES: HeistRules = preload("res://data/balance/heist_rules.tres")
 ## Nombre de un guardia que lleva el ordenador
 const AI_NAME: String = "El ordenador"
@@ -165,7 +167,7 @@ func build_report() -> Dictionary:
 		var hits: int = int(guard.get_meta(HITS_META, 0))
 		hits_total += hits
 		var entry: Dictionary = {
-			"name": _guard_name(guards.size() + 1),
+			"name": _guard_name(guard),
 			"alarm": alarm,
 			"seen": seen,
 			"examined": int(events.examined.get(key, 0)),
@@ -266,7 +268,7 @@ func _sabotaged_boxes() -> int:
 func _guards() -> Array[GuardController3D]:
 	var found: Array[GuardController3D] = []
 	for node: Node in get_tree().get_nodes_in_group(&"guards"):
-		if node is GuardController3D:
+		if node is GuardController3D and not node.get_meta(LEFT_META, false):
 			found.append(node as GuardController3D)
 	return found
 
@@ -280,10 +282,10 @@ func _thief_name() -> String:
 	return own if not own.is_empty() else "Tú"
 
 
-func _guard_name(number: int) -> String:
+func _guard_name(guard: GuardController3D) -> String:
 	if not NetManager.is_online():
 		return AI_NAME
-	return _player_name(StringName("guard_%d" % number), AI_NAME)
+	return _player_name(LiveScore.guard_role(guard), AI_NAME)  # su rol, aunque falte uno antes
 
 
 func _player_name(role: StringName, fallback: String) -> String:
