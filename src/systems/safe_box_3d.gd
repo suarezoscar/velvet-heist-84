@@ -26,6 +26,9 @@ const STEAL_RULES: StealMinigameRules = preload("res://data/balance/steal_miniga
 
 ## Pasos a cada lado del número en los que el dial «suena cerca»
 const NEAR_STEPS: int = 2
+## Con red, ms que el cliente deja de aplicar el dial del servidor tras girarlo él (#164): el
+## estado que llega es de hace un viaje de ida y vuelta y haría retroceder la flecha
+const PREDICT_HOLD_MS: int = 600
 
 ## Combinación mecánica de 3 dígitos (entre 0 y 99)
 @export var combination: Array[int] = [30, 65, 15]
@@ -54,6 +57,7 @@ var active_thief: ThiefController3D = null
 var door_pivot: Node3D = null
 var _loot_spawned: bool = false
 var _dial_repeat: DialRepeat = DialRepeat.new()
+var _predict_until: int = 0
 
 
 func _ready() -> void:
@@ -132,6 +136,16 @@ func step_dial(direction: int) -> void:
 	dial_rotated.emit(current_dial_val, is_near)
 	if is_near:
 		_emit_acoustic_noise(1.8, &"dial")
+
+
+## Con red, el cliente del ladrón gira su dial en cuanto manda el paso (#164): la flecha verde
+## sale cuando el servidor, que recibe los pasos y la E en orden, también está en ese número
+static func predict_local(tree: SceneTree, direction: int) -> void:
+	for node: Node in tree.get_nodes_in_group(&"net_state"):
+		var safe: SafeBox3D = node as SafeBox3D
+		if safe != null and safe.current_state == SafeState.CRACKING:
+			safe.step_dial(direction)
+			safe._predict_until = Time.get_ticks_msec() + PREDICT_HOLD_MS
 
 
 ## Pasos (por el camino corto) del dial al número que toca; 100 si no queda ninguno
@@ -255,7 +269,7 @@ func apply_net_state(state: Dictionary) -> void:
 	if state.has("fails"):
 		fails = int(state["fails"])
 
-	if state.has("dial"):
+	if state.has("dial") and Time.get_ticks_msec() >= _predict_until:
 		var new_dial: int = int(state["dial"])
 		var dial_changed: bool = new_dial != current_dial_val
 		current_dial_val = new_dial

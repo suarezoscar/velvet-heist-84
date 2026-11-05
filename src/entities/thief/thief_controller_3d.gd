@@ -103,7 +103,11 @@ func perform_action(action: StringName) -> bool:
 		return true
 	match action:
 		&"interact":
-			if interactor != null:
+			var cracking: SafeBox3D = _find_active_safe_box() if is_cracking_safe() else null
+			if cracking != null:  # #164: la E confirma la caja que gira, mire adonde mire
+				cracking.interact(self)
+				result = true
+			elif interactor != null:
 				result = interactor.execute_interaction(self)
 		&"dial_left":
 			var safe: SafeBox3D = _find_active_safe_box()
@@ -253,7 +257,7 @@ func _setup_interactor() -> void:
 
 
 ## Girando el dial de una caja fuerte, las teclas de movimiento solo mueven el dial: el ladrón
-## se queda quieto hasta confirmar la combinación o salir con Esc
+## se queda quieto (y sin girarse, #164) hasta confirmar la combinación o salir con Esc
 func apply_input(input_data: Dictionary) -> void:
 	var piece: Node3D = StealMinigame.piece_of(self)
 	if piece != null:
@@ -262,6 +266,8 @@ func apply_input(input_data: Dictionary) -> void:
 		input_data = input_data.duplicate()
 		input_data["movement_vector"] = Vector2.ZERO
 		input_data["is_sprinting"] = false
+		for key: String in ["look_target", "look_target_position"]:
+			input_data.erase(key)  # A/D giran el dial, no al ladrón
 	super.apply_input(monitor_watch.filter_input(self, input_data))
 
 
