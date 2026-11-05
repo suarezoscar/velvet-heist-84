@@ -26,3 +26,10 @@ extends Resource
 
 ## Rayos con los que se calcula el polígono de la zona visible
 @export var fog_rays: int = 256
+
+## Segundos en que el borde de la niebla se funde al moverse (#161: sin saltos al andar). Lo
+## oculto en la niebla sigue este mismo borde fundido
+@export var fog_fade_time: float = 0.3
+
+## Quitar las rendijas de un solo rayo: cuñas finas que saltan por los huecos lejanos (#161)
+@export var fog_drop_slivers: bool = true
