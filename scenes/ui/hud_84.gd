@@ -230,46 +230,7 @@ func _update_header_stats() -> void:
 
 
 func _check_game_over_state() -> void:
-	match GameManager.current_state:
-		GameManager.MatchState.THIEF_ESCAPED:
-			_show_game_over_modal(
-				"¡EL LADRÓN HA ESCAPADO!",
-				(
-					"La colección tiene huecos y la ciudad, una leyenda nueva. «Con mis respetos, %s»"
-					% PlayerName.thief_signature(get_tree())
-				),
-				Color(0.25, 1.0, 0.4)
-			)
-		GameManager.MatchState.THIEF_CAPTURED:
-			_show_game_over_modal(
-				"¡LADRÓN CAPTURADO!",
-				"Dos golpes de porra y el caballero acaba en el furgón. La central da parte: sin novedad.",
-				Color(1.0, 0.25, 0.25)
-			)
-		GameManager.MatchState.THIEF_ESCAPED_PARTIAL:
-			_show_game_over_modal(
-				"¡HUIDA A MEDIAS!",
-				"Salió con parte del encargo antes de que bajaran las rejas: decide la cuenta de la noche.",
-				Color(0.95, 0.72, 0.29)
-			)
-		GameManager.MatchState.THIEF_LOCKED_IN:
-			_show_game_over_modal(
-				"¡ENCERRADO!",
-				"Las rejas bajan y el caballero se queda dentro. La central da parte: sin novedad.",
-				Color(1.0, 0.25, 0.25)
-			)
-		GameManager.MatchState.THIEF_NO_LOOT:
-			_show_game_over_modal(
-				"SIN BOTÍN",
-				"Las rejas bajan con el ladrón en el callejón y las manos vacías.",
-				Color(1.0, 0.25, 0.25)
-			)
-		GameManager.MatchState.TIME_EXPIRED:
-			_show_game_over_modal(
-				"SE ACABÓ LA NOCHE",
-				"Amanece, la policía rodea el museo y el ladrón no salió con su encargo.",
-				Color(1.0, 0.55, 0.1)
-			)
+	HudGameOver84.check_state(self)
 
 
 ## Actualiza el texto de interacción inferior cuando el interactor detecta un objeto
@@ -288,10 +249,4 @@ func _update_interaction_tooltip() -> void:
 
 
 func _show_game_over_modal(title: String, subtitle: String, title_color: Color) -> void:
-	if game_over_panel != null:
-		game_over_panel.visible = true
-	if game_over_title != null:
-		game_over_title.text = title
-		game_over_title.modulate = title_color
-	if game_over_sub != null:
-		game_over_sub.text = subtitle
+	HudGameOver84.show_modal(self, title, subtitle, title_color)
