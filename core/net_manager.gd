@@ -36,6 +36,7 @@ var _match_starting: bool = false
 func _ready() -> void:
 	_check_cli_arguments()
 	add_child(NetNames.new())  # nombres de los jugadores (FEAT-035)
+	add_child(NetLobbyReady.new())  # «PREPARADO» en el lobby (#165)
 
 
 func _check_cli_arguments() -> void:
@@ -161,6 +162,7 @@ func register_player(peer_id: int, player_name: String = "", role: StringName = 
 	connected_players[peer_id] = {
 		"peer_id": peer_id, "role": assigned_role, "ready": false, "name": p_name
 	}
+	NetLobbyReady.clear(connected_players)  # #165: entra alguien, todos a confirmar otra vez
 	if multiplayer.has_multiplayer_peer() and peer_id == multiplayer.get_unique_id():
 		local_role = assigned_role
 	_broadcast_players()
@@ -173,6 +175,7 @@ func register_player(peer_id: int, player_name: String = "", role: StringName = 
 func assign_role(peer_id: int, desired_role: StringName) -> bool:
 	if not NetRoleRegistry.try_assign(connected_players, peer_id, desired_role):
 		return false
+	NetLobbyReady.clear(connected_players)  # #165: cambia el equipo, todos a confirmar
 	if multiplayer.has_multiplayer_peer() and peer_id == multiplayer.get_unique_id():
 		local_role = desired_role
 	_broadcast_players()

@@ -102,8 +102,8 @@ func apply_net_state(state: Dictionary) -> void:
 func _physics_process(delta: float) -> void:
 	if not is_simulating():
 		return
-	if current_state == MatchState.IN_PROGRESS:
-		match_timer -= delta
+	if current_state == MatchState.IN_PROGRESS and not MatchCountdown.frozen(get_tree()):
+		match_timer -= delta  # #165: en la carga y el 3-2-1 el reloj no corre
 		if match_timer <= 0.0:
 			match_timer = 0.0
 			end_match(time_expired_state())
