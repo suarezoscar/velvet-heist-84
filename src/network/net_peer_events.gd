@@ -6,7 +6,7 @@ extends RefCounted
 
 ## Un peer se conecta: en el servidor entra en la lista, sin bando hasta que NetVersion
 ## acepte su versión (FEAT-025)
-static func on_connected(manager: Node, id: int) -> void:
+static func on_connected(manager: NetManagerNode, id: int) -> void:
 	print("[NetManager] Peer conectado: ", id)
 	if manager.multiplayer.is_server():
 		manager.connected_players[id] = {
@@ -18,7 +18,7 @@ static func on_connected(manager: Node, id: int) -> void:
 
 
 ## Un peer se va: sale de la lista y el servidor reparte la nueva
-static func on_disconnected(manager: Node, id: int) -> void:
+static func on_disconnected(manager: NetManagerNode, id: int) -> void:
 	print("[NetManager] Peer desconectado: ", id)
 	if manager.connected_players.has(id):
 		manager.connected_players.erase(id)
