@@ -14,8 +14,14 @@ var map: HeistMap3D = null
 var rows: VBoxContainer = null
 var travel_label: Label = null
 var _panel: PanelContainer = null
+
 var _from: Label = null
 var _view: Dictionary = {}
+
+
+## true con el plano a la vista (no la etiqueta del viaje): Esc lo cierra, no abre la pausa
+func is_open() -> bool:
+	return visible and _panel != null and _panel.visible
 
 
 func _ready() -> void:
@@ -47,7 +53,7 @@ func _ready() -> void:
 	rows.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	box.add_child(rows)
 	var hint: Label = _centered(
-		"← → elegir · E entrar · Esc salir", MenuTheme84.FONT_BODY, 22, MenuTheme84.DIM
+		"← → elegir · E entrar · Esc cerrar", MenuTheme84.FONT_BODY, 22, MenuTheme84.DIM
 	)
 	box.add_child(hint)
 	travel_label = _centered("", MenuTheme84.FONT_STRONG, 24, MenuTheme84.AMBER)

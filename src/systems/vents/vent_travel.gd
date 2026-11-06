@@ -127,6 +127,8 @@ func open(who: ThiefController3D, vent: Vent3D) -> void:
 
 ## Autoridad: una acción del ladrón con el plano abierto; true si era para el plano
 func handle(who: ThiefController3D, action: StringName) -> bool:
+	if phase == Phase.ENTERING and who == thief:
+		return true  # colándose, la E y la Q no van a lo que tenga al lado
 	if phase != Phase.CHOOSING or who != thief:
 		return false
 	match action:
@@ -247,5 +249,4 @@ func apply_net_state(state: Dictionary) -> void:
 	)
 	if local_thief != null:
 		local_thief.in_vent = phase == Phase.TRAVELING
-	if phase != Phase.NONE and local_thief != null:
-		thief = local_thief
+	thief = local_thief if phase != Phase.NONE else null

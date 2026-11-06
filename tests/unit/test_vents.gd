@@ -145,3 +145,75 @@ func test_inside_the_vent_nothing_else_works() -> void:
 	)
 	assert_false(camera._check_line_of_sight(thief), "Las cámaras no lo ven")
 	thief.in_vent = false
+
+
+func test_a_hit_while_entering_stops_it() -> void:
+	var map: HeistMap3D = await _map()
+	var thief: ThiefController3D = map.thief
+	var travel: VentTravel = VentTravel.of(get_tree())
+	var entry: Vent3D = travel.get_node("Vent_V_TAL") as Vent3D
+	thief.global_position = entry.exit_point()
+	entry.interact(thief)
+	thief.perform_action(&"interact")
+	assert_eq(travel.phase, VentTravel.Phase.ENTERING)
+	assert_true(thief.perform_action(&"force"), "Colándose, Q no va a otra cosa")
+	thief.register_baton_hit()
+	travel._physics_process(0.1)
+	assert_eq(travel.phase, VentTravel.Phase.NONE, "El golpe le impide colarse")
+	assert_null(entry._task)
+	_tick(entry, RULES.enter_time + 0.2)
+	assert_false(thief.in_vent)
+	assert_eq(entry.open_left, 0.0, "La rejilla no queda abierta")
+
+
+func test_the_match_ending_in_any_phase_leaves_nobody_inside() -> void:
+	var map: HeistMap3D = await _map()
+	var thief: ThiefController3D = map.thief
+	var travel: VentTravel = VentTravel.of(get_tree())
+	var entry: Vent3D = travel.get_node("Vent_V_TAL") as Vent3D
+	for stop_at: int in [VentTravel.Phase.CHOOSING, VentTravel.Phase.ENTERING]:
+		GameManager.current_state = GameManager.MatchState.IN_PROGRESS
+		thief.global_position = entry.exit_point()
+		entry.interact(thief)
+		if stop_at == VentTravel.Phase.ENTERING:
+			thief.perform_action(&"interact")
+		GameManager.current_state = GameManager.MatchState.THIEF_CAPTURED
+		travel._physics_process(0.1)
+		assert_eq(travel.phase, VentTravel.Phase.NONE, "Acaba en %d" % stop_at)
+		_tick(entry, RULES.enter_time + 0.2)
+		assert_false(thief.in_vent, "Y no llega a entrar")
+	GameManager.current_state = GameManager.MatchState.IN_PROGRESS
+	entry.interact(thief)
+	thief.perform_action(&"interact")
+	_tick(entry, RULES.enter_time + 0.1)
+	assert_eq(travel.phase, VentTravel.Phase.TRAVELING)
+	GameManager.current_state = GameManager.MatchState.THIEF_LOCKED_IN
+	travel._physics_process(0.1)
+	assert_eq(travel.phase, VentTravel.Phase.NONE, "En el viaje también")
+
+
+func test_only_the_thief_who_opened_the_map_can_use_it() -> void:
+	var map: HeistMap3D = await _map()
+	var travel: VentTravel = VentTravel.of(get_tree())
+	var entry: Vent3D = travel.get_node("Vent_V_TAL") as Vent3D
+	map.thief.global_position = entry.exit_point()
+	entry.interact(map.thief)
+	var selected: int = travel.selected
+	assert_false(travel.handle(null, VentTravel.NEXT))
+	map.guards[0].perform_action(VentTravel.NEXT)
+	assert_eq(travel.selected, selected, "Un guardia no lo toca")
+
+
+func test_esc_closes_the_map_and_not_opens_the_pause() -> void:
+	var map: HeistMap3D = await _map()
+	var travel: VentTravel = VentTravel.of(get_tree())
+	var entry: Vent3D = travel.get_node("Vent_V_TAL") as Vent3D
+	map.thief.global_position = entry.exit_point()
+	entry.interact(map.thief)
+	map.hud.vent_panel.refresh()
+	var pause: PauseMenu84 = map.find_children("*", "PauseMenu84", true, false)[0] as PauseMenu84
+	assert_false(pause.can_open(), "Con el plano abierto, Esc es del plano")
+	travel.handle(map.thief, &"interact")
+	_tick(entry, RULES.enter_time + 0.1)
+	map.hud.vent_panel.refresh()
+	assert_true(pause.can_open(), "En el viaje sí hay pausa")
