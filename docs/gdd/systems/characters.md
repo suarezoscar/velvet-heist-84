@@ -9,7 +9,7 @@
 - **Guardias**: vigilantes de seguridad privada de 1984, uniformados y algo cansados; se les reconoce por la gorra y la linterna, no por el equipo táctico.
 
 ## Reglas
-- **Decisión**: se sustituyen `thief_crypto.glb` y `guard_swat.glb` por modelos de proporciones realistas, de Mixamo o retexturizados en Blender. Las dos alternativas estilizadas del repo (`thief_stylized`, `guard_stylized`) aciertan en el vestuario, pero son cabezonas: chocan con "neo-noir, no caricaturesco" (pilar 1).
+- **Decisión**: se sustituyen `thief_crypto.glb` y `guard_swat.glb` por modelos de proporciones realistas, de Mixamo o retexturizados en Blender. Las dos alternativas estilizadas que hubo en el repo (`thief_stylized`, `guard_stylized`, borradas en la limpieza del bloque 6) acertaban en el vestuario, pero eran cabezonas: chocaban con "neo-noir, no caricaturesco" (pilar 1).
 - **Vestuario objetivo del ladrón**: jersey de cuello alto o esmoquin negro (VelvetBlack), pantalón estrecho, guantes negros (decisión del usuario, 2026-10-22; "guante blanco" en el GSD es una expresión, no el color), zapatos de suela blanda; como mucho un gorro o un antifaz.
 - **Vestuario objetivo del guardia**: gorra de plato, camisa con parche o placa (GuardNavy o azul claro), corbata, pantalón de uniforme, zapatos o botas de servicio, cinturón con llavero, porra de madera, walkie-talkie y Maglite.
 - **Prohibido en los dos** (pilares 1 y 6): luces emisivas o LED, gafas de visión nocturna o tácticas, cascos, chalecos tácticos, rodilleras, pistoleras, armas de fuego y manchas que se lean como sangre.

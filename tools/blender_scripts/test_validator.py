@@ -854,8 +854,8 @@ def run_test_suite():
         nonlocal tests_passed, tests_total
         tests_total += 1
         print(f"\n--- Test {tests_total}: Código de salida CLI ante asset válido (esperado 0) ---")
-        wood_wedge_glb = PROJECT_ROOT / "assets" / "models" / "wood_wedge.glb"
-        wood_wedge_spec = SCRIPT_DIR / "specs" / "wood_wedge.json"
+        valid_glb = PROJECT_ROOT / "assets" / "models" / "museum_bench.glb"
+        valid_spec = SCRIPT_DIR / "specs" / "museum_bench.json"
         cmd = [
             bpy.app.binary_path,
             "-b",
@@ -863,12 +863,12 @@ def run_test_suite():
             "-P",
             str(SCRIPT_DIR / "validate_asset.py"),
             "--",
-            str(wood_wedge_glb),
-            str(wood_wedge_spec),
+            str(valid_glb),
+            str(valid_spec),
         ]
         res = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
         if res.returncode == 0:
-            print("  ==> OK: La CLI devolvió returncode=0 ante asset válido (wood_wedge.glb).")
+            print("  ==> OK: La CLI devolvió returncode=0 ante asset válido (museum_bench.glb).")
             tests_passed += 1
         else:
             print(f"  ==> ERROR: Se esperaba returncode=0, se obtuvo {res.returncode}")
