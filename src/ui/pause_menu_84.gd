@@ -86,6 +86,8 @@ func can_open() -> bool:
 	if _map == null or _map.hud == null:
 		return true
 	# En estos paneles Esc suelta la tarea, no abre la pausa
+	if _map.hud.vent_panel != null and _map.hud.vent_panel.is_open():
+		return false  # #167: el plano de los conductos (en el viaje sí hay pausa)
 	var panels: Array[Control] = [
 		_map.hud.safe_dial, _map.hud.steal_minigame, _map.hud.gate_box_panel
 	]

@@ -217,7 +217,7 @@ func _process_camera_follow(delta: float) -> void:
 	var target: Node3D = get_followed_actor()
 	if camera == null or target == null:
 		return
-	var desired_pos: Vector3 = target.global_position + CAMERA_OFFSET
+	var desired_pos: Vector3 = VentTravel.focus(get_tree(), target) + CAMERA_OFFSET  # #167
 	camera.global_position = camera.global_position.lerp(desired_pos, CAMERA_FOLLOW_SPEED * delta)
 
 

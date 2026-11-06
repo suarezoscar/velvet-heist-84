@@ -91,8 +91,9 @@ func _process_local_actions() -> void:
 
 ## Ejecuta una acción discreta sobre el ladrón (interactuar, dial). Devuelve true si la ejecutó
 func perform_action(action: StringName) -> bool:
-	if in_vent:
-		return _vent_action(action)
+	var travel: VentTravel = VentTravel.of(get_tree()) if is_inside_tree() else null
+	if in_vent or (travel != null and travel.handle(self, action)):
+		return not in_vent  # dentro del conducto no vale nada; con el plano abierto, a él (#167)
 	if monitor_watch.is_active() and action == &"interact":
 		stop_watching()  # FEAT-042: también mira los monitores
 		return true
@@ -141,15 +142,6 @@ func simulate_movement(delta: float) -> void:
 	if is_carrying_heavy_loot:
 		velocity.x *= HEAVY_LOOT_SPEED_MULTIPLIER
 		velocity.z *= HEAVY_LOOT_SPEED_MULTIPLIER
-
-
-## Dentro del conducto solo vale la E, y siempre va a la rejilla por la que entró (FEAT-034)
-func _vent_action(action: StringName) -> bool:
-	var travel: VentTravel = VentTravel.of(get_tree())
-	if action != &"interact" or travel == null or travel.entry == null:
-		return false
-	travel.entry.interact(self)
-	return true
 
 
 ## heist.md R3 (FEAT-033): cada pieza del encargo que lleva le resta HEIST_RULES.loot_slow
@@ -258,7 +250,7 @@ func apply_input(input_data: Dictionary) -> void:
 	var piece: Node3D = StealMinigame.piece_of(self)
 	if piece != null:
 		piece.call(&"steer", self, input_data.get("movement_vector", Vector2.ZERO) as Vector2)
-	if is_cracking_safe() or piece != null:
+	if is_cracking_safe() or piece != null or VentTravel.holds(self):  # #167: ante la rejilla
 		input_data = input_data.duplicate()
 		input_data["movement_vector"] = Vector2.ZERO
 		input_data["is_sprinting"] = false

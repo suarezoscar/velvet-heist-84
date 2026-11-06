@@ -43,6 +43,8 @@ const ACTIONS: Array[StringName] = [
 	&"throw_coin",
 	&"walkie",
 	&"alarm_lights",
+	&"vent_prev",
+	&"vent_next",
 ]
 
 

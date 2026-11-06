@@ -5,6 +5,7 @@
 - **2026-11-04, #120, aprobado por el usuario el 2026-11-04**: con la alarma, el ladrón tiene `lockdown_time` s para huir con lo que lleve; después bajan las rejas de las 4 salidas. R3 y R4 reescritas, R4b y R7b nuevas, R11 (informe y puntos, con «proteger» y «encerrado» traídos de #123), números, contrajuego, casos límite, red, nivel y «Qué medir» ajustados. La regla la decidió el usuario tras el playtest; los detalles los propuso `game-designer` y el usuario los aprobó (ver «Decisiones (usuario, 2026-11-04, #120)»).
 - **2026-11-05, #121, aprobado por el usuario el 2026-11-05**: el ladrón puede sabotear la caja de la reja de cada salida para que esa reja no baje con la alarma. R7c nueva; R3, R4, R7b, R11 (puntos e informe), números, contrajuego, casos límite, red, nivel y «Qué medir» ajustados. La regla es del usuario (issue #121, tras el playtest); los detalles los propuso `game-designer` y el usuario los aprobó (ver «Decisiones (usuario, 2026-11-05, #121)»).
 - **2026-11-05, #123, aprobado por el usuario el 2026-11-05**: los puntos de los dos bandos. Las reglas las decidió el usuario en la entrevista de #123 (2026-11-05): piezas por fracción del encargo, puntuación individual y de equipo, puntos nuevos de guardias y ladrón y puntuación en vivo. Los números, la definición de «puntos de equipo» y la tabla de escenarios los propone `game-designer`. R4b y R11 (puntos) reescritas; números, casos límite y «Qué medir» ajustados (ver «Puntos (#123)»).
+- **2026-11-05, #167, aprobado por el usuario en la entrevista del 2026-11-05**: conductos. R10 reescrita (elegir fuera en un plano, viaje de como mucho 10 s con la cámara, nunca escondido); números (`max_travel_time` nuevo, `max_inside` retirado), contrajuego, casos límite, red y «Qué medir» ajustados. Los detalles marcados «propuesto por `game-designer`» están pendientes de revisión.
 - **Origen**: rediseño pedido por el usuario el 2026-10-28 para que los guardias no acampen en un sitio y para que su turno sea divertido. Temática: `docs/decisions/2026-10-28-tematica-caballero-ladron.md`.
 - **Relacionado**: `interaction.md` (CCTV; su parte R, relojes de ronda, se retiró el 2026-10-30, #116), `vision.md` (niebla y filtro de red), `stealth.md` (percepción y ruido), `gentleman.md` (temática; sus M1-M3 quedan sustituidas por este documento), `docs/gdd/levels/museum_v2.md`.
 
@@ -471,12 +472,61 @@ Rango: con los valores aprobados (1,2-1,8 s encendido, 0,5 s apagado, 3 aciertos
 
 **Textos** (`estilo-de-textos.md`): en la pieza, la línea de E («Abrir la vitrina [E]», «Abrir la caja fuerte [E]», «Dar el cambiazo [E]», «Puentear el sensor [E]») y debajo «A lo bruto [Q]: salta la alarma» (en la caja fuerte, «La caja fuerte no se puede forzar»).
 
-### R10. Ventilación (FEAT-034)
-- Tres redes de rejillas (servicio, oeste y este), de 3 o 4 rejillas cada una. Ninguna en la Cámara de la Pieza Maestra ni en la Garita.
-- **Solo el ladrón** se cuela: E en una rejilla, `enter_time` s, con un ruido metálico de radio `hatch_radius`.
-- Dentro **elige la salida** entre las rejillas de su red con izquierda y derecha, y va con E. Elegir la de entrada es volver a salir por ahí. Tiene `max_inside` s para elegir; después sale solo por donde entró (decisión del usuario, 2026-10-29).
-- **Viaje**: la distancia en línea recta entre las dos rejillas a `travel_speed`, un `loot_slow` más lento por pieza. Mientras viaja, nadie lo ve (guardias ni cámaras) ni lo puede golpear, y las rejillas de la red retumban (`rumble_radius`).
-- Al salir suena igual que al entrar. Las dos rejillas quedan **abiertas** `open_time` s: un rastro que cualquier guardia cierra con E.
+### R10. Ventilación (FEAT-034; reescrita con #167, aprobado por el usuario en la entrevista del 2026-11-05)
+> Reglas del usuario (#167, entrevista del 2026-11-05, tras el playtest 2): el destino se elige **fuera**, en un plano; el viaje dura como mucho `max_travel_time` s, con la cámara deslizándose de una rejilla a otra; y el conducto **nunca es un escondite**. Lo marcado «propuesto por `game-designer`» son detalles que el usuario no decidió en la entrevista y tiene que revisar.
+
+- Tres redes de rejillas (servicio, oeste y este), de 3 o 4 rejillas cada una. Ninguna en la Cámara de la Pieza Maestra ni en la Garita. **Solo el ladrón** usa los conductos; un guardia en una rejilla solo puede cerrarla (abajo).
+- **Por qué se cambia** (playtest 2): elegir dentro, a ciegas y con 20 s de espera, convertía el conducto en un escondite sin contra (nadie lo ve ni lo golpea dentro) y en un rato muerto para los dos bandos (pilar 4). Ahora el riesgo está fuera, a la vista, y el viaje es corto.
+
+#### Elegir el destino, fuera (#167, usuario)
+- **E en una rejilla** (de pie delante de ella, con el alcance de cualquier interactivo) abre un **panel grande con el plano de su red de conductos**. Cada rejilla de esa red sale con el **nombre de su sala** y los **segundos de viaje** (con el botín que lleva y el máximo ya aplicados). La de entrada **no se ofrece**: no hay «volver a salir aquí».
+- **Se elige** con ← → o con el ratón y **se confirma con E**. **Esc o una tecla de moverse** (W, A, S, D, ↑, ↓) cierran el plano sin entrar.
+- **Mientras elige**, el ladrón está **quieto delante de la rejilla, visible y atrapable**, y **el tiempo no se para** (tampoco sin red). Para los guardias es un ladrón parado: lo ven, lo oyen como siempre y lo pueden golpear.
+- Detalles del panel (propuesto por `game-designer`):
+  - **Qué enseña**: el mismo plano que M (con sus piezas y lo que recuerda), con su red encima: la rejilla de entrada marcada «ESTÁS AQUÍ», una línea recta a cada destino y, en cada uno, «SALA · 8 s». Las otras redes no salen: no se puede ir a ellas. Así decide con lo que ya sabe; no le da información nueva.
+  - **No tapa la información** (pilar 2): el plano ocupa el centro de la pantalla y deja a la vista la cuenta atrás de las rejas, el reloj, el vúmetro y los chevrones del borde (`stealth.md` P2.4). El mundo se sigue oyendo. Mirar el plano es dejar de mirar la sala: ese es el riesgo que se busca, pero el oído avisa.
+  - **Orden de ← →**: de oeste a este según su posición en el plano (a igual x, de norte a sur), en círculo. Al abrirse, está elegida la de viaje **más corto**.
+  - **Ratón**: pasar por encima o hacer clic en una rejilla la elige; un clic en la que ya está elegida también confirma (como E).
+  - **Por qué ← → eligen y A, D cierran**: las flechas también mueven, pero en el plano son lo natural para pasar de una opción a otra; quien quiere irse pulsa W, A, S o D sin pensarlo. Esc cierra el plano y no abre la pausa (hay que pulsarlo otra vez). Con el plano abierto, M no hace nada.
+  - **Sin límite de tiempo para elegir**: el límite es el riesgo de estar a la vista. No le da ventaja nueva: el plano (M) ya se puede abrir en cualquier sitio.
+  - **Sin ruido al abrirlo**: mirar el plano es mirar; el ruido es al colarse.
+- **Qué lo cierra sin entrar** (propuesto por `game-designer`): Esc, moverse, un **golpe de porra** (el golpe cuenta como siempre: −20 al ladrón, +50 al guardia; y vuelve a mandar él, para que pueda huir; si es el segundo, «CAPTURADO»), el fin de la partida (también «ENCERRADO», abajo) y la pausa sin red. Que lo **vean** no lo cierra: salta la alarma si toca (R7) y el plano sigue; irse o no es decisión suya.
+
+#### Colarse y viajar
+- **Solo tras confirmar se cuela** (#167, usuario): `enter_time` s, con el ruido metálico de radio `hatch_radius`, como hasta ahora. Durante esos segundos está fuera, quieto y atrapable; si se aparta o le golpean, no entra (como cualquier tarea con tiempo: el ruido ya ha sonado y la rejilla no queda abierta). Al terminar, la rejilla de entrada queda **abierta** (abajo).
+- **El viaje** (#167, usuario): la distancia en línea recta entre las dos rejillas a `travel_speed`, un `loot_slow` más lento por pieza, y **como mucho `max_travel_time` s**:
+
+```
+t_viaje = min( d / travel_speed × (1 + loot_slow × n),  max_travel_time )
+```
+| Variable | Significado | Fuente |
+|---|---|---|
+| `t_viaje` | Segundos dentro del conducto, de colarse a salir | resultado |
+| `d` | Distancia en línea recta entre la rejilla de entrada y la de salida (m) | nivel (`vents` de `museum_v2.json`) |
+| `travel_speed` | Velocidad por el conducto | `vent_rules.tres` |
+| `loot_slow` | Lo que frena cada pieza (R3) | `heist_rules.tres` |
+| `n` | Piezas del encargo en el maletín | estado del golpe |
+| `max_travel_time` | Máximo del viaje (nuevo, #167) | `vent_rules.tres` |
+
+  Rango en `museum_v2`: las rejillas están a 10-46 m, así que sin botín va de **5 s** (V_GW-V_ANT, V_ORI-V_BIB) a **10 s**; 9 de los 15 trayectos (los de más de 20 m) se quedan en el máximo, y con 3 piezas, 10 de 15. Ejemplo: de V_TAL a V_MNT (15,8 m) con 2 piezas, 15,8 / 2 × 1,10 = 8,7 s; de V_GW a V_ARC (45,7 m), 22,9 s, que se quedan en 10.
+- **Mientras viaja**, nadie lo ve (guardias ni cámaras) ni lo puede golpear, y las rejillas de la red retumban (`rumble_radius`), como hasta ahora: suenan **todas las de la red menos la de entrada**, así que el retumbar dice la red, no la salida.
+- **La cámara** (#167, usuario): se desliza de la rejilla de entrada a la de salida durante el viaje y, al llegar, vuelve a seguir al ladrón. Propuesto por `game-designer`:
+  - el deslizamiento va en línea recta, con arranque y llegada suaves, y dura justo `t_viaje`;
+  - **no ve nada en vivo** mientras viaja (va por dentro de una pared): la niebla enseña solo lo que recuerda (`vision.md`);
+  - **oye desde donde va**: el punto que escucha se mueve con la cámara, así que al acercarse oye los pasos que hay junto a la salida (pilar 2). No puede volverse, pero sabe si le esperan y sale preparado para correr.
+- **Al llegar** sale delante de la rejilla de salida con el mismo ruido que al entrar (`hatch_radius`) y las dos rejillas quedan **abiertas** `open_time` s: un rastro que cualquier guardia cierra con E (cerrarla no la bloquea; es solo quitar el rastro).
+- **Nunca escondido** (#167, usuario): fuera elegir dentro, fuera la espera de `max_inside` s (se retira) y fuera darse la vuelta a medias. Una vez dentro, siempre llega a la salida elegida, en `t_viaje` s.
+- **Se quedan**: el retumbar y «ENCERRADO» si bajan las rejas con él dentro (R4, R7b), salvo que quede una salida abierta (R7c).
+
+#### Casos de la salida (propuesto por `game-designer`)
+- **Un guardia encima de la rejilla de salida**: sale igual. Si el punto de salida está ocupado por un cuerpo, aparece en el punto libre más cercano delante de la rejilla (un ajuste técnico, sin regla). El guardia puede golpearle en cuanto aparece, pero hacen falta dos golpes para atraparlo: una emboscada cuesta un golpe, no la partida. **Por qué**: cubrir una rejilla es el contrajuego natural del retumbar (pilar 4), y con 3-4 rejillas por red un guardia acierta 1 de cada 2 o 3; si el ladrón saliera rebotado o pudiera volverse, la emboscada no valdría nada y el conducto volvería a ser un sitio seguro.
+- **La rejilla de salida, cerrada por un guardia**: da igual; cerrar no bloquea.
+- **Tapada por un mueble**: no puede pasar; el nivel deja libre el frente de cada rejilla (la FEAT lo comprueba en el editor).
+
+#### Qué ve el guardia (nada nuevo)
+- Mientras el ladrón elige: un ladrón parado delante de una rejilla, como si forzara algo. No ve el plano ni sabe qué elige.
+- Al colarse: el ruido metálico (4 m) y, después, la rejilla abierta. Durante el viaje: el retumbar en las demás rejillas de la red. Al salir: el ruido (4 m) y la otra rejilla abierta.
+- Ningún guardia sigue al ladrón con la cámara: cada uno ve lo suyo. La cámara que se desliza es solo la del ladrón.
 
 ### R11. La puerta de la garita (FEAT-034)
 - La garita tiene **una sola puerta**, cerrada al empezar. Cerrada tapa el paso y la vista: quien mira los monitores no ve el pasillo.
@@ -504,7 +554,8 @@ Viven en `data/balance/heist_rules.tres` (`HeistRules`) salvo donde se indica ot
 | IA: salas que no repite | `ai_room_memory` (`guard_patrol.tres`) | ritmo | 1-5 | **3**: no vuelve enseguida, pero en 12 minutos pasa varias veces por las salas con piezas |
 | IA: rato en cada sala | `ai_room_dwell` (`guard_patrol.tres`) | sensación | 2-8 s | **4 s**: una pasada de linterna a la sala |
 | Peso del botín | `loot_slow` / `loot_min_speed` (`heist_rules.tres`) | ritmo | 0,03-0,1 / 0,6-0,85 | 0,05 por pieza / 0,7 |
-| Ventilación | `enter_time` / `hatch_radius` / `travel_speed` / `open_time` / `rumble_radius` (`vent_rules.tres`) | ritmo | — | 1,5 s / 4 m / 2 m/s / 20 s / 5 m; `max_inside` 20 s |
+| Ventilación | `enter_time` / `hatch_radius` / `travel_speed` / `open_time` / `rumble_radius` (`vent_rules.tres`) | ritmo | — | 1,5 s / 4 m / 2 m/s / 20 s / 5 m. `max_inside` (20 s) se retira con #167: ya no se espera dentro |
+| Máximo del viaje por un conducto (#167) | `max_travel_time` (`vent_rules.tres`, nuevo) | ritmo | 8-15 s | **10 s** (usuario, #167): más de 10 s sin ver ni oír lo de alrededor es un rato muerto en una partida de 12 minutos. Por debajo de 8, casi todos los trayectos de `museum_v2` (10-46 m) durarían lo mismo y la distancia dejaría de importar; por encima de 15, los largos (40-46 m) vuelven a ser una espera. Con 10, el trayecto más largo va a ~4,6 m/s, casi lo que anda el ladrón (5 m/s) pero atravesando muros: es un atajo de verdad, y por eso deja tres ruidos y dos rastros |
 | Puerta de la garita | `pick_time` / `creak_radius` / `auto_close` (`door_rules.tres`) | ritmo | — | 2 s / 6 m / 6 s |
 | Duración de la partida | `match_minutes` (nivel) | ritmo | 10-15 | 12 en el museo ampliado |
 | Monedas | `coins` / `throw_range` / `coin_radius` | ritmo | 2-5 / 6-14 m / 6-12 m | 3 / 10 / 9 |
@@ -657,6 +708,9 @@ Con 4 guardias (k = 2, `E` = 50) sale casi igual que con 3: tranquila 175 – 17
 | Dar el cambiazo (#119) | Ladrón | 6 s de crujidos suaves junto a la pieza; después, una falsificación con un fallo | Fijarse en ella, compararla con la ficha y examinarla |
 | Puentear el sensor (#119) | Ladrón | Chasquidos suaves junto a la pieza; después, el pedestal vacío («sensor puenteado») | El rastro a la vista, como una vitrina vacía |
 | Fallar un minijuego (#119) | Ladrón | Un ruido mecánico de 7,5 m, como fallar el dial | Acercarse a la sala de donde viene: el ladrón está quieto en una pieza |
+| Elegir el destino de un conducto (#167) | Ladrón | Un ladrón quieto delante de una rejilla, si lo ven; nada si no | Ir a por él: está parado y mirando el plano. Si se va antes, la rejilla sigue cerrada: no ha entrado |
+| Viajar por un conducto (#167) | Ladrón | El ruido metálico al colarse (4 m), la rejilla abierta y el retumbar en las demás rejillas de la red (5 m): dice la red, no la salida | Ir a la rejilla más probable de esa red y esperar encima, o mirar con la cámara en pantalla la sala de una rejilla; tiene como mucho 10 s |
+| Esperar encima de una rejilla (#167) | Guardia | Los pasos del guardia junto a la salida, que el ladrón oye mientras se acerca (el oído va con la cámara) | No puede volverse: sale corriendo nada más aparecer; un golpe no lo atrapa |
 | Robar a lo bruto | Ladrón | La campana y la alarma al momento | Ir todos hacia allí y cerrar las salidas de esa zona |
 | Sabotear una caja (#121) | Ladrón | Tornillos y cortes de 2 m; el chispazo de 7,5 m si corta mal; después, la tapa torcida a 3 m y una chispa cada 5-9 s (vista desde lejos, oída a 3 m, también por la cámara en pantalla) | Pasar junto a las cajas al patrullar las salas de salida y repararlas (8 s, +40) |
 | Dejar una caja a medias (#121) | Ladrón | La tapa fuera, a 3 m; sin chispas | Repararla igual (8 s, +40): el ladrón pierde lo hecho |
@@ -679,7 +733,8 @@ Con 4 guardias (k = 2, `E` = 50) sale casi igual que con 3: tranquila 175 – 17
   - **Completa el encargo durante la cuenta atrás**: al salir es huida completa.
   - **La alarma lo pilla en el callejón**: con botín, huye en el acto (a medias o completa); sin nada, tiene la cuenta atrás para entrar a por una pieza.
   - **Lo capturan durante la cuenta atrás**: «CAPTURADO», como siempre. La captura manda sobre la huida y sobre las rejas en el mismo instante.
-  - **En un conducto al bajar las rejas**: «ENCERRADO». Como el viaje y la espera dentro (`max_inside`, 20 s) caben en la cuenta atrás, meterse con poco margen es una apuesta del ladrón.
+  - **En un conducto al bajar las rejas**: «ENCERRADO». Colarse y viajar (`enter_time` + como mucho `max_travel_time`, 11,5 s) caben en la cuenta atrás, pero meterse con poco margen es una apuesta del ladrón (#167: ya no hay espera dentro).
+  - **Eligiendo en el plano al bajar las rejas** (#167, propuesto por `game-designer`): está dentro del edificio; si no queda ninguna salida abierta, «ENCERRADO» y el plano se cierra con el fin de la partida. Con una salida abierta, la partida sigue y el plano también.
   - **A mitad de minijuego al bajar las rejas**: no termina (como al acabarse la partida) y es «ENCERRADO».
   - **Pasa bajo la reja mientras baja**: huye; la reja solo cierra al tocar el suelo.
   - **Alarma con menos de `lockdown_time` s de partida**: manda el reloj de la partida; la cuenta atrás grande enseña lo que llegue antes y el final es «AMANECE».
@@ -698,6 +753,17 @@ Con 4 guardias (k = 2, `E` = 50) sale casi igual que con 3: tranquila 175 – 17
   - **Dos guardias en la misma caja**: la repara el primero; el segundo no ve el aviso mientras tanto.
   - **Huida a medias por una salida saboteada durante la cuenta atrás** (con todas las rejas aún arriba): es una huida a medias normal; los +60 solo cuentan con las rejas cerradas (decisión 1 de #121). La caja sigue valiendo +30.
   - **Revancha**: las cajas vuelven enteras, con cables nuevos.
+- **Conductos (#167; los detalles, propuestos por `game-designer`)**:
+  - **Le golpean mientras elige**: el plano se cierra, el golpe cuenta como siempre y el ladrón recupera el control para huir. Si era el segundo golpe, «CAPTURADO».
+  - **Le golpean mientras se cuela** (`enter_time`): no entra; el ruido ya ha sonado y la rejilla no queda abierta.
+  - **Salta la alarma mientras elige**: nada especial. La cuenta atrás sale encima del plano y el plano sigue abierto; los segundos de viaje no cambian.
+  - **Lo ven mientras elige**: alarma si toca (R7); el plano sigue.
+  - **Un guardia encima de la rejilla de salida**: sale igual, en el punto libre más cercano delante de la rejilla, y se le puede golpear al aparecer (R10, «Casos de la salida»).
+  - **Coge la última pieza y entra en el conducto con la alarma**: el viaje no cuenta como huida; los conductos no son salidas (R3).
+  - **Se acaba la partida mientras viaja**: el ladrón se queda dentro; el final es el que toque («AMANECE», «ENCERRADO»).
+  - **Pausa sin red mientras elige**: la pausa congela la partida y cierra el plano; al volver, hay que pulsar E otra vez. En red la pausa no para nada y no cierra el plano.
+  - **Red con una sola rejilla además de la de entrada**: el plano sale igual, con una opción ya elegida; E confirma.
+  - **Revancha**: rejillas cerradas, nadie dentro.
 - **Minijuegos (#119)**:
   - **Un guardia lo ve a mitad de minijuego**: salta la alarma como siempre que lo ven (R7); el minijuego sigue si el ladrón no se va, y la pieza sale en silencio si lo termina (ya no hay alarma que ahorrar, pero sí el rastro: la falsificación sigue sin ser rastro hasta que la examinen).
   - **Se acaba la partida a mitad**: no termina nada (como `TimedTask` hoy).
@@ -713,7 +779,7 @@ Con 4 guardias (k = 2, `E` = 50) sale casi igual que con 3: tranquila 175 – 17
   - **Alarma a lo bruto**: nadie cobra los +50; el primero que lo ve después cobra +25.
   - **Alarma por dos rastros** (decisión 6): los +50, a quien descubre el segundo, en persona o con la cámara en pantalla.
   - **La alarma lo pilla fuera con botín**: huye en el acto (R3) con toda la cuenta atrás: +60 de huida rápida. Para llegar ahí tiene que dejarse ver desde fuera o tener a alguien que descubra dos rastros; se mide («Qué medir»).
-  - **Despistar en un conducto**: cuenta (nadie lo ve dentro, R10). Si huye o acaba la partida antes de los 8 s, no cuenta.
+  - **Despistar en un conducto**: cuenta (nadie lo ve mientras viaja, R10). Con #167 el viaje dura de 5 a 10 s, así que solo un viaje largo da los 8 s por sí solo; el resto los pone al salir. Si huye o acaba la partida antes de los 8 s, no cuenta. Mientras elige en el plano está a la vista: no cuenta para despistar.
   - **Robo limpio en cualquier final**: cuenta para su ficha («MEJOR DE LA NOCHE»), también si lo capturan.
   - **Varios guardias cerca de un robo**: −30 a cada uno. Uno al otro lado de un muro, a menos de 5 m, no.
   - **Walkie**: si el que lo ve es el mismo que puso la marca, no cuenta; dos marcas a la vez pueden cobrar cada una. Con la cámara en pantalla de un compañero, también cuenta (decisión 7).
@@ -730,6 +796,10 @@ Con 4 guardias (k = 2, `E` = 50) sale casi igual que con 3: tranquila 175 – 17
   - **Al ladrón**, como estado privado: el estado completo de la caja en la que trabaja, con el orden de sus cables (nunca a los guardias), y el de sus cajas para su plano.
   - **A todos**: si cada caja está entera, a medias o saboteada (para dibujar la tapa y la chispa; el cliente del guardia solo dibuja la tapa torcida a menos de `box_notice_distance` m, como el pedestal vacío, que solo se dibuja si se ve), las chispas como ruido y el estado de cada reja por separado (arriba, bajando, cerrada, o recogida porque su caja la frena).
 - **#123**: el servidor lleva todos los puntos. A cada jugador, como estado privado (`get_net_state_private()`), solo su total en vivo y sus avisos («+25 VISTO»); nunca los de otro. Lo oculto (robo limpio, «proteger», robos cerca) solo llega con el informe, al acabar, y el resultado de la huida a medias se calcula del informe en cada cliente, como en #120.
+- **#167 (propuesto por `game-designer`)**: el servidor decide colarse, el viaje, la salida y el cierre del plano por un golpe o el final.
+  - **Al ladrón**, como estado privado (`get_net_state_private()`, como hoy): la fase (eligiendo, colándose, viajando), la rejilla de entrada, las de su red, la elegida al confirmar y, para la cámara, `t_viaje` y el instante de salida. Nunca a los guardias.
+  - **La elección en el plano vive en el cliente del ladrón** (es solo interfaz; ← → no esperan al servidor). El cliente manda al servidor «abrir», «ir a esta rejilla» o «cerrar». El servidor comprueba que sigue delante de la rejilla de entrada, que el destino es de la misma red y no es la de entrada, y que no le han golpeado mientras tanto; si no, no entra.
+  - **A todos**: lo mismo que hoy. La posición del ladrón no recorre el conducto: se queda en la rejilla de entrada (oculta) hasta que aparece en la de salida, para que el destino no se filtre a nadie antes de tiempo. Las rejillas abiertas y los ruidos, como hasta ahora.
 - **A todos (#120)**: el instante en que empezó la cuenta atrás (cada cliente la dibuja con su reloj) y el estado de cada reja (arriba, bajando, cerrada). El servidor decide la huida, el tipo de huida y el cierre; el resultado de la huida a medias sale del informe, que ya tienen todos (MatchScore lo calcula igual en cada cliente).
 
 ## Cambios en el nivel (`museum_v2`)
@@ -766,9 +836,12 @@ Con 4 guardias (k = 2, `E` = 50) sale casi igual que con 3: tranquila 175 – 17
 | Personales de quien pasa más tiempo en la garita (#123) | ¿Patrullar vale más que la garita? | El guardia de la garita tiene más personales que el que patrulla en más de la mitad de las partidas |
 | Cajas saboteadas y reparadas por partida (#121) | ¿Sabotear es la apertura obligada? ¿La contra funciona? | El ladrón sabotea 3 o más cajas en más de la mitad de las partidas (seguro gratis); ninguna en 5 partidas (no compensa); o los guardias reparan menos del 20 % de las saboteadas (la contra no se ve) |
 | Final de las partidas con rejas cerradas y salidas abiertas (#121) | ¿El sabotaje compra unos segundos o la partida entera? | Más del 70 % acaban en huida por una reja saboteada, o la prórroga dura de media más de 60 s |
+| Usos de los conductos, segundos eligiendo y golpes al elegir o al salir (#167) | ¿El conducto es una jugada con riesgo o un atajo gratis? | Más de 6 viajes por partida en 3 de 5 (atajo gratis; primer mando, `hatch_radius` de 4 a 6 m, para que colarse se oiga más, antes que alargar el viaje); ninguno en 5 partidas (no compensa); más de 1 de cada 3 viajes acaba en un golpe al salir (la emboscada es demasiado fácil); más de 5 s de media eligiendo (el plano no se lee) |
+| Viajes que se quedan en el máximo (#167) | ¿`max_travel_time` aplana la red? | Más de la mitad de los viajes de una partida van de punta a punta de la red (los largos salen demasiado baratos): subir `max_travel_time` hacia 12-15 s |
 | Robos por método y fallos de minijuego (#119) | ¿Se entiende y compensa robar en silencio? | Más de la mitad de las piezas a lo bruto en 3 de 5 partidas, o más de 3 fallos por pieza de media (el minijuego es demasiado duro) |
 
 ## Estado
+#167 (aprobado por el usuario en la entrevista del 2026-11-05, a falta de su FEAT): conductos sin escondite. El destino se elige fuera, en un plano, quieto y a la vista; el viaje dura como mucho `max_travel_time` (10 s) con la cámara deslizándose a la salida; fuera `max_inside` y elegir dentro (R10). Los detalles marcados «propuesto por `game-designer`» esperan el visto bueno del usuario.
 #123 (aprobado por el usuario el 2026-11-05, a falta de su FEAT): puntos de los dos bandos. Reglas del usuario (entrevista del 2026-11-05); números, «puntos de equipo» (las bolsas de «proteger» y «encerrado») y tabla de escenarios propuestos por `game-designer` (R4b, R11, «Puntos (#123)»). Decisiones en «Decisiones (usuario, 2026-11-05, #123)».
 #121 (aprobado por el usuario el 2026-11-05, a falta de su FEAT): sabotear la caja de la reja de una salida (minijuego de tres pasos, ~15 s) para que esa reja no baje con la alarma; la caja se nota de cerca y un guardia la repara en 8 s (R7c). Números en `heist_rules.tres` (`box_*`) y `score_rules.tres`; cajas en `exits` de `museum_v2.json`.
 #120 (aprobado por el usuario el 2026-11-04, a falta de su FEAT): con la alarma, `lockdown_time` s para huir con lo puesto (huida completa o a medias) antes de que bajen las rejas de las 4 salidas; si no, «ENCERRADO». Lo siguiente, #121 (sabotear la caja de una reja), parte de R7b tal como está escrita.
@@ -782,6 +855,12 @@ Entrega 1 implementada en FEAT-028 (lista, carta, escape, condiciones de victori
 2. sueño y café;
 3. rastros + alerta + monedas + walkie;
 4. el cambiazo con piezas de pega y el corte de corriente.
+
+## Decisiones (usuario, 2026-11-05, #167, entrevista tras el playtest 2)
+1. **Se elige fuera**: E en la rejilla abre un panel grande con el plano de la red; cada rejilla con el nombre de su sala y los segundos de viaje; la de entrada no se ofrece. ← → o el ratón eligen y E confirma.
+2. **Mientras elige**: quieto, visible y atrapable, y el tiempo no se para. Esc o una tecla de moverse cierran el plano sin entrar.
+3. **El viaje**: solo tras elegir se cuela (`enter_time`, 1,5 s). Distancia en línea recta a 2 m/s, más lento con botín, y como mucho 10 s (`max_travel_time`). La cámara se desliza de la rejilla de entrada a la de salida y sale al llegar.
+4. **Nunca escondido**: fuera elegir dentro, la espera de 20 s (`max_inside`) y darse la vuelta a medias. Se quedan el retumbar y «ENCERRADO».
 
 ## Decisiones (usuario, 2026-11-05, #123)
 El usuario aceptó todas las recomendaciones de `game-designer` (entre paréntesis), y que la huida por una reja saboteada de #121 pase de ganar con holgura a un resultado ajustado (si el playtest muestra que sabotear no compensa, `thief_sabotage_escape` de 60 a 80).
