@@ -71,6 +71,8 @@ static func _players(loaded: Array[int]) -> String:
 	var lines: PackedStringArray = []
 	var players: Dictionary = NetManager.get_connected_players()
 	for peer: int in players:
+		if NetRoleRegistry.role_for_peer(players, peer) == &"":
+			continue  # sin bando no se le espera
 		var info: Dictionary = players[peer]
 		var mark: String = "✔" if loaded.has(peer) else "…"
 		lines.append("%s  %s" % [String(info.get("name", "Jugador %d" % peer)), mark])

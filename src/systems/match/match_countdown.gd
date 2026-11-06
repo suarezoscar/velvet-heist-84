@@ -16,7 +16,8 @@ var phase: Phase = Phase.WAITING
 var left: float = COUNT_TIME
 ## Peers que ya han cargado el mapa (con red; lo enseña la pantalla de carga)
 var loaded: Array[int] = []
-var _session: NetSession = null
+## Quién ha cargado ya (para los tests); sin él, NetSession.ready_peers del mapa
+var loaded_source: Callable = Callable()
 
 
 static func of(tree: SceneTree) -> MatchCountdown:
@@ -58,20 +59,22 @@ func _physics_process(delta: float) -> void:
 
 ## Servidor: ¿han cargado ya todos los jugadores con bando?
 func _check_loaded() -> void:
-	if _session == null:
-		var found: Array[Node] = get_tree().root.find_children(
-			"NetSession", "NetSession", true, false
-		)
-		_session = found[0] as NetSession if not found.is_empty() else null
-	if _session == null:
+	var ready: Variant = loaded_source.call() if loaded_source.is_valid() else _session_ready()
+	if ready == null:
 		return
-	var session: NetSession = _session
-	loaded.assign(session.ready_peers())
+	loaded.assign(ready)
 	var players: Dictionary = NetManager.get_connected_players()
 	for peer: int in players:
 		if NetRoleRegistry.role_for_peer(players, peer) != &"" and not loaded.has(peer):
 			return
 	phase = Phase.COUNTING
+
+
+## Peers que han cargado según la sesión de red del mapa (null si aún no hay sesión)
+func _session_ready() -> Variant:
+	var scene: Node = get_tree().current_scene
+	var session: NetSession = scene.get_node_or_null("NetSession") as NetSession if scene else null
+	return session.ready_peers() if session != null else null
 
 
 func get_net_state() -> Dictionary:

@@ -76,8 +76,8 @@ func _find_thief() -> void:
 func is_driving() -> bool:
 	if not is_ai_active or _guard == null or not _guard.is_ai_controlled:
 		return false
-	if _guard.is_locally_controlled:
-		return false
+	if _guard.is_locally_controlled or MatchCountdown.frozen(get_tree()):
+		return false  # #165: en la carga y el 3-2-1 la IA espera
 	return not NetManager.is_online() or multiplayer.is_server()
 
 

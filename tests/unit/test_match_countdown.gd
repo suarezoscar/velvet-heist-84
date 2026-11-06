@@ -50,3 +50,51 @@ func test_offline_countdown_freezes_then_starts() -> void:
 	assert_false(MatchCountdown.frozen(get_tree()))
 	hud.refresh()
 	assert_eq(hud.number_label.text, "¡YA!")
+
+
+func test_online_waits_for_everyone_with_a_role_to_load() -> void:
+	var saved: Dictionary = NetManager.connected_players
+	NetManager.connected_players = {
+		2: {"peer_id": 2, "role": &"thief"},
+		3: {"peer_id": 3, "role": &"guard_1"},
+		4: {"peer_id": 4, "role": &""},  # sin bando: no se le espera
+	}
+	var countdown: MatchCountdown = MatchCountdown.new()
+	add_child_autofree(countdown)
+	var loaded: Array[int] = [2]
+	countdown.loaded_source = func() -> Array[int]: return loaded
+	countdown._check_loaded()
+	assert_eq(countdown.phase, MatchCountdown.Phase.WAITING, "Falta el guardia")
+	assert_eq(countdown.loaded, [2] as Array[int], "La pantalla de carga sabe quién está")
+	loaded.append(3)
+	countdown._check_loaded()
+	assert_eq(countdown.phase, MatchCountdown.Phase.COUNTING, "Todos con bando: 3-2-1")
+	NetManager.connected_players = saved
+
+
+func test_a_player_who_leaves_while_loading_is_not_waited_for() -> void:
+	var saved: Dictionary = NetManager.connected_players
+	NetManager.connected_players = {2: {"peer_id": 2, "role": &"thief"}}
+	var countdown: MatchCountdown = MatchCountdown.new()
+	add_child_autofree(countdown)
+	countdown.loaded_source = func() -> Array[int]: return [2] as Array[int]
+	countdown._check_loaded()
+	assert_eq(countdown.phase, MatchCountdown.Phase.COUNTING)
+	NetManager.connected_players = saved
+
+
+func test_role_changes_and_joins_clear_ready() -> void:
+	var saved: Dictionary = NetManager.connected_players
+	NetManager.connected_players = {
+		2: {"peer_id": 2, "role": &"thief", "ready": true, "name": "a"},
+		3: {"peer_id": 3, "role": &"guard_1", "ready": true, "name": "b"},
+	}
+	NetManager.assign_role(3, &"guard_2")
+	assert_false(NetManager.connected_players[2]["ready"], "Cambia el equipo: todos a confirmar")
+	NetManager.connected_players[2]["ready"] = true
+	NetManager.register_player(5, "c")
+	assert_false(NetManager.connected_players[2]["ready"], "Entra alguien: todos a confirmar")
+	var lobby: NetLobbyReady = NetManager.get_node("NetLobbyReady") as NetLobbyReady
+	lobby.apply(9, true)
+	assert_false(NetManager.connected_players.has(9), "Un peer que no está no cuenta")
+	NetManager.connected_players = saved

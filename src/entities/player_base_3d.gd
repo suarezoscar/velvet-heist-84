@@ -57,7 +57,8 @@ func run_tick(delta: float) -> void:
 		return
 	if is_locally_controlled:
 		apply_input(gather_input(camera))
-		_process_local_actions()
+		if not MatchCountdown.frozen(get_tree()):  # #165: en la carga y el 3-2-1, nada
+			_process_local_actions()
 	simulate_movement(delta)
 	update_presentation(delta)
 
