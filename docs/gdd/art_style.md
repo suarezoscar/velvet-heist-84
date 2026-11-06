@@ -35,8 +35,8 @@ Los valores viven en `data/visual/night_look.tres` (`NightLook`).
 - **Muros**: `wall_xray.gdshader` comparte la luz cel y el recorte de WallXRay.
 - **Contorno**: `outline.gdshader`, malla invertida como `next_pass`; las cajas se inflan hacia
   sus esquinas (`box_mode`) para que no se abran. Los suelos no llevan contorno.
-- **Entorno**: `NightEnvironmentSetup` (`src/vfx/setup_environment.gd`): cielo `.hdr`
-  (procedural si falta), SSR para suelos pulidos, SDFGI, glow suave y niebla volumétrica 0,015
+- **Entorno**: `NightEnvironmentSetup` (`src/vfx/setup_environment.gd`): cielo synthwave procedural
+  `night_sky.gdshader` sin texturas, SSR para suelos pulidos, SDFGI, glow suave y niebla volumétrica 0,015
   para el haz de las linternas. Luna fría con sombras.
 
 ## Assets generados con IA

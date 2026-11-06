@@ -8,7 +8,7 @@
 - Capturas antes/después enseñadas al usuario.
 
 ## Falta
-- `.hdr` del usuario: `res://assets/textures/sky/museum_night_sky.hdr` (hay cielo procedural mientras).
+- Cielo: synthwave procedural (`night_sky.gdshader`), sin `.hdr` (decisión del usuario).
 - Ajustes tras la opinión del usuario (contorno, ambiente, bandas, light_keep de la niebla).
 - Rendimiento con SDFGI + SSR + niebla volumétrica en su equipo.
 - Limpieza de #147 (lo que no se usa o no tiene licencia).

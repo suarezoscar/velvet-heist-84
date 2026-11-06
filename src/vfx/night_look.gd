@@ -22,10 +22,7 @@ extends Resource
 @export var lamp_amber: Color = Color("ffb627")
 
 @export_group("Entorno")
-## Panorama .hdr del cielo; si no existe, cielo procedural con la paleta
-@export_file("*.hdr", "*.exr")
-var sky_panorama: String = "res://assets/textures/sky/museum_night_sky.hdr"
-@export var sky_energy: float = 0.6
+@export var sky_energy: float = 1.0
 ## Luz ambiente plana (es la banda de sombra del cel-shading)
 @export var ambient_energy: float = 0.55
 @export var ssr_enabled: bool = true
