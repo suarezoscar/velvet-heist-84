@@ -4,8 +4,6 @@
 class_name NetSessionServer
 extends RefCounted
 
-const NOISE_FEEDBACK: NoiseFeedbackProfile = preload("res://data/balance/noise_feedback.tres")
-
 var _session: NetSession = null
 var _hooks: NetTestHooks = null
 var _ready_peers: Dictionary = {}
@@ -142,18 +140,7 @@ func _on_peer_disconnected(peer: int) -> void:
 	_last_tick.erase(peer)
 	var role: StringName = _peer_roles.get(peer, &"")
 	_peer_roles.erase(peer)
-	var actor: PlayerBase3D = _session.actor_for_role(role)
-	if actor == null:
-		return
-	if actor.has_method(&"stop_watching"):
-		actor.call(&"stop_watching")  # guardia o ladrón sentado ante los monitores
-	StealMinigame.cancel_for(actor)  # #119: sin quien lo juegue
-	if actor is GuardController3D:
-		(actor as GuardController3D).apply_flashlight_state(false)  # sin quien la sostenga
-		actor.set_meta(MatchRecorder.LEFT_META, true)
-	actor.apply_input(
-		{"movement_vector": Vector2.ZERO, "is_sprinting": false, "is_sneaking": false}
-	)
+	NetSessionEvents.release_actor(_session, role)
 
 
 func _guard_role(index: int) -> StringName:
@@ -264,37 +251,12 @@ func _on_node_exiting(node: Node, path: String) -> void:
 func _on_noise_event(
 	pos: Vector3, radius: float, team: StringName, category: StringName, emitter: Node
 ) -> void:
-	if _ready_peers.is_empty():
-		return
-	var emitter_role: StringName = _session.role_for_actor(emitter)
-	var surface_mult: float = NoiseSurface.mult_for(
-		emitter, category, pos, _session.get_viewport().find_world_3d()
-	)
-	for peer: int in _ready_peers:
-		var listener: PlayerBase3D = _session.actor_for_role(NetManager.get_role_for_peer(peer))
-		var reaches: bool = PerceptionRules.noise_reaches(
-			listener, pos, radius, team, NOISE_FEEDBACK.thief_hearing_mult
-		)
-		if not reaches:
-			continue
-		_session.send_noise(peer, pos, radius, team, category, emitter_role, surface_mult)
-		NetTestHooks.log_event({"event": "noise", "peer": peer})
+	NetSessionEvents.send_noise(_session, _ready_peers, pos, radius, team, category, emitter)
 
 
-## La moneda en vuelo, solo a quien la ve y solo el tramo que ve (FEAT-038; el ruido va
-## aparte, al caer)
 func _on_coin_thrown(from: Vector3, landing: Vector3, flight_time: float) -> void:
-	for peer: int in _ready_peers:
-		var viewer: PlayerBase3D = _session.actor_for_role(NetManager.get_role_for_peer(peer))
-		if viewer == null:
-			continue
-		var view: Dictionary = CoinFlightPresenter.view_for(viewer, from, landing, flight_time)
-		if view.is_empty():
-			continue
-		# Recortada: quien no ve la salida recibe el tramo cuando entra en su vista
-		var send: Callable = _session.send_coin.bind(peer, view["from"], landing, view["flight"])
-		_session.get_tree().create_timer(float(view.get("delay", 0.0))).timeout.connect(send)
+	NetSessionEvents.send_coin(_session, _ready_peers, from, landing, flight_time)
 
 
 func _log_world(peer: int, changes: Dictionary) -> void:
-	NetTestHooks.log_event({"event": "world", "peer": peer, "paths": changes.keys()})
+	NetSessionEvents.log_world(peer, changes)

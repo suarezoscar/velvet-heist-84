@@ -138,15 +138,7 @@ func set_crouching(value: bool) -> bool:
 
 ## Calcula el radio acústico del paso según modo, superficie y bando
 func compute_step_radius() -> float:
-	var s_noise: StepNoiseProfile = (
-		step_noise if step_noise != null else load(DEFAULT_STEP_NOISE_PATH) as StepNoiseProfile
-	)
-	var profile: StepNoiseProfile = s_noise if s_noise != null else StepNoiseProfile.new()
-	var surface_mult: float = (
-		surface_detector.get_surface_noise_multiplier() if surface_detector != null else 1.0
-	)
-	var team_mult: float = movement_profile.team_noise_mult if movement_profile != null else 1.0
-	return profile.radius_for(get_move_mode(), surface_mult, team_mult)
+	return PlayerSteps.step_radius(self)
 
 
 ## Simulación física isométrica de movimiento
@@ -284,16 +276,8 @@ func _apply_gravity(delta: float) -> void:
 
 
 func _process_footstep_cadence(delta: float) -> void:
-	_step_timer += delta
-	var interval: float = CharacterAnimator3D.step_interval(
-		get_move_mode(), velocity.slide(Vector3.UP).length()
-	)
-	if _step_timer >= interval:
-		_step_timer = 0.0
-		_emit_step_sound()
+	_step_timer = PlayerSteps.advance(self, _step_timer, delta)
 
 
 func _emit_step_sound() -> void:
-	var radius: float = compute_step_radius()
-	NoiseEmit.emit(global_position, radius, team_id, NoiseEmit.STEP, self)
-	SignalBus.footprint_stepped_3d.emit(global_position, rotation.y)
+	PlayerSteps.emit_step(self)
