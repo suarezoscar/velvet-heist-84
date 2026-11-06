@@ -33,7 +33,7 @@ Un ajuste de números que no cambia reglas es una `TUNE-XXX` (solo `.tres`, plan
 Ante una duda de diseño o un conflicto con los pilares: parar y preguntar al usuario.
 
 ## Cómo trabajar con el usuario
-- **Todo en español**: mensajes, commits, PR, comentarios, y también las descripciones de los comandos que se ven en pantalla.
+- **Todo en español**: mensajes, preguntas, commits, PR, comentarios, y también las descripciones de los comandos que se ven en pantalla. Vale para todos los agentes y subagentes, y también después de compactar el contexto aunque el resumen venga en otro idioma. Al delegar, el prompt del subagente pide la respuesta en español.
 - **Preguntas resaltadas**: el usuario lee en diagonal. Cada pregunta o decisión pendiente va en su propia línea como **❓ Pregunta: …**, y se repite igual de resaltada mientras siga pendiente.
 - **Merge con CI verde**: el usuario autoriza a integrar los PR con el CI en verde (y `reviewer` aprobado si el cambio tiene riesgo), y a avisarle después de cada merge.
 - **Ideas del playtest**: cuando el usuario dicta ideas, se entrevistan con la skill `grill-me` hasta que no quede nada asumido, y se escriben como issue en el tablero; no se implementan hasta que él lo diga.
