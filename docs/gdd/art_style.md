@@ -39,6 +39,38 @@ Los valores viven en `data/visual/night_look.tres` (`NightLook`).
   `night_sky.gdshader` sin texturas, SSR para suelos pulidos, SDFGI, glow suave y niebla volumétrica 0,015
   para el haz de las linternas. Luna fría con sombras.
 
+## Kit del museo (#177, fase 2)
+Las paredes siguen siendo las cajas de `LevelArchitectureBuilder`, así que la colisión, la vista, la navegación y los rayos X no cambian. Solo se pinta su superficie y se añaden piezas sueltas sin colisión.
+
+**Paredes.** Las pinta `museum_wall.gdshader`. Al cargar el nivel, `MuseumFinishBuilder` genera desde el JSON un mapa de salas, con celdas de 0,25 m. Cada cara mira en ese mapa a qué sala da, y la sala decide su familia:
+
+| Familia | Salas | Acabado |
+|---|---|---|
+| Pública | galerías, vestíbulo, despacho, biblioteca | zócalo, friso de caoba en paneles, moldura de latón y paño de color propio de la sala, a rayas suaves |
+| Servicio | pasillos, taller, archivo, garita, vestuario, muelle | bloque gris cálido con juntas y franja ámbar de señalización |
+| Cámara | cámara, joyas | paneles de acero con juntas y remaches |
+| Exterior | callejón | bloque oscuro |
+
+**Suelos.** Los pinta `museum_floor.gdshader` según la superficie que da el JSON a cada sala:
+
+| Superficie | Dibujo |
+|---|---|
+| `marble` | ajedrezado con vetas |
+| `wood_parquet` | espiga |
+| `carpet` | rombos ochenteros con cenefa, con un color por sala |
+| `linoleum` | baldosa con franja ámbar junto a las paredes |
+| `asphalt` | asfalto con manchas |
+
+**Piezas.** Salen de `tools/blender_scripts/gen_museum_kit.py` y las coloca `MuseumKitBuilder`:
+- Un marco en cada paso, de familia `public`, `service` o `vault`. Si las dos salas son de familias distintas, gana la más fuerte: cámara, luego servicio, luego pública.
+- Un dintel de muro sobre cada paso, a partir de 2,4 m.
+- Pilastras de mármol en las esquinas y cruces que solo tocan salas públicas.
+- El marco de la ventana de la garita.
+
+Todas las piezas usan materiales de `WallXRay`: luz cel, contorno, y recorte delante del jugador local.
+
+Los colores viven en `data/visual/museum_finishes.tres` (`MuseumFinishes`).
+
 ## Assets generados con IA
 Cada asset lleva en su ficha herramienta, fecha, prompt y términos de uso de la herramienta, y
 pasa el validador (medidas en metros, pivote en el suelo, frente hacia -Z).

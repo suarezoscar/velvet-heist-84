@@ -12,7 +12,7 @@ const RULES: DoorRules = preload("res://data/balance/door_rules.tres")
 const HEIST_RULES: HeistRules = preload("res://data/balance/heist_rules.tres")
 const LEAF_HEIGHT: float = 2.3
 const LEAF_THICKNESS: float = 0.08
-const LEAF_COLOR: Color = Color(0.32, 0.2, 0.12)
+const LEAF_COLOR: Color = Color(0.3, 0.33, 0.38)  # acero del kit de servicio (#177)
 const GLASS_COLOR: Color = Color(0.85, 0.9, 0.92, 0.55)
 ## Distancia (m) al centro del hueco a la que alguien impide que se cierre
 const DOORWAY_CLEAR: float = 0.9

@@ -1,0 +1,22 @@
+{
+  "name": "window_frame_service",
+  "feat": "#177",
+  "description": "Marco de acero con parteluz sobre el alféizar de la ventana de la garita.",
+  "dimensions": [
+    1.86,
+    0.4,
+    1.5
+  ],
+  "pivot": "bottom_center",
+  "max_triangles": 600,
+  "materials": [
+    "Steel80s"
+  ],
+  "collision": false,
+  "source": {
+    "origin": "procedural",
+    "url": "tools/blender_scripts/gen_museum_kit.py",
+    "license": "propia",
+    "author": "velvet-heist-84"
+  }
+}

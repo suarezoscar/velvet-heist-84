@@ -1,0 +1,23 @@
+{
+  "name": "door_frame_public_24",
+  "feat": "#177",
+  "description": "Marco de caoba con clave de latón para un paso de 2,4 m de una sala pública.",
+  "dimensions": [
+    2.38,
+    0.46,
+    2.58
+  ],
+  "pivot": "bottom_center",
+  "max_triangles": 600,
+  "materials": [
+    "MahoganyWood",
+    "BrassGold"
+  ],
+  "collision": false,
+  "source": {
+    "origin": "procedural",
+    "url": "tools/blender_scripts/gen_museum_kit.py",
+    "license": "propia",
+    "author": "velvet-heist-84"
+  }
+}

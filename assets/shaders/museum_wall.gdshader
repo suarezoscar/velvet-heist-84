@@ -93,16 +93,16 @@ vec3 block_face(float u, float y, vec3 base, bool stripe) {
 }
 
 vec3 vault_face(float u, float y, vec3 tint) {
-	vec3 base = mix(vault_wall, tint, 0.25);
+	vec3 base = mix(vault_wall, tint, 0.15);
 	if (y < 0.14) {
 		return base * 0.4;
 	}
-	float seam = max(grid_line(u, 1.0, 0.03), grid_line(y - 0.14, 1.0, 0.03));
+	float seam = max(grid_line(u, 1.0, 0.05), grid_line(y - 0.14, 1.0, 0.05));
 	vec2 local = vec2(fract(u), fract(y - 0.14));
 	vec2 corner = min(local, 1.0 - local);
-	float rivet = 1.0 - step(0.025, length(corner - vec2(0.08)));
-	vec3 c = mix(base, base * 0.6, seam);
-	return mix(c, base * 1.35, rivet);
+	float rivet = 1.0 - step(0.045, length(corner - vec2(0.1)));
+	vec3 c = mix(base, base * 0.35, seam);
+	return mix(c, base * 1.6, rivet);
 }
 
 void fragment() {

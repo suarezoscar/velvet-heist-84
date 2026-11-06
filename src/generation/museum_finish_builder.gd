@@ -19,6 +19,9 @@ const PATTERNS: Dictionary = {
 }
 const PART_META: StringName = &"museum_part"
 
+## Materiales de muro del último nivel pintado (el kit los usa para sus dinteles)
+static var _materials: Dictionary = {}
+
 
 ## Pinta la arquitectura del nivel (nodo Architecture con sus Wall_, Partition_, WindowSill_ y
 ## Floor_); devuelve los materiales de muro por pieza
@@ -50,7 +53,13 @@ static func apply(data: LevelData, arch: Node, finishes: MuseumFinishes = FINISH
 				continue
 			var part: int = int(inst.get_meta(PART_META, base))
 			(inst.mesh as BoxMesh).material = mats[part]
+	_materials = mats
 	return mats
+
+
+## Material de muro de una pieza del último nivel pintado (null si aún no hay)
+static func wall_material(part: int) -> Material:
+	return _materials.get(part) as Material
 
 
 ## Índice de sala + 1 por celda (R8); la celda (0, 0) está en la esquina de _bounds

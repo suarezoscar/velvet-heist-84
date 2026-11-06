@@ -55,6 +55,7 @@ static func build(data: LevelData, map: Node3D) -> Node3D:
 	var arch: Node = map.get_node_or_null("Architecture")
 	if arch != null:
 		_dress_architecture(data, arch)
+		MuseumKitBuilder.build(data, map)  # #177: marcos, dinteles, pilastras y ventanas
 	for art: Dictionary in data.section("art"):
 		_add_art(data, root, art)
 	for decor: Dictionary in data.section("decor"):

@@ -1,0 +1,23 @@
+{
+  "name": "door_frame_vault_24",
+  "feat": "#177",
+  "description": "Marco blindado con pernos de latón para un paso de 2,4 m de la cámara.",
+  "dimensions": [
+    2.46,
+    0.44,
+    2.6
+  ],
+  "pivot": "bottom_center",
+  "max_triangles": 600,
+  "materials": [
+    "Steel80s",
+    "BrassGold"
+  ],
+  "collision": false,
+  "source": {
+    "origin": "procedural",
+    "url": "tools/blender_scripts/gen_museum_kit.py",
+    "license": "propia",
+    "author": "velvet-heist-84"
+  }
+}
