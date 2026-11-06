@@ -203,7 +203,7 @@ func _polled_actions(delta: float) -> Array[StringName]:
 	var playing: bool = thief and StealMinigame.piece_of(_session.map.local_player) != null
 	if (cracking or playing) and _just_pressed(&"ui_cancel"):
 		actions.append(&"dial_cancel")
-	return actions
+	return actions + VentInput.poll(_session.map.get_tree())  # #167: el plano de los conductos
 
 
 func _just_pressed(action: StringName) -> bool:

@@ -89,7 +89,7 @@ func test_silent_theft_near_a_guard_costs_him() -> void:
 	var piece: TargetPiece3D = heist.piece(heist.targets[0])
 	var near: GuardController3D = map.guards[0]
 	var far: GuardController3D = map.guards[1]
-	near.global_position = piece.global_position + Vector3(2.0, 0.0, 0.0)
+	near.global_position = _clear_spot(piece)
 	far.global_position = piece.global_position + Vector3(0.0, 0.0, 30.0)
 	await wait_physics_frames(2)
 	piece.steal(false)
@@ -97,7 +97,7 @@ func test_silent_theft_near_a_guard_costs_him() -> void:
 	assert_eq(int(events.near_theft.get(String(near.name), 0)), 1, "A 2 m, sin muros")
 	assert_eq(int(events.near_theft.get(String(far.name), 0)), 0)
 	var other: TargetPiece3D = heist.piece(heist.targets[1])
-	near.global_position = other.global_position + Vector3(2.0, 0.0, 0.0)
+	near.global_position = _clear_spot(other)
 	await wait_physics_frames(2)
 	other.steal(true)
 	assert_eq(int(events.near_theft.get(String(near.name), 0)), 1, "A lo bruto no cuenta")
@@ -192,3 +192,14 @@ func test_a_guard_whose_player_left_stops_counting() -> void:
 	assert_eq((report["guards"] as Array).size(), map.guards.size() - 1, "Sin su ficha")
 	assert_eq(int(report["thief"]["guards"]), map.guards.size() - 1, "G son los que siguen")
 	assert_eq(int(report["guards"][0]["guards"]), map.guards.size() - 1)
+
+
+## Un sitio a 2 m de la pieza sin muro de por medio (las piezas del encargo salen al azar)
+func _clear_spot(piece: Node3D) -> Vector3:
+	var space: PhysicsDirectSpaceState3D = piece.get_world_3d().direct_space_state
+	var target: Vector3 = piece.global_position + Vector3.UP * ScoreEvents.PIECE_HEIGHT
+	for angle: float in [0.0, PI * 0.5, PI, PI * 1.5, PI * 0.25, PI * 0.75, PI * 1.25, PI * 1.75]:
+		var spot: Vector3 = piece.global_position + Vector3(cos(angle), 0.0, sin(angle)) * 2.0
+		if VisionLogic.wall_free(space, spot + Vector3.UP * 1.6, target):
+			return spot
+	return piece.global_position + Vector3(2.0, 0.0, 0.0)

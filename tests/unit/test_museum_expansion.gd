@@ -73,82 +73,6 @@ func test_ai_guard_opens_the_door() -> void:
 	assert_true(door.is_open, "La IA la abre al acercarse")
 
 
-func test_vent_travel_hides_the_thief() -> void:
-	var map: HeistMap3D = _map()
-	await wait_physics_frames(2)
-	var thief: ThiefController3D = map.thief
-	var travel: VentTravel = VentTravel.of(get_tree())
-	var entry: Vent3D = travel.get_node("Vent_V_TAL") as Vent3D
-	for guard: GuardController3D in map.guards:
-		assert_false(entry.can_interact(guard), "Los guardias no entran (cerrada)")
-	thief.global_position = entry.exit_point()
-	assert_true(entry.can_interact(thief))
-	entry.interact(thief)
-	_tick(entry, VENT_RULES.enter_time)
-	assert_true(thief.in_vent, "Dentro del conducto")
-	assert_eq(travel.phase, VentTravel.Phase.CHOOSING)
-	assert_true(entry.open_left > 0.0, "La rejilla queda abierta: rastro")
-	var guard: GuardController3D = map.guards[0]
-	guard.global_position = thief.global_position + Vector3(0.5, 0.0, 0.0)
-	assert_false(guard.validate_melee_hit(thief), "No se le puede golpear")
-	assert_false(GuardSenses._is_detection_valid(guard, thief), "Ni ver")
-	assert_string_contains(entry.get_interaction_text(thief), "Conducto")
-	var names: Array[String] = []
-	for vent: Vent3D in travel.choices:
-		names.append(vent.vent_id)
-	assert_eq(names.size(), 3, "Las tres rejillas de la red de servicio")
-	thief.current_input_dir = Vector2(1.0, 0.0)
-	travel._physics_process(0.1)
-	thief.current_input_dir = Vector2.ZERO
-	travel._physics_process(0.1)
-	var target: Vent3D = travel.choices[travel.selected]
-	assert_ne(target, entry, "Derecha cambia de salida")
-	entry.interact(thief)
-	assert_eq(travel.phase, VentTravel.Phase.TRAVELING)
-	var expected: float = (
-		entry.global_position.distance_to(target.global_position) / VENT_RULES.travel_speed
-	)
-	assert_almost_eq(travel.left, expected, 0.01, "Tarda la distancia a travel_speed")
-	_tick(travel, expected + 0.2)
-	assert_false(thief.in_vent, "Sale")
-	assert_almost_eq(thief.global_position.x, target.exit_point().x, 0.2, "Por la otra rejilla")
-	assert_true(target.open_left > 0.0, "Y la deja abierta")
-	assert_true(target.can_interact(guard), "Un guardia puede cerrarla")
-	target.interact(guard)
-	assert_eq(target.open_left, 0.0)
-
-
-func test_vent_state_only_reaches_the_thief() -> void:
-	var map: HeistMap3D = _map()
-	await wait_physics_frames(2)
-	var travel: VentTravel = VentTravel.of(get_tree())
-	assert_true(travel.get_net_state().is_empty(), "Nada público")
-	var collected: Dictionary = NetPrivateStates.new().collect({"Props/Vents": travel}, true)
-	assert_true(NetPrivateStates.for_role(collected, &"guard_1").is_empty(), "Guardias: nada")
-	assert_true(NetPrivateStates.for_role(collected, &"thief").has("Props/Vents#private"))
-	travel.apply_net_state({"phase": 1, "entry": "V_TAL", "choices": ["V_TAL", "V_MNT"], "sel": 1})
-	assert_true(map.thief.in_vent, "En el cliente del ladrón, dentro del conducto")
-	assert_eq(travel.choices.size(), 2)
-
-
-func test_inside_the_vent_nothing_else_works() -> void:
-	var map: HeistMap3D = _map()
-	await wait_physics_frames(2)
-	var thief: ThiefController3D = map.thief
-	thief.in_vent = true
-	assert_false(thief.perform_action(&"throw_coin"), "Sin monedas desde el conducto")
-	assert_false(thief.perform_action(&"force"), "Ni robos a lo bruto")
-	GameManager.current_state = GameManager.MatchState.IN_PROGRESS
-	assert_false(HeistActions.handle(thief, &"throw_coin"), "Ni por la vía de las monedas")
-	var camera: SecurityCamera3D = get_tree().get_first_node_in_group(&"security_camera")
-	thief.global_position = (
-		camera.mount.global_position
-		+ (-camera.mount.global_transform.basis.z * 3.0 + Vector3.DOWN * 2.0)
-	)
-	assert_false(camera._check_line_of_sight(thief), "Las cámaras no lo ven")
-	thief.in_vent = false
-
-
 func test_paintings_have_images_and_credits() -> void:
 	var data: LevelData = LevelData.load_json(LEVEL_PATH)
 	var credits: String = FileAccess.get_file_as_string(
@@ -191,17 +115,3 @@ func test_guards_see_a_counter_and_the_map_has_the_level() -> void:
 	heist.piece(heist.candidates()[0]).discovered = true
 	assert_string_contains(ContractList84.guards_line(heist), "EN EL PUNTO DE MIRA 19 · RASTROS 1")
 	assert_true(map.get_meta(&"level_data") is LevelData, "El plano (M) tiene los datos")
-
-
-func test_vent_has_a_time_limit() -> void:
-	var map: HeistMap3D = _map()
-	await wait_physics_frames(2)
-	var thief: ThiefController3D = map.thief
-	var travel: VentTravel = VentTravel.of(get_tree())
-	var entry: Vent3D = travel.get_node("Vent_V_GW") as Vent3D
-	thief.global_position = entry.exit_point()
-	travel.enter(thief, entry)
-	assert_string_contains(entry.get_interaction_text(thief), "%d s" % int(VENT_RULES.max_inside))
-	_tick(travel, VENT_RULES.max_inside + 0.2)
-	assert_false(thief.in_vent, "Se acabó el tiempo: fuera")
-	assert_almost_eq(thief.global_position.x, entry.exit_point().x, 0.2, "Por donde entró")

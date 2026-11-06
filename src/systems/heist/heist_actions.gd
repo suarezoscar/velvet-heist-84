@@ -25,8 +25,11 @@ static func handle(actor: PlayerBase3D, action: StringName) -> bool:
 		return false
 	if MatchCountdown.frozen(actor.get_tree()):
 		return false  # #165: en la carga y el 3-2-1 no se lanza nada
-	if actor is ThiefController3D and (actor as ThiefController3D).in_vent:
-		return false  # FEAT-034: desde el conducto no se lanza nada
+	if (
+		actor is ThiefController3D
+		and ((actor as ThiefController3D).in_vent or VentTravel.holds(actor))
+	):
+		return false  # FEAT-034: desde el conducto (ni ante su plano, #167) no se lanza nada
 	if actor is ThiefController3D and (actor as ThiefController3D).monitor_watch.is_active():
 		(actor as ThiefController3D).stop_watching()  # FEAT-042: primero se levanta
 		return false
