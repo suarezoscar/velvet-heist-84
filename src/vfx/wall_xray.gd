@@ -54,6 +54,17 @@ static func _new_outline(box: bool) -> ShaderMaterial:
 	return mat
 
 
+## Grosor y color del contorno de los muros desde el NightLook (se crean antes de aplicarlo)
+static func apply_look(look: NightLook) -> void:
+	for outline: ShaderMaterial in [_outline, _round_outline]:
+		if outline != null and is_instance_valid(outline):
+			outline.set_shader_parameter(&"outline_color", look.outline_color)
+			outline.set_shader_parameter(&"outline_width", look.outline_width)
+	for mat: Variant in _materials.values():
+		if is_instance_valid(mat):
+			(mat as ShaderMaterial).set_shader_parameter(&"penumbra_tint", look.penumbra_tint)
+
+
 func _ready() -> void:
 	name = "WallXRay"
 	if map == null:

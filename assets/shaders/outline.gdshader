@@ -19,6 +19,8 @@ uniform float outline_width : hint_range(0.0, 0.2) = 0.05;
 /// Cajas centradas en su origen (BoxMesh): inflar hacia las esquinas en vez de por la normal
 uniform bool box_mode = false;
 
+varying float margin;
+
 void vertex() {
 	vec3 world = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	float width = outline_width * length(CAMERA_POSITION_WORLD - world) / 25.0;
@@ -30,11 +32,12 @@ void vertex() {
 		dir.y = max(dir.y, 0.0);  // hacia abajo atravesaría el suelo y le sacaría dientes
 	}
 	VERTEX += dir * width / max(axis_scale, vec3(0.0001));
+	margin = width * 2.0;
 }
 
 void fragment() {
 	ALBEDO = outline_color.rgb;
-	if (xray_discard(VERTEX, VIEW_MATRIX, INV_VIEW_MATRIX, FRAGCOORD.xy)) {
+	if (xray_discard(VERTEX, VIEW_MATRIX, INV_VIEW_MATRIX, FRAGCOORD.xy, margin)) {
 		discard;
 	}
 }

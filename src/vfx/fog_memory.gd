@@ -121,6 +121,14 @@ func _make_ghost(record: Dictionary) -> Node3D:
 	ghost.name = "Ghost"
 	add_child(ghost)
 	ghost.global_transform = record["xform"]
+	# #181: con el mismo aspecto que el real (cel o no), para que no delate que se movió
+	var item: Node = (record["ref"] as WeakRef).get_ref() as Node
+	if item != null:
+		CelConverter.copy_look(item, ghost)
+	else:
+		var converter: CelConverter = CelConverter.new()
+		converter.look = NightEnvironmentSetup.LOOK
+		converter.convert_tree(ghost)
 	return ghost
 
 

@@ -20,7 +20,10 @@ uniform float xray_strength : hint_range(0.0, 1.0) = 0.85;
 const float BAYER[16] = float[](0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 11.0, 1.0, 9.0, 15.0, 7.0, 13.0, 5.0);
 
 /// true si este píxel (vertex_view: VERTEX en espacio de vista) se recorta
-bool xray_discard(vec3 vertex_view, mat4 view_matrix, mat4 inv_view_matrix, vec2 frag_coord) {
+/// ahead_margin: el contorno (malla inflada) lo baja en su grosor para recortarse con la pared
+bool xray_discard(
+	vec3 vertex_view, mat4 view_matrix, mat4 inv_view_matrix, vec2 frag_coord, float ahead_margin
+) {
 	if (xray_radius <= 0.0) {
 		return false;
 	}
@@ -29,7 +32,7 @@ bool xray_discard(vec3 vertex_view, mat4 view_matrix, mat4 inv_view_matrix, vec2
 	// +Z de la cámara apunta hacia ella; en el suelo, «hacia la cámara» es su parte horizontal
 	vec2 toward_camera = normalize(inv_view_matrix[2].xz);
 	float ahead = dot(world.xz - xray_center.xz, toward_camera);
-	if (ahead <= 0.4) {
+	if (ahead <= 0.4 - ahead_margin) {
 		return false;
 	}
 	vec2 off = (vertex_view.xy - center.xy) / vec2(xray_half_width, xray_half_height);

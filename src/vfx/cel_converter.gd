@@ -49,6 +49,21 @@ static func _new_outline(box: bool) -> ShaderMaterial:
 	return mat
 
 
+## Pone en to los materiales activos de from, malla a malla por su ruta relativa (fantasmas
+## de FogMemory: se ven igual que el objeto real, convertido o no)
+static func copy_look(from: Node, to: Node) -> void:
+	for node: Node in to.find_children("*", "MeshInstance3D", true, false):
+		var target: MeshInstance3D = node as MeshInstance3D
+		var source: MeshInstance3D = from.get_node_or_null(to.get_path_to(target)) as MeshInstance3D
+		if source == null or source.mesh == null or target.mesh == null:
+			continue
+		target.material_override = source.material_override
+		for surface: int in range(
+			mini(source.mesh.get_surface_count(), target.mesh.get_surface_count())
+		):
+			target.set_surface_override_material(surface, source.get_active_material(surface))
+
+
 ## Color base de una malla, convertida o no (rejillas de ventilación que cambian en juego)
 static func set_albedo(mesh: MeshInstance3D, color: Color) -> void:
 	for surface: int in range(mesh.mesh.get_surface_count()):
@@ -143,7 +158,9 @@ func _cel_for(source: BaseMaterial3D, rim: Color, box: bool = false) -> ShaderMa
 	if rim.a > 0.0:
 		cel.set_shader_parameter(&"rim_color", rim)
 		cel.set_shader_parameter(&"rim_strength", look.rim_strength if look != null else 0.8)
-	if not planar:
-		cel.next_pass = outline_material(look, box)  # los suelos, sin contorno
+	# Sin contorno: los suelos y los pilotos (emisivos; el trazo los taparía y son luz, D5)
+	var pilot: bool = source.emission_enabled and source.emission_texture == null
+	if not planar and not pilot:
+		cel.next_pass = outline_material(look, box)
 	_converted[key] = cel
 	return cel

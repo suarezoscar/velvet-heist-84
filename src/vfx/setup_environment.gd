@@ -23,6 +23,7 @@ static func apply(map: HeistMap3D, look: NightLook = LOOK) -> void:
 		moon.light_color = look.moon_color
 		moon.light_energy = look.moon_energy
 	CelConverter.outline_material(look)
+	WallXRay.apply_look(look)
 	var converter: CelConverter = CelConverter.new()
 	converter.look = look
 	if map.thief != null:

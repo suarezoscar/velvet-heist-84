@@ -16,7 +16,7 @@ uniform float roughness : hint_range(0.0, 1.0) = 0.9;
 void fragment() {
 	ALBEDO = albedo.rgb;
 	ROUGHNESS = roughness;
-	if (xray_discard(VERTEX, VIEW_MATRIX, INV_VIEW_MATRIX, FRAGCOORD.xy)) {
+	if (xray_discard(VERTEX, VIEW_MATRIX, INV_VIEW_MATRIX, FRAGCOORD.xy, 0.0)) {
 		discard;
 	}
 }
