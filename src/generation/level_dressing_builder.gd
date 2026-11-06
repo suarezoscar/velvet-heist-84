@@ -16,6 +16,8 @@ const BRASS: Color = Color(0.72, 0.56, 0.24)
 const BASEBOARD: Vector2 = Vector2(0.16, 0.04)
 const CORNICE: Vector2 = Vector2(0.14, 0.06)
 const BASEBOARD_COLOR: Color = Color(0.2, 0.12, 0.08)
+## La cornisa asoma por encima del muro: con la misma cara de arriba parpadean (z-fighting)
+const CORNICE_LIFT: float = 0.02
 const CORNICE_COLOR: Color = Color(0.86, 0.82, 0.72)
 const SPOT_HEIGHT: float = 3.05
 ## Coberturas que se dibujan con un modelo (encajado en su caja) en vez de la caja gris
@@ -86,7 +88,13 @@ static func _add_moldings(body: StaticBody3D) -> void:
 	var thick: float = minf(mesh.size.x, mesh.size.z)
 	for band: Array in [
 		[BASEBOARD, BASEBOARD_COLOR, 0.0, false, MuseumFinishBuilder.Part.BASEBOARD],
-		[CORNICE, CORNICE_COLOR, mesh.size.y - CORNICE.x, true, MuseumFinishBuilder.Part.CORNICE]
+		[
+			CORNICE,
+			CORNICE_COLOR,
+			mesh.size.y - CORNICE.x + CORNICE_LIFT,
+			true,
+			MuseumFinishBuilder.Part.CORNICE
+		]
 	]:
 		var size2: Vector2 = band[0]
 		var depth: float = thick + size2.y * 2.0

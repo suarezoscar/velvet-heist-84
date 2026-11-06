@@ -36,7 +36,9 @@ OUT_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, "..", "..", "assets", "models
 WALL_THICKNESS = 0.3
 BEVEL = 0.01
 # Paso libre de cada ancho de puerta del JSON (el muro entra 0,15 m por cada lado)
-INNER = {"12": 1.2 - WALL_THICKNESS, "24": 2.4 - WALL_THICKNESS}
+# 2 cm menos para que las jambas no compartan plano con el extremo del muro (z-fighting)
+GAP_CLEAR = 0.02
+INNER = {"12": 1.2 - WALL_THICKNESS - GAP_CLEAR, "24": 2.4 - WALL_THICKNESS - GAP_CLEAR}
 
 
 def clear_scene():
@@ -125,9 +127,10 @@ def wall_pilaster():
     clear_scene()
     marble = create_pbr_material("MarbleWhite", "MarbleWhite")
     objs = [
-        box("Base", (0.42, 0.42, 0.2), (0.0, 0.0, 0.1), marble),
-        box("Shaft", (0.38, 0.38, 2.76), (0.0, 0.0, 1.58), marble),
-        box("Capital", (0.42, 0.42, 0.24), (0.0, 0.0, 3.08), marble),
+        # Más ancha y alta que la cornisa (0,42 m, hasta 3,22 m): sin planos compartidos
+        box("Base", (0.46, 0.46, 0.2), (0.0, 0.0, 0.1), marble),
+        box("Shaft", (0.4, 0.4, 2.82), (0.0, 0.0, 1.61), marble),
+        box("Capital", (0.46, 0.46, 0.24), (0.0, 0.0, 3.14), marble),
     ]
     export(objs, "wall_pilaster")
 
@@ -135,7 +138,7 @@ def wall_pilaster():
 def window_frame_service():
     clear_scene()
     steel = create_pbr_material("Steel80s", "Steel80s")
-    inner = 2.0 - WALL_THICKNESS
+    inner = 2.0 - WALL_THICKNESS - GAP_CLEAR
     objs = jambs_and_head(inner, 0.08, 0.4, 1.5, 0.08, steel, "Window")
     objs.append(box("Rail", (inner, 0.4, 0.06), (0.0, 0.0, 0.03), steel))
     objs.append(box("Mullion", (0.05, 0.36, 1.36), (0.0, 0.0, 0.74), steel))

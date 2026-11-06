@@ -68,7 +68,8 @@ static func create(door_id: String, width: float) -> Door3D:
 	var lintel: MeshInstance3D = MeshInstance3D.new()
 	lintel.name = "Lintel"
 	var lintel_box: BoxMesh = BoxMesh.new()
-	lintel_box.size = Vector3(width, LINTEL_TOP - LEAF_HEIGHT, 0.3)
+	# entre los extremos del muro, que entran medio grueso en el hueco (sin caras superpuestas)
+	lintel_box.size = Vector3(width - 0.3, LINTEL_TOP - LEAF_HEIGHT, 0.3)
 	lintel_box.material = WallXRay.material(LevelArchitectureBuilder.WALL_COLOR)
 	lintel.mesh = lintel_box
 	lintel.position = Vector3(0.0, (LINTEL_TOP + LEAF_HEIGHT) * 0.5, 0.0)
