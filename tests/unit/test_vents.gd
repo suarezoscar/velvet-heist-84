@@ -200,6 +200,7 @@ func test_only_the_thief_who_opened_the_map_can_use_it() -> void:
 	entry.interact(map.thief)
 	var selected: int = travel.selected
 	assert_false(travel.handle(null, VentTravel.NEXT))
+	assert_false(HeistActions.handle(map.thief, &"throw_coin"), "Ante el plano, sin monedas")
 	map.guards[0].perform_action(VentTravel.NEXT)
 	assert_eq(travel.selected, selected, "Un guardia no lo toca")
 
