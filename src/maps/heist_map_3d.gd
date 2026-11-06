@@ -187,23 +187,7 @@ func _hide_collision_helpers(node: Node) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if NetManager.is_online() or not OS.is_debug_build():
-		return
-	var key_event: InputEventKey = event as InputEventKey
-	if key_event == null or not key_event.pressed or key_event.echo:
-		return
-	var index: int = DEBUG_SWITCH_KEYS.find(key_event.keycode)
-	var actors: Array[PlayerBase3D] = get_actors()
-	if index >= 0 and index < actors.size():
-		if local_player != null and local_player.has_method(&"stop_watching"):
-			local_player.call(&"stop_watching")
-		var previous: GuardController3D = local_player as GuardController3D
-		if previous != null:
-			previous.is_ai_controlled = _ai_defaults.get(previous, false)
-		set_local_player(actors[index])
-		_update_thief_local_visibility()
-		print("[HeistMap3D] Control de depuración -> %s" % actors[index].name)
-		get_viewport().set_input_as_handled()
+	MapDebugSwitch.handle(self, event)
 
 
 func _physics_process(delta: float) -> void:

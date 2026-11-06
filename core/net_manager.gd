@@ -111,26 +111,11 @@ func _setup_network_signals() -> void:
 
 
 func _on_peer_connected(id: int) -> void:
-	print("[NetManager] Peer conectado: ", id)
-	if multiplayer.is_server():
-		# Sin bando hasta que NetVersion acepte su versión (FEAT-025)
-		connected_players[id] = {
-			"peer_id": id, "role": &"", "ready": false, "name": "Jugador %d" % id
-		}
-		_sync_player_list.rpc(connected_players)
-		player_connected.emit(id, connected_players[id])
-		player_list_updated.emit()
+	NetPeerEvents.on_connected(self, id)
 
 
 func _on_peer_disconnected(id: int) -> void:
-	print("[NetManager] Peer desconectado: ", id)
-	if connected_players.has(id):
-		connected_players.erase(id)
-		NetLobbyReady.clear(connected_players)  # #165: cambia el equipo, todos a confirmar
-		player_disconnected.emit(id)
-		player_list_updated.emit()
-		if multiplayer.is_server() and multiplayer.get_peers().size() > 0:
-			_sync_player_list.rpc(connected_players)
+	NetPeerEvents.on_disconnected(self, id)
 
 
 func _on_connected_to_server() -> void:
