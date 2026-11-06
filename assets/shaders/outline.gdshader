@@ -26,6 +26,9 @@ void vertex() {
 		length(MODEL_MATRIX[0].xyz), length(MODEL_MATRIX[1].xyz), length(MODEL_MATRIX[2].xyz)
 	);
 	vec3 dir = box_mode ? sign(VERTEX) : normalize(NORMAL);
+	if (box_mode) {
+		dir.y = max(dir.y, 0.0);  // hacia abajo atravesaría el suelo y le sacaría dientes
+	}
 	VERTEX += dir * width / max(axis_scale, vec3(0.0001));
 }
 

@@ -130,7 +130,7 @@ static func _dress_cover(body: StaticBody3D) -> void:
 		cylinder.top_radius = size.x * 0.45
 		cylinder.bottom_radius = size.x * 0.5
 		cylinder.height = size.y
-		cylinder.material = WallXRay.material(KIND_COLORS["column"])
+		cylinder.material = WallXRay.material(KIND_COLORS["column"], true)
 		mesh_node.mesh = cylinder
 		return
 	if KIND_COLORS.has(kind):
