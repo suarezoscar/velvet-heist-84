@@ -67,7 +67,8 @@ static func _held_or_released(action: StringName) -> bool:
 
 
 ## Hacia dónde mira (#112): al ratón si apunta; si no, hacia donde anda, y parado sigue
-## mirando al último lado al que anduvo
+## mirando al último lado al que anduvo. Girando el dial o en el minijuego de una pieza, A/D no
+## lo giran (#164): sigue mirando a lo que trabaja (salvo si apunta, p. ej. una moneda)
 static func look_target(
 	player: PlayerBase3D, move_vec: Vector2, aiming: bool, cam: Camera3D
 ) -> Vector3:
@@ -75,6 +76,8 @@ static func look_target(
 		return Vector3.ZERO
 	if aiming:
 		return project_cursor(player, cam)
+	if _busy(player):
+		return player.look_target_position
 	if _facing_owner != player.get_instance_id() or _facing == Vector3.ZERO:
 		_facing_owner = player.get_instance_id()
 		_facing = (-player.global_basis.z).slide(Vector3.UP).normalized()
@@ -82,6 +85,20 @@ static func look_target(
 		var walk: Vector3 = Vector3(move_vec.x, 0.0, move_vec.y)
 		_facing = walk.rotated(Vector3.UP, deg_to_rad(45.0)).normalized()
 	return player.global_position + _facing * FACING_DISTANCE
+
+
+## true si el ladrón está girando un dial o jugando el minijuego de una pieza (también en el
+## cliente con red, donde la caja no sabe quién la gira: hay un solo ladrón)
+static func _busy(player: PlayerBase3D) -> bool:
+	if not (player is ThiefController3D) or not player.is_inside_tree():
+		return false
+	if StealMinigame.piece_of(player) != null:
+		return true
+	for node: Node in player.get_tree().get_nodes_in_group(&"net_state"):
+		var safe: SafeBox3D = node as SafeBox3D
+		if safe != null and safe.current_state == SafeBox3D.SafeState.CRACKING:
+			return true
+	return false
 
 
 ## Lo mismo que hoy hace PlayerBase3D.project_cursor_on_ground

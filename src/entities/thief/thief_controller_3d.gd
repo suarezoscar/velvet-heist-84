@@ -104,7 +104,11 @@ func perform_action(action: StringName) -> bool:
 		return true
 	match action:
 		&"interact":
-			if interactor != null:
+			var cracking: SafeBox3D = _find_active_safe_box() if is_cracking_safe() else null
+			if cracking != null:  # #164: la E confirma la caja que gira, mire adonde mire
+				cracking.interact(self)
+				result = true
+			elif interactor != null:
 				result = interactor.execute_interaction(self)
 		&"dial_left":
 			var safe: SafeBox3D = _find_active_safe_box()
@@ -245,7 +249,8 @@ func _setup_interactor() -> void:
 
 
 ## Girando el dial de una caja fuerte, las teclas de movimiento solo mueven el dial: el ladrón
-## se queda quieto hasta confirmar la combinación o salir con Esc
+## se queda quieto hasta confirmar la combinación o salir con Esc (que no se gire lo decide
+## LocalInput3D.look_target, #164, para que la moneda siga apuntando al ratón)
 func apply_input(input_data: Dictionary) -> void:
 	var piece: Node3D = StealMinigame.piece_of(self)
 	if piece != null:

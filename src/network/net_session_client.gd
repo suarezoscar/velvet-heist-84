@@ -193,10 +193,9 @@ func _polled_actions(delta: float) -> Array[StringName]:
 	var step: int = _dial_repeat.update(
 		cracking and DialRepeat.left_held(), cracking and DialRepeat.right_held(), delta
 	)
-	if step < 0:
-		actions.append(&"dial_left")
-	elif step > 0:
-		actions.append(&"dial_right")
+	if step != 0:
+		actions.append(&"dial_left" if step < 0 else &"dial_right")
+		SafeBox3D.predict_local(_session.map.get_tree(), step)  # #164: el dial sin esperar
 	var thief: bool = _session.map.local_player is ThiefController3D  # #119: soltar E pausa
 	if thief and Input.is_action_just_released(&"interact"):  # aunque no llegara aún el estado
 		actions.append(&"interact_release")
