@@ -81,8 +81,8 @@ func on_input(
 
 ## Ejecuta una acción discreta validada del peer sobre su propio actor
 func on_action(peer: int, action: StringName, interaction_cursor: Vector3 = Vector3.INF) -> void:
-	if not NetInputRules.is_valid_action(action):
-		return
+	if not NetInputRules.is_valid_action(action) or MatchCountdown.frozen(_session.get_tree()):
+		return  # #165: en la carga y el 3-2-1 no se hace nada
 	var actor: PlayerBase3D = _actor_for_peer(peer)
 	if actor == null:
 		return

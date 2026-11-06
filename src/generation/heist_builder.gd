@@ -41,6 +41,7 @@ static func build(data: LevelData, props: Node3D, targets: Array) -> void:
 	director.add_child(HeistLockdown.new())  # #120: la cuenta atrás de las rejas
 	props.add_child(HeistInput.new())
 	props.add_child(MatchRecorder.new())  # FEAT-041: cuenta de la partida para el informe
+	props.add_child(MatchCountdown.new())  # #165: cargando y 3-2-1 al empezar
 	props.add_child(CoinFlightPresenter.new())  # FEAT-038: la moneda en vuelo y su mira
 	props.add_child(CoinAim3D.new())
 

@@ -77,8 +77,10 @@ func refresh() -> void:
 	else:
 		lobby_status_lbl.text = "Conectado a la partida"
 		lobby_status_lbl.modulate = COLOR_CYAN
-	start_match_btn.disabled = not NetRoleRegistry.can_start(NetManager.get_connected_players())
-	start_match_btn.tooltip_text = "Hace falta un ladrón y al menos un guardia"
+	var mine: bool = NetLobbyReady.is_local_ready()  # #165: empieza cuando todos lo están
+	start_match_btn.text = "PREPARADO ✔" if mine else "PREPARADO"
+	start_match_btn.disabled = not online or NetManager.get_local_role() == &""
+	start_match_btn.tooltip_text = "Empieza cuando todos estén preparados (un ladrón y un guardia)"
 
 	var local_role: StringName = NetManager.get_local_role()
 	if local_role == &"":
@@ -129,8 +131,11 @@ func _on_role_btn_pressed(role: StringName) -> void:
 
 
 func _on_start_match_pressed() -> void:
-	conn_log_lbl.text = "Empezando la partida…"
-	NetManager.request_start()
+	var lobby_ready: NetLobbyReady = NetManager.get_node("NetLobbyReady") as NetLobbyReady
+	var mine: bool = not NetLobbyReady.is_local_ready()
+	lobby_ready.request(mine)
+	conn_log_lbl.text = "Esperando a los demás…" if mine else "Ya no estás preparado."
+	refresh()
 
 
 func _on_back_pressed() -> void:
@@ -254,7 +259,7 @@ func _build_player_row(pid: int, info: Dictionary, is_me: bool) -> PanelContaine
 	hbox.add_child(name_lbl)
 
 	var role_lbl: Label = Label.new()
-	role_lbl.text = _format_role_name(p_role)
+	role_lbl.text = _format_role_name(p_role) + ("  ✔" if bool(info.get("ready", false)) else "")
 	role_lbl.modulate = (
 		COLOR_CYAN if p_role == NetManagerNode.ROLE_THIEF else Color(0.85, 0.75, 0.95, 1.0)
 	)

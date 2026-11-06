@@ -23,6 +23,8 @@ static func handle(actor: PlayerBase3D, action: StringName) -> bool:
 		return false
 	if GameManager.current_state != GameManager.MatchState.IN_PROGRESS:
 		return false
+	if MatchCountdown.frozen(actor.get_tree()):
+		return false  # #165: en la carga y el 3-2-1 no se lanza nada
 	if (
 		actor is ThiefController3D
 		and ((actor as ThiefController3D).in_vent or VentTravel.holds(actor))

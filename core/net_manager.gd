@@ -36,6 +36,7 @@ var _match_starting: bool = false
 func _ready() -> void:
 	_check_cli_arguments()
 	add_child(NetNames.new())  # nombres de los jugadores (FEAT-035)
+	add_child(NetLobbyReady.new())  # «PREPARADO» en el lobby (#165)
 
 
 func _check_cli_arguments() -> void:
@@ -125,6 +126,7 @@ func _on_peer_disconnected(id: int) -> void:
 	print("[NetManager] Peer desconectado: ", id)
 	if connected_players.has(id):
 		connected_players.erase(id)
+		NetLobbyReady.clear(connected_players)  # #165: cambia el equipo, todos a confirmar
 		player_disconnected.emit(id)
 		player_list_updated.emit()
 		if multiplayer.is_server() and multiplayer.get_peers().size() > 0:
@@ -161,6 +163,7 @@ func register_player(peer_id: int, player_name: String = "", role: StringName = 
 	connected_players[peer_id] = {
 		"peer_id": peer_id, "role": assigned_role, "ready": false, "name": p_name
 	}
+	NetLobbyReady.clear(connected_players)  # #165: entra alguien, todos a confirmar otra vez
 	if multiplayer.has_multiplayer_peer() and peer_id == multiplayer.get_unique_id():
 		local_role = assigned_role
 	_broadcast_players()
@@ -173,6 +176,7 @@ func register_player(peer_id: int, player_name: String = "", role: StringName = 
 func assign_role(peer_id: int, desired_role: StringName) -> bool:
 	if not NetRoleRegistry.try_assign(connected_players, peer_id, desired_role):
 		return false
+	NetLobbyReady.clear(connected_players)  # #165: cambia el equipo, todos a confirmar
 	if multiplayer.has_multiplayer_peer() and peer_id == multiplayer.get_unique_id():
 		local_role = desired_role
 	_broadcast_players()
@@ -242,7 +246,8 @@ func request_start() -> void:
 func _request_start_server() -> void:
 	if not multiplayer.is_server() or get_tree().current_scene is HeistMap3D:  # solo NetRematch
 		return
-	if NetVersion.is_verified(multiplayer.get_remote_sender_id()):
+	var sender: int = multiplayer.get_remote_sender_id()  # #165: sin «preparado», no se salta
+	if NetVersion.is_verified(sender) and NetLobbyReady.all_ready(connected_players):
 		_try_start_match()
 
 
@@ -258,6 +263,7 @@ func _try_start_match() -> void:
 func _prepare_start() -> int:
 	_match_starting = true
 	NetRoleRegistry.compact_guards(connected_players)
+	NetLobbyReady.clear(connected_players)  # #165: al volver a la sala, todos a confirmar
 	local_role = NetRoleRegistry.role_for_peer(connected_players, multiplayer.get_unique_id())
 	_broadcast_players()
 	return NetRoleRegistry.guard_count(connected_players)

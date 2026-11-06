@@ -23,6 +23,7 @@ var cctv_feeds: CCTVFeeds84 = null
 var safe_dial: SafeDial84 = null
 var lockdown_hud: LockdownHud84 = null
 var score_hud: ScoreHud84 = null  # puntos en vivo (#123)
+var countdown_hud: MatchCountdown84 = null  # cargando y 3-2-1 al empezar (#165)
 ## Panel del minijuego de robo del ladrón local (#119, LocalViewPresenter)
 var steal_minigame: StealMinigame84 = null
 var gate_box_panel: GateBox84 = null
@@ -84,6 +85,8 @@ func _ready() -> void:
 	add_child(lockdown_hud)
 	score_hud = ScoreHud84.new()
 	add_child(score_hud)
+	countdown_hud = MatchCountdown84.new()
+	add_child(countdown_hud)
 	steal_minigame = StealMinigame84.new()
 	add_child(steal_minigame)
 	gate_box_panel = GateBox84.new()

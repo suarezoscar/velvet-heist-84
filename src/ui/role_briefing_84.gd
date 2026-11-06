@@ -147,6 +147,7 @@ func close() -> void:
 	if _closing:
 		return
 	_closing = true
+	MatchCountdown.begin(get_tree())  # #165: sin red, el 3-2-1 empieza al cerrar la tarjeta
 	var tween: Tween = create_tween()
 	tween.tween_property(_panel, "modulate:a", 0.0, FADE_TIME)
 	tween.tween_callback(queue_free)

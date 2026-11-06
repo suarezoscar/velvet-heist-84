@@ -57,7 +57,8 @@ func run_tick(delta: float) -> void:
 		return
 	if is_locally_controlled:
 		apply_input(gather_input(camera))
-		_process_local_actions()
+		if not MatchCountdown.frozen(get_tree()):  # #165: en la carga y el 3-2-1, nada
+			_process_local_actions()
 	simulate_movement(delta)
 	update_presentation(delta)
 
@@ -143,8 +144,8 @@ func compute_step_radius() -> float:
 
 ## Simulación física isométrica de movimiento
 func simulate_movement(delta: float) -> void:
-	if GameManager.is_match_over():
-		current_input_dir = Vector2.ZERO  # con la partida acabada nadie se mueve (FEAT-041)
+	if GameManager.is_match_over() or MatchCountdown.frozen(get_tree()):
+		current_input_dir = Vector2.ZERO  # acabada (FEAT-041) o sin empezar (#165), quietos
 	var raw_dir: Vector3 = Vector3(current_input_dir.x, 0.0, current_input_dir.y)
 	var move_dir: Vector3 = raw_dir.rotated(Vector3.UP, deg_to_rad(45.0)).normalized()
 
