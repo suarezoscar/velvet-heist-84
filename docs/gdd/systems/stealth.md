@@ -1,6 +1,6 @@
 # Sigilo: modos de movimiento, ruido de pasos y percepción cercana
 
-- **Estado**: aprobado por el usuario: parte 1 el 2026-10-22 y parte 2 (linterna, luz, información entre guardias y ruido) el 2026-10-23. P2.4 reescrita y aprobada el 2026-10-23: **sustituye los anillos de ruido** por audio posicional, vúmetro del ladrón y chevron en el borde (decisiones D8-D11). Cambio de controles de la linterna, la porra y la orientación el 2026-10-30 (#112). 2026-10-30, #116: los guardias solo corren con la alarma y desaparecen los relojes de ronda (`heist.md` R5d).
+- **Estado**: aprobado por el usuario: parte 1 el 2026-10-22 y parte 2 (linterna, luz, información entre guardias y ruido) el 2026-10-23. P2.4 reescrita y aprobada el 2026-10-23: **sustituye los anillos de ruido** por audio posicional, vúmetro del ladrón y chevron en el borde (decisiones D8-D11). Cambio de controles de la linterna, la porra y la orientación el 2026-10-30 (#112). 2026-10-30, #116: los guardias solo corren con la alarma y desaparecen los relojes de ronda (`heist.md` R5d). 2026-11-06, #166 (`docs/tasks/TUNE-001-velocidades.md`, TUNE decidida por el usuario el 2026-11-05): velocidades nuevas del guardia (3,0 / 2,0 / 5,5 m/s) y carrera del ladrón a 6,0 m/s; rangos de `walk_speed` del guardia, `sneak_ratio`, `sprint_ratio` y `sprint_mult` ajustados.
 - **Origen**: MASTER_GSD §2 (asimetría), §4.1 (acústica de superficies), §5.3 (visibilidad); FEAT-005 (posturas); auditoría de la Fase 1 (`docs/decisions/2026-10-22-fase-1-auditoria.md`, "Decisiones de diseño pendientes"). 2026-10-22.
 - **Relacionado**: `characters.md` (altura de los modelos, que fija los puntos de visibilidad); `roles.md` (velocidades por rol), `gadgets.md` (molde de cera, hilo con campanillas, láseres) e `interaction.md` (cobertura baja de los niveles), que todavía no existen. `vision.md` (zona visible y niebla de guerra: decide qué ve cada jugador en pantalla; la percepción de este documento sigue decidiendo cuándo un guardia ve al ladrón).
 - **Alcance**: modos de movimiento, ruido de pasos, superficies, quién oye qué (solo la regla), proximidad, puntos de visibilidad y alcance de la porra. **Segunda parte** (abajo): el cono de la linterna, las lámparas y cómo se percibe el ruido (audio, vúmetro, chevron) y el ruido de objetos.
@@ -95,14 +95,14 @@ Los `.tres` marcados como nuevos los crea el paquete B (balance a `.tres`) con l
 | Mando | Recurso y campo | Tipo | Rango aceptable | Valor inicial y por qué |
 |---|---|---|---|---|
 | Paso del ladrón | `movement_thief.tres` → `walk_speed` (nuevo) | sensación | 4,5-5,5 m/s | 5,0 (actual). Más rápido que el guardia para que la huida sea posible. |
-| Paso del guardia | `movement_guard.tres` → `walk_speed` (nuevo) | sensación | 3,8-4,6 m/s | 4,2 (actual). |
-| Sigilo / paso | `movement_*.tres` → `sneak_ratio` (nuevo) | sensación | 0,40-0,55 | 0,48 (actual). Lento como para que cueste tiempo de partida. |
-| Carrera / paso | `movement_*.tres` → `sprint_ratio` (nuevo) | sensación | 1,40-1,60 | 1,5 en ambos bandos (hoy el guardia va a 1,48). |
+| Paso del guardia | `movement_guard.tres` → `walk_speed` (nuevo) | sensación | 2,6-3,4 m/s (antes 3,8-4,6; TUNE de #166, decidido por el usuario) | **3,0** (antes 4,2). En calma el ladrón andando (5,0) le saca 2 m/s y decide el ritmo; el guardia sigue siendo más rápido que el ladrón en sigilo (2,4). |
+| Sigilo / paso | `movement_*.tres` → `sneak_ratio` (nuevo) | sensación | Ladrón 0,40-0,55. Guardia: el que deje su sigilo (y el barrido con la linterna) en 1,8-2,2 m/s; con `walk_speed` 3,0, 0,60-0,73 (antes 0,40-0,55 para los dos; TUNE de #166, decidido por el usuario) | Ladrón 0,48 (2,4 m/s). Guardia **0,6667** (antes 0,48): 2,0 m/s, lo mismo que barría antes (2,016). Lo que se fija es la velocidad absoluta del guardia con la linterna, no la proporción: si cambia su `walk_speed`, se recalcula `sneak_ratio` = 2,0 / `walk_speed`. Lento como para que cueste tiempo de partida, y por debajo del sigilo del ladrón (2,4): el ladrón en sigilo se aleja de un guardia que barre. |
+| Carrera / paso | `movement_*.tres` → `sprint_ratio` (nuevo) | sensación | Ladrón 1,15-1,30; guardia 1,70-1,90, siempre < `sprint_mult` (antes 1,40-1,60 para los dos; TUNE de #166, decidido por el usuario) | Ladrón **1,2** (6,0 m/s; antes 1,5, 7,5 m/s). Guardia **1,8333** (5,5 m/s; antes 1,5, 6,3 m/s). El ladrón sin botín corre más que el guardia (6,0 > 5,5); con 2 piezas o más (5,4 m/s o menos, `heist.md` R3), el guardia lo alcanza mientras le dura la estamina (~2,7 s). |
 | Agachado / paso (ladrón) | `movement_thief.tres` → `crouch_ratio` (nuevo) | sensación | 0,30-0,45, siempre < `sneak_ratio` | 0,40. Paga en velocidad lo que gana en perfil. |
-| Cadencia de pasos | `character_animator_3d.gd` → `STEP_CYCLE_LENGTH`, `ANIMATION_REFERENCE_SPEED` | sensación | sale de la animación | Ya no hay `step_interval_<modo>` en los `.tres` (2026-10-30). Con las velocidades actuales: ladrón andando o corriendo 0,18 s (la reproducción se satura a ×3, así que anda y corre a la misma cadencia y correr solo se distingue por el radio), en sigilo 0,275 s, agachado 0,32 s; guardia andando 0,20 s, en sigilo o barriendo 0,33 s. |
+| Cadencia de pasos | `character_animator_3d.gd` → `STEP_CYCLE_LENGTH`, `ANIMATION_REFERENCE_SPEED` | sensación | sale de la animación | Ya no hay `step_interval_<modo>` en los `.tres` (2026-10-30). Con las velocidades actuales: ladrón andando o corriendo 0,18 s (la reproducción se satura a ×3, así que anda y corre a la misma cadencia y correr solo se distingue por el radio), en sigilo 0,275 s, agachado 0,32 s; guardia andando 0,28 s (antes 0,20, con 4,2 m/s; #166), en sigilo o barriendo 0,33 s, corriendo 0,18 s. |
 | Radio base del paso | `step_noise.tres` → `base_radius` (nuevo) | curva | 2,5-4,5 m | 3,5 (actual). |
 | Ruido en sigilo | `step_noise.tres` → `sneak_mult` | curva | 0,20-0,40 | 0,3 (actual). |
-| Ruido en carrera | `step_noise.tres` → `sprint_mult` | curva | 1,6-2,2, siempre > `sprint_ratio` | 2,0 (actual). Correr hace más ruido por metro que andar. |
+| Ruido en carrera | `step_noise.tres` → `sprint_mult` | curva | 1,6-2,2, siempre > `sprint_ratio` de los dos bandos: con el guardia en 1,8333 (#166), en la práctica 1,9-2,2 | 2,0 (actual). Correr hace más ruido por metro que andar. |
 | Ruido agachado | `step_noise.tres` → `crouch_mult` | curva | 0,25-0,40, = `sneak_mult` | 0,3. Igual que el sigilo: el agachado se diferencia en velocidad y perfil. |
 | Radio mínimo en movimiento | `step_noise.tres` → `min_radius` (nuevo) | curva | 0,3-0,8 m | 0,5. Algo más que el radio de la cápsula (0,35): se ve, pero solo lo oye quien casi te toca. |
 | Peso de botas y llaves | `movement_guard.tres` → `team_noise_mult` (nuevo) | curva | 1,0-1,5 | 1,2. El ladrón vale 1,0 fijo. |
@@ -149,7 +149,7 @@ Comprueban relaciones leyendo los `.tres`, no valores literales.
 | `noise_heard_by_guard(mode, surface, radius)` | ¿El ruido llega a los guardias? | Menos de una detección por oído por partida. |
 | `wax_mold_progress(result)` | ¿El arco ciego hace posible el molde? | Éxito > 80 % (sobra el arco) o 0 % (imposible). |
 | `melee_attempt(distance, hit)` | ¿El alcance de la porra se siente justo? | Fallos frecuentes con distancia < `melee_range` + 0,1 m. |
-| `thief_sprint(duration, escaped)` | ¿La carrera ilimitada del ladrón rompe las persecuciones? (A3) | Más del 80 % de las persecuciones en abierto acaban en huida. |
+| `thief_sprint(duration, escaped)` | ¿La carrera ilimitada del ladrón rompe las persecuciones? (A3) | Más del 80 % de las persecuciones en abierto acaban en huida, o menos del 20 % (desde #166 el ladrón corre a 6,0 y con 2 piezas ya va más lento que un guardia que corre). |
 
 ## Estado
 - **Modos de movimiento y ruido de pasos**: implementados en FEAT-007 (hecha, 2026-10-23). Están en `MovementProfile`, `StepNoiseProfile` y `data/balance/movement_*.tres` y `step_noise.tres`, con tests de los invariantes 1-6 y 10.
@@ -165,7 +165,7 @@ Tomadas por el usuario el 2026-10-22, todas con la opción recomendada:
 - Arco ciego trasero de 120°.
 - El guardia ve solo los anillos que le alcanzan; el ladrón ve todos; la IA oye con factor 1. *(Anillos sustituidos el 2026-10-23 por D8-D11: el guardia oye lo que le alcanza; el ladrón oye los ruidos de guardia a 1,5 ×.)*
 - Proximidad horizontal de 1,8 m con puntos de visibilidad por altura; porra a 1,5 m.
-- Carrera: ruido ×2,0 y velocidad ×1,5 en los dos bandos. Superficies del GSD con rangos.
+- Carrera: ruido ×2,0 y velocidad ×1,5 en los dos bandos. Superficies del GSD con rangos. *(2026-11-05, #166: el usuario cambia las velocidades: guardia 3,0 andando, 2,0 con la linterna y 5,5 corriendo; ladrón 6,0 corriendo. La carrera ya no es ×1,5: ×1,2 el ladrón y ×1,8333 el guardia.)*
 
 ### Aplazados
 - **A1 PRONE**: vuelve solo cuando existan láseres o conductos que le den un uso, con colisión horizontal y su propio `/design`. Hasta entonces, el ladrón no pasa bajo los láseres (afecta a `gadgets.md`).
@@ -227,7 +227,7 @@ d_h(G, L) ≤ F_alcance   y   ángulo_h(frente_G, L − G) ≤ F_semiángulo   y
 - La `SpotLight3D` visible toma `spot_range` y `spot_angle` de estos mismos campos: lo que se ve iluminado es lo que detecta (invariante 14). El haz tiene que leerse hasta su borde: la atenuación no puede dejar el último 20 % del alcance a oscuras.
 - El borde pertenece al cono (como en el arco ciego de la parte 1).
 - **El ladrón ve todos los haces encendidos**, también tras los muros, como silueta del sector en el suelo (MASTER_GSD §2, pilar 3).
-- **Linterna solo mientras se mantiene (2026-10-30, #112)**: el guardia humano la lleva apagada y la enciende manteniendo el clic derecho; al soltar se apaga. Mientras la mantiene **barre**: el haz apunta al ratón, no corre y se mueve a media velocidad en modo sigilo, así que sus pasos también son más silenciosos (confirmado por el usuario el 2026-10-30). La IA la lleva siempre encendida.
+- **Linterna solo mientras se mantiene (2026-10-30, #112)**: el guardia humano la lleva apagada y la enciende manteniendo el clic derecho; al soltar se apaga. Mientras la mantiene **barre**: el haz apunta al ratón, no corre y se mueve en modo sigilo, a 2,0 m/s (dos tercios de su paso desde #166; antes, la mitad de 4,2), así que sus pasos también son más silenciosos (confirmado por el usuario el 2026-10-30). La IA la lleva siempre encendida.
 - **Encender y apagar la linterna**: cada cambio emite un ruido de `flashlight_toggle_noise_radius`. Apagada, el guardia solo ve por proximidad y por P2.2, y su haz desaparece para el ladrón.
 
 ### P2.2 Lámparas y zonas de luz

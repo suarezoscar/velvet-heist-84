@@ -4,9 +4,9 @@
 
 [resource]
 script = ExtResource("1_profile")
-walk_speed = 4.2
-sneak_ratio = 0.48
-sprint_ratio = 1.5
+walk_speed = 3.0
+sneak_ratio = 0.6667
+sprint_ratio = 1.8333
 crouch_ratio = 0.4
 can_crouch = false
 team_noise_mult = 1.2

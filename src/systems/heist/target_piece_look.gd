@@ -27,6 +27,7 @@ static func build(piece: TargetPiece3D, model_scene: PackedScene) -> void:
 	piece.add_child(col)
 	if piece.variant == &"pedestal":
 		piece.add_child(_pedestal())
+	piece.add_to_group(&"fog_memory_state")  # #163: robada, como se vio por última vez
 	if model_scene != null:
 		attach_model(piece, model_scene.instantiate() as Node3D)
 	piece.marker = Label3D.new()

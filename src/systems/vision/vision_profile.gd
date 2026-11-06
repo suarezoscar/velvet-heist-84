@@ -21,6 +21,15 @@ extends Resource
 ## Canal más brillante a partir del cual un píxel (piloto, bombilla) atraviesa la niebla (D5)
 @export var fog_light_keep: float = 0.9
 
+## Brillo y desaturación de lo que se alza del suelo en la niebla (#163): muros, muebles,
+## pedestales. Solo un oscurecido suave, para que el borde de la vista no los barra al andar
+@export var fog_raised_brightness: float = 0.8
+@export var fog_raised_desaturation: float = 0.3
+
+## Altura (m) sobre el suelo hasta la que un punto es suelo y desde la que es alzado (#163)
+@export var fog_raised_from: float = 0.08
+@export var fog_raised_to: float = 0.2
+
 ## Anchura (m) del borde suave entre lo visible y la niebla
 @export var fog_edge_feather: float = 1.0
 

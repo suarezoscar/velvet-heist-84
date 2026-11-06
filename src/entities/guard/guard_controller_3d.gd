@@ -225,33 +225,7 @@ func update_perception(thief: ThiefController3D, lamps: Array[Lamp3D], delta: fl
 
 ## Valida de forma autoritativa en el servidor si un golpe cuerpo a cuerpo es legítimo
 func validate_melee_hit(target_thief: ThiefController3D) -> bool:
-	if target_thief == null or target_thief.in_vent:
-		return false
-	if perception == null:
-		perception = load(PERCEPTION_PROFILE_PATH)
-	var dist: float = PerceptionRules.horizontal_distance(
-		global_position, target_thief.global_position
-	)
-	if dist > perception.melee_range:
-		return false
-	# Hacia donde mira (o al ratón si barre con la linterna), no a la espalda (#112)
-	if not PerceptionRules.is_in_flashlight_cone(
-		global_position,
-		look_target_position - global_position,
-		target_thief.global_position,
-		perception.melee_range + 0.01,
-		perception.melee_half_angle_deg
-	):
-		return false
-	if is_inside_tree() and get_world_3d() != null:
-		var space_state: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
-		if space_state != null:
-			var offset: Vector3 = Vector3(0.0, perception.torso_height, 0.0)
-			var from_pos: Vector3 = global_position + offset
-			var to_pos: Vector3 = target_thief.global_position + offset
-			if not GuardSenses.has_line_of_sight(space_state, from_pos, to_pos):
-				return false
-	return true
+	return GuardBaton.valid_hit(self, target_thief)
 
 
 ## Ejecuta un golpe con la porra de madera validado autoritativamente
@@ -291,8 +265,4 @@ func _capture_thief() -> void:
 
 
 func _process_stamina_and_sprint(delta: float, input_dir: Vector2) -> void:
-	var calm: bool = is_inside_tree() and not AlertDirector.alarm_on(get_tree())  # #116
-	if is_sprinting and (calm or stamina <= 5.0 or input_dir.length_squared() <= 0.01):
-		is_sprinting = false
-	var rate: float = -stamina_drain_rate if is_sprinting else stamina_recovery_rate
-	stamina = clampf(stamina + rate * delta, 0.0, max_stamina)
+	GuardBaton.process_stamina(self, delta, input_dir)
