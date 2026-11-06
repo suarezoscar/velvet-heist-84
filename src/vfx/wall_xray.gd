@@ -6,6 +6,7 @@ class_name WallXRay
 extends Node
 
 const SHADER: Shader = preload("res://assets/shaders/wall_xray.gdshader")
+const OUTLINE_SHADER: Shader = preload("res://assets/shaders/outline.gdshader")
 ## Distinto de 0 activa el recorte (su forma, una elipse con la silueta, está en el shader) y
 ## altura del centro sobre los pies
 const RADIUS: float = 2.6
@@ -14,6 +15,8 @@ const CENTER_HEIGHT: float = 0.85
 const CROUCH_CENTER_HEIGHT: float = 0.5
 
 static var _materials: Dictionary = {}
+## Contorno de los muros (#181): se recorta como ellos, así que no es el compartido del mapa
+static var _outline: ShaderMaterial = null
 
 var map: HeistMap3D = null
 
@@ -25,8 +28,22 @@ static func material(color: Color) -> ShaderMaterial:
 		var mat: ShaderMaterial = ShaderMaterial.new()
 		mat.shader = SHADER
 		mat.set_shader_parameter(&"albedo", color)
+		mat.next_pass = _wall_outline()
 		_materials[key] = mat
 	return _materials[key]
+
+
+static func _wall_outline() -> ShaderMaterial:
+	if _outline == null or not is_instance_valid(_outline):
+		_outline = ShaderMaterial.new()
+		_outline.shader = OUTLINE_SHADER
+		_outline.set_shader_parameter(&"box_mode", true)  # muros y tabiques son cajas
+		var shared: ShaderMaterial = CelConverter.outline_material()
+		for param: StringName in [&"outline_color", &"outline_width"]:
+			var value: Variant = shared.get_shader_parameter(param)
+			if value != null:
+				_outline.set_shader_parameter(param, value)
+	return _outline
 
 
 func _ready() -> void:
@@ -52,7 +69,10 @@ func _process(_delta: float) -> void:
 
 
 func _set_center(center: Vector3, radius: float) -> void:
-	for mat: Variant in _materials.values():
+	var all: Array = _materials.values()
+	if _outline != null and is_instance_valid(_outline):
+		all.append(_outline)
+	for mat: Variant in all:
 		if is_instance_valid(mat):
 			(mat as ShaderMaterial).set_shader_parameter(&"xray_center", center)
 			(mat as ShaderMaterial).set_shader_parameter(&"xray_radius", radius)

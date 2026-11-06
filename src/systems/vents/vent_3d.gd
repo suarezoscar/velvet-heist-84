@@ -128,8 +128,7 @@ func _finish_enter(_actor: Node3D) -> void:
 
 func _update_look() -> void:
 	if _grille != null:
-		var mat: StandardMaterial3D = (_grille.mesh as BoxMesh).material as StandardMaterial3D
-		mat.albedo_color = OPEN_COLOR if open_left > 0.0 else CLOSED_COLOR
+		CelConverter.set_albedo(_grille, OPEN_COLOR if open_left > 0.0 else CLOSED_COLOR)
 
 
 func get_net_state() -> Dictionary:
