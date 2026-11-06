@@ -1,34 +1,72 @@
 ## @file vent_travel.gd
-## El ladrón dentro de la ventilación (FEAT-034, heist.md R10). Nodo «Vents», padre de las
-## rejillas. Tras colarse por una (Vent3D), el ladrón elige la salida entre las rejillas de la
-## misma red con izquierda y derecha y va con E; elegir la de entrada es volver a salir por ahí.
-## El viaje dura la distancia en línea recta entre las dos rejillas a RULES.travel_speed, más
-## lento con botín (HeistRules.loot_slow por pieza), y hace retumbar las rejillas de la red.
-## Si tarda más de RULES.max_inside s en elegir, sale solo por la rejilla de entrada.
-## Mientras está dentro, nadie lo ve ni lo toca (ThiefController3D.in_vent). Decide el servidor
-## (o la partida sin red); solo el ladrón recibe su estado.
+## El viaje del ladrón por la ventilación (FEAT-034; heist.md R10 reescrita con #167). Nodo
+## «Vents», padre de las rejillas. Decide el servidor (o la partida sin red); solo el ladrón
+## recibe su estado.
+## - CHOOSING: E en una rejilla abre el plano (VentPanel84) delante de ella. El ladrón se queda
+##   quieto, a la vista y atrapable; ← → (o A D, o el ratón) eligen la salida, E confirma y
+##   Esc, W o S (o un golpe) cierran el plano sin entrar. No se ofrece la rejilla de entrada.
+## - ENTERING: tras confirmar se cuela (Vent3D, RULES.enter_time, con el ruido de la rejilla).
+## - TRAVELING: dentro, nadie lo ve ni lo toca. Dura la distancia en línea recta entre las dos
+##   rejillas a RULES.travel_speed, más lento con botín, y como mucho RULES.max_travel_time.
+##   La cámara se desliza de una rejilla a otra (focus) y sale al llegar. No se puede esperar
+##   dentro ni darse la vuelta.
 class_name VentTravel
 extends Node
 
-enum Phase { NONE, CHOOSING, TRAVELING }
+enum Phase { NONE, CHOOSING, TRAVELING, ENTERING }
 
 const RULES: VentRules = preload("res://data/balance/vent_rules.tres")
 const HEIST_RULES: HeistRules = preload("res://data/balance/heist_rules.tres")
-## Umbral del eje horizontal para cambiar de salida (un cambio por pulsación)
-const AXIS_THRESHOLD: float = 0.5
+## Acciones del plano (NetConfig.ACTIONS); Esc, W y S llegan como dial_cancel
+const PREV: StringName = &"vent_prev"
+const NEXT: StringName = &"vent_next"
 
 var phase: Phase = Phase.NONE
 var thief: ThiefController3D = null
 var entry: Vent3D = null
+## Salidas posibles (sin la de entrada), de oeste a este
 var choices: Array[Vent3D] = []
 var selected: int = 0
-## Segundos que quedan de viaje (o, eligiendo, para salir solo)
+## Segundos que quedan de viaje y lo que dura entero (para la cámara)
 var left: float = 0.0
-var _last_axis: float = 0.0
+var total: float = 0.0
+var _hits: int = 0
 
 
 static func of(tree: SceneTree) -> VentTravel:
 	return tree.get_first_node_in_group(&"vent_travel") as VentTravel if tree != null else null
+
+
+## true si el ladrón tiene el plano abierto
+static func is_choosing(tree: SceneTree) -> bool:
+	var travel: VentTravel = of(tree)
+	return travel != null and travel.phase == Phase.CHOOSING
+
+
+## true si who está quieto ante la rejilla: con el plano abierto o colándose
+static func holds(who: Node3D) -> bool:
+	var travel: VentTravel = of(who.get_tree()) if who != null and who.is_inside_tree() else null
+	return (
+		travel != null and travel.thief == who and travel.phase in [Phase.CHOOSING, Phase.ENTERING]
+	)
+
+
+## Dónde mira la cámara que sigue a actor: durante el viaje, de la rejilla de entrada a la de
+## salida; si no, el propio actor
+static func focus(tree: SceneTree, actor: Node3D) -> Vector3:
+	var travel: VentTravel = of(tree)
+	if travel == null or travel.phase != Phase.TRAVELING or not (actor is ThiefController3D):
+		return actor.global_position
+	if travel.entry == null or travel.choices.is_empty() or travel.total <= 0.0:
+		return actor.global_position
+	var weight: float = clampf(1.0 - travel.left / travel.total, 0.0, 1.0)
+	return travel.entry.exit_point().lerp(travel.target().exit_point(), weight)
+
+
+## Segundos de viaje de from a to con pieces piezas del encargo (R10, #167)
+static func travel_time(from: Vector3, to: Vector3, pieces: int) -> float:
+	var slow: float = 1.0 + HEIST_RULES.loot_slow * pieces
+	return minf(from.distance_to(to) / RULES.travel_speed * slow, RULES.max_travel_time)
 
 
 func _ready() -> void:
@@ -37,89 +75,131 @@ func _ready() -> void:
 	add_to_group(&"net_state")
 
 
+func _process(delta: float) -> void:
+	if phase == Phase.TRAVELING and not GameManager.is_simulating():
+		left = maxf(0.0, left - delta)  # el cliente adelanta la cámara entre estados
+	if phase == Phase.CHOOSING and not NetManager.is_online():
+		var local: ThiefController3D = (
+			thief if thief != null and thief.is_locally_controlled else null
+		)
+		if local != null:
+			for action: StringName in VentInput.poll(get_tree()):
+				handle(local, action)
+
+
 func _physics_process(delta: float) -> void:
 	if phase == Phase.NONE or not GameManager.is_simulating():
 		return
 	if not is_instance_valid(thief) or GameManager.is_match_over():
 		_reset()
 		return
-	if phase == Phase.CHOOSING:
-		left -= delta
-		if left <= 0.0:
-			selected = choices.find(entry)  # se acabó el tiempo: sale por donde entró
-			_arrive()
-			return
-		var axis: float = thief.current_input_dir.x
-		if absf(axis) > AXIS_THRESHOLD and absf(_last_axis) <= AXIS_THRESHOLD:
-			selected = wrapi(selected + (1 if axis > 0.0 else -1), 0, choices.size())
-		_last_axis = axis
+	if phase in [Phase.CHOOSING, Phase.ENTERING] and thief.baton_hits_taken != _hits:
+		cancel()  # un golpe cierra el plano (o le impide colarse) y le devuelve el control
 	elif phase == Phase.TRAVELING:
 		left -= delta
 		if left <= 0.0:
 			_arrive()
 
 
-## Autoridad: el ladrón acaba de colarse por vent
-func enter(who: ThiefController3D, vent: Vent3D) -> void:
+## Autoridad: E en vent abre el plano de su red
+func open(who: ThiefController3D, vent: Vent3D) -> void:
 	if who == null or phase != Phase.NONE:
 		return
-	thief = who
-	entry = vent
 	choices.clear()
 	for node: Node in get_children():
 		var other: Vent3D = node as Vent3D
-		if other != null and other.network == vent.network:
+		if other != null and other != vent and other.network == vent.network:
 			choices.append(other)
-	selected = wrapi(choices.find(vent) + 1, 0, choices.size())
-	_last_axis = thief.current_input_dir.x
-	thief.in_vent = true
-	vent.mark_open()
-	left = RULES.max_inside
+	if choices.is_empty():
+		return
+	choices.sort_custom(
+		func(a: Vent3D, b: Vent3D) -> bool: return a.global_position.x < b.global_position.x
+	)
+	thief = who
+	entry = vent
+	_hits = who.baton_hits_taken
+	selected = 0
+	for i: int in range(choices.size()):
+		if seconds_to(i) < seconds_to(selected):
+			selected = i  # al abrirse, la de viaje más corto
 	phase = Phase.CHOOSING
 
 
-## Autoridad: va hacia la salida elegida (si es la de entrada, sale ya)
-func go() -> void:
-	if phase != Phase.CHOOSING:
+## Autoridad: una acción del ladrón con el plano abierto; true si era para el plano
+func handle(who: ThiefController3D, action: StringName) -> bool:
+	if phase != Phase.CHOOSING or who != thief:
+		return false
+	match action:
+		PREV:
+			selected = wrapi(selected - 1, 0, choices.size())
+		NEXT:
+			selected = wrapi(selected + 1, 0, choices.size())
+		&"interact":
+			phase = Phase.ENTERING
+			entry.start_entering(thief)
+		&"dial_cancel":
+			cancel()
+		_:
+			return false
+	return true
+
+
+func cancel() -> void:
+	if phase == Phase.CHOOSING or phase == Phase.ENTERING:
+		_reset()
+
+
+## Autoridad: ya está dentro (Vent3D tras enter_time): viaja hacia la elegida
+func enter() -> void:
+	if phase != Phase.ENTERING:
 		return
-	var target: Vent3D = choices[selected]
-	if target == entry:
-		_arrive()
-		return
-	var distance: float = entry.global_position.distance_to(target.global_position)
-	var pieces: int = GameManager.heist.stolen.size() if GameManager.heist != null else 0
-	left = distance / RULES.travel_speed * (1.0 + HEIST_RULES.loot_slow * pieces)
+	thief.in_vent = true
+	entry.mark_open()
+	total = seconds_to(selected)
+	left = total
 	phase = Phase.TRAVELING
-	for vent: Vent3D in choices:
-		if vent != entry:
+	for node: Node in get_children():
+		var vent: Vent3D = node as Vent3D
+		if vent != null and vent != entry and vent.network == entry.network:
 			NoiseEmit.emit(
 				vent.global_position, RULES.rumble_radius, &"thief", NoiseEmit.MECHANISM, null
 			)
 
 
-## Texto de la rejilla mientras elige: la sala de la salida elegida
-func choice_text() -> String:
-	if choices.is_empty():
-		return ""
-	var target: Vent3D = choices[selected]
-	var where: String = "volver a salir aquí" if target == entry else target.room_name
-	return "Conducto: ◀ %s ▶ · ir [E] · %d s" % [where, ceili(maxf(0.0, left))]
+func target() -> Vent3D:
+	return choices[clampi(selected, 0, choices.size() - 1)]
+
+
+## Segundos de viaje hasta la salida index, con el botín que lleva ahora
+func seconds_to(index: int) -> float:
+	var pieces: int = GameManager.heist.stolen.size() if GameManager.heist != null else 0
+	return travel_time(entry.global_position, choices[index].global_position, pieces)
+
+
+## Lo que enseña el plano: {"from": sala de entrada, "options": [[sala, s]], "sel": int}
+func view() -> Dictionary:
+	var options: Array = []
+	for i: int in range(choices.size()):
+		options.append([choices[i].room_name, ceili(seconds_to(i))])
+	return {"from": entry.room_name if entry != null else "", "options": options, "sel": selected}
 
 
 func _arrive() -> void:
-	var target: Vent3D = choices[selected]
-	thief.global_position = target.exit_point() + Vector3.UP * 0.1
+	var exit: Vent3D = target()
+	thief.global_position = exit.exit_point() + Vector3.UP * 0.1
 	thief.velocity = Vector3.ZERO
 	thief.in_vent = false
-	target.mark_open()
-	NoiseEmit.emit(target.global_position, RULES.hatch_radius, &"thief", NoiseEmit.MECHANISM, thief)
-	print("[VentTravel] El ladrón sale por %s" % target.vent_id)
+	exit.mark_open()
+	NoiseEmit.emit(exit.global_position, RULES.hatch_radius, &"thief", NoiseEmit.MECHANISM, thief)
+	print("[VentTravel] El ladrón sale por %s" % exit.vent_id)
 	_reset()
 
 
 func _reset() -> void:
 	if is_instance_valid(thief):
 		thief.in_vent = false
+	if entry != null:
+		entry.stop_entering()
 	phase = Phase.NONE
 	thief = null
 	entry = null
@@ -130,7 +210,7 @@ func get_net_state() -> Dictionary:
 	return {}
 
 
-## Solo al ladrón: si va por dentro, por qué rejilla entró, las salidas y la elegida
+## Solo al ladrón: fase, rejilla de entrada, salidas, la elegida y el viaje
 func get_net_state_private() -> Dictionary:
 	var ids: Array[String] = []
 	for vent: Vent3D in choices:
@@ -140,7 +220,8 @@ func get_net_state_private() -> Dictionary:
 		"entry": entry.vent_id if entry != null else "",
 		"choices": ids,
 		"sel": selected,
-		"left": ceilf(left),
+		"left": snappedf(left, 0.1),
+		"total": snappedf(total, 0.1),
 	}
 
 
@@ -154,8 +235,8 @@ func apply_net_state(state: Dictionary) -> void:
 	phase = int(state["phase"]) as Phase
 	selected = int(state.get("sel", 0))
 	left = float(state.get("left", left))
+	total = float(state.get("total", total))
 	choices.clear()
-	entry = null
 	for id: Variant in state.get("choices", []):
 		var vent: Vent3D = get_node_or_null("Vent_%s" % id) as Vent3D
 		if vent != null:
@@ -165,4 +246,6 @@ func apply_net_state(state: Dictionary) -> void:
 		get_tree().get_first_node_in_group(&"thief") as ThiefController3D
 	)
 	if local_thief != null:
-		local_thief.in_vent = phase != Phase.NONE
+		local_thief.in_vent = phase == Phase.TRAVELING
+	if phase != Phase.NONE and local_thief != null:
+		thief = local_thief

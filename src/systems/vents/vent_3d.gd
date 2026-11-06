@@ -1,7 +1,7 @@
 ## @file vent_3d.gd
-## Rejilla de ventilación (FEAT-034, heist.md R10). Solo el ladrón se cuela (E,
-## RULES.enter_time, con un ruido metálico) y elige por dónde salir en VentTravel. Una rejilla
-## usada se queda abierta RULES.open_time s: es un rastro que un guardia cierra con E.
+## Rejilla de ventilación (FEAT-034, heist.md R10, #167). Solo el ladrón la usa: E abre el plano
+## de VentTravel y, al elegir salida, se cuela (RULES.enter_time, con un ruido metálico). Una
+## rejilla usada se queda abierta RULES.open_time s: es un rastro que un guardia cierra con E.
 ## Va pegada a la pared, a ras de suelo; como los cuadros, su frente mira a -Z (hacia la sala).
 class_name Vent3D
 extends Area3D
@@ -61,6 +61,9 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if _task != null and _task.tick(delta):
 		_task = null
+		var travel: VentTravel = VentTravel.of(get_tree())
+		if travel != null and travel.phase == VentTravel.Phase.ENTERING and travel.entry == self:
+			travel.cancel()  # se alejó o acabó la partida antes de colarse
 	if open_left > 0.0 and GameManager.is_simulating():
 		open_left = maxf(0.0, open_left - delta)
 		_update_look()
@@ -77,8 +80,6 @@ func can_interact(actor: Node3D = null) -> bool:
 	var travel: VentTravel = VentTravel.of(get_tree())
 	if not (actor is ThiefController3D) or travel == null:
 		return false
-	if travel.phase == VentTravel.Phase.CHOOSING:
-		return travel.entry == self
 	return _task == null and travel.phase == VentTravel.Phase.NONE
 
 
@@ -87,7 +88,7 @@ func get_interaction_text(actor: Node3D = null) -> String:
 		return "Cerrar la rejilla de ventilación [E]"
 	var travel: VentTravel = VentTravel.of(get_tree())
 	if travel != null and travel.phase == VentTravel.Phase.CHOOSING and travel.entry == self:
-		return travel.choice_text()
+		return ""  # lo enseña el plano (VentPanel84)
 	if _task != null:
 		return "Colándote en el conducto…"
 	return "Colarse por la ventilación [E]"
@@ -100,12 +101,17 @@ func interact(actor: Node3D) -> void:
 		open_left = 0.0
 		_update_look()
 		return
-	var travel: VentTravel = VentTravel.of(get_tree())
-	if travel.phase == VentTravel.Phase.CHOOSING:
-		travel.go()
-		return
+	VentTravel.of(get_tree()).open(actor as ThiefController3D, self)
+
+
+## Autoridad: ya eligió salida; se cuela por aquí (con el ruido de la rejilla)
+func start_entering(actor: ThiefController3D) -> void:
 	NoiseEmit.emit(global_position, RULES.hatch_radius, &"thief", NoiseEmit.MECHANISM, actor)
 	_task = TimedTask.start(actor, RULES.enter_time, HEIST_RULES.task_leash, _finish_enter)
+
+
+func stop_entering() -> void:
+	_task = null
 
 
 ## Autoridad: la rejilla queda abierta un rato
@@ -114,10 +120,10 @@ func mark_open() -> void:
 	_update_look()
 
 
-func _finish_enter(actor: Node3D) -> void:
+func _finish_enter(_actor: Node3D) -> void:
 	var travel: VentTravel = VentTravel.of(get_tree())
 	if travel != null:
-		travel.enter(actor as ThiefController3D, self)
+		travel.enter()
 
 
 func _update_look() -> void:

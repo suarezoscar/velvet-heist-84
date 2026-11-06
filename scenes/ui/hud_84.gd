@@ -26,7 +26,7 @@ var score_hud: ScoreHud84 = null  # puntos en vivo (#123)
 ## Panel del minijuego de robo del ladrón local (#119, LocalViewPresenter)
 var steal_minigame: StealMinigame84 = null
 var gate_box_panel: GateBox84 = null
-
+var vent_panel: VentPanel84 = null
 var _exposure_state: StringName = &""
 var _exposure_blink_timer: float = 0.0
 var _noise_meter_visible: bool = false
@@ -88,6 +88,9 @@ func _ready() -> void:
 	add_child(steal_minigame)
 	gate_box_panel = GateBox84.new()
 	add_child(gate_box_panel)
+	vent_panel = VentPanel84.new()
+	vent_panel.bind(get_parent() as HeistMap3D)
+	add_child(vent_panel)
 
 
 func _process(delta: float) -> void:
