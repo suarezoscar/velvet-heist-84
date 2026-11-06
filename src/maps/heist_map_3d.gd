@@ -50,6 +50,7 @@ func _ready() -> void:
 		camera.set_cull_mask_value(ThiefController3D.CCTV_ONLY_LAYER, false)
 	hud = get_node_or_null("HUD84") as HUD84
 	_collect_actors()
+	NightEnvironmentSetup.apply(self)  # cel-shading y noche (#181)
 	_setup_fog()
 	for guard: GuardController3D in guards:
 		_ai_defaults[guard] = guard.is_ai_controlled

@@ -122,12 +122,16 @@ static func _tint(model: Node3D, tint: Color) -> void:
 	for node: Node in model.find_children("*", "MeshInstance3D", true, false):
 		var mesh_node: MeshInstance3D = node as MeshInstance3D
 		for surface: int in range(mesh_node.mesh.get_surface_count()):
-			var source: BaseMaterial3D = mesh_node.get_active_material(surface) as BaseMaterial3D
+			var source: Material = mesh_node.get_active_material(surface)
 			if source == null:
 				continue
-			var tinted: BaseMaterial3D = source.duplicate() as BaseMaterial3D
-			tinted.albedo_color = source.albedo_color * tint
+			var tinted: Material = source.duplicate() as Material  # cel o no (#181)
 			mesh_node.set_surface_override_material(surface, tinted)
+			var color: Color = CelConverter.albedo_of(source) * tint
+			if tinted is ShaderMaterial:
+				(tinted as ShaderMaterial).set_shader_parameter(&"albedo", color)
+			elif tinted is BaseMaterial3D:
+				(tinted as BaseMaterial3D).albedo_color = color
 
 
 ## Escala el modelo a target_size (su mayor medida) y lo apoya sobre el pedestal
