@@ -274,24 +274,12 @@ func _guards() -> Array[GuardController3D]:
 
 
 func _thief_name() -> String:
-	if NetManager.is_online():
-		return _player_name(NetManagerNode.ROLE_THIEF, "Ladrón")
-	if _own_name == null:  # se lee del disco una vez, no en cada puntuación en vivo
-		_own_name = GameSettings.load_saved().player_name
-	var own: String = _own_name
-	return own if not own.is_empty() else "Tú"
+	return MatchNames.thief_name(self)
 
 
 func _guard_name(guard: GuardController3D) -> String:
-	if not NetManager.is_online():
-		return AI_NAME
-	return _player_name(LiveScore.guard_role(guard), AI_NAME)  # su rol, aunque falte uno antes
+	return MatchNames.guard_name(guard)
 
 
 func _player_name(role: StringName, fallback: String) -> String:
-	var peer: int = NetManager.get_peer_id_for_role(role)
-	if peer == 0:
-		return fallback
-	var info: Dictionary = NetManager.get_connected_players().get(peer, {})
-	var player_name: String = String(info.get("name", ""))
-	return player_name if not player_name.is_empty() else fallback
+	return MatchNames.player_name(role, fallback)

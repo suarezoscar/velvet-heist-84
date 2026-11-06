@@ -153,33 +153,22 @@ func interact(actor: Node3D) -> void:
 
 ## true mientras el ladrón juega su minijuego (también en el cliente, por la red)
 func is_playing() -> bool:
-	return game != null or int(_view.get("game", 0)) != 0
+	return TargetPieceGame.is_playing(self)
 
 
 ## Lo que enseña el panel del minijuego ({} sin minijuego)
 func minigame_view() -> Dictionary:
-	if game != null:
-		return game.to_view()
-	return _view if is_playing() else {}
+	return TargetPieceGame.view(self)
 
 
 ## E (un intento o volver a sujetar), soltar E (la balanza se pausa) o Esc (sale)
 func minigame_action(actor: Node3D, action: StringName) -> void:
-	if game == null or game.actor != actor:
-		return
-	match action:
-		&"interact":
-			game.press()
-		&"interact_release":
-			game.release()
-		&"dial_cancel":
-			game = null
+	TargetPieceGame.action(self, actor, action)
 
 
 ## Teclas de movimiento del ladrón durante el minijuego
 func steer(actor: Node3D, move: Vector2) -> void:
-	if game != null and game.actor == actor:
-		game.steer(move)
+	TargetPieceGame.steer(self, actor, move)
 
 
 ## Q: a lo bruto. Vale si no hay candado o es una vitrina (la caja fuerte no se rompe)
