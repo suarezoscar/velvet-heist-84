@@ -46,14 +46,6 @@ const KIND_COLORS: Dictionary = {
 	"crate": Color(0.55, 0.42, 0.26),
 	"pallet": Color(0.55, 0.42, 0.26),
 }
-## Suelos: dos tonos (ajedrezado) y tamaño de la baldosa (m); 0 = liso
-const FLOORS: Dictionary = {
-	"marble": [Color(0.84, 0.82, 0.78), Color(0.4, 0.38, 0.37), 1.0],
-	"linoleum": [Color(0.62, 0.6, 0.54), Color(0.3, 0.34, 0.32), 0.5],
-	"wood_parquet": [Color(0.5, 0.33, 0.19), Color(0.44, 0.28, 0.16), 0.25],
-	"carpet": [Color(0.42, 0.08, 0.11), Color(0.42, 0.08, 0.11), 0.0],
-	"asphalt": [Color(0.13, 0.13, 0.15), Color(0.13, 0.13, 0.15), 0.0],
-}
 
 
 static func build(data: LevelData, map: Node3D) -> Node3D:
@@ -75,11 +67,6 @@ static func build(data: LevelData, map: Node3D) -> Node3D:
 
 
 static func _dress_architecture(data: LevelData, arch: Node) -> void:
-	for room: Dictionary in data.section("rooms"):
-		var floor_body: Node = arch.get_node_or_null("Floor_%s" % room["id"])
-		if floor_body != null:
-			var finish: Array = FLOORS.get(String(room.get("surface", "marble")), FLOORS["marble"])
-			(floor_body.get_node("Mesh") as MeshInstance3D).material_override = _floor(finish)
 	for child: Node in arch.get_children():
 		var body: StaticBody3D = child as StaticBody3D
 		if body == null:
@@ -88,6 +75,7 @@ static func _dress_architecture(data: LevelData, arch: Node) -> void:
 			_add_moldings(body)
 		elif body.name.begins_with("Cover_"):
 			_dress_cover(body)
+	MuseumFinishBuilder.apply(data, arch)  # #177: acabados del kit
 
 
 static func _add_moldings(body: StaticBody3D) -> void:
@@ -96,8 +84,8 @@ static func _add_moldings(body: StaticBody3D) -> void:
 	var length: float = maxf(mesh.size.x, mesh.size.z)
 	var thick: float = minf(mesh.size.x, mesh.size.z)
 	for band: Array in [
-		[BASEBOARD, BASEBOARD_COLOR, 0.0, false],
-		[CORNICE, CORNICE_COLOR, mesh.size.y - CORNICE.x, true]
+		[BASEBOARD, BASEBOARD_COLOR, 0.0, false, MuseumFinishBuilder.Part.BASEBOARD],
+		[CORNICE, CORNICE_COLOR, mesh.size.y - CORNICE.x, true, MuseumFinishBuilder.Part.CORNICE]
 	]:
 		var size2: Vector2 = band[0]
 		var depth: float = thick + size2.y * 2.0
@@ -106,6 +94,7 @@ static func _add_moldings(body: StaticBody3D) -> void:
 		box.material = WallXRay.material(band[1]) if band[3] else _plain(band[1])
 		var strip: MeshInstance3D = MeshInstance3D.new()
 		strip.name = "Molding"
+		strip.set_meta(MuseumFinishBuilder.PART_META, band[4])
 		strip.mesh = box
 		strip.position = Vector3(0.0, float(band[2]) + size2.x * 0.5, 0.0)
 		body.add_child(strip)
@@ -217,27 +206,6 @@ static func _fitted(model: Node3D, size: Vector3, node_name: String) -> Node3D:
 	model.scale = Vector3.ONE * factor
 	model.position = Vector3(0.0, -bounds.position.y * factor, 0.0)
 	return model
-
-
-static func _floor(finish: Array) -> StandardMaterial3D:
-	var mat: StandardMaterial3D = StandardMaterial3D.new()
-	mat.roughness = 0.55
-	var tile: float = float(finish[2])
-	if tile <= 0.0:
-		mat.albedo_color = finish[0]
-		mat.roughness = 0.95
-		return mat
-	var image: Image = Image.create(2, 2, false, Image.FORMAT_RGB8)
-	image.set_pixel(0, 0, finish[0])
-	image.set_pixel(1, 1, finish[0])
-	image.set_pixel(1, 0, finish[1])
-	image.set_pixel(0, 1, finish[1])
-	mat.albedo_texture = ImageTexture.create_from_image(image)
-	mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-	mat.uv1_triplanar = true
-	mat.uv1_world_triplanar = true
-	mat.uv1_scale = Vector3.ONE / (tile * 2.0)
-	return mat
 
 
 static func _plain(color: Color) -> StandardMaterial3D:

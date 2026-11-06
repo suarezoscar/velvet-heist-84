@@ -35,6 +35,13 @@ static func material(color: Color, round: bool = false) -> ShaderMaterial:
 	return _materials[key]
 
 
+## Material de muro propio (kit del museo, #177): recibe el recorte y el contorno de caja
+static func register(mat: ShaderMaterial, key: String) -> ShaderMaterial:
+	mat.next_pass = _wall_outline(false)
+	_materials[key] = mat
+	return mat
+
+
 static func _wall_outline(round: bool) -> ShaderMaterial:
 	if _outline == null or not is_instance_valid(_outline):
 		_outline = _new_outline(true)  # muros y tabiques son cajas
