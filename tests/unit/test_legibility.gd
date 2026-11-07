@@ -64,11 +64,14 @@ func test_marker_arrow_points_where_the_actor_faces() -> void:
 
 
 func test_briefing_lines_use_match_numbers() -> void:
-	var thief: Array[String] = RoleBriefing84.objectives(true, 12000, 8)
-	assert_string_contains(thief[0], "12000")
-	assert_string_contains(thief[1], "8 minutos")
-	var guard: Array[String] = RoleBriefing84.objectives(false, 12000, 8)
-	assert_string_contains(guard[0], "8 minutos")
+	var thief: String = RoleBriefing84.headline(true, 0, 8, 12000)
+	assert_string_contains(thief, "12000")
+	assert_string_contains(thief, "8 minutos")
+	assert_string_contains(RoleBriefing84.headline(false, 0, 8, 12000), "8 minutos")
+	assert_string_contains(RoleBriefing84.headline(true, 3, 12), "las 3 piezas")
+	assert_string_contains(RoleBriefing84.headline(true, 3, 12), "12 minutos")
+	assert_gt(RoleBriefing84.tips(true).size(), 0, "Las reglas del ladrón van a la pausa")
+	assert_gt(RoleBriefing84.tips(false).size(), 0, "Y las de los guardias")
 
 
 func test_summary_verdict_per_side() -> void:
