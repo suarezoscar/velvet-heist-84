@@ -1,8 +1,8 @@
 ## @file level_dressing_builder.gd
 ## Decorado del nivel por datos (FEAT-034), sin reglas de juego: cuadros colgados («art», con
 ## cartela y cordón de terciopelo), modelos sueltos («decor»), muebles con su modelo según el
-## tipo de cobertura, molduras en los muros, suelos con su acabado y un foco sobre cada pieza
-## candidata. Nada de esto colisiona ni cuenta como luz para la percepción. Añade también el
+## tipo de cobertura, molduras en los muros y suelos con su acabado (#186: sin focos sobre las
+## piezas, que parecían luz de sigilo sin serlo). Nada de esto colisiona. Añade también el
 ## WallXRay que recorta las paredes delante del jugador local.
 class_name LevelDressingBuilder
 extends RefCounted
@@ -22,7 +22,6 @@ const CORNICE_LIFT: float = 0.02
 ## del muro (z-fighting) y en las esquinas queda dentro de la moldura del otro muro
 const MOLDING_RETURN_GAP: float = 0.01
 const CORNICE_COLOR: Color = Color(0.86, 0.82, 0.72)
-const SPOT_HEIGHT: float = 3.05
 ## Coberturas que se dibujan con un modelo (encajado en su caja) en vez de la caja gris
 const KIND_MODELS: Dictionary = {
 	"bench": "museum_bench",
@@ -65,8 +64,6 @@ static func build(data: LevelData, map: Node3D) -> Node3D:
 		_add_art(data, root, art)
 	for decor: Dictionary in data.section("decor"):
 		_add_decor(data, root, decor)
-	for target: Dictionary in data.section("targets"):
-		root.add_child(_spot(data.to_world(target["pos"], SPOT_HEIGHT), String(target["id"])))
 	var xray: WallXRay = WallXRay.new()
 	map.add_child(xray)
 	return root
@@ -187,19 +184,6 @@ static func _add_decor(data: LevelData, root: Node3D, decor: Dictionary) -> void
 	node.rotation.y = deg_to_rad(-float(decor.get("rot_deg", 0.0)))
 	node.scale = Vector3.ONE * float(decor.get("scale", 1.0))
 	root.add_child(node)
-
-
-static func _spot(pos: Vector3, target_id: String) -> SpotLight3D:
-	var spot: SpotLight3D = SpotLight3D.new()
-	spot.name = "Spot_%s" % target_id
-	spot.position = pos
-	spot.rotation_degrees = Vector3(-90.0, 0.0, 0.0)
-	spot.light_color = Color(1.0, 0.86, 0.66)
-	spot.light_energy = 3.0
-	spot.spot_range = 3.6
-	spot.spot_angle = 16.0
-	spot.shadow_enabled = false
-	return spot
 
 
 ## Modelo encajado en la caja size (escala uniforme), apoyado en su base
