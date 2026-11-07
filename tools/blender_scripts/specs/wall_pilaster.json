@@ -1,0 +1,22 @@
+{
+  "name": "wall_pilaster",
+  "feat": "#177",
+  "description": "Pilastra de mármol para esquinas y cruces de muros en las salas públicas.",
+  "dimensions": [
+    0.46,
+    0.46,
+    3.26
+  ],
+  "pivot": "bottom_center",
+  "max_triangles": 600,
+  "materials": [
+    "MarbleWhite"
+  ],
+  "collision": false,
+  "source": {
+    "origin": "procedural",
+    "url": "tools/blender_scripts/gen_museum_kit.py",
+    "license": "propia",
+    "author": "velvet-heist-84"
+  }
+}

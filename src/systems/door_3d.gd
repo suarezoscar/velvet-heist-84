@@ -12,7 +12,7 @@ const RULES: DoorRules = preload("res://data/balance/door_rules.tres")
 const HEIST_RULES: HeistRules = preload("res://data/balance/heist_rules.tres")
 const LEAF_HEIGHT: float = 2.3
 const LEAF_THICKNESS: float = 0.08
-const LEAF_COLOR: Color = Color(0.32, 0.2, 0.12)
+const LEAF_COLOR: Color = Color(0.3, 0.33, 0.38)  # acero del kit de servicio (#177)
 const GLASS_COLOR: Color = Color(0.85, 0.9, 0.92, 0.55)
 ## Distancia (m) al centro del hueco a la que alguien impide que se cierre
 const DOORWAY_CLEAR: float = 0.9
@@ -68,7 +68,8 @@ static func create(door_id: String, width: float) -> Door3D:
 	var lintel: MeshInstance3D = MeshInstance3D.new()
 	lintel.name = "Lintel"
 	var lintel_box: BoxMesh = BoxMesh.new()
-	lintel_box.size = Vector3(width, LINTEL_TOP - LEAF_HEIGHT, 0.3)
+	# entre los extremos del muro, que entran medio grueso en el hueco (sin caras superpuestas)
+	lintel_box.size = Vector3(width - 0.3, LINTEL_TOP - LEAF_HEIGHT, 0.3)
 	lintel_box.material = WallXRay.material(LevelArchitectureBuilder.WALL_COLOR)
 	lintel.mesh = lintel_box
 	lintel.position = Vector3(0.0, (LINTEL_TOP + LEAF_HEIGHT) * 0.5, 0.0)
