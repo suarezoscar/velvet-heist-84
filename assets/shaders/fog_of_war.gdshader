@@ -27,6 +27,37 @@ uniform float raised_brightness : hint_range(0.0, 1.0) = 0.8;
 uniform float raised_desaturation : hint_range(0.0, 1.0) = 0.3;
 uniform float raised_from = 0.08;
 uniform float raised_to = 0.2;
+/// #186 (prototipo): 0 actual (oscuro y gris), 1 oscuridad, 2 plano en azul tinta
+uniform int style = 0;
+uniform sampler2D normal_texture : hint_normal_roughness_texture, filter_nearest;
+uniform vec3 ink_floor_dark : source_color = vec3(0.02, 0.035, 0.09);
+uniform vec3 ink_floor_light : source_color = vec3(0.07, 0.13, 0.27);
+uniform vec3 ink_raised_dark : source_color = vec3(0.06, 0.1, 0.22);
+uniform vec3 ink_raised_light : source_color = vec3(0.2, 0.32, 0.58);
+uniform vec3 ink_line : source_color = vec3(0.55, 0.75, 1.0);
+uniform float ink_line_strength : hint_range(0.0, 1.0) = 0.5;
+
+/// Distancia a la cámara del píxel en uv (espacio de vista)
+float view_depth(vec2 uv, mat4 inv_proj) {
+	vec4 v = inv_proj * vec4(uv * 2.0 - 1.0, texture(depth_texture, uv).x, 1.0);
+	return -v.z / v.w;
+}
+
+/// Contorno del plano: saltos de profundidad y cambios de normal entre píxeles vecinos
+float plan_edge(vec2 uv, vec2 px, mat4 inv_proj) {
+	float c = view_depth(uv, inv_proj);
+	float l = view_depth(uv - vec2(px.x, 0.0), inv_proj);
+	float r = view_depth(uv + vec2(px.x, 0.0), inv_proj);
+	float u = view_depth(uv - vec2(0.0, px.y), inv_proj);
+	float d = view_depth(uv + vec2(0.0, px.y), inv_proj);
+	float lap = abs(l + r - 2.0 * c) + abs(u + d - 2.0 * c);
+	float depth_edge = smoothstep(0.04, 0.1, lap / max(c, 0.001) * 10.0);
+	vec3 nc = texture(normal_texture, uv).xyz * 2.0 - 1.0;
+	vec3 nr = texture(normal_texture, uv + vec2(px.x, 0.0)).xyz * 2.0 - 1.0;
+	vec3 nd = texture(normal_texture, uv + vec2(0.0, px.y)).xyz * 2.0 - 1.0;
+	float normal_edge = smoothstep(0.25, 0.5, max(1.0 - dot(nc, nr), 1.0 - dot(nc, nd)));
+	return max(depth_edge, normal_edge);
+}
 
 void vertex() {
 	POSITION = vec4(VERTEX.xy, 1.0, 1.0);
@@ -60,6 +91,19 @@ void fragment() {
 	float brightness = mix(fog_brightness, raised_brightness, raised);
 	float desaturation = mix(fog_desaturation, raised_desaturation, raised);
 	vec3 fogged = mix(color, vec3(gray), desaturation) * brightness;
+	if (style == 1) {
+		// oscuridad: noche cerrada azulada, las paredes algo más claras que el suelo
+		fogged = gray * vec3(0.45, 0.55, 1.0) * brightness;
+	} else if (style == 2) {
+		// plano: dos tintas (suelo y lo que se alza) según la luz, con el contorno en claro
+		float tone = smoothstep(0.0, 0.5, gray);
+		vec3 ink_floor = mix(ink_floor_dark, ink_floor_light, tone);
+		vec3 ink_raised = mix(ink_raised_dark, ink_raised_light, tone);
+		vec3 ink = mix(ink_floor, ink_raised, raised);
+		vec2 px = 1.0 / VIEWPORT_SIZE;
+		float edge = plan_edge(SCREEN_UV, px, INV_PROJECTION_MATRIX);
+		fogged = mix(ink, ink_line, edge * ink_line_strength);
+	}
 	ALBEDO = mix(fogged, color, visible);
 	ALPHA = 1.0;
 }
