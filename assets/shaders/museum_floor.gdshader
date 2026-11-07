@@ -17,6 +17,8 @@ uniform vec3 color_b : source_color = vec3(0.4);
 uniform vec3 color_c : source_color = vec3(1.0, 0.24, 0.65);
 uniform vec4 room_rect = vec4(0.0, 0.0, 1.0, 1.0);
 uniform float roughness : hint_range(0.0, 1.0) = 0.5;
+/// #189: fuerza del dibujo; 0 deja el suelo de un color (la media de sus dos tonos)
+uniform float pattern_strength : hint_range(0.0, 1.0) = 1.0;
 
 varying vec3 world_pos;
 
@@ -156,6 +158,6 @@ void fragment() {
 	} else {
 		color = asphalt(p, max(fw.x, fw.y));
 	}
-	ALBEDO = color;
+	ALBEDO = mix(mix(color_a, color_b, 0.5), color, pattern_strength);
 	ROUGHNESS = roughness;
 }

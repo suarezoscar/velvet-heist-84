@@ -37,6 +37,8 @@ uniform float line_strength : hint_range(0.0, 1.0) = 0.2;
 /// Sin contorno a menos de esta distancia (m) de los ojos: allí el tramado de rayos X del
 /// personaje deja huecos que se dibujarían como puntitos
 uniform float line_clear_near = 2.0;
+/// #189: contorno solo por encima de esta altura (m): con 2 m, solo muros y tabiques
+uniform float line_min_height = -100.0;
 
 /// Distancia a la cámara del píxel en uv (espacio de vista)
 float view_depth(vec2 uv, mat4 inv_proj) {
@@ -114,6 +116,7 @@ void fragment() {
 		vec3 ink = mix(ink_floor, ink_raised, raised);
 		float edge = soft_plan_edge(SCREEN_UV, 1.0 / VIEWPORT_SIZE, INV_PROJECTION_MATRIX);
 		edge *= smoothstep(line_clear_near, line_clear_near + 1.0, radial);
+		edge *= smoothstep(line_min_height - 0.2, line_min_height, world.y);
 		vec3 plan = mix(ink, ink_line, edge * line_strength);
 		ALBEDO = mix(plan, color, visible);
 		ALPHA = 1.0;
