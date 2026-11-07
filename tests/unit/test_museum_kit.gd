@@ -130,3 +130,21 @@ func test_kit_adds_no_collision_and_cuts_with_xray() -> void:
 		assert_true(mat is ShaderMaterial, "%s con material de muro" % inst.get_path())
 		var shader: Shader = (mat as ShaderMaterial).shader
 		assert_true(shader == WALL_SHADER or shader == WallXRay.SHADER, "%s se recorta" % inst.name)
+
+
+func test_moldings_wrap_wall_ends_without_shared_faces() -> void:
+	var arch: Node = LevelArchitectureBuilder.build(data, root)
+	LevelDressingBuilder._dress_architecture(data, arch)
+	var checked: int = 0
+	for body: Node in arch.get_children():
+		if not (body.name.begins_with("Wall_") or body.name.begins_with("Partition_")):
+			continue
+		var wall: Vector3 = ((body.get_node("Mesh") as MeshInstance3D).mesh as BoxMesh).size
+		var wall_len: float = maxf(wall.x, wall.z)
+		for child: Node in body.get_children():
+			if child.name.begins_with("Molding"):
+				var size: Vector3 = ((child as MeshInstance3D).mesh as BoxMesh).size
+				var extra: float = (maxf(size.x, size.z) - wall_len) * 0.5
+				assert_gt(extra, 0.005, "%s: la moldura sobresale del extremo" % body.name)
+				checked += 1
+	assert_gt(checked, 0)

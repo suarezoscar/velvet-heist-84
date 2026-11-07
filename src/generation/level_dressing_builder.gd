@@ -18,6 +18,9 @@ const CORNICE: Vector2 = Vector2(0.14, 0.06)
 const BASEBOARD_COLOR: Color = Color(0.2, 0.12, 0.08)
 ## La cornisa asoma por encima del muro: con la misma cara de arriba parpadean (z-fighting)
 const CORNICE_LIFT: float = 0.02
+## Las molduras rodean el extremo del muro (vuelo menos 1 cm): su cara final no coincide con la
+## del muro (z-fighting) y en las esquinas queda dentro de la moldura del otro muro
+const MOLDING_RETURN_GAP: float = 0.01
 const CORNICE_COLOR: Color = Color(0.86, 0.82, 0.72)
 const SPOT_HEIGHT: float = 3.05
 ## Coberturas que se dibujan con un modelo (encajado en su caja) en vez de la caja gris
@@ -98,8 +101,9 @@ static func _add_moldings(body: StaticBody3D) -> void:
 	]:
 		var size2: Vector2 = band[0]
 		var depth: float = thick + size2.y * 2.0
+		var long: float = length + (size2.y - MOLDING_RETURN_GAP) * 2.0
 		var box: BoxMesh = BoxMesh.new()
-		box.size = Vector3(length, size2.x, depth) if along_x else Vector3(depth, size2.x, length)
+		box.size = Vector3(long, size2.x, depth) if along_x else Vector3(depth, size2.x, long)
 		box.material = WallXRay.material(band[1]) if band[3] else _plain(band[1])
 		var strip: MeshInstance3D = MeshInstance3D.new()
 		strip.name = "Molding"
