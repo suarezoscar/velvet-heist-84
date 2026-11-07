@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1")
-ambient_energy = 0.3
+ambient_energy = 0.45
 sdfgi_energy = 0.3
 moon_energy = 0.385
 moon_color = Color(0.549, 0.651, 1, 1)
@@ -20,3 +20,6 @@ outline_architecture = false
 flat_textures = true
 ssao_intensity = 1.0
 beam_cone_alpha = 0.015
+occlusion_cutaway = true
+cutaway_height = 1.0
+cutaway_time = 0.25

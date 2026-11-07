@@ -22,6 +22,8 @@ static var _round_outline: ShaderMaterial = null
 
 ## #191: la arquitectura va sin trazo (lo pone NightLook.outline_architecture)
 static var outline_enabled: bool = true
+## #193: con paredes recortadas por sala (WallCutaway) no hay círculo
+static var circle_enabled: bool = true
 
 var map: HeistMap3D = null
 
@@ -77,6 +79,19 @@ static func apply_look(look: NightLook) -> void:
 			if not look.outline_architecture:
 				(mat as ShaderMaterial).next_pass = null
 	outline_enabled = look.outline_architecture
+	circle_enabled = not look.occlusion_cutaway
+
+
+## Materiales de muro vivos (más sus contornos), para WallCutaway
+static func materials() -> Array[ShaderMaterial]:
+	var out: Array[ShaderMaterial] = []
+	for mat: Variant in _materials.values():
+		if is_instance_valid(mat):
+			out.append(mat as ShaderMaterial)
+	for outline: ShaderMaterial in [_outline, _round_outline]:
+		if outline != null and is_instance_valid(outline):
+			out.append(outline)
+	return out
 
 
 func _ready() -> void:
@@ -98,7 +113,7 @@ func _process(_delta: float) -> void:
 	var height: float = (
 		CROUCH_CENTER_HEIGHT if player != null and player.is_crouching else CENTER_HEIGHT
 	)
-	_set_center(local.global_position + Vector3.UP * height, RADIUS)
+	_set_center(local.global_position + Vector3.UP * height, RADIUS if circle_enabled else 0.0)
 
 
 func _set_center(center: Vector3, radius: float) -> void:

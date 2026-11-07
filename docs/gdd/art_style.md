@@ -20,9 +20,9 @@ Toda pieza de arte nueva la cumple.
 ## Capas (#191)
 Pocas capas y cada una con un trabajo:
 - **Trazo** de 2 cm (antes 5), solo en lo jugable: personajes, botín, puertas, cajas fuertes, rejillas y cuadros de puertas. Va en los grupos de `CelConverter.GAMEPLAY_GROUPS`. La arquitectura y el decorado no llevan trazo; sus bordes los marca la luz.
-- **Efectos de pantalla**: solo glow (neones) y SSAO suave (intensidad 1). Sin SSR, sin SDFGI y sin niebla volumétrica; la luz ambiente sube a 0,3 para compensar.
+- **Efectos de pantalla**: solo glow (neones) y SSAO suave (intensidad 1). Sin SSR, sin SDFGI y sin niebla volumétrica; la luz ambiente sube a 0,45 para compensar (#193), con las lámparas un 30 % más fuertes y las claraboyas a 6.
 - **Modelos de color plano**: el cel-shading usa el color medio de cada textura, sin textura ni relieve (`flat_textures`). Los cuadros (`assets/textures/paintings/`) conservan su imagen.
-- **Rayos X** con corte limpio alrededor del personaje (antes, una trama de puntos).
+- **Paredes recortadas por sala** (#193, sustituye a los rayos X en círculo): las paredes y tabiques entre la cámara y la sala del jugador bajan a 1 m en 0,25 s, con la cara interior como tapa (`WallCutaway`, `NightLook.cutaway_*`). Los muebles y columnas solo se cortan en la franja de las paredes de delante. Si algo alto tapa al jugador local, se ve su silueta rosa (`silhouette.gdshader`).
 - **Luz de borde** de los personajes a 0,5 (antes 0,8).
 - **Haz de linterna**: un cono que suma un 1,5 % de luz (`FlashlightCone`, `beam_cone_alpha`), hijo de la luz. Sustituye a la niebla volumétrica y se ve también en la niebla de guerra (P2.1: el ladrón ve todos los haces).
 

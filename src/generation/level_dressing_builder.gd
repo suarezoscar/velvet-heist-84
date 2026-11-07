@@ -66,6 +66,8 @@ static func build(data: LevelData, map: Node3D) -> Node3D:
 		_add_decor(data, root, decor)
 	var xray: WallXRay = WallXRay.new()
 	map.add_child(xray)
+	var cutaway: WallCutaway = WallCutaway.new()  # #193
+	map.add_child(cutaway)
 	return root
 
 

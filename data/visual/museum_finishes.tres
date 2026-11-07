@@ -52,3 +52,4 @@ dado = Color(0.133, 0.102, 0.094, 1)
 wall_pattern_strength = 0.0
 floor_pattern_strength = 0.25
 skylights = Array[String](["VES", "GW", "GSW", "ANT", "PAT", "ORI"])
+skylight_energy = 6.0

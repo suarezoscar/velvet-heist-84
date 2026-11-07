@@ -9,4 +9,4 @@ lit_radius = 2.0
 has_switch = true
 unscrewable = true
 light_color = Color(1, 0.8, 0.5, 1)
-light_energy = 1.0
+light_energy = 1.3

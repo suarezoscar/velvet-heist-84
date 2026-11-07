@@ -1,4 +1,5 @@
 shader_type spatial;
+render_mode cull_disabled;  // #193: la cara interior hace de tapa del corte
 
 /**
  * museum_wall.gdshader
@@ -160,6 +161,10 @@ void fragment() {
 	}
 	ALBEDO = color;
 	ROUGHNESS = rough;
+	if (!FRONT_FACING) {  // #193: tapa del corte de las paredes recortadas
+		ALBEDO = part == 3 ? partition_cap : cap_color;
+		NORMAL = (VIEW_MATRIX * vec4(0.0, 1.0, 0.0, 0.0)).xyz;
+	}
 	if (xray_discard(VERTEX, VIEW_MATRIX, INV_VIEW_MATRIX, FRAGCOORD.xy, 0.0)) {
 		discard;
 	}

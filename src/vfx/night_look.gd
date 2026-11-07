@@ -64,5 +64,15 @@ extends Resource
 @export var ssao_intensity: float = 2.0
 ## Opacidad del cono de luz de la linterna de los guardias (0 lo quita)
 @export var beam_cone_alpha: float = 0.0
+
+@export_group("Paredes recortadas (#193)")
+## true: las paredes delante de la sala del jugador bajan (WallCutaway); false: círculo de WallXRay
+@export var occlusion_cutaway: bool = false
+## Altura (m) a la que se recortan
+@export var cutaway_height: float = 1.0
+## Segundos que tardan en bajar o subir al cambiar de sala
+@export var cutaway_time: float = 0.25
+## Silueta del jugador local cuando algo lo tapa
+@export var silhouette_color: Color = Color(1.0, 0.243, 0.647, 0.55)
 ## Rugosidad de los suelos (SSR refleja por debajo de ~0,6)
 @export var floor_roughness: float = 0.35
