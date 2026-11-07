@@ -25,16 +25,20 @@ func after_each() -> void:
 	GameManager.match_timer = _saved_timer
 
 
+## #186: la niebla es un plano en dos tintas (suelo y lo alzado), con el borde más ancho en lo
+## alzado para que no barra las paredes
 func test_fog_gets_both_grades_from_the_rules() -> void:
 	var fog: FogOfWar3D = FogOfWar3D.new()
 	add_child_autofree(fog)
 	var mat: ShaderMaterial = fog.material_override as ShaderMaterial
-	assert_eq(mat.get_shader_parameter("fog_brightness"), RULES.fog_brightness, "Suelo")
-	assert_eq(mat.get_shader_parameter("raised_brightness"), RULES.fog_raised_brightness)
-	assert_eq(mat.get_shader_parameter("raised_desaturation"), RULES.fog_raised_desaturation)
+	assert_eq(mat.get_shader_parameter("ink_floor_light"), RULES.fog_ink_floor_light, "Suelo")
+	assert_eq(mat.get_shader_parameter("ink_raised_light"), RULES.fog_ink_raised_light)
 	assert_eq(mat.get_shader_parameter("raised_from"), RULES.fog_raised_from)
 	assert_eq(mat.get_shader_parameter("raised_to"), RULES.fog_raised_to)
-	assert_gte(RULES.fog_raised_brightness, RULES.fog_brightness, "Lo alzado, nunca más oscuro")
+	assert_eq(mat.get_shader_parameter("raised_feather"), RULES.fog_raised_feather)
+	var floor_ink: float = RULES.fog_ink_floor_light.get_luminance()
+	assert_gt(RULES.fog_ink_raised_light.get_luminance(), floor_ink, "Lo alzado, más claro")
+	assert_gte(RULES.fog_raised_feather, RULES.fog_edge_feather, "Borde más ancho en lo alzado")
 	assert_lt(RULES.fog_raised_from, RULES.fog_raised_to)
 
 

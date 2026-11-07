@@ -4,3 +4,6 @@
 
 [resource]
 script = ExtResource("1")
+ambient_energy = 0.19
+sdfgi_energy = 0.3
+moon_energy = 0.385

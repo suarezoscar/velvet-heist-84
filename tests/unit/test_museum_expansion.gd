@@ -90,15 +90,12 @@ func test_paintings_have_images_and_credits() -> void:
 		assert_string_contains(credits, "`%s.jpg`" % slug, "Créditos de %s" % slug)
 
 
-func test_dressing_spots_and_xray() -> void:
+## #186: el decorado ya no pone focos sobre las piezas (parecían luz de sigilo sin serlo)
+func test_dressing_has_no_spots_and_adds_xray() -> void:
 	var map: HeistMap3D = _map()
 	await wait_physics_frames(2)
 	var dressing: Node = map.get_node("Dressing")
-	var spots: int = 0
-	for child: Node in dressing.get_children():
-		if child is SpotLight3D:
-			spots += 1
-	assert_eq(spots, 20, "Un foco por pieza candidata")
+	assert_eq(dressing.find_children("*", "Light3D", true, false).size(), 0, "Sin luces de adorno")
 	assert_not_null(map.get_node_or_null("WallXRay"))
 	await wait_process_frames(2)
 	var mat: ShaderMaterial = WallXRay.material(LevelArchitectureBuilder.WALL_COLOR)
