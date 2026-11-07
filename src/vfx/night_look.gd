@@ -52,5 +52,17 @@ extends Resource
 @export var thief_rim: Color = Color("ff3ea5")
 @export var guard_rim: Color = Color("2ef2ff")
 @export var rim_strength: float = 0.8
+
+@export_group("Capas (#191)")
+## Trazo solo en lo jugable (personajes, botín, puertas, cajas fuertes...): ver CelConverter
+@export var outline_only_gameplay: bool = false
+## Trazo en muros, tabiques, muebles y piezas del kit (materiales de WallXRay)
+@export var outline_architecture: bool = true
+## Modelos con el color medio de su textura, sin textura ni relieve (salvo los cuadros)
+@export var flat_textures: bool = false
+## Intensidad del sombreado ambiental (SSAO) del WorldEnvironment
+@export var ssao_intensity: float = 2.0
+## Opacidad del cono de luz de la linterna de los guardias (0 lo quita)
+@export var beam_cone_alpha: float = 0.0
 ## Rugosidad de los suelos (SSR refleja por debajo de ~0,6)
 @export var floor_roughness: float = 0.35

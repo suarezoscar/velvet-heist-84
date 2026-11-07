@@ -80,6 +80,7 @@ func _ready() -> void:
 		maglite_light.spot_range = perception.flashlight_range
 		maglite_light.spot_angle = perception.flashlight_half_angle_deg
 		maglite_light.position = Vector3(0.0, perception.flashlight_height, -0.4)
+		FlashlightCone.attach(maglite_light, NightEnvironmentSetup.LOOK.beam_cone_alpha)  # #191
 	apply_flashlight_state(is_ai_controlled)
 
 

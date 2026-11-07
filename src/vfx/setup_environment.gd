@@ -47,6 +47,7 @@ static func build_environment(look: NightLook, base: Environment = null) -> Envi
 	env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
 	env.ssr_enabled = look.ssr_enabled
 	env.ssr_max_steps = 48
+	env.ssao_intensity = look.ssao_intensity  # #191: suave
 	env.sdfgi_enabled = look.sdfgi_enabled
 	env.sdfgi_energy = look.sdfgi_energy
 	env.sdfgi_use_occlusion = true

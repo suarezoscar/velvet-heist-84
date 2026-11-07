@@ -1,8 +1,8 @@
 /**
  * wall_xray_cut.gdshaderinc
  * Recorte de WallXRay (FEAT-034, #109) compartido por wall_xray.gdshader y su contorno
- * (outline.gdshader): lo que queda entre la cámara y el jugador local se tramará con un
- * Bayer 4×4 dentro de una elipse con la silueta del personaje en pantalla. Qué está «entre» se
+ * (outline.gdshader): lo que queda entre la cámara y el jugador local se recorta con un corte
+ * limpio (#191; antes, tramado Bayer 4×4) dentro de una elipse con la silueta del personaje. Qué está «entre» se
  * decide en el plano del suelo, a lo largo de la dirección de la cámara y sin mirar la altura.
  * WallXRay pasa el centro cada frame; con xray_radius = 0 no se recorta nada.
  */
@@ -16,8 +16,8 @@ uniform float xray_half_height = 1.15;
 uniform float xray_core : hint_range(0.0, 1.0) = 0.55;
 /// Densidad máxima del recorte (1 = agujero completo)
 uniform float xray_strength : hint_range(0.0, 1.0) = 0.85;
-/// #191 (prototipo): false cambia la trama de puntos por un corte limpio
-uniform bool xray_dither = true;
+/// #191: corte limpio; true vuelve a la trama de puntos (Bayer 4×4) de antes
+uniform bool xray_dither = false;
 
 const float BAYER[16] = float[](0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 11.0, 1.0, 9.0, 15.0, 7.0, 13.0, 5.0);
 

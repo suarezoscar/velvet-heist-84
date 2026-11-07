@@ -20,6 +20,9 @@ static var _outline: ShaderMaterial = null
 ## El de lo redondo (columnas): sigue la normal en vez de inflarse hacia las esquinas
 static var _round_outline: ShaderMaterial = null
 
+## #191: la arquitectura va sin trazo (lo pone NightLook.outline_architecture)
+static var outline_enabled: bool = true
+
 var map: HeistMap3D = null
 
 
@@ -30,14 +33,14 @@ static func material(color: Color, round: bool = false) -> ShaderMaterial:
 		var mat: ShaderMaterial = ShaderMaterial.new()
 		mat.shader = SHADER
 		mat.set_shader_parameter(&"albedo", color)
-		mat.next_pass = _wall_outline(round)
+		mat.next_pass = _wall_outline(round) if outline_enabled else null
 		_materials[key] = mat
 	return _materials[key]
 
 
 ## Material de muro propio (kit del museo, #177): recibe el recorte y el contorno de caja
 static func register(mat: ShaderMaterial, key: String) -> ShaderMaterial:
-	mat.next_pass = _wall_outline(false)
+	mat.next_pass = _wall_outline(false) if outline_enabled else null
 	_materials[key] = mat
 	return mat
 
@@ -71,6 +74,9 @@ static func apply_look(look: NightLook) -> void:
 		if is_instance_valid(mat):
 			(mat as ShaderMaterial).set_shader_parameter(&"penumbra_tint", look.penumbra_tint)
 			(mat as ShaderMaterial).set_shader_parameter(&"band_softness", look.band_softness)
+			if not look.outline_architecture:
+				(mat as ShaderMaterial).next_pass = null
+	outline_enabled = look.outline_architecture
 
 
 func _ready() -> void:

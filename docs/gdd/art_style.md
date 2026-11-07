@@ -17,6 +17,15 @@ Toda pieza de arte nueva la cumple.
 - **Código de color de la luz**: **cálido = te ven** (lámparas, que cuentan para el sigilo); **frío = ambiente** (luna y claraboyas, que no delatan).
 - Si una pieza nueva llama la atención y no es del juego, se apaga.
 
+## Capas (#191)
+Pocas capas y cada una con un trabajo:
+- **Trazo** de 2 cm (antes 5), solo en lo jugable: personajes, botín, puertas, cajas fuertes, rejillas y cuadros de puertas. Va en los grupos de `CelConverter.GAMEPLAY_GROUPS`. La arquitectura y el decorado no llevan trazo; sus bordes los marca la luz.
+- **Efectos de pantalla**: solo glow (neones) y SSAO suave (intensidad 1). Sin SSR, sin SDFGI y sin niebla volumétrica; la luz ambiente sube a 0,3 para compensar.
+- **Modelos de color plano**: el cel-shading usa el color medio de cada textura, sin textura ni relieve (`flat_textures`). Los cuadros (`assets/textures/paintings/`) conservan su imagen.
+- **Rayos X** con corte limpio alrededor del personaje (antes, una trama de puntos).
+- **Luz de borde** de los personajes a 0,5 (antes 0,8).
+- **Haz de linterna**: un cono que suma un 1,5 % de luz (`FlashlightCone`, `beam_cone_alpha`), hijo de la luz. Sustituye a la niebla volumétrica y se ve también en la niebla de guerra (P2.1: el ladrón ve todos los haces).
+
 ## Paleta
 | Uso | Color |
 |---|---|
@@ -44,10 +53,10 @@ Los valores viven en `data/visual/night_look.tres` (`NightLook`).
   `no_cel` se quedan como están.
 - **Muros**: `wall_xray.gdshader` comparte la luz cel y el recorte de WallXRay.
 - **Contorno**: `outline.gdshader`, malla invertida como `next_pass`; las cajas se inflan hacia
-  sus esquinas (`box_mode`) para que no se abran. Los suelos no llevan contorno.
+  sus esquinas (`box_mode`) para que no se abran. Desde #191, solo en lo jugable (ver «Capas»).
 - **Entorno**: `NightEnvironmentSetup` (`src/vfx/setup_environment.gd`): cielo synthwave procedural
-  `night_sky.gdshader` sin texturas, SSR para suelos pulidos, SDFGI, glow suave y niebla volumétrica 0,015
-  para el haz de las linternas. Luna fría con sombras.
+  `night_sky.gdshader` sin texturas, glow suave y SSAO suave (desde #191, sin SSR, SDFGI ni
+  niebla volumétrica). Luna fría con sombras.
 
 ## Kit del museo (#177, fase 2)
 Las paredes siguen siendo las cajas de `LevelArchitectureBuilder`, así que la colisión, la vista, la navegación y los rayos X no cambian. Solo se pinta su superficie y se añaden piezas sueltas sin colisión.

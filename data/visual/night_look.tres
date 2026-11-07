@@ -4,9 +4,19 @@
 
 [resource]
 script = ExtResource("1")
-ambient_energy = 0.19
+ambient_energy = 0.3
 sdfgi_energy = 0.3
 moon_energy = 0.385
 moon_color = Color(0.549, 0.651, 1, 1)
 band_softness = 0.15
 shadow_blur = 3.0
+ssr_enabled = false
+sdfgi_enabled = false
+volumetric_fog_enabled = false
+outline_width = 0.02
+rim_strength = 0.5
+outline_only_gameplay = true
+outline_architecture = false
+flat_textures = true
+ssao_intensity = 1.0
+beam_cone_alpha = 0.015

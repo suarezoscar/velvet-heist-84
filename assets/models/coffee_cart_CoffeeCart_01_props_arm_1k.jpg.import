@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b31s1nyry75jd"
-path="res://.godot/imported/coffee_cart_CoffeeCart_01_props_arm_1k.jpg-953c20b1b78fd7ce25646dc46e39ce33.ctex"
+path.s3tc="res://.godot/imported/coffee_cart_CoffeeCart_01_props_arm_1k.jpg-953c20b1b78fd7ce25646dc46e39ce33.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "6d3ccfe104b2599c2e60a3a033c9bf71"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/coffee_cart_CoffeeCart_01_props_arm_1k.jpg"
-dest_files=["res://.godot/imported/coffee_cart_CoffeeCart_01_props_arm_1k.jpg-953c20b1b78fd7ce25646dc46e39ce33.ctex"]
+dest_files=["res://.godot/imported/coffee_cart_CoffeeCart_01_props_arm_1k.jpg-953c20b1b78fd7ce25646dc46e39ce33.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +41,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0
