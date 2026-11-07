@@ -52,57 +52,65 @@ int room_at(vec2 xz) {
 	return int(texelFetch(room_map, cell, 0).r * 255.0 + 0.5);
 }
 
-/// 1 sobre una línea de ancho w (en metros) que se repite cada period
-float grid_line(float x, float period, float w) {
+/// 0 → 1 al pasar x por edge, fundido en un píxel (fw = fwidth de x): sin dientes que bailen
+float over(float x, float edge, float fw) {
+	return clamp((x - edge) / max(fw, 1e-5) + 0.5, 0.0, 1.0);
+}
+
+/// Cobertura de una línea de ancho w (m) que se repite cada period, suavizada a un píxel;
+/// si la línea es más fina que el píxel se aclara en vez de aparecer y desaparecer
+float grid_line(float x, float period, float w, float fw) {
 	float f = abs(fract(x / period + 0.5) - 0.5) * period;
-	return 1.0 - step(w * 0.5, f);
+	float line = clamp((w * 0.5 - f) / max(fw, 1e-5) + 0.5, 0.0, 1.0);
+	return line * clamp(w / max(fw, 1e-5), 0.0, 1.0);
 }
 
-vec3 public_face(float u, float y, vec3 paint, vec3 dado) {
-	if (y < 0.16) {
-		return baseboard_color;
-	}
-	if (y < 0.98) {
-		// friso: paneles de 0,6 m con marco rehundido
-		float px = fract(u / 0.6) * 0.6;
-		bool inner = px > 0.07 && px < 0.53 && y > 0.26 && y < 0.88;
-		float groove = max(grid_line(u, 0.6, 0.025), 1.0 - step(0.2, y));
-		vec3 c = inner ? dado * 1.12 : dado;
-		return mix(c, dado * 0.55, groove);
-	}
-	if (y < 1.06) {
-		return rail_color;
-	}
+/// Onda cuadrada (0/1, la mitad de cada period) suavizada a un píxel
+float square_wave(float x, float period, float fw) {
+	float f = fract(x / period);
+	float d = min(abs(f - 0.5), min(f, 1.0 - f)) * period;
+	float s = clamp(d / max(fw, 1e-5), 0.0, 1.0);
+	float v = step(0.5, f);
+	return mix(0.5, v, s);
+}
+
+vec3 public_face(float u, float y, vec2 fw, vec3 paint, vec3 dado) {
+	// friso: paneles de 0,6 m con marco rehundido
+	float px = fract(u / 0.6) * 0.6;
+	float inner = over(px, 0.07, fw.x) * (1.0 - over(px, 0.53, fw.x));
+	inner *= over(y, 0.26, fw.y) * (1.0 - over(y, 0.88, fw.y));
+	float groove = max(grid_line(u, 0.6, 0.025, fw.x), 1.0 - over(y, 0.2, fw.y));
+	vec3 dado_c = mix(mix(dado, dado * 1.12, inner), dado * 0.55, groove);
 	// paño: papel pintado a rayas muy suaves
-	float stripe = step(0.5, fract(u / 0.3));
-	return paint * mix(0.94, 1.04, stripe);
+	vec3 paint_c = paint * mix(0.94, 1.04, square_wave(u, 0.3, fw.x));
+	vec3 c = mix(baseboard_color, dado_c, over(y, 0.16, fw.y));
+	c = mix(c, rail_color, over(y, 0.98, fw.y));
+	return mix(c, paint_c, over(y, 1.06, fw.y));
 }
 
-vec3 block_face(float u, float y, vec3 base, bool stripe) {
-	if (y < 0.12) {
-		return base * 0.45;
-	}
-	if (stripe && y > 1.0 && y < 1.14) {
-		float hazard = step(0.5, fract((u + y) / 0.28));
-		return mix(stripe_color, stripe_color * 0.25, hazard * step(1.03, y) * step(y, 1.11));
-	}
+vec3 block_face(float u, float y, vec2 fw, vec3 base, bool stripe) {
 	float row = floor(y / 0.4);
 	float shift = mod(row, 2.0) * 0.4;
-	float joint = max(grid_line(y, 0.4, 0.025), grid_line(u + shift, 0.8, 0.025));
-	return mix(base, base * 0.7, joint);
+	float joint = max(grid_line(y, 0.4, 0.025, fw.y), grid_line(u + shift, 0.8, 0.025, fw.x));
+	vec3 c = mix(base, base * 0.7, joint);
+	if (stripe) {
+		float hazard = square_wave(u + y, 0.28, fw.x + fw.y);
+		float inner = over(y, 1.03, fw.y) * (1.0 - over(y, 1.11, fw.y));
+		vec3 band = mix(stripe_color, stripe_color * 0.25, hazard * inner);
+		c = mix(c, band, over(y, 1.0, fw.y) * (1.0 - over(y, 1.14, fw.y)));
+	}
+	return mix(base * 0.45, c, over(y, 0.12, fw.y));
 }
 
-vec3 vault_face(float u, float y, vec3 tint) {
+vec3 vault_face(float u, float y, vec2 fw, vec3 tint) {
 	vec3 base = mix(vault_wall, tint, 0.15);
-	if (y < 0.14) {
-		return base * 0.4;
-	}
-	float seam = max(grid_line(u, 1.0, 0.05), grid_line(y - 0.14, 1.0, 0.05));
+	float seam = max(grid_line(u, 1.0, 0.05, fw.x), grid_line(y - 0.14, 1.0, 0.05, fw.y));
 	vec2 local = vec2(fract(u), fract(y - 0.14));
 	vec2 corner = min(local, 1.0 - local);
-	float rivet = 1.0 - step(0.045, length(corner - vec2(0.1)));
+	float rivet = 1.0 - over(length(corner - vec2(0.1)), 0.045, max(fw.x, fw.y));
 	vec3 c = mix(base, base * 0.35, seam);
-	return mix(c, base * 1.6, rivet);
+	c = mix(c, base * 1.6, rivet);
+	return mix(base * 0.4, c, over(y, 0.14, fw.y));
 }
 
 void fragment() {
@@ -115,33 +123,35 @@ void fragment() {
 	vec2 tangent = vec2(-n.z, n.x);
 	float u = dot(world_pos.xz, tangent);
 	float y = world_pos.y;
+	// derivadas fuera de las ramas (no son fiables dentro de un if por píxel)
+	vec2 fw = vec2(fwidth(u), fwidth(y));
 	vec3 color;
 	float rough = roughness;
 	if (n.y > 0.5) {
 		color = part == 3 ? partition_cap : cap_color;
 	} else if (family < 0.5) {
-		color = public_face(u, y, paint, dado);
+		color = public_face(u, y, fw, paint, dado);
 		if (part == 1) {
 			color = baseboard_color;
 		} else if (part == 2) {
 			color = cornice_color;
 		}
 	} else if (family < 1.5) {
-		color = block_face(u, y, service_wall, true);
+		color = block_face(u, y, fw, service_wall, true);
 		if (part == 2) {
 			color = service_wall * 0.85;
 		}
 	} else if (family < 2.5) {
-		color = vault_face(u, y, paint);
+		color = vault_face(u, y, fw, paint);
 		rough = 0.45;
 		if (part == 2) {
 			color = vault_wall * 0.7;
 		}
 	} else {
-		color = block_face(u, y, exterior_wall, false);
+		color = block_face(u, y, fw, exterior_wall, false);
 	}
-	if (part == 3 && y > 2.3 && n.y <= 0.5) {
-		color = partition_cap;
+	if (part == 3 && n.y <= 0.5) {
+		color = mix(color, partition_cap, over(y, 2.3, fw.y));
 	}
 	ALBEDO = color;
 	ROUGHNESS = rough;
