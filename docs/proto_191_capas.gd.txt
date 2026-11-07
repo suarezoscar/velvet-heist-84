@@ -1,0 +1,144 @@
+extends GutTest
+
+const MAP_SCENE: PackedScene = preload("res://scenes/maps/museum_v2.tscn")
+const OUT: String = "user://p191_%s_%s_%02d.png"
+const SPOTS: Dictionary = {"vestibulo": [24.0, 31.0], "retratos": [8.0, 21.0], "servicio": [33.0, 22.0]}
+const KEEP_GROUPS: Array[StringName] = [&"thief", &"guards", &"net_state", &"heist_targets", &"gate_boxes", &"vents"]
+const WALK: int = 24
+const STEP: float = 0.07
+
+
+func _grab(key: String, v: String, i: int) -> void:
+	await get_tree().process_frame
+	await RenderingServer.frame_post_draw
+	get_viewport().get_texture().get_image().save_png(OUT % [v, key, i])
+
+
+func _keeps_outline(node: Node) -> bool:
+	var n: Node = node
+	while n != null:
+		for g: StringName in KEEP_GROUPS:
+			if n.is_in_group(g):
+				return true
+		n = n.get_parent()
+	return false
+
+
+func _mats(inst: GeometryInstance3D) -> Array[Material]:
+	var out: Array[Material] = [inst.material_override]
+	if inst is MeshInstance3D:
+		var mi: MeshInstance3D = inst as MeshInstance3D
+		if mi.mesh != null:
+			for i: int in range(mi.mesh.get_surface_count()):
+				out.append(mi.get_surface_override_material(i))
+				out.append(mi.mesh.surface_get_material(i))
+			if mi.mesh is PrimitiveMesh:
+				out.append((mi.mesh as PrimitiveMesh).material)
+	return out
+
+
+func _trazo(map: Node) -> void:
+	CelConverter.outline_material().set_shader_parameter(&"outline_width", 0.02)
+	CelConverter.outline_material(null, true).set_shader_parameter(&"outline_width", 0.02)
+	var stripped: Dictionary = {}
+	var kept: Dictionary = {}
+	for node: Node in map.find_children("*", "GeometryInstance3D", true, false):
+		for m: Material in _mats(node as GeometryInstance3D):
+			if m == null or m.next_pass == null:
+				continue
+			if _keeps_outline(node):
+				kept[m] = true
+			else:
+				stripped[m] = true
+	for m: Material in stripped:
+		if not kept.has(m):
+			m.next_pass = null
+
+
+func _efectos(map: Node) -> void:
+	var env: Environment = (map.find_children("*", "WorldEnvironment", true, false)[0] as WorldEnvironment).environment
+	env.ssr_enabled = false
+	env.sdfgi_enabled = false
+	env.volumetric_fog_enabled = false
+	env.ssao_intensity = 1.0
+	env.ambient_light_energy = 0.3
+
+
+func _planos(map: Node) -> void:
+	var done: Dictionary = {}
+	for node: Node in map.find_children("*", "GeometryInstance3D", true, false):
+		for m: Material in _mats(node as GeometryInstance3D):
+			var sm: ShaderMaterial = m as ShaderMaterial
+			if sm == null or done.has(sm) or sm.shader == null:
+				continue
+			if not sm.shader.resource_path.ends_with("cel_toon.gdshader"):
+				continue
+			done[sm] = true
+			var tex: Texture2D = sm.get_shader_parameter(&"albedo_texture") as Texture2D
+			if tex == null or tex.resource_path.contains("paintings"):
+				continue
+			var img: Image = tex.get_image()
+			if img == null:
+				continue
+			if img.is_compressed():
+				img.decompress()
+			img.resize(1, 1, Image.INTERPOLATE_BILINEAR)
+			var avg: Color = img.get_pixel(0, 0)
+			var base: Color = sm.get_shader_parameter(&"albedo")
+			sm.set_shader_parameter(&"albedo", Color(base.r * avg.r, base.g * avg.g, base.b * avg.b, base.a))
+			sm.set_shader_parameter(&"albedo_texture", null)
+			sm.set_shader_parameter(&"use_normal_map", false)
+
+
+func _rayos(map: Node) -> void:
+	for node: Node in map.find_children("*", "GeometryInstance3D", true, false):
+		for m: Material in _mats(node as GeometryInstance3D):
+			var mat: Material = m
+			while mat != null:
+				if mat is ShaderMaterial:
+					(mat as ShaderMaterial).set_shader_parameter(&"xray_dither", false)
+				mat = mat.next_pass
+
+
+func _rim(map: Node) -> void:
+	for node: Node in map.find_children("*", "GeometryInstance3D", true, false):
+		for m: Material in _mats(node as GeometryInstance3D):
+			var sm: ShaderMaterial = m as ShaderMaterial
+			if sm != null and float(sm.get_shader_parameter(&"rim_strength") if sm.get_shader_parameter(&"rim_strength") != null else 0.0) > 0.0:
+				sm.set_shader_parameter(&"rim_strength", 0.5)
+
+
+func test_capas() -> void:
+	var v: String = OS.get_environment("P191")
+	var map: HeistMap3D = MAP_SCENE.instantiate() as HeistMap3D
+	get_tree().root.add_child(map)
+	await wait_physics_frames(5)
+	for guard: GuardController3D in map.guards:
+		guard.set_physics_process(false)
+	map.thief.set_physics_process(false)
+	if v in ["trazo", "todo"]:
+		_trazo(map)
+	if v in ["efectos", "todo"]:
+		_efectos(map)
+	if v in ["planos", "todo"]:
+		_planos(map)
+	if v in ["rayos", "todo"]:
+		_rayos(map)
+	if v == "todo":
+		_rim(map)
+	var data: LevelData = map.get_meta(&"level_data") as LevelData
+	var offset: Vector3 = Vector3(data.offset.x, 0.0, data.offset.y)
+	for key: String in SPOTS:
+		var spot: Array = SPOTS[key]
+		var start: Vector3 = offset + Vector3(spot[0], 0.2, spot[1])
+		map.thief.global_position = start
+		map.camera.global_position = start + HeistMap3D.CAMERA_OFFSET
+		for node: Node in get_tree().root.find_children("*", "CanvasLayer", true, false):
+			(node as CanvasLayer).visible = false
+		await wait_seconds(2.5)
+		for i: int in range(WALK):
+			map.thief.global_position = start + Vector3(STEP, 0.0, -STEP) * float(i)
+			await _grab(key, v, i)
+	map.queue_free()
+	await wait_physics_frames(2)
+	assert_true(true)

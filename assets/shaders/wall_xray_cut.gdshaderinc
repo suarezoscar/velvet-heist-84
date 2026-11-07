@@ -16,6 +16,8 @@ uniform float xray_half_height = 1.15;
 uniform float xray_core : hint_range(0.0, 1.0) = 0.55;
 /// Densidad máxima del recorte (1 = agujero completo)
 uniform float xray_strength : hint_range(0.0, 1.0) = 0.85;
+/// #191 (prototipo): false cambia la trama de puntos por un corte limpio
+uniform bool xray_dither = true;
 
 const float BAYER[16] = float[](0.0, 8.0, 2.0, 10.0, 12.0, 4.0, 14.0, 6.0, 3.0, 11.0, 1.0, 9.0, 15.0, 7.0, 13.0, 5.0);
 
@@ -37,6 +39,9 @@ bool xray_discard(
 	}
 	vec2 off = (vertex_view.xy - center.xy) / vec2(xray_half_width, xray_half_height);
 	float cut = (1.0 - smoothstep(xray_core, 1.0, length(off))) * xray_strength;
+	if (!xray_dither) {
+		return cut > 0.5;
+	}
 	ivec2 cell = ivec2(frag_coord) % 4;
 	return (BAYER[cell.y * 4 + cell.x] + 0.5) / 16.0 < cut;
 }
