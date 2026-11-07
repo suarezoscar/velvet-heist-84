@@ -2,6 +2,7 @@
 
 - **Estado**: aprobado por el usuario el 2026-10-24, con las 5 recomendaciones de «Decisiones». Nota del 2026-10-30 (#112): el personaje mira hacia donde anda; el ratón solo cuenta al apuntar la moneda o barrer con la linterna (que solo se enciende mientras se mantiene el clic derecho). La zona visible sigue siendo de 360°.
   - **#163, aprobado por el usuario el 2026-11-05**: niebla en dos grados, uno para el suelo y otro, más suave, para lo que se alza del suelo (R1, R2, R5, «Números», «Invariantes», «Qué medir» y «Decisiones de #163»). Las reglas de antes se citan junto a cada cambio. El usuario aceptó también que la pieza robada, la falsificación, la vitrina y la caja fuerte abiertas se dibujen como se vieron la última vez (en el mismo PR), que la puerta de la garita no tenga memoria y que los compañeros guardias en la niebla no lleven silueta propia de momento.
+  - **#189, aprobado por el usuario el 2026-11-07**: niebla mínima. Las tintas se oscurecen y se juntan (casi negro azulado) y el contorno solo se dibuja en muros y tabiques (`fog_line_min_height`). Cambian «Números» y se añaden las «Decisiones de #189». La #186 queda sin integrar por separado: su plano es la base de esta.
   - **#186, aprobado por el usuario el 2026-11-07**: la niebla se dibuja como un plano de 1984 en dos tintas azules con el contorno en claro, en lugar de oscura y gris. El borde es corto en el suelo y más ancho en lo alzado. Cambian R1, R2, los casos límite de #163, «Números», la fórmula, «Invariantes», «Qué medir» y se añaden las «Decisiones de #186». Lo acompaña la luz noir (`night_look.tres`) y quitar los focos sobre las piezas, que parecían luz de sigilo sin serlo (`stealth.md` no cambia).
 - **Origen**: petición del usuario del 2026-10-24, tras jugar: «Como ladrón veo dónde están los guardias por la vista cenital de la cámara. Quiero una especie de field of view: fuera del campo de visión, una niebla de guerra que impida ver la posición de guardias o ciertos objetos dentro de las salas.»
 - **Relacionado**:
@@ -108,9 +109,10 @@ El servidor decide; cada cliente solo recibe lo que su jugador ve.
 | Radio de visión del ladrón | `thief_view_radius` | sensación | 12-25 m | 18. Cubre una galería entera y lo que asoma por su puerta. Mayor que el de los guardias (pilar 3, visión amplia) |
 | Radio de visión del guardia | `guard_view_radius` | sensación | 9-15 m | 12. Igual que `lit_sight_range`: el guardia ve el entorno hasta donde podría ver al ladrón iluminado |
 | Vista a oscuras del ladrón | `dark_sight_radius` | ritmo | 3-9 m | 6. Un guardia quieto a oscuras se descubre a dos pasos de una puerta; más lejos solo se le oye (pasos ×1,5) |
-| Tinta del suelo en la niebla | `fog_ink_floor_dark`, `fog_ink_floor_light` | sensación | azul tinta; la clara, nunca más clara que la de lo alzado | (0,02, 0,035, 0,09) en sombra y (0,07, 0,13, 0,27) con luz (#186). Casi negro azulado: el suelo en niebla dice «no lo ves» |
-| Tinta de lo alzado en la niebla | `fog_ink_raised_dark`, `fog_ink_raised_light` | sensación | azul tinta, más clara que la del suelo | (0,06, 0,1, 0,22) y (0,2, 0,32, 0,58) (#186). Las paredes se leen como plano sin parecer «a la vista». Sustituye al brillo 0,8 y la desaturación 0,3 de #163 |
-| Contorno del plano | `fog_ink_line`, `fog_line_strength` | sensación | fuerza 0-0,5 | azul claro (0,55, 0,75, 1,0) con fuerza 0,2 (#186). Con 0,4 (prototipo) las líneas, de un píxel, «reptaban» al mover la cámara; con 0 las paredes se funden con el suelo y el plano no se lee |
+| Tinta del suelo en la niebla | `fog_ink_floor_dark`, `fog_ink_floor_light` | sensación | azul tinta; la clara, nunca más clara que la de lo alzado | (0,01, 0,015, 0,035) en sombra y (0,03, 0,045, 0,09) con luz (#189; en #186, 0,02/0,035/0,09 y 0,07/0,13/0,27). Casi negro: la niebla es lo más tranquilo de la pantalla |
+| Tinta de lo alzado en la niebla | `fog_ink_raised_dark`, `fog_ink_raised_light` | sensación | azul tinta, más clara que la del suelo | (0,035, 0,05, 0,1) y (0,07, 0,1, 0,18) (#189; en #186, más claras). Las paredes se distinguen del suelo sin competir con la zona que ves |
+| Contorno del plano | `fog_ink_line`, `fog_line_strength` | sensación | fuerza 0-0,5 | azul tenue (0,45, 0,58, 0,85) con fuerza 0,35 (#189). Con solo los muros hay muchas menos líneas y puede ser más fuerte que en #186 (0,2) |
+| Altura mínima del contorno | `fog_line_min_height` | sensación | 1,5-3 m | 2 (#189). Solo muros y tabiques: los muebles y objetos en niebla no llevan línea |
 | Sin contorno junto al jugador | `fog_line_clear_near` | técnico | 1-3 m | 2 (#186). El tramado de rayos X del personaje deja huecos que el contorno dibujaría como puntitos |
 | Altura donde empieza lo alzado | `fog_raised_from` | sensación | 0,02-0,15 m | 0,08 (#163). Por encima de lo pegado al suelo (alfombras, monedas, el grosor de las baldosas) y por debajo del zócalo (0,16 m) |
 | Altura donde lo alzado es completo | `fog_raised_to` | sensación | 0,15-0,5 m, mayor que `fog_raised_from` | 0,2 (#163). Justo sobre el zócalo, para que el pie de cada muro haga de sombra de contacto y no de franja; un banco (0,45 m) ya es alzado entero |
@@ -208,6 +210,9 @@ Implementado en FEAT-020 (2026-10-28). Simplificación del PoC: la vista ladrón
 3. **► ¿Las luces siguen atravesando la niebla (D5)?** Recomendación: **sí**. **Usuario: sí.**
 4. **► ¿Borde corto (0,4 m), sin línea de neón?** Recomendación: **sí**, y más ancho en lo alzado. **Usuario: sí.**
 5. **► ¿Iluminación noir: menos luz ambiente y solo da luz lo que cuenta para el sigilo?** Recomendación: **sí**. Se quitan los focos sobre las piezas y los monitores de la garita quedan muy tenues. **Usuario: sí.**
+
+## Decisiones de #189 (aprobadas por el usuario el 2026-11-07)
+1. **► ¿Niebla mínima: casi negra, con contorno solo en muros y tabiques?** Recomendación: **sí**, la niebla pasa a ser lo más tranquilo de la pantalla. **Usuario: sí**, elegida (dirección A) sobre el prototipo frente a «lo actual calmado» y «holograma táctico».
 
 ## Autorrevisión
 - **Completitud**: las siete secciones tienen contenido.

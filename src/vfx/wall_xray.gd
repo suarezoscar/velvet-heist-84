@@ -70,6 +70,7 @@ static func apply_look(look: NightLook) -> void:
 	for mat: Variant in _materials.values():
 		if is_instance_valid(mat):
 			(mat as ShaderMaterial).set_shader_parameter(&"penumbra_tint", look.penumbra_tint)
+			(mat as ShaderMaterial).set_shader_parameter(&"band_softness", look.band_softness)
 
 
 func _ready() -> void:

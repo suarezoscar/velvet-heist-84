@@ -22,6 +22,8 @@ static func apply(map: HeistMap3D, look: NightLook = LOOK) -> void:
 	if moon != null:
 		moon.light_color = look.moon_color
 		moon.light_energy = look.moon_energy
+	for light: Node in map.find_children("*", "Light3D", true, false):
+		(light as Light3D).shadow_blur = look.shadow_blur  # #189: sombras suaves
 	CelConverter.outline_material(look)
 	WallXRay.apply_look(look)
 	var converter: CelConverter = CelConverter.new()

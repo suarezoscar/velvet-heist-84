@@ -69,6 +69,7 @@ func _apply_plan_inks() -> void:
 	_material.set_shader_parameter("ink_line", RULES.fog_ink_line)
 	_material.set_shader_parameter("line_strength", RULES.fog_line_strength)
 	_material.set_shader_parameter("line_clear_near", RULES.fog_line_clear_near)
+	_material.set_shader_parameter("line_min_height", RULES.fog_line_min_height)
 
 
 func _process(delta: float) -> void:

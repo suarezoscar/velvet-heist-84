@@ -155,6 +155,7 @@ func _cel_for(source: BaseMaterial3D, rim: Color, box: bool = false) -> ShaderMa
 			cel.set_shader_parameter(&"emission_texture", source.emission_texture)
 	if look != null:
 		cel.set_shader_parameter(&"penumbra_tint", look.penumbra_tint)
+		cel.set_shader_parameter(&"band_softness", look.band_softness)
 	if rim.a > 0.0:
 		cel.set_shader_parameter(&"rim_color", rim)
 		cel.set_shader_parameter(&"rim_strength", look.rim_strength if look != null else 0.8)

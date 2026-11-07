@@ -22,7 +22,11 @@ uniform float specular_size : hint_range(1.0, 256.0) = 48.0;
 void light() {
 	float lit = clamp(dot(NORMAL, LIGHT), 0.0, 1.0) * ATTENUATION;
 	float full = smoothstep(band_light - band_softness, band_light + band_softness, lit);
-	float half_band = smoothstep(band_shadow - band_softness, band_shadow + band_softness, lit);
+	// El paso empieza por encima de 0: donde la luz no llega (lit = 0) no suma nada. Si empezara
+	// por debajo, cada luz teñiría las baldosas de pantalla que tiene asignadas y se verían
+	// cuadros de unos 32 px (#189, con band_softness 0,15)
+	float low = max(band_shadow - band_softness, 0.001);
+	float half_band = smoothstep(low, band_shadow + band_softness, lit);
 	vec3 band = mix(penumbra_tint * half_band, vec3(1.0), full);
 	DIFFUSE_LIGHT += LIGHT_COLOR / PI * band;
 	if (specular_strength > 0.0) {

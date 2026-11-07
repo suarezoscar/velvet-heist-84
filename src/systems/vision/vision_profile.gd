@@ -27,14 +27,17 @@ extends Resource
 @export var fog_raised_feather: float = 1.5
 
 ## Plano en la niebla (#186): tintas de la sombra a la luz del suelo y de lo alzado, y contorno
-@export var fog_ink_floor_dark: Color = Color(0.02, 0.035, 0.09)
-@export var fog_ink_floor_light: Color = Color(0.07, 0.13, 0.27)
-@export var fog_ink_raised_dark: Color = Color(0.06, 0.1, 0.22)
-@export var fog_ink_raised_light: Color = Color(0.2, 0.32, 0.58)
-@export var fog_ink_line: Color = Color(0.55, 0.75, 1.0)
+@export var fog_ink_floor_dark: Color = Color(0.01, 0.015, 0.035)
+@export var fog_ink_floor_light: Color = Color(0.03, 0.045, 0.09)
+@export var fog_ink_raised_dark: Color = Color(0.035, 0.05, 0.1)
+@export var fog_ink_raised_light: Color = Color(0.07, 0.1, 0.18)
+@export var fog_ink_line: Color = Color(0.45, 0.58, 0.85)
 
 ## Fuerza del contorno del plano (0 lo quita)
-@export var fog_line_strength: float = 0.2
+@export var fog_line_strength: float = 0.35
+
+## Contorno solo por encima de esta altura (m): con 2, solo muros y tabiques (#189)
+@export var fog_line_min_height: float = 2.0
 
 ## Sin contorno a menos de esta distancia (m) del jugador: el tramado de rayos X dejaría puntos
 @export var fog_line_clear_near: float = 2.0

@@ -1,6 +1,6 @@
 # Estilo artístico
 
-Estado: en curso (bloque 6, fase 1 #181). Sustituye al estilo plano previsto en #148.
+Estado: en curso (bloque 6, fase 1 #181). Sustituye al estilo plano previsto en #148. Desde #189 (aprobado por el usuario el 2026-11-07), **minimalismo noir**: escenario tranquilo, niebla mínima y luz suave.
 
 ## Dirección
 Cel-shading de cómic ochentero sobre una noche neo-noir de 1984: luz en tres bandas, contorno
@@ -8,6 +8,14 @@ negro y una paleta nocturna con neones. El tono sigue siendo neo-noir, no carica
 (`pillars.md`, pilar 1): el cartoon está en el trazo, no en las proporciones ni en el humor.
 Manda la legibilidad del sigilo: la niebla de guerra va encima de todo y lo que se ve o no se
 ve tiene que leerse a la primera.
+
+## Regla de jerarquía (#189)
+Toda pieza de arte nueva la cumple.
+- **El escenario vive en una franja estrecha**: colores apagados, poca saturación y poco contraste entre tonos vecinos. Paredes y suelos son casi lisos; la forma la dan las piezas 3D (marcos, cornisas, pilastras), no los dibujos.
+- **Solo sale de esa franja lo que es del juego**: personajes (neón rosa y cian), botín, lo que se puede usar, luces que delatan (ámbar cálido) y alarmas (rojo).
+- **La niebla es lo más tranquilo de la pantalla**: casi negra, con los muros como línea tenue y nada más.
+- **Código de color de la luz**: **cálido = te ven** (lámparas, que cuentan para el sigilo); **frío = ambiente** (luna y claraboyas, que no delatan).
+- Si una pieza nueva llama la atención y no es del juego, se apaga.
 
 ## Paleta
 | Uso | Color |
@@ -26,8 +34,10 @@ ve tiene que leerse a la primera.
 Los valores viven en `data/visual/night_look.tres` (`NightLook`).
 
 ## Cómo se aplica
-- **Luz**: `assets/shaders/cel_light.gdshaderinc`, tres bandas (luz, penumbra tintada, sombra).
-  La sombra es la luz ambiente plana azul noche del `WorldEnvironment`.
+- **Luz**: `assets/shaders/cel_light.gdshaderinc`, tres bandas (luz, penumbra tintada, sombra),
+  con un paso blando entre ellas (`band_softness` 0,15 desde #189). La sombra es la luz ambiente
+  plana azul noche del `WorldEnvironment`. Sombras suaves (`shadow_blur` 3) en todas las luces.
+  Luna fría por claraboyas en las salas grandes (#189).
 - **Materiales**: `cel_toon.gdshader` (color, textura, mapa de normales, emisión con máscara y
   luz de borde Fresnel). `CelConverter` lo pone en lugar de cada `StandardMaterial3D` del mapa
   al cargarlo; ningún `.glb` se reexporta. Lo transparente, lo que no recibe luz y el grupo
@@ -46,10 +56,12 @@ Las paredes siguen siendo las cajas de `LevelArchitectureBuilder`, así que la c
 
 | Familia | Salas | Acabado |
 |---|---|---|
-| Pública | galerías, vestíbulo, despacho, biblioteca | zócalo, friso de caoba en paneles, moldura de latón y paño de color propio de la sala, a rayas suaves |
-| Servicio | pasillos, taller, archivo, garita, vestuario, muelle | bloque gris cálido con juntas y franja ámbar de señalización |
-| Cámara | cámara, joyas | paneles de acero con juntas y remaches |
+| Pública | galerías, vestíbulo, despacho, biblioteca | zócalo, friso oscuro, moldura de latón y paño liso en uno de tres colores: azul noche, granate o verde botella |
+| Servicio | pasillos, taller, archivo, garita, vestuario, muelle | gris azulado liso |
+| Cámara | cámara, joyas | acero liso |
 | Exterior | callejón | bloque oscuro |
+
+Desde #189 los dibujos (rayas, paneles, juntas, franjas y remaches) siguen en el shader, pero `wall_pattern_strength` los deja en 0. Los suelos llevan su dibujo al 25 % (`floor_pattern_strength`), que basta para reconocer el material.
 
 **Suelos.** Los pinta `museum_floor.gdshader` según la superficie que da el JSON a cada sala:
 
@@ -66,6 +78,7 @@ Las paredes siguen siendo las cajas de `LevelArchitectureBuilder`, así que la c
 - Un dintel de muro sobre cada paso, a partir de 2,4 m.
 - Pilastras de mármol en las esquinas y cruces que solo tocan salas públicas.
 - El marco de la ventana de la garita.
+- Claraboyas (#189): un foco frío desde 9 m con una máscara rectangular de bordes suaves, en las salas de `skylights`. No son `Lamp3D` y no cuentan para el sigilo.
 
 Todas las piezas usan materiales de `WallXRay`: luz cel, contorno, y recorte delante del jugador local.
 

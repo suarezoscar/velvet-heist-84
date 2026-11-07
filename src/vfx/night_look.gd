@@ -45,6 +45,10 @@ extends Resource
 @export var outline_width: float = 0.05
 ## Penumbra relativa a la luz
 @export var penumbra_tint: Color = Color("7a70b8")
+## Paso entre las bandas del cel-shading (0 = corte duro). #189: más blando, menos escalones
+@export var band_softness: float = 0.02
+## Desenfoque de las sombras de todas las luces del mapa (#189: sombras suaves)
+@export var shadow_blur: float = 1.0
 @export var thief_rim: Color = Color("ff3ea5")
 @export var guard_rim: Color = Color("2ef2ff")
 @export var rim_strength: float = 0.8
