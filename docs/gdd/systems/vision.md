@@ -2,7 +2,7 @@
 
 - **Estado**: aprobado por el usuario el 2026-10-24, con las 5 recomendaciones de «Decisiones». Nota del 2026-10-30 (#112): el personaje mira hacia donde anda; el ratón solo cuenta al apuntar la moneda o barrer con la linterna (que solo se enciende mientras se mantiene el clic derecho). La zona visible sigue siendo de 360°.
   - **#163, aprobado por el usuario el 2026-11-05**: niebla en dos grados, uno para el suelo y otro, más suave, para lo que se alza del suelo (R1, R2, R5, «Números», «Invariantes», «Qué medir» y «Decisiones de #163»). Las reglas de antes se citan junto a cada cambio. El usuario aceptó también que la pieza robada, la falsificación, la vitrina y la caja fuerte abiertas se dibujen como se vieron la última vez (en el mismo PR), que la puerta de la garita no tenga memoria y que los compañeros guardias en la niebla no lleven silueta propia de momento.
-  - **#186, aprobado por el usuario el 2026-11-07**: la niebla se dibuja como un plano de 1984 en dos tintas azules con el contorno en claro, en lugar de oscura y gris. El borde es corto en el suelo y más ancho en lo alzado. Cambian R1, R2, «Números», la fórmula, «Invariantes», «Qué medir» y se añaden las «Decisiones de #186». Lo acompaña la luz noir (`night_look.tres`) y quitar los focos sobre las piezas, que parecían luz de sigilo sin serlo (`stealth.md` no cambia).
+  - **#186, aprobado por el usuario el 2026-11-07**: la niebla se dibuja como un plano de 1984 en dos tintas azules con el contorno en claro, en lugar de oscura y gris. El borde es corto en el suelo y más ancho en lo alzado. Cambian R1, R2, los casos límite de #163, «Números», la fórmula, «Invariantes», «Qué medir» y se añaden las «Decisiones de #186». Lo acompaña la luz noir (`night_look.tres`) y quitar los focos sobre las piezas, que parecían luz de sigilo sin serlo (`stealth.md` no cambia).
 - **Origen**: petición del usuario del 2026-10-24, tras jugar: «Como ladrón veo dónde están los guardias por la vista cenital de la cámara. Quiero una especie de field of view: fuera del campo de visión, una niebla de guerra que impida ver la posición de guardias o ciertos objetos dentro de las salas.»
 - **Relacionado**:
   - `stealth.md`: percepción de los guardias, P2.1 (el ladrón ve todos los haces), P2.2 luz, P2.4 ruido y chevrons, O2 última posición;
@@ -48,8 +48,8 @@ Las reglas de abajo describen la opción A.
 | Suelos (y lo que no pasa de `fog_raised_from`: alfombras, monedas caídas, sombras en el suelo) | Normal | Tinta oscura del plano (#186; antes, oscuros y grises) |
 | Muros, tabiques, muebles fijos, pedestales, cuadros colgados, puertas | Normal | Tinta clara del plano, con su contorno (#186; antes, oscurecido suave). Es el «recuerdo del plano» |
 | Personajes del otro bando | Según R3 | **Ocultos** (por la red y R3, no por el shader) |
-| Compañeros de bando (guardias entre sí) | Normal | Visibles (D2). Con #163, con el oscurecido suave: se leen mejor que antes |
-| Botín y caja fuerte (las banderolas de reloj se retiraron con #116, 2026-10-30) | Estado actual | **Último estado visto** (D4), con el oscurecido suave. Si te robaron el cuadro, lo descubres al volver a mirar |
+| Compañeros de bando (guardias entre sí) | Normal | Visibles (D2), en la tinta clara de lo alzado y con su contorno (#186; con #163, oscurecido suave) |
+| Botín y caja fuerte (las banderolas de reloj se retiraron con #116, 2026-10-30) | Estado actual | **Último estado visto** (D4), en la tinta clara del plano (#186). Si te robaron el cuadro, lo descubres al volver a mirar |
 | Pieza sobre su pedestal, vitrina o caja fuerte abierta | Estado actual | **Último estado visto** (D4, aclarado en #163): un pedestal que se vacía en la niebla se sigue dibujando con su pieza, y una pieza cambiada por su falsificación se sigue dibujando como la vieron, hasta que vuelven a mirar. Ver R5 |
 | Luz de las lámparas y pilotos rojos del CCTV | Normal | **Visibles**, porque la luz se ve de lejos (D5) |
 | Haces de linterna de los guardias | Normal | **El ladrón los ve siempre**, también tras muros (ya era la regla P2.1). Los guardias ven los de sus compañeros |
@@ -93,12 +93,12 @@ El servidor decide; cada cliente solo recibe lo que su jugador ve.
   - **Alfombras, suelos de moqueta y lo que va pegado al suelo** (monedas caídas, manchas, sombras): son suelo, porque no pasan de `fog_raised_from` (0,08 m). Llevan la niebla del suelo.
   - **Zócalos** (0,16 m de alto): caen en el paso gradual y quedan entre los dos grados. Hace de sombra de contacto al pie del muro y no se nota como franja. El pie de cada muro, de 0 a 0,08 m, lleva la niebla del suelo, con la misma lectura.
   - **Mesas, bancos, mostradores**: el tablero y los laterales son alzados; el suelo de debajo (y su sombra) es suelo. Lo que está encima de la mesa también es alzado.
-  - **Ladrón y guardias**: el shader los trataría como alzados, pero no decide si se ven. Un guardia en la niebla del ladrón no se dibuja (R3 y la red); el ladrón en la niebla de un guardia tampoco (percepción). Lo único que cambia: los compañeros guardias en la niebla (D2) se ven con el oscurecido suave, más claros que antes.
+  - **Ladrón y guardias**: el shader los trataría como alzados, pero no decide si se ven. Un guardia en la niebla del ladrón no se dibuja (R3 y la red); el ladrón en la niebla de un guardia tampoco (percepción). Lo único que cambia: los compañeros guardias en la niebla (D2) se ven en la tinta clara de lo alzado, con su contorno (#186).
   - **Pieza sobre su pedestal (botín)**: la pieza y el pedestal son alzados, así que en la niebla se ven casi como a la vista. Por eso **el estado de la pieza tiene que ser el último visto** (D4), no el real: si no, un guardia vería desde dos salas, a través de los muros bajos, cómo desaparece una pieza en el momento del robo. Esa fuga ya existe hoy con la niebla oscura (las piezas de los pedestales no están en la memoria de la niebla: solo el botín suelto lo está), y #163 la haría muy legible. Arreglarla es requisito de #163.
   - **Pedestal vacío como rastro**: con la memoria, un pedestal que se vació en la niebla se sigue dibujando con su pieza hasta que alguien vuelve a mirarlo; entonces la pieza desaparece y el rastro se descubre (heist R6). Un pedestal que ya estaba vacío la última vez que se vio se recuerda vacío: desde lejos se distingue, y eso es correcto, porque ya se vio.
-  - **Falsificación** (cambiazo, heist R9b): con la memoria, una pieza cambiada en la niebla se recuerda como el original hasta que se vuelve a ver. Con la desaturación suave, el fallo de color de una copia que ya se ha visto se distingue algo mejor desde lejos; examinarla sigue pidiendo ir hasta ella (E).
+  - **Falsificación** (cambiazo, heist R9b): con la memoria, una pieza cambiada en la niebla se recuerda como el original hasta que se vuelve a ver. Desde #186 la tinta del plano borra el color, así que desde la niebla una copia con el fallo de color no se distingue del original: hay que tenerla a la vista para notarlo, y examinarla sigue pidiendo ir hasta ella (E). Con #163 se distinguía algo desde lejos.
   - **Vitrina o caja fuerte abierta, hoja de una puerta**: lo mismo que el pedestal. La vitrina y la caja fuerte siguen el último estado visto. La hoja de la puerta de la garita no: se ve abrirse en la niebla, como hoy, porque al abrirse ya cruje (pilar 2) y se cierra sola.
-  - **Cuadros colgados y decorado**: alzados, con el oscurecido suave. No tienen estado de juego. Las piezas del encargo que son cuadros van sobre pedestal y siguen la regla de las piezas.
+  - **Cuadros colgados y decorado**: alzados, en la tinta clara del plano (#186). No tienen estado de juego. Las piezas del encargo que son cuadros van sobre pedestal y siguen la regla de las piezas.
   - **Luces** (D5): las paredes iluminadas de una sala lejana se leen mejor que antes, así que se nota más si una sala tiene la luz encendida o apagada. Es la regla D5 de siempre («apagar las luces» ya deja «la sala a oscuras en la niebla» en el contrajuego), solo más legible.
   - **Suelos que no estén a 0 m** (un escenario, un muelle elevado): se leerían como alzados. Ningún nivel actual los tiene; un nivel que los añada tendrá que dar la altura de su suelo.
 
@@ -119,7 +119,7 @@ El servidor decide; cada cliente solo recibe lo que su jugador ve.
 | Fundido del borde | `fog_fade_time` | sensación | 0-0,5 s | 0,3 (#161). Al moverse, el borde se funde hacia la zona nueva en vez de saltar; lo oculto en la niebla sigue ese mismo borde |
 | Rendijas de un rayo | `fog_drop_slivers` | sensación | sí/no | sí (#161). Una cuña de un solo rayo de ancho (un hueco lejano) no cuenta como visible |
 | Rayos del polígono | `fog_rays` | técnico | 8-256 | 256. Bordes limpios a 30 Hz: unos 0,6 ms por recálculo en `museum_v2`, y solo se recalcula si el jugador se mueve |
-| Luz que atraviesa la niebla | `fog_light_keep` | técnico | 0,7-1,5 | 0,9. Canal más brillante de un píxel a partir del cual no se oscurece: pilotos y bombillas se ven en la niebla (D5); el suelo iluminado, no |
+| Luz que atraviesa la niebla | `fog_light_keep` | técnico | 0,7-1,5 | 0,9. Canal más brillante de un píxel a partir del cual se ve tal cual, sin tinta: pilotos y bombillas se ven en la niebla (D5); el suelo iluminado, no |
 
 `eye_height` se reutiliza de `perception_guard.tres` (1,6 m), sin número nuevo.
 
@@ -220,6 +220,6 @@ Implementado en FEAT-020 (2026-10-28). Simplificación del PoC: la vista ladrón
   - `fog_line_strength` en 0 hace que las paredes en niebla se fundan con el suelo; el rango llega a 0, pero el valor útil empieza en 0,15.
 - **Ritmo**: sin esperas añadidas.
 - **Tono 1984**: correcto.
-- **Medible**: 6 invariantes y 4 eventos.
+- **Medible**: 8 invariantes y 9 eventos.
 - **Coherencia**: reutiliza P2.1, M4, M6 y `eye_height`, sin contradicciones. Al aprobarse hay que añadir `vision.md` a «Relacionado» de `stealth.md` e `interaction.md`.
 - **Veredicto: APROBABLE.** Las 5 decisiones de arriba son del usuario.

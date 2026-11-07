@@ -7,6 +7,8 @@ class_name CCTVMonitor3D
 extends Node3D
 
 const CRTShader = preload("res://assets/shaders/crt_security_feed.gdshader")
+## Resplandor de la pantalla en reposo: decorado muy tenue, no cuenta para el sigilo (#186)
+const GLOW_ENERGY: float = 0.25
 
 ## Cámara de vigilancia asignada a este monitor
 @export var linked_camera: Node3D = null
@@ -70,7 +72,7 @@ func _create_ambient_glow() -> void:
 	_glow_light = OmniLight3D.new()
 	_glow_light.name = "CRTGlowLight"
 	_glow_light.light_color = phosphor_color
-	_glow_light.light_energy = 0.25  # #186: decorado, muy tenue (no cuenta para el sigilo)
+	_glow_light.light_energy = GLOW_ENERGY
 	_glow_light.omni_range = 2.2
 	_glow_light.position = Vector3(0.0, 0.32, 0.50)
 	add_child(_glow_light)
@@ -102,4 +104,4 @@ func _on_camera_target_lost() -> void:
 		_screen_material.set_shader_parameter("is_alert_active", false)
 	if _glow_light:
 		_glow_light.light_color = phosphor_color
-		_glow_light.light_energy = 0.25  # #186: decorado, muy tenue (no cuenta para el sigilo)
+		_glow_light.light_energy = GLOW_ENERGY
