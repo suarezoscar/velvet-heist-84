@@ -65,6 +65,12 @@ extends Resource
 ## Opacidad del cono de luz de la linterna de los guardias (0 lo quita)
 @export var beam_cone_alpha: float = 0.0
 
+@export_group("Botín (#194)")
+## Brillo frío de las piezas: filo en el contorno (0 lo quita) y luz en toda la pieza
+@export var piece_glow_rim: float = 0.0
+@export var piece_glow_base: float = 0.0
+@export var piece_glow_color: Color = Color(0.8, 0.9, 1.0)
+
 @export_group("Paredes recortadas (#193)")
 ## true: las paredes delante de la sala del jugador bajan (WallCutaway); false: círculo de WallXRay
 @export var occlusion_cutaway: bool = false

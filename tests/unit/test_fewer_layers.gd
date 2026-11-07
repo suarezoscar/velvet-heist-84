@@ -76,3 +76,12 @@ func test_night_look_has_fewer_layers() -> void:
 	assert_true(LOOK.outline_only_gameplay)
 	assert_lte(LOOK.outline_width, 0.025, "Trazo fino")
 	assert_gt(LOOK.beam_cone_alpha, 0.0, "Sin niebla volumétrica, el haz lleva su cono")
+
+
+## #194: brillo frío de las piezas desde el NightLook (sin pantalla no se pone la capa)
+func test_piece_glow_material() -> void:
+	assert_gt(LOOK.piece_glow_rim, 0.0, "Brillo activo")
+	var glow: ShaderMaterial = TargetPieceLook.glow_material()
+	assert_eq(glow.get_shader_parameter(&"glow_rim"), LOOK.piece_glow_rim)
+	assert_eq(glow.get_shader_parameter(&"glow_base"), LOOK.piece_glow_base)
+	assert_eq(glow.shader, TargetPieceLook.GLOW_SHADER)

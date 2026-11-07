@@ -23,3 +23,5 @@ beam_cone_alpha = 0.015
 occlusion_cutaway = true
 cutaway_height = 1.0
 cutaway_time = 0.25
+piece_glow_rim = 0.5
+piece_glow_base = 0.06

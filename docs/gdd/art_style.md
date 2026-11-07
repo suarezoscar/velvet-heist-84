@@ -24,6 +24,7 @@ Pocas capas y cada una con un trabajo:
 - **Modelos de color plano**: el cel-shading usa el color medio de cada textura, sin textura ni relieve (`flat_textures`). Los cuadros (`assets/textures/paintings/`) conservan su imagen.
 - **Paredes recortadas por sala** (#193, sustituye a los rayos X en círculo): las paredes y tabiques entre la cámara y la sala del jugador bajan a 1 m en 0,25 s, con la cara interior como tapa (`WallCutaway`, `NightLook.cutaway_*`). Los muebles y columnas solo se cortan en la franja de las paredes de delante. Si algo alto tapa al jugador local, se ve su silueta rosa (`silhouette.gdshader`).
 - **Luz de borde** de los personajes a 0,5 (antes 0,8).
+- **Botín** (#194): brillo frío y suave en el modelo de cada pieza candidata (`piece_glow.gdshader` como `material_overlay`; `NightLook.piece_glow_*`). Sigue la memoria de la niebla porque va pegado al modelo. No hay focos sobre las piezas.
 - **Haz de linterna**: un cono que suma un 1,5 % de luz (`FlashlightCone`, `beam_cone_alpha`), hijo de la luz. Sustituye a la niebla volumétrica y se ve también en la niebla de guerra (P2.1: el ladrón ve todos los haces).
 
 ## Paleta

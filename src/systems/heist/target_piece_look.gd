@@ -8,6 +8,9 @@ extends RefCounted
 ## Fallos de una pieza de pega: ninguno, color, tamaño o pose
 enum Flaw { NONE, TINT, SIZE, POSE }
 
+## Brillo frío de las piezas (#194)
+const GLOW_SHADER: Shader = preload("res://assets/shaders/piece_glow.gdshader")
+
 const PEDESTAL_SIZE: Vector3 = Vector3(0.7, 1.0, 0.7)
 const MODEL_SIZE: float = 0.6
 const MARKER_HEIGHT: float = 2.3
@@ -15,6 +18,8 @@ const TINT: Color = Color(0.55, 0.85, 0.35, 0.45)
 const SMALL: float = 0.75
 const DISCOVERED_COLOR: Color = Color("ff4a3d")
 const AUTHENTIC_COLOR: Color = Color("4be38a")
+
+static var _glow: ShaderMaterial = null
 
 
 ## Construye el área, el pedestal (si va sobre uno), el modelo y la marca de la pieza
@@ -55,6 +60,7 @@ static func attach_model(
 	piece.add_child(piece.model)
 	if tint != Color.WHITE:
 		_tint(piece.model, tint)
+	_add_glow(piece.model)
 	_fit(piece.model, MODEL_SIZE * size)
 	piece.model.visible = piece.variant != &"safe"
 
@@ -69,6 +75,8 @@ static func apply_flaw(model: Node3D, flaw: Flaw) -> void:
 			overlay.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 			overlay.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 			overlay.albedo_color = TINT
+			if _draws():
+				overlay.next_pass = glow_material()  # el brillo de #194 sigue encima del tinte
 			for node: Node in model.find_children("*", "MeshInstance3D", true, false):
 				(node as MeshInstance3D).material_overlay = overlay
 		Flaw.SIZE:
@@ -149,3 +157,30 @@ static func _fit(model: Node3D, target_size: float = MODEL_SIZE) -> void:
 	var factor: float = target_size / biggest if biggest > 0.0 else 1.0
 	model.scale = Vector3.ONE * factor
 	model.position = Vector3(0.0, PEDESTAL_SIZE.y - bounds.position.y * factor, 0.0)
+
+
+## Brillo ligero de la pieza (#194): capa fría sobre el modelo, que sigue la memoria de la niebla
+static func glow_material() -> ShaderMaterial:
+	if _glow == null:
+		var look: NightLook = NightEnvironmentSetup.LOOK
+		_glow = ShaderMaterial.new()
+		_glow.shader = GLOW_SHADER
+		_glow.set_shader_parameter(&"glow_color", look.piece_glow_color)
+		_glow.set_shader_parameter(&"glow_base", look.piece_glow_base)
+		_glow.set_shader_parameter(&"glow_rim", look.piece_glow_rim)
+	return _glow
+
+
+static func _add_glow(model: Node3D) -> void:
+	if NightEnvironmentSetup.LOOK.piece_glow_rim <= 0.0 or not _draws():
+		return
+	var meshes: Array[Node] = model.find_children("*", "MeshInstance3D", true, false)
+	if model is MeshInstance3D:
+		meshes.append(model)
+	for node: Node in meshes:
+		(node as MeshInstance3D).material_overlay = glow_material()
+
+
+## Sin pantalla (tests, servidor) no se dibuja y el renderizador vacío rechaza las capas
+static func _draws() -> bool:
+	return DisplayServer.get_name() != "headless"
