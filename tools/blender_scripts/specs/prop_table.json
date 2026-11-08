@@ -1,0 +1,22 @@
+{
+  "name": "prop_table",
+  "feat": "#178",
+  "description": "Mesa de caoba (cobertura «table»).",
+  "dimensions": [
+    1.6,
+    0.9,
+    0.78
+  ],
+  "pivot": "bottom_center",
+  "max_triangles": 1500,
+  "materials": [
+    "MahoganyWood"
+  ],
+  "collision": false,
+  "source": {
+    "origin": "procedural",
+    "url": "tools/blender_scripts/gen_museum_props.py",
+    "license": "propia",
+    "author": "velvet-heist-84"
+  }
+}

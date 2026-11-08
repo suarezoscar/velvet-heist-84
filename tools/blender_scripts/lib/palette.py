@@ -65,6 +65,18 @@ PALETTE: Dict[str, Dict[str, Any]] = {
         "metallic": 0.0,
         "description": "Parqué de madera tratada para salas secundarias.",
     },
+    "ServicePaint": {
+        "hex": "#4C5563",
+        "roughness": 0.70,
+        "metallic": 0.10,
+        "description": "Pintura gris azulada de taquillas y mobiliario de servicio (#178).",
+    },
+    "ArchivePaper": {
+        "hex": "#B8AE96",
+        "roughness": 0.90,
+        "metallic": 0.0,
+        "description": "Cartón y papel de archivo para cajas y legajos (#178).",
+    },
     "MarbleWhite": {
         "hex": "#ECEBE4",
         "roughness": 0.25,

@@ -1,0 +1,23 @@
+{
+  "name": "prop_shelf",
+  "feat": "#178",
+  "description": "Estantería de archivo con baldas y cajas de cartón (cobertura «shelf»).",
+  "dimensions": [
+    2.0,
+    0.5,
+    2.2
+  ],
+  "pivot": "bottom_center",
+  "max_triangles": 1500,
+  "materials": [
+    "ParquetWood",
+    "ArchivePaper"
+  ],
+  "collision": false,
+  "source": {
+    "origin": "procedural",
+    "url": "tools/blender_scripts/gen_museum_props.py",
+    "license": "propia",
+    "author": "velvet-heist-84"
+  }
+}

@@ -22,6 +22,16 @@ const CORNICE_LIFT: float = 0.02
 ## del muro (z-fighting) y en las esquinas queda dentro de la moldura del otro muro
 const MOLDING_RETURN_GAP: float = 0.01
 const CORNICE_COLOR: Color = Color(0.86, 0.82, 0.72)
+## #178: muebles del kit (gen_museum_props.py), estirados a la caja de colisión exacta de cada
+## ejemplar, así que la cobertura no cambia
+const PROP_MODELS: Dictionary = {
+	"shelf": "prop_shelf",
+	"crate": "prop_crate",
+	"statue": "prop_statue",
+	"cabinet": "prop_cabinet",
+	"table": "prop_table",
+	"locker": "prop_locker",
+}
 ## Coberturas que se dibujan con un modelo (encajado en su caja) en vez de la caja gris
 const KIND_MODELS: Dictionary = {
 	"bench": "museum_bench",
@@ -118,6 +128,14 @@ static func _dress_cover(body: StaticBody3D) -> void:
 	if mesh_node == null:
 		return
 	var size: Vector3 = (mesh_node.mesh as BoxMesh).size
+	if PROP_MODELS.has(kind):
+		var prop: PackedScene = (
+			load("res://assets/models/%s.glb" % PROP_MODELS[kind]) as PackedScene
+		)
+		if prop != null:
+			mesh_node.visible = false
+			body.add_child(_stretched(prop.instantiate() as Node3D, size, "Model"))
+			return
 	if KIND_MODELS.has(kind):
 		var scene: PackedScene = (
 			load("res://assets/models/%s.glb" % KIND_MODELS[kind]) as PackedScene
@@ -205,6 +223,32 @@ static func _fitted(model: Node3D, size: Vector3, node_name: String) -> Node3D:
 	model.scale = Vector3.ONE * factor
 	model.position = Vector3(0.0, -bounds.position.y * factor, 0.0)
 	return model
+
+
+## Modelo estirado a la caja size en cada eje, apoyado en su base y centrado
+static func _stretched(model: Node3D, size: Vector3, node_name: String) -> Node3D:
+	model.name = node_name
+	var bounds: AABB = _bounds(model)
+	if bounds.size.x <= 0.0 or bounds.size.y <= 0.0 or bounds.size.z <= 0.0:
+		return model
+	var factor: Vector3 = size / bounds.size
+	model.scale = factor
+	var center: Vector3 = bounds.get_center()
+	model.position = Vector3(
+		-center.x * factor.x, -bounds.position.y * factor.y, -center.z * factor.z
+	)
+	return model
+
+
+static func _bounds(model: Node3D) -> AABB:
+	var bounds: AABB = AABB()
+	var first: bool = true
+	for node: Node in model.find_children("*", "MeshInstance3D", true, false):
+		var mesh_node: MeshInstance3D = node as MeshInstance3D
+		var local: AABB = mesh_node.transform * mesh_node.get_aabb()
+		bounds = local if first else bounds.merge(local)
+		first = false
+	return bounds
 
 
 static func _plain(color: Color) -> StandardMaterial3D:
