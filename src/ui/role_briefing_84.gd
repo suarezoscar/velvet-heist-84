@@ -6,19 +6,11 @@
 class_name RoleBriefing84
 extends CanvasLayer
 
-enum Style { MARQUEE, DOSSIER }
-
 const SHOW_TIME: float = 5.0
 const FADE_TIME: float = 0.5
 ## Entrada del rótulo: el título se enciende como un neón y las fichas llegan una a una
 const INTRO_TIME: float = 0.35
 const CARD_DELAY: float = 0.12
-const PAPER: Color = Color("d9cfb8")
-const PAPER_INK: Color = Color("1d1a17")
-const STAMP_RED: Color = Color("b3261e")
-
-## Estilo de la tarjeta (el expediente solo se usa para comparar en el prototipo de #187)
-static var style: Style = Style.MARQUEE
 
 var title_label: Label = null
 var headline_label: Label = null
@@ -43,10 +35,7 @@ func setup(map: HeistMap3D) -> void:
 	var guard_number: int = map.guards.find(actor as GuardController3D) + 1
 	var title: String = "ERES EL LADRÓN" if _is_thief else "ERES EL GUARDIA %d" % guard_number
 	var color: Color = TeamMarker3D.THIEF_COLOR if _is_thief else TeamMarker3D.GUARD_COLOR
-	if style == Style.DOSSIER:
-		_build_dossier(title)
-	else:
-		_build_marquee(title, color)
+	_build_marquee(title, color)
 	_refresh()
 	_intro()
 
@@ -162,8 +151,6 @@ func close() -> void:
 
 ## El título se enciende con un parpadeo de neón y el resto aparece detrás
 func _intro() -> void:
-	if style == Style.DOSSIER:
-		return
 	title_label.modulate.a = 0.0
 	headline_label.modulate.a = 0.0
 	var tween: Tween = create_tween()
@@ -179,35 +166,32 @@ func _fill_cards(cards: Array) -> void:
 	for card: Array in cards:
 		var node: Control = _card(String(card[0]), String(card[1]))
 		cards_box.add_child(node)
-		if style == Style.MARQUEE:
-			node.modulate.a = 0.0
-			var tween: Tween = create_tween()
-			tween.tween_interval(INTRO_TIME + CARD_DELAY * index)
-			tween.tween_property(node, "modulate:a", 1.0, 0.25)
+		node.modulate.a = 0.0
+		var tween: Tween = create_tween()
+		tween.tween_interval(INTRO_TIME + CARD_DELAY * index)
+		tween.tween_property(node, "modulate:a", 1.0, 0.25)
 		index += 1
 
 
 func _card(title: String, room: String) -> Control:
 	var panel: PanelContainer = PanelContainer.new()
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var dossier: bool = style == Style.DOSSIER
-	var accent: Color = PAPER_INK if dossier else MenuTheme84.NEON_PINK
-	var bg: Color = Color(PAPER_INK, 0.06) if dossier else Color(MenuTheme84.INK, 0.6)
-	var box_style: StyleBoxFlat = MenuTheme84.box(bg, Color(accent, 0.7), 1 if dossier else 2)
+	var box_style: StyleBoxFlat = MenuTheme84.box(
+		Color(MenuTheme84.INK, 0.6), Color(MenuTheme84.NEON_PINK, 0.7), 2
+	)
 	box_style.set_content_margin_all(14)
 	panel.add_theme_stylebox_override("panel", box_style)
 	var box: VBoxContainer = VBoxContainer.new()
 	box.add_theme_constant_override("separation", 2)
 	panel.add_child(box)
-	var font: Font = MenuTheme84.FONT_MONO if dossier else MenuTheme84.FONT_STRONG
-	var ink: Color = PAPER_INK if dossier else MenuTheme84.TEXT
-	var name_label: Label = MenuTheme84.label(title, font, 24, ink)
+	var name_label: Label = MenuTheme84.label(title, MenuTheme84.FONT_STRONG, 24, MenuTheme84.TEXT)
 	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	name_label.custom_minimum_size = Vector2(220.0 if room != "" else 640.0, 0.0)
 	box.add_child(name_label)
 	if room != "":
-		var dim: Color = Color(PAPER_INK, 0.6) if dossier else MenuTheme84.DIM
-		box.add_child(MenuTheme84.label(room.to_upper(), MenuTheme84.FONT_MONO, 16, dim))
+		box.add_child(
+			MenuTheme84.label(room.to_upper(), MenuTheme84.FONT_MONO, 16, MenuTheme84.DIM)
+		)
 	return panel
 
 
@@ -255,39 +239,3 @@ func _build_marquee(title: String, color: Color) -> void:
 	)
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(hint)
-
-
-## Expediente (solo para comparar en el prototipo): papel, máquina de escribir y sello
-func _build_dossier(title: String) -> void:
-	var center: CenterContainer = CenterContainer.new()
-	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(center)
-	var paper: PanelContainer = PanelContainer.new()
-	paper.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var paper_style: StyleBoxFlat = MenuTheme84.box(PAPER, Color(PAPER_INK, 0.4), 1)
-	paper_style.set_content_margin_all(30)
-	paper.add_theme_stylebox_override("panel", paper_style)
-	center.add_child(paper)
-	_panel = paper
-	var box: VBoxContainer = VBoxContainer.new()
-	box.add_theme_constant_override("separation", 12)
-	paper.add_child(box)
-	box.add_child(MenuTheme84.label("EXPEDIENTE Nº 84-0711", MenuTheme84.FONT_MONO, 18, PAPER_INK))
-	title_label = MenuTheme84.label(title, MenuTheme84.FONT_DISPLAY, 64, PAPER_INK)
-	box.add_child(title_label)
-	headline_label = MenuTheme84.label("", MenuTheme84.FONT_MONO, 22, PAPER_INK)
-	headline_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	headline_label.custom_minimum_size = Vector2(720.0, 0.0)
-	box.add_child(headline_label)
-	cards_box = HBoxContainer.new()
-	cards_box.add_theme_constant_override("separation", 12)
-	box.add_child(cards_box)
-	var overlay: Control = Control.new()  # el sello va encima, sin entrar en el reparto
-	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	paper.add_child(overlay)
-	var stamp: Label = MenuTheme84.label("CONFIDENCIAL", MenuTheme84.FONT_DISPLAY, 54, STAMP_RED)
-	stamp.rotation_degrees = -12.0
-	stamp.modulate.a = 0.75
-	stamp.position = Vector2(440.0, 14.0)
-	overlay.add_child(stamp)
