@@ -31,6 +31,22 @@ const PROP_MODELS: Dictionary = {
 	"cabinet": "prop_cabinet",
 	"table": "prop_table",
 	"locker": "prop_locker",
+	"armchair": "prop_armchair",
+	"boiler": "prop_boiler",
+	"chair": "prop_chair",
+	"container": "prop_container",
+	"counter": "prop_counter",
+	"desk": "prop_desk",
+	"easel": "prop_easel",
+	"forklift": "prop_forklift",
+	"fountain": "prop_fountain",
+	"generator": "prop_generator",
+	"jar_pedestal": "prop_jar_pedestal",
+	"key_cabinet": "prop_key_cabinet",
+	"pallet": "prop_pallet",
+	"sarcophagus": "prop_sarcophagus",
+	"trash_bin": "prop_trash_bin",
+	"wardrobe": "prop_wardrobe",
 }
 ## Coberturas que se dibujan con un modelo (encajado en su caja) en vez de la caja gris
 const KIND_MODELS: Dictionary = {

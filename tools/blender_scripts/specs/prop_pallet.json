@@ -1,0 +1,24 @@
+{
+  "name": "prop_pallet",
+  "feat": "#178",
+  "description": "Palé de parqué con pila de cajas de cartón y fleje negro (cobertura «pallet»).",
+  "dimensions": [
+    1.2,
+    0.8,
+    1.2
+  ],
+  "pivot": "bottom_center",
+  "max_triangles": 1500,
+  "materials": [
+    "ParquetWood",
+    "ArchivePaper",
+    "BakeliteBlack"
+  ],
+  "collision": false,
+  "source": {
+    "origin": "procedural",
+    "url": "tools/blender_scripts/gen_museum_props.py",
+    "license": "propia",
+    "author": "velvet-heist-84"
+  }
+}

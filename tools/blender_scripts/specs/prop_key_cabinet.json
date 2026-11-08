@@ -1,0 +1,24 @@
+{
+  "name": "prop_key_cabinet",
+  "feat": "#178",
+  "description": "Armario de llaves de la garita con placa y ganchos de latón (cobertura «key_cabinet»).",
+  "dimensions": [
+    0.8,
+    0.4,
+    1.8
+  ],
+  "pivot": "bottom_center",
+  "max_triangles": 1500,
+  "materials": [
+    "ServicePaint",
+    "BakeliteBlack",
+    "BrassGold"
+  ],
+  "collision": false,
+  "source": {
+    "origin": "procedural",
+    "url": "tools/blender_scripts/gen_museum_props.py",
+    "license": "propia",
+    "author": "velvet-heist-84"
+  }
+}

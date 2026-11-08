@@ -1,0 +1,24 @@
+{
+  "name": "prop_trash_bin",
+  "feat": "#178",
+  "description": "Contenedor de basura del callejón con tapa inclinada y ruedas (cobertura «trash_bin»).",
+  "dimensions": [
+    1.8,
+    1.0,
+    1.3
+  ],
+  "pivot": "bottom_center",
+  "max_triangles": 1500,
+  "materials": [
+    "ServicePaint",
+    "Steel80s",
+    "BakeliteBlack"
+  ],
+  "collision": false,
+  "source": {
+    "origin": "procedural",
+    "url": "tools/blender_scripts/gen_museum_props.py",
+    "license": "propia",
+    "author": "velvet-heist-84"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "prop_boiler",
+  "feat": "#178",
+  "description": "Caldera de pintura de servicio con tubos de acero y placa de latón (cobertura «boiler»).",
+  "dimensions": [
+    1.2,
+    1.2,
+    2.0
+  ],
+  "pivot": "bottom_center",
+  "max_triangles": 1500,
+  "materials": [
+    "ServicePaint",
+    "Steel80s",
+    "BrassGold"
+  ],
+  "collision": false,
+  "source": {
+    "origin": "procedural",
+    "url": "tools/blender_scripts/gen_museum_props.py",
+    "license": "propia",
+    "author": "velvet-heist-84"
+  }
+}

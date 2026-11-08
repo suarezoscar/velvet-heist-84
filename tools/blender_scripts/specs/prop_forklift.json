@@ -1,0 +1,23 @@
+{
+  "name": "prop_forklift",
+  "feat": "#178",
+  "description": "Carretilla de mano de acero con dos ruedas negras (cobertura «forklift»).",
+  "dimensions": [
+    0.6,
+    0.5,
+    1.2
+  ],
+  "pivot": "bottom_center",
+  "max_triangles": 1500,
+  "materials": [
+    "Steel80s",
+    "BakeliteBlack"
+  ],
+  "collision": false,
+  "source": {
+    "origin": "procedural",
+    "url": "tools/blender_scripts/gen_museum_props.py",
+    "license": "propia",
+    "author": "velvet-heist-84"
+  }
+}
