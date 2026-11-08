@@ -1,4 +1,5 @@
 shader_type spatial;
+render_mode cull_disabled;  // #193: la cara interior hace de tapa del corte
 
 /**
  * museum_wall.gdshader
@@ -34,6 +35,9 @@ uniform vec3 stripe_color : source_color = vec3(1.0, 0.71, 0.15);
 uniform vec3 vault_wall : source_color = vec3(0.42, 0.45, 0.5);
 uniform vec3 exterior_wall : source_color = vec3(0.22, 0.2, 0.26);
 uniform float roughness : hint_range(0.0, 1.0) = 0.85;
+/// #189: fuerza de los dibujos (rayas, paneles, juntas, remaches); 0 deja el color liso con
+/// zócalo y moldura del friso
+uniform float pattern_strength : hint_range(0.0, 1.0) = 1.0;
 
 varying vec3 world_pos;
 varying vec3 world_normal;
@@ -81,8 +85,10 @@ vec3 public_face(float u, float y, vec2 fw, vec3 paint, vec3 dado) {
 	inner *= over(y, 0.26, fw.y) * (1.0 - over(y, 0.88, fw.y));
 	float groove = max(grid_line(u, 0.6, 0.025, fw.x), 1.0 - over(y, 0.2, fw.y));
 	vec3 dado_c = mix(mix(dado, dado * 1.12, inner), dado * 0.55, groove);
+	dado_c = mix(dado, dado_c, pattern_strength);
 	// paño: papel pintado a rayas muy suaves
 	vec3 paint_c = paint * mix(0.94, 1.04, square_wave(u, 0.3, fw.x));
+	paint_c = mix(paint, paint_c, pattern_strength);
 	vec3 c = mix(baseboard_color, dado_c, over(y, 0.16, fw.y));
 	c = mix(c, rail_color, over(y, 0.98, fw.y));
 	return mix(c, paint_c, over(y, 1.06, fw.y));
@@ -92,12 +98,12 @@ vec3 block_face(float u, float y, vec2 fw, vec3 base, bool stripe) {
 	float row = floor(y / 0.4);
 	float shift = mod(row, 2.0) * 0.4;
 	float joint = max(grid_line(y, 0.4, 0.025, fw.y), grid_line(u + shift, 0.8, 0.025, fw.x));
-	vec3 c = mix(base, base * 0.7, joint);
-	if (stripe) {
+	vec3 c = mix(base, base * 0.7, joint * pattern_strength);
+	if (stripe && pattern_strength > 0.0) {
 		float hazard = square_wave(u + y, 0.28, fw.x + fw.y);
 		float inner = over(y, 1.03, fw.y) * (1.0 - over(y, 1.11, fw.y));
 		vec3 band = mix(stripe_color, stripe_color * 0.25, hazard * inner);
-		c = mix(c, band, over(y, 1.0, fw.y) * (1.0 - over(y, 1.14, fw.y)));
+		c = mix(c, band, over(y, 1.0, fw.y) * (1.0 - over(y, 1.14, fw.y)) * pattern_strength);
 	}
 	return mix(base * 0.45, c, over(y, 0.12, fw.y));
 }
@@ -108,8 +114,8 @@ vec3 vault_face(float u, float y, vec2 fw, vec3 tint) {
 	vec2 local = vec2(fract(u), fract(y - 0.14));
 	vec2 corner = min(local, 1.0 - local);
 	float rivet = 1.0 - over(length(corner - vec2(0.1)), 0.045, max(fw.x, fw.y));
-	vec3 c = mix(base, base * 0.35, seam);
-	c = mix(c, base * 1.6, rivet);
+	vec3 c = mix(base, base * 0.35, seam * pattern_strength);
+	c = mix(c, base * 1.6, rivet * pattern_strength);
 	return mix(base * 0.4, c, over(y, 0.14, fw.y));
 }
 
@@ -155,6 +161,10 @@ void fragment() {
 	}
 	ALBEDO = color;
 	ROUGHNESS = rough;
+	if (!FRONT_FACING) {  // #193: tapa del corte de las paredes recortadas
+		ALBEDO = part == 3 ? partition_cap : cap_color;
+		NORMAL = (VIEW_MATRIX * vec4(0.0, 1.0, 0.0, 0.0)).xyz;
+	}
 	if (xray_discard(VERTEX, VIEW_MATRIX, INV_VIEW_MATRIX, FRAGCOORD.xy, 0.0)) {
 		discard;
 	}

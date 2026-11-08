@@ -42,13 +42,11 @@ func _ready() -> void:
 	# siluetas O2, partículas) se dibuja encima sin niebla
 	_material.render_priority = Material.RENDER_PRIORITY_MIN
 	_material.set_shader_parameter("edge_feather", RULES.fog_edge_feather)
-	_material.set_shader_parameter("fog_brightness", RULES.fog_brightness)
-	_material.set_shader_parameter("fog_desaturation", RULES.fog_desaturation)
+	_material.set_shader_parameter("raised_feather", RULES.fog_raised_feather)
 	_material.set_shader_parameter("light_keep", RULES.fog_light_keep)
-	_material.set_shader_parameter("raised_brightness", RULES.fog_raised_brightness)  # #163
-	_material.set_shader_parameter("raised_desaturation", RULES.fog_raised_desaturation)
-	_material.set_shader_parameter("raised_from", RULES.fog_raised_from)
+	_material.set_shader_parameter("raised_from", RULES.fog_raised_from)  # #163
 	_material.set_shader_parameter("raised_to", RULES.fog_raised_to)
+	_apply_plan_inks()
 	material_override = _material
 	layers = 1 << (FOG_LAYER - 1)
 	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -60,6 +58,18 @@ func _ready() -> void:
 	_target.fill(0.0)
 	_query = PhysicsRayQueryParameters3D.new()
 	_query.collision_mask = LevelArchitectureBuilder.LAYER_WALLS
+
+
+## Tintas y contorno del plano que se ve en la niebla (#186)
+func _apply_plan_inks() -> void:
+	_material.set_shader_parameter("ink_floor_dark", RULES.fog_ink_floor_dark)
+	_material.set_shader_parameter("ink_floor_light", RULES.fog_ink_floor_light)
+	_material.set_shader_parameter("ink_raised_dark", RULES.fog_ink_raised_dark)
+	_material.set_shader_parameter("ink_raised_light", RULES.fog_ink_raised_light)
+	_material.set_shader_parameter("ink_line", RULES.fog_ink_line)
+	_material.set_shader_parameter("line_strength", RULES.fog_line_strength)
+	_material.set_shader_parameter("line_clear_near", RULES.fog_line_clear_near)
+	_material.set_shader_parameter("line_min_height", RULES.fog_line_min_height)
 
 
 func _process(delta: float) -> void:

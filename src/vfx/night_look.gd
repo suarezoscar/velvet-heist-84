@@ -45,8 +45,40 @@ extends Resource
 @export var outline_width: float = 0.05
 ## Penumbra relativa a la luz
 @export var penumbra_tint: Color = Color("7a70b8")
+## Paso entre las bandas del cel-shading (0 = corte duro). #189: más blando, menos escalones
+@export var band_softness: float = 0.02
+## Desenfoque de las sombras de todas las luces del mapa (#189: sombras suaves)
+@export var shadow_blur: float = 1.0
 @export var thief_rim: Color = Color("ff3ea5")
 @export var guard_rim: Color = Color("2ef2ff")
 @export var rim_strength: float = 0.8
+
+@export_group("Capas (#191)")
+## Trazo solo en lo jugable (personajes, botín, puertas, cajas fuertes...): ver CelConverter
+@export var outline_only_gameplay: bool = false
+## Trazo en muros, tabiques, muebles y piezas del kit (materiales de WallXRay)
+@export var outline_architecture: bool = true
+## Modelos con el color medio de su textura, sin textura ni relieve (salvo los cuadros)
+@export var flat_textures: bool = false
+## Intensidad del sombreado ambiental (SSAO) del WorldEnvironment
+@export var ssao_intensity: float = 2.0
+## Opacidad del cono de luz de la linterna de los guardias (0 lo quita)
+@export var beam_cone_alpha: float = 0.0
+
+@export_group("Botín (#194)")
+## Brillo frío de las piezas: filo en el contorno (0 lo quita) y luz en toda la pieza
+@export var piece_glow_rim: float = 0.0
+@export var piece_glow_base: float = 0.0
+@export var piece_glow_color: Color = Color(0.8, 0.9, 1.0)
+
+@export_group("Paredes recortadas (#193)")
+## true: las paredes delante de la sala del jugador bajan (WallCutaway); false: círculo de WallXRay
+@export var occlusion_cutaway: bool = false
+## Altura (m) a la que se recortan
+@export var cutaway_height: float = 1.0
+## Segundos que tardan en bajar o subir al cambiar de sala
+@export var cutaway_time: float = 0.25
+## Silueta del jugador local cuando algo lo tapa
+@export var silhouette_color: Color = Color(1.0, 0.243, 0.647, 0.55)
 ## Rugosidad de los suelos (SSR refleja por debajo de ~0,6)
 @export var floor_roughness: float = 0.35

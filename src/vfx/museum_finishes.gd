@@ -28,6 +28,17 @@ const FAMILY_CODES: Dictionary = {&"public": 0, &"service": 1, &"vault": 2, &"ex
 @export var cap: Color = Color("0b0e1a")
 @export var partition_cap: Color = Color("402616")
 
+@export_group("Calma (#189)")
+## Fuerza de los dibujos de las paredes (rayas, paneles, juntas, remaches): 0, color liso
+@export_range(0.0, 1.0) var wall_pattern_strength: float = 1.0
+## Fuerza del dibujo de los suelos (ajedrezado, espiga, rombos): 0, la media de sus dos tonos
+@export_range(0.0, 1.0) var floor_pattern_strength: float = 1.0
+## Salas con claraboya: un rectángulo de luz de luna fría en el suelo (solo ambiente: no es
+## una Lamp3D y no cuenta para el sigilo)
+@export var skylights: Array[String] = []
+@export var skylight_color: Color = Color(0.5, 0.62, 1.0)
+@export var skylight_energy: float = 4.0
+
 
 ## Código de familia de una sala (0 pública … 3 exterior)
 func family_code(room_id: String) -> int:

@@ -1,8 +1,9 @@
 ## @file museum_kit_builder.gd
 ## Piezas sueltas del kit del museo (#177, fase 2), colocadas desde el JSON del nivel: marco en
 ## cada paso (familia según las salas que une: cámara > servicio > pública), dintel de muro sobre
-## él, pilastras en las esquinas y cruces de las salas públicas y marco en las ventanas. Solo
-## aspecto: sin colisión, recortadas por WallXRay como los muros, y fuera de CelConverter.
+## él, pilastras en las esquinas y cruces de las salas públicas, marco en las ventanas y, desde
+## #189, la luz de luna de las claraboyas. Solo aspecto: sin colisión, recortadas por WallXRay
+## como los muros, y fuera de CelConverter. Las claraboyas no son Lamp3D: no cuentan para el sigilo.
 class_name MuseumKitBuilder
 extends RefCounted
 
@@ -15,6 +16,12 @@ const FAMILY_NAMES: Array[String] = ["public", "service", "vault", "service"]
 const LINTEL_FROM: float = 2.4
 const WINDOW_TOP: float = 2.5
 const EPS: float = 0.02
+## Altura (m) de la luz de cada claraboya, sobre el centro de su sala
+const SKYLIGHT_HEIGHT: float = 9.0
+## Parte de la sala (ancho y fondo) que cubre el rectángulo de luz
+const SKYLIGHT_COVER: float = 0.45
+
+static var _skylight_mask: Texture2D = null
 
 
 static func build(data: LevelData, map: Node3D, finishes: MuseumFinishes = FINISHES) -> Node3D:
@@ -31,6 +38,8 @@ static func build(data: LevelData, map: Node3D, finishes: MuseumFinishes = FINIS
 		for point: Vector3 in junctions(arch):
 			if _all_public(data, point, finishes):
 				_place(root, PILASTER.instantiate() as Node3D, point, 0.0, "Pilaster")
+	for room_id: String in finishes.skylights:
+		_add_skylight(data, root, room_id, finishes)
 	for door3d: Node in map.find_children("Door_*", "Door3D", true, false):
 		var lintel: MeshInstance3D = door3d.get_node_or_null("Lintel") as MeshInstance3D
 		if lintel != null and wall_mat != null:
@@ -175,3 +184,44 @@ static func _place(
 			var source: BaseMaterial3D = inst.mesh.surface_get_material(index) as BaseMaterial3D
 			var color: Color = source.albedo_color if source != null else Color.WHITE
 			inst.set_surface_override_material(index, WallXRay.material(color))
+
+
+## Luz de luna de una claraboya (#189): foco frío desde arriba con un rectángulo de bordes suaves
+static func _add_skylight(
+	data: LevelData, root: Node3D, room_id: String, finishes: MuseumFinishes
+) -> void:
+	var room: Dictionary = data.room_by_id(room_id)
+	if room.is_empty():
+		return
+	var rect: Rect2 = data.room_rect(room)
+	var center: Vector3 = data.to_world([rect.get_center().x, rect.get_center().y])
+	var half: float = maxf(rect.size.x, rect.size.y) * SKYLIGHT_COVER * 0.5
+	var sky: SpotLight3D = SpotLight3D.new()
+	sky.name = "Skylight_%s" % room_id
+	sky.light_color = finishes.skylight_color
+	sky.light_energy = finishes.skylight_energy
+	sky.spot_range = SKYLIGHT_HEIGHT * 1.5
+	sky.spot_angle = rad_to_deg(atan(half * 1.42 / SKYLIGHT_HEIGHT))
+	sky.spot_angle_attenuation = 0.2
+	sky.light_projector = _mask()
+	sky.shadow_enabled = true
+	sky.light_volumetric_fog_energy = 0.0  # sin bloques de la niebla volumétrica
+	sky.position = center + Vector3.UP * SKYLIGHT_HEIGHT
+	sky.rotation_degrees = Vector3(-90.0, 0.0, 0.0)
+	root.add_child(sky)
+
+
+## Máscara del rectángulo de luz: blanco en el centro y bordes que se apagan suaves
+static func _mask() -> Texture2D:
+	if _skylight_mask != null:
+		return _skylight_mask
+	var size: int = 64
+	var image: Image = Image.create(size, size, false, Image.FORMAT_L8)
+	for y: int in range(size):
+		for x: int in range(size):
+			var u: float = absf(float(x) / float(size - 1) * 2.0 - 1.0)
+			var v: float = absf(float(y) / float(size - 1) * 2.0 - 1.0)
+			var edge: float = (1.0 - smoothstep(0.55, 0.95, u)) * (1.0 - smoothstep(0.4, 0.8, v))
+			image.set_pixel(x, y, Color(edge, edge, edge))
+	_skylight_mask = ImageTexture.create_from_image(image)
+	return _skylight_mask

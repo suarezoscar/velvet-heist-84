@@ -22,6 +22,8 @@ static func apply(map: HeistMap3D, look: NightLook = LOOK) -> void:
 	if moon != null:
 		moon.light_color = look.moon_color
 		moon.light_energy = look.moon_energy
+	for light: Node in map.find_children("*", "Light3D", true, false):
+		(light as Light3D).shadow_blur = look.shadow_blur  # #189: sombras suaves
 	CelConverter.outline_material(look)
 	WallXRay.apply_look(look)
 	var converter: CelConverter = CelConverter.new()
@@ -45,6 +47,7 @@ static func build_environment(look: NightLook, base: Environment = null) -> Envi
 	env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
 	env.ssr_enabled = look.ssr_enabled
 	env.ssr_max_steps = 48
+	env.ssao_intensity = look.ssao_intensity  # #191: suave
 	env.sdfgi_enabled = look.sdfgi_enabled
 	env.sdfgi_energy = look.sdfgi_energy
 	env.sdfgi_use_occlusion = true

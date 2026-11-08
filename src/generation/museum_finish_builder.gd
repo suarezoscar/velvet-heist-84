@@ -118,6 +118,8 @@ static func _wall_material(
 		&"vault_wall": f.vault_wall,
 		&"exterior_wall": f.exterior_wall,
 		&"penumbra_tint": LOOK.penumbra_tint,
+		&"band_softness": LOOK.band_softness,
+		&"pattern_strength": f.wall_pattern_strength,
 	}
 	for key: StringName in params:
 		mat.set_shader_parameter(key, params[key])
@@ -144,4 +146,6 @@ static func _paint_floor(
 	mat.set_shader_parameter(&"roughness", float(colors[3]))
 	mat.set_shader_parameter(&"room_rect", Vector4(a.x, a.z, b.x, b.z))
 	mat.set_shader_parameter(&"penumbra_tint", LOOK.penumbra_tint)
+	mat.set_shader_parameter(&"band_softness", LOOK.band_softness)
+	mat.set_shader_parameter(&"pattern_strength", f.floor_pattern_strength)
 	(body.get_node("Mesh") as MeshInstance3D).material_override = mat

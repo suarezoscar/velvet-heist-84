@@ -13,9 +13,14 @@ func _mesh_with(mat: Material) -> MeshInstance3D:
 	return autofree(mesh)
 
 
+## Conversor con el aspecto base: trazo en todo y texturas (lo de #191 tiene su propio test,
+## test_fewer_layers.gd)
 func _converter() -> CelConverter:
 	var converter: CelConverter = CelConverter.new()
-	converter.look = LOOK
+	var look: NightLook = LOOK.duplicate() as NightLook
+	look.outline_only_gameplay = false
+	look.flat_textures = false
+	converter.look = look
 	return converter
 
 

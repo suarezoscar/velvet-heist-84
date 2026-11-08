@@ -148,3 +148,19 @@ func test_moldings_wrap_wall_ends_without_shared_faces() -> void:
 				assert_gt(extra, 0.005, "%s: la moldura sobresale del extremo" % body.name)
 				checked += 1
 	assert_gt(checked, 0)
+
+
+## #189: paredes lisas, suelos con el dibujo suave y claraboyas que no cuentan para el sigilo
+func test_calm_finishes_and_skylights() -> void:
+	var f: MuseumFinishes = MuseumKitBuilder.FINISHES
+	_build()
+	var wall: ShaderMaterial = MuseumFinishBuilder.wall_material(MuseumFinishBuilder.Part.WALL)
+	assert_eq(wall.get_shader_parameter(&"pattern_strength"), f.wall_pattern_strength)
+	var kit: Node = root.get_node("MuseumKit")
+	for room_id: String in f.skylights:
+		var sky: SpotLight3D = kit.get_node_or_null("Skylight_%s" % room_id) as SpotLight3D
+		assert_not_null(sky, "claraboya en %s" % room_id)
+		if sky != null:
+			assert_eq(sky.light_color, f.skylight_color)
+			assert_not_null(sky.light_projector, "rectángulo de luz")
+	assert_eq(kit.find_children("*", "Lamp3D", true, false).size(), 0, "No son lámparas")
