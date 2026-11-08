@@ -28,6 +28,10 @@ const FAMILY_CODES: Dictionary = {&"public": 0, &"service": 1, &"vault": 2, &"ex
 @export var cap: Color = Color("0b0e1a")
 @export var partition_cap: Color = Color("402616")
 
+## Color plano de cada modelo del botín (#178), en lugar de su textura fotográfica; sin
+## entrada, el modelo se queda como está (cuadros, billetes)
+@export var piece_colors: Dictionary = {}
+
 @export_group("Calma (#189)")
 ## Fuerza de los dibujos de las paredes (rayas, paneles, juntas, remaches): 0, color liso
 @export_range(0.0, 1.0) var wall_pattern_strength: float = 1.0

@@ -49,15 +49,22 @@ static func build(piece: TargetPiece3D, model_scene: PackedScene) -> void:
 
 
 ## Pone el modelo de la pieza sobre su pedestal: size escala MODEL_SIZE (las estatuas y los
-## cuadros son mayores) y tint tiñe sus materiales (un busto de bronce con el modelo de mármol)
+## cuadros son mayores) y tint tiñe sus materiales (un busto de bronce con el modelo de mármol).
+## flat (alfa > 0): color plano que sustituye a la textura fotográfica del modelo (#178)
 static func attach_model(
-	piece: TargetPiece3D, node: Node3D, size: float = 1.0, tint: Color = Color.WHITE
+	piece: TargetPiece3D,
+	node: Node3D,
+	size: float = 1.0,
+	tint: Color = Color.WHITE,
+	flat: Color = Color(0, 0, 0, 0)
 ) -> void:
 	if node == null:
 		return
 	piece.model = node
 	piece.model.name = "Piece"
 	piece.add_child(piece.model)
+	if flat.a > 0.0:
+		flatten(piece.model, flat)
 	if tint != Color.WHITE:
 		_tint(piece.model, tint)
 	_add_glow(piece.model)
@@ -184,3 +191,20 @@ static func _add_glow(model: Node3D) -> void:
 ## Sin pantalla (tests, servidor) no se dibuja y el renderizador vacío rechaza las capas
 static func _draws() -> bool:
 	return DisplayServer.get_name() != "headless"
+
+
+## Cambia la textura fotográfica de cada superficie por un color plano (estilo de #189)
+static func flatten(model: Node3D, color: Color) -> void:
+	var meshes: Array[Node] = model.find_children("*", "MeshInstance3D", true, false)
+	if model is MeshInstance3D:
+		meshes.append(model)
+	for node: Node in meshes:
+		var mesh_node: MeshInstance3D = node as MeshInstance3D
+		for surface: int in range(mesh_node.mesh.get_surface_count() if mesh_node.mesh else 0):
+			var source: BaseMaterial3D = mesh_node.get_active_material(surface) as BaseMaterial3D
+			var flat: StandardMaterial3D = StandardMaterial3D.new()
+			if source != null:
+				flat.roughness = source.roughness
+				flat.metallic = source.metallic
+			flat.albedo_color = color
+			mesh_node.set_surface_override_material(surface, flat)
