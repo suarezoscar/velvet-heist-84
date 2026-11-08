@@ -132,18 +132,15 @@ func test_exit_without_contract_does_nothing() -> void:
 
 
 func test_guards_see_the_letter_not_the_contract() -> void:
-	var lines: Array[String] = RoleBriefing84.heist_objectives(false, [] as Array[String], 3, 10)
-	assert_string_contains(lines[0], "me llevaré 3 piezas")
-	var thief_lines: Array[String] = RoleBriefing84.heist_objectives(
-		true, ["Busto de bronce (Archivo)"] as Array[String], 3, 10
-	)
-	assert_string_contains(thief_lines[0], "Busto de bronce")
+	assert_string_contains(RoleBriefing84.letter(3), "me llevaré 3 piezas")
+	assert_false(RoleBriefing84.headline(false, 3, 10).contains("Busto"), "Sin piezas concretas")
+	assert_string_contains(RoleBriefing84.headline(true, 3, 10), "las 3 piezas del encargo")
 
 
 func test_briefing_waits_for_the_contract() -> void:
-	var lines: Array[String] = RoleBriefing84.heist_objectives(true, [] as Array[String], 0, 10)
-	assert_false(lines[0].contains("0 piezas"), "Sin encargo aún no dice «0 piezas»")
-	assert_false(lines[0].contains("…."), "Ni puntuación doble")
+	var line: String = RoleBriefing84.headline(true, 0, 10)
+	assert_false(line.contains("0 piezas"), "Sin encargo aún no dice «0 piezas»")
+	assert_false(line.contains("…."), "Ni puntuación doble")
 
 
 ## El encargo se sortea justo después de abrirse la tarjeta: la tarjeta acaba diciéndolo bien
@@ -154,7 +151,9 @@ func test_briefing_shows_the_drawn_contract() -> void:
 	assert_not_null(card, "Tarjeta de inicio")
 	var size: int = GameManager.heist.contract_size
 	assert_gt(size, 0, "Hay encargo")
-	assert_string_contains(card.lines_label.text, "(%d piezas)" % size)
+	card._process(0.0)
+	assert_string_contains(card.headline_label.text, "las %d piezas" % size)
+	assert_eq(card.cards_box.get_child_count(), size, "Una ficha por pieza")
 
 
 ## Jugando de verdad: el rayo del ladrón da en el área de la pieza y la E llega a su candado

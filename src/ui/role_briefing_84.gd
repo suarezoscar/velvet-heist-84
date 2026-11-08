@@ -1,19 +1,25 @@
 ## @file role_briefing_84.gd
-## Tarjeta de objetivo al empezar la partida (FEAT-027): quién eres y qué tienes que hacer,
-## con las cifras de la partida (cuota, tiempo). Se cierra sola a los SHOW_TIME
+## Tarjeta de inicio de partida (FEAT-027, rediseñada en #187): rótulo de película de los 80 con
+## tu papel, una frase de objetivo y las piezas del encargo como fichas (los guardias, la carta
+## del ladrón). Las reglas y la ayuda viven en la pausa (tips). Se cierra sola a los SHOW_TIME
 ## segundos o con cualquier tecla o clic; no frena la partida ni consume la tecla.
 class_name RoleBriefing84
 extends CanvasLayer
 
-const SHOW_TIME: float = 8.0
-const FADE_TIME: float = 0.6
+const SHOW_TIME: float = 5.0
+const FADE_TIME: float = 0.5
+## Entrada del rótulo: el título se enciende como un neón y las fichas llegan una a una
+const INTRO_TIME: float = 0.35
+const CARD_DELAY: float = 0.12
 
 var title_label: Label = null
-var lines_label: Label = null
-var _panel: PanelContainer = null
+var headline_label: Label = null
+var cards_box: HBoxContainer = null
+var _panel: Control = null
 var _time_left: float = SHOW_TIME
 var _closing: bool = false
 var _is_thief: bool = false
+var _shown_cards: String = "-"
 
 
 ## Prepara la tarjeta para el actor local del mapa (sin actor local no se enseña)
@@ -25,100 +31,90 @@ func setup(map: HeistMap3D) -> void:
 	if actor == null:
 		queue_free()
 		return
-	_build()
 	_is_thief = actor == map.thief
-	var color: Color = TeamMarker3D.THIEF_COLOR if _is_thief else TeamMarker3D.GUARD_COLOR
 	var guard_number: int = map.guards.find(actor as GuardController3D) + 1
-	title_label.text = "ERES EL LADRÓN" if _is_thief else "ERES EL GUARDIA %d" % guard_number
-	title_label.add_theme_color_override("font_color", color)
-	_refresh_lines()
+	var title: String = "ERES EL LADRÓN" if _is_thief else "ERES EL GUARDIA %d" % guard_number
+	var color: Color = TeamMarker3D.THIEF_COLOR if _is_thief else TeamMarker3D.GUARD_COLOR
+	_build_marquee(title, color)
+	_refresh()
+	_intro()
 
 
-## Con encargo, sus líneas (heist.md); si no, las de la cuota. Con red, el encargo llega unos
-## instantes después de cargar el mapa: por eso se vuelve a leer mientras la tarjeta está abierta
-func _refresh_lines() -> void:
-	var lines: Array[String] = []
-	if GameManager.heist != null:
-		lines = heist_objectives(
-			_is_thief,
-			_contract_names(),
-			GameManager.heist.contract_size,
-			_minutes(),
-			PlayerName.thief_signature(get_tree())
-		)
-	else:
-		lines = objectives(_is_thief, GameManager.quota_target, _minutes())
-	var text: String = "\n".join(PackedStringArray(lines))
-	if lines_label.text != text:
-		lines_label.text = text
-
-
-## Líneas con encargo: el ladrón ve sus piezas y dónde están; los guardias, la carta
-static func heist_objectives(
-	is_thief: bool,
-	pieces: Array[String],
-	size: int,
-	minutes: int,
-	signature: String = PlayerName.FALLBACK_SIGNATURE
-) -> Array[String]:
-	if is_thief:
-		var contract: String = "• El encargo del coleccionista: aún sin abrir el sobre…"
-		if size > 0 and not pieces.is_empty():
-			contract = (
-				"• El encargo del coleccionista (%d %s): %s."
-				% [size, "pieza" if size == 1 else "piezas", ", ".join(PackedStringArray(pieces))]
+## Frase de objetivo. Con encargo (heist.md) y sin él (cuota); size 0: el encargo aún no ha llegado
+static func headline(is_thief: bool, size: int, minutes: int, quota: int = 0) -> String:
+	if quota > 0:
+		if is_thief:
+			return (
+				"Llévate piezas por valor de %d y la Pieza Maestra, y vuelve al coche antes de %d minutos."
+				% [quota, minutes]
 			)
+		return "Atrapa al ladrón con la porra antes de %d minutos." % minutes
+	if not is_thief:
+		return (
+			"Atrapad al ladrón con la porra antes de %d minutos: si amanece dentro, ganáis."
+			% minutes
+		)
+	if size <= 0:
+		return "El encargo del coleccionista está al llegar…"
+	return (
+		"Llévate %s del encargo y sal por cualquier puerta exterior antes de %d minutos."
+		% ["la pieza" if size == 1 else "las %d piezas" % size, minutes]
+	)
+
+
+## La carta del ladrón que reciben los guardias
+static func letter(size: int, signature: String = PlayerName.FALLBACK_SIGNATURE) -> String:
+	return (
+		"«Esta noche me llevaré %d piezas de su colección. Con mis respetos, %s»"
+		% [size, signature]
+	)
+
+
+## Lo esencial de cada papel, para la pausa
+static func tips(is_thief: bool) -> Array[String]:
+	if is_thief:
 		return [
-			contract,
-			"• Con todas encima, sal por cualquier puerta exterior antes de %d minutos." % minutes,
-			(
-				"• Cada pieza se roba allí mismo con [E]: el dial, el cambiazo o el sensor."
-				+ " A lo bruto [Q] es rápido, pero salta la alarma."
-			),
-			"• Nada de violencia: escóndete, engaña y espera tu momento. Un caballero no deja huellas.",
+			"Cada pieza se roba allí mismo con [E]: el dial, el cambiazo o el sensor.",
+			"A lo bruto [Q] es rápido, pero salta la alarma.",
+			"La luz y el ruido delatan: muévete en la sombra y en silencio.",
+			"Nada de violencia: escóndete, engaña y espera tu momento. Un caballero no deja huellas.",
 		]
 	return [
-		(
-			"«Esta noche me llevaré %d piezas de su colección. Con mis respetos, %s»"
-			% [size, signature]
-		),
-		(
-			"• Parte de la central: las piezas en el punto de mira llevan una marca cian."
-			+ " No se sabe cuáles busca."
-		),
-		(
-			"• Atrapadlo con la porra antes de %d minutos: si amanece y sigue dentro, ganáis."
-			% minutes
-		),
-		"• Fuera de la garita entra sueño; el café de la garita lo quita.",
-		"• Él ve tu linterna; tú no lo ves a oscuras. Escucha sus pasos.",
+		"Parte de la central: las piezas en el punto de mira llevan una marca cian.",
+		"Fuera de la garita entra sueño; el café de la garita lo quita.",
+		"Él ve tu linterna; tú no lo ves a oscuras. Escucha sus pasos.",
 	]
 
 
-func _contract_names() -> Array[String]:
-	var names: Array[String] = []
+## Con red, el encargo llega unos instantes después de cargar el mapa: se vuelve a leer
+func _refresh() -> void:
+	var minutes: int = roundi(GameManager.match_duration_seconds / 60.0)
+	var size: int = 0
+	var cards: Array = []
+	if GameManager.heist != null:
+		size = GameManager.heist.contract_size
+		if _is_thief:
+			cards = _contract_pieces()
+			if cards.size() < size:
+				size = 0  # el sorteo aún no ha llegado entero
+		else:
+			cards = [[letter(size, PlayerName.thief_signature(get_tree())), ""]]
+		headline_label.text = headline(_is_thief, size, minutes)
+	else:
+		headline_label.text = headline(_is_thief, 0, minutes, GameManager.quota_target)
+	var key: String = str(cards)
+	if key != _shown_cards:
+		_shown_cards = key
+		_fill_cards(cards)
+
+
+func _contract_pieces() -> Array:
+	var out: Array = []
 	for piece_id: StringName in GameManager.heist.targets:
 		var piece: TargetPiece3D = GameManager.heist.piece(piece_id)
 		if piece != null:
-			names.append("%s (%s)" % [piece.piece_name, piece.room_name])
-	return names
-
-
-## Líneas del objetivo de cada bando (las usan los tests)
-static func objectives(is_thief: bool, quota: int, minutes: int) -> Array[String]:
-	if is_thief:
-		return [
-			"• Llévate piezas por valor de %d y la Pieza Maestra de la cámara acorazada." % quota,
-			"• Vuelve al coche antes de %d minutos." % minutes,
-			"• La luz y el ruido delatan: un caballero se mueve en la sombra y en silencio.",
-			"• Nada de violencia: escóndete, engaña y espera tu momento.",
-		]
-	return [
-		"• Atrapa al ladrón con la porra antes de %d minutos." % minutes,
-		"• Patrulla todo el museo: si amanece y el ladrón sigue dentro, ganas.",
-		"• Los monitores de la garita muestran lo que ven las cámaras.",
-		"• Él ve tu linterna; tú no lo ves a oscuras. Escucha sus pasos.",
-	]
+			out.append([piece.piece_name, piece.room_name])
+	return out
 
 
 func _process(delta: float) -> void:
@@ -126,7 +122,7 @@ func _process(delta: float) -> void:
 		return
 	_time_left -= delta
 	if GameManager.heist != null:
-		_refresh_lines()  # el encargo se sortea (o llega por red) justo después de abrirse
+		_refresh()
 	if GameManager.is_match_over():
 		queue_free()  # sin fundido: no debe tapar el panel de fin
 	elif _time_left <= 0.0:
@@ -153,37 +149,93 @@ func close() -> void:
 	tween.tween_callback(queue_free)
 
 
-func _minutes() -> int:
-	return roundi(GameManager.match_duration_seconds / 60.0)
+## El título se enciende con un parpadeo de neón y el resto aparece detrás
+func _intro() -> void:
+	title_label.modulate.a = 0.0
+	headline_label.modulate.a = 0.0
+	var tween: Tween = create_tween()
+	for alpha: float in [1.0, 0.25, 1.0, 0.5, 1.0]:
+		tween.tween_property(title_label, "modulate:a", alpha, INTRO_TIME / 5.0)
+	tween.tween_property(headline_label, "modulate:a", 1.0, INTRO_TIME)
 
 
-func _build() -> void:
-	var center: CenterContainer = CenterContainer.new()
-	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(center)
-	_panel = PanelContainer.new()
-	_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var style: StyleBoxFlat = MenuTheme84.box(
-		Color(MenuTheme84.INK, 0.88), Color(MenuTheme84.TEXT, 0.25), 2
+func _fill_cards(cards: Array) -> void:
+	for child: Node in cards_box.get_children():
+		child.queue_free()
+	var index: int = 0
+	for card: Array in cards:
+		var node: Control = _card(String(card[0]), String(card[1]))
+		cards_box.add_child(node)
+		node.modulate.a = 0.0
+		var tween: Tween = create_tween()
+		tween.tween_interval(INTRO_TIME + CARD_DELAY * index)
+		tween.tween_property(node, "modulate:a", 1.0, 0.25)
+		index += 1
+
+
+func _card(title: String, room: String) -> Control:
+	var panel: PanelContainer = PanelContainer.new()
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var box_style: StyleBoxFlat = MenuTheme84.box(
+		Color(MenuTheme84.INK, 0.6), Color(MenuTheme84.NEON_PINK, 0.7), 2
 	)
-	style.set_content_margin_all(28)
-	_panel.add_theme_stylebox_override("panel", style)
-	center.add_child(_panel)
+	box_style.set_content_margin_all(14)
+	panel.add_theme_stylebox_override("panel", box_style)
 	var box: VBoxContainer = VBoxContainer.new()
-	box.add_theme_constant_override("separation", 12)
-	_panel.add_child(box)
-	title_label = MenuTheme84.label("", MenuTheme84.FONT_DISPLAY, 64, MenuTheme84.TEXT)
-	box.add_child(title_label)
-	lines_label = MenuTheme84.label("", MenuTheme84.FONT_BODY, 26, MenuTheme84.TEXT)
-	lines_label.custom_minimum_size = Vector2(760.0, 0.0)
-	lines_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	box.add_child(lines_label)
-	box.add_child(
-		MenuTheme84.label(
-			"Pulsa cualquier tecla para empezar  ·  Esc: pausa y controles",
-			MenuTheme84.FONT_BODY,
-			20,
-			MenuTheme84.DIM
+	box.add_theme_constant_override("separation", 2)
+	panel.add_child(box)
+	var name_label: Label = MenuTheme84.label(title, MenuTheme84.FONT_STRONG, 24, MenuTheme84.TEXT)
+	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	name_label.custom_minimum_size = Vector2(220.0 if room != "" else 640.0, 0.0)
+	box.add_child(name_label)
+	if room != "":
+		box.add_child(
+			MenuTheme84.label(room.to_upper(), MenuTheme84.FONT_MONO, 16, MenuTheme84.DIM)
 		)
+	return panel
+
+
+## Rótulo: una franja oscura a lo ancho, con el título en neón, la frase y las fichas
+func _build_marquee(title: String, color: Color) -> void:
+	var band: PanelContainer = PanelContainer.new()
+	band.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	band.anchor_left = 0.0
+	band.anchor_right = 1.0
+	band.grow_vertical = Control.GROW_DIRECTION_BOTH
+	band.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var band_style: StyleBoxFlat = StyleBoxFlat.new()
+	band_style.bg_color = Color(MenuTheme84.INK, 0.82)
+	band_style.border_color = Color(color, 0.8)
+	band_style.border_width_top = 2
+	band_style.border_width_bottom = 2
+	band_style.content_margin_top = 26
+	band_style.content_margin_bottom = 26
+	band.add_theme_stylebox_override("panel", band_style)
+	add_child(band)
+	_panel = band
+	var box: VBoxContainer = VBoxContainer.new()
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.add_theme_constant_override("separation", 10)
+	band.add_child(box)
+	var eyebrow: Label = MenuTheme84.label("ESTA NOCHE", MenuTheme84.FONT_MONO, 18, MenuTheme84.DIM)
+	eyebrow.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(eyebrow)
+	title_label = MenuTheme84.label(title, MenuTheme84.FONT_DISPLAY, 96, color)
+	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	MenuTheme84.add_glow(title_label, Color(color, 0.6), 18)
+	box.add_child(title_label)
+	headline_label = MenuTheme84.label("", MenuTheme84.FONT_BODY, 28, MenuTheme84.TEXT)
+	headline_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(headline_label)
+	cards_box = HBoxContainer.new()
+	cards_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	cards_box.add_theme_constant_override("separation", 14)
+	box.add_child(cards_box)
+	var hint: Label = MenuTheme84.label(
+		"Cualquier tecla para empezar  ·  Esc: pausa, reglas y controles",
+		MenuTheme84.FONT_BODY,
+		18,
+		MenuTheme84.DIM
 	)
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(hint)

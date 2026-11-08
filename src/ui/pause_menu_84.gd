@@ -12,6 +12,7 @@ var list_box: VBoxContainer = null
 var controls: ControlsPanel = null
 var continue_button: Button = null
 var controls_button: Button = null
+var tips_label: Label = null
 var menu_button: Button = null
 var note_label: Label = null
 var _map: HeistMap3D = null
@@ -49,6 +50,11 @@ func setup(map: HeistMap3D) -> void:
 	note_label = MenuTheme84.label("", MenuTheme84.FONT_BODY, 20, MenuTheme84.DIM)
 	note_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	list_box.add_child(note_label)
+	# #187: lo esencial de tu papel (antes iba en la tarjeta de inicio)
+	tips_label = MenuTheme84.label("", MenuTheme84.FONT_BODY, 22, MenuTheme84.TEXT)
+	tips_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	tips_label.custom_minimum_size = Vector2(560.0, 0.0)
+	list_box.add_child(tips_label)
 	continue_button = _button("CONTINUAR  [Esc]", close)
 	controls_button = _button("CONTROLES", show_controls)
 	menu_button = _button("MENÚ PRINCIPAL", _on_menu_pressed)
@@ -108,6 +114,11 @@ func open() -> void:
 		if online
 		else "Juego en pausa."
 	)
+	var thief: bool = _map != null and _map.local_player != null and _map.local_player == _map.thief
+	var lines: PackedStringArray = PackedStringArray()
+	for tip: String in RoleBriefing84.tips(thief):
+		lines.append("• " + tip)
+	tips_label.text = "\n".join(lines)
 	LocalInput3D.blocked = true
 	if not online:
 		get_tree().paused = true
