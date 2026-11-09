@@ -10,6 +10,8 @@ enum Flaw { NONE, TINT, SIZE, POSE }
 
 ## Brillo frío de las piezas (#194)
 const GLOW_SHADER: Shader = preload("res://assets/shaders/piece_glow.gdshader")
+## Cuánto se aclara el color de una pieza para su brillo
+const GLOW_LIGHTEN: float = 0.35
 
 const PEDESTAL_SIZE: Vector3 = Vector3(0.7, 1.0, 0.7)
 const MODEL_SIZE: float = 0.6
@@ -19,7 +21,8 @@ const SMALL: float = 0.75
 const DISCOVERED_COLOR: Color = Color("ff4a3d")
 const AUTHENTIC_COLOR: Color = Color("4be38a")
 
-static var _glow: ShaderMaterial = null
+## Brillo por color de pieza («» el frío por defecto)
+static var _glows: Dictionary = {}
 
 
 ## Construye el área, el pedestal (si va sobre uno), el modelo y la marca de la pieza
@@ -67,7 +70,7 @@ static func attach_model(
 		flatten(piece.model, flat)
 	if tint != Color.WHITE:
 		_tint(piece.model, tint)
-	_add_glow(piece.model)
+	_add_glow(piece.model, flat)
 	_fit(piece.model, MODEL_SIZE * size)
 	piece.model.visible = piece.variant != &"safe"
 
@@ -167,25 +170,32 @@ static func _fit(model: Node3D, target_size: float = MODEL_SIZE) -> void:
 
 
 ## Brillo ligero de la pieza (#194): capa fría sobre el modelo, que sigue la memoria de la niebla
-static func glow_material() -> ShaderMaterial:
-	if _glow == null:
+## Con color (alfa > 0), la pieza brilla en su propio color aclarado (#178): el brillo frío
+## blanqueaba el oro y el bronce. Sin color, el frío de NightLook
+static func glow_material(color: Color = Color(0, 0, 0, 0)) -> ShaderMaterial:
+	var key: String = color.to_html() if color.a > 0.0 else ""
+	if not _glows.has(key):
 		var look: NightLook = NightEnvironmentSetup.LOOK
-		_glow = ShaderMaterial.new()
-		_glow.shader = GLOW_SHADER
-		_glow.set_shader_parameter(&"glow_color", look.piece_glow_color)
-		_glow.set_shader_parameter(&"glow_base", look.piece_glow_base)
-		_glow.set_shader_parameter(&"glow_rim", look.piece_glow_rim)
-	return _glow
+		var glow: ShaderMaterial = ShaderMaterial.new()
+		glow.shader = GLOW_SHADER
+		var tone: Color = (
+			color.lerp(Color.WHITE, GLOW_LIGHTEN) if color.a > 0.0 else look.piece_glow_color
+		)
+		glow.set_shader_parameter(&"glow_color", tone)
+		glow.set_shader_parameter(&"glow_base", look.piece_glow_base)
+		glow.set_shader_parameter(&"glow_rim", look.piece_glow_rim)
+		_glows[key] = glow
+	return _glows[key]
 
 
-static func _add_glow(model: Node3D) -> void:
+static func _add_glow(model: Node3D, color: Color = Color(0, 0, 0, 0)) -> void:
 	if NightEnvironmentSetup.LOOK.piece_glow_rim <= 0.0 or not _draws():
 		return
 	var meshes: Array[Node] = model.find_children("*", "MeshInstance3D", true, false)
 	if model is MeshInstance3D:
 		meshes.append(model)
 	for node: Node in meshes:
-		(node as MeshInstance3D).material_overlay = glow_material()
+		(node as MeshInstance3D).material_overlay = glow_material(color)
 
 
 ## Sin pantalla (tests, servidor) no se dibuja y el renderizador vacío rechaza las capas
@@ -193,7 +203,7 @@ static func _draws() -> bool:
 	return DisplayServer.get_name() != "headless"
 
 
-## Cambia la textura fotográfica de cada superficie por un color plano (estilo de #189)
+## Cambia la textura fotográfica de cada superficie por un color plano y mate (estilo de #189)
 static func flatten(model: Node3D, color: Color) -> void:
 	var meshes: Array[Node] = model.find_children("*", "MeshInstance3D", true, false)
 	if model is MeshInstance3D:
@@ -203,8 +213,8 @@ static func flatten(model: Node3D, color: Color) -> void:
 		for surface: int in range(mesh_node.mesh.get_surface_count() if mesh_node.mesh else 0):
 			var source: BaseMaterial3D = mesh_node.get_active_material(surface) as BaseMaterial3D
 			var flat: StandardMaterial3D = StandardMaterial3D.new()
-			if source != null:
-				flat.roughness = source.roughness
-				flat.metallic = source.metallic
+			# Sin acabado metálico: en cel un metal solo refleja la noche azul y pierde su color
+			flat.roughness = 0.6
+			flat.metallic = 0.0
 			flat.albedo_color = color
 			mesh_node.set_surface_override_material(surface, flat)
