@@ -27,6 +27,12 @@ Pocas capas y cada una con un trabajo:
 - **Botín** (#194): brillo frío y suave en el modelo de cada pieza candidata (`piece_glow.gdshader` como `material_overlay`; `NightLook.piece_glow_*`). Sigue la memoria de la niebla porque va pegado al modelo. No hay focos sobre las piezas.
 - **Haz de linterna**: un cono que suma un 1,5 % de luz (`FlashlightCone`, `beam_cone_alpha`), hijo de la luz. Sustituye a la niebla volumétrica y se ve también en la niebla de guerra (P2.1: el ladrón ve todos los haces).
 
+## Muebles y coherencia (#178)
+- **Estilo de los muebles**: low-poly, bordes con un bisel mínimo y sin texturas, con la paleta corta de materiales: caoba (`MahoganyWood`), madera clara (`ParquetWood`), cartón (`ArchivePaper`), mármol (`MarbleWhite`), acero (`Steel80s`) y gris de servicio (`ServicePaint`), con latón (`BrassGold`) en los detalles. Silueta reconocible vista desde arriba en diagonal. Salen de `tools/blender_scripts/gen_museum_props.py`.
+- **El juego no cambia**: cada mueble se estira a la caja de colisión de su cobertura (`LevelDressingBuilder.PROP_MODELS`).
+- **Coherencia**: cada sala cuenta su historia con sus muebles. Las salas públicas llevan mobiliario de exposición (vitrinas, peanas, esculturas, bancos y paneles expositivos); las de servicio, mobiliario de trabajo (oficina, taller, almacén, máquinas). Las excepciones se cuentan, por ejemplo una galería en montaje.
+- **Botín**: color plano y mate elegido a mano por modelo (`MuseumFinishes.piece_colors`), con el brillo en su propio color.
+
 ## Paleta
 | Uso | Color |
 |---|---|
