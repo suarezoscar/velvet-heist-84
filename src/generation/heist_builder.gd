@@ -99,11 +99,13 @@ static func _add_target(data: LevelData, props: Node3D, target: Dictionary) -> T
 		null,
 		variant
 	)
+	var model_id: String = String(target.get("model", "loot_cash"))
 	TargetPieceLook.attach_model(
 		piece,
 		_target_model(target),
 		float(target.get("size", 1.0)),
-		Color(String(target.get("tint", "#ffffff")))
+		Color(String(target.get("tint", "#ffffff"))),
+		MuseumKitBuilder.FINISHES.piece_colors.get(model_id, Color(0, 0, 0, 0))  # #178
 	)
 	piece.room_name = room_name_at(data, target["pos"])
 	piece.position = data.to_world(target["pos"])

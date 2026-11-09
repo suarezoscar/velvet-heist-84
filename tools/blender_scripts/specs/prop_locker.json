@@ -1,0 +1,23 @@
+{
+  "name": "prop_locker",
+  "feat": "#178",
+  "description": "Fila de tres taquillas de chapa (cobertura «locker»).",
+  "dimensions": [
+    1.6,
+    0.545,
+    1.9
+  ],
+  "pivot": "bottom_center",
+  "max_triangles": 1500,
+  "materials": [
+    "ServicePaint",
+    "Steel80s"
+  ],
+  "collision": false,
+  "source": {
+    "origin": "procedural",
+    "url": "tools/blender_scripts/gen_museum_props.py",
+    "license": "propia",
+    "author": "velvet-heist-84"
+  }
+}

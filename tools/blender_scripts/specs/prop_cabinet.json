@@ -1,0 +1,23 @@
+{
+  "name": "prop_cabinet",
+  "feat": "#178",
+  "description": "Armario de caoba de dos puertas (cobertura «cabinet»).",
+  "dimensions": [
+    1.04,
+    0.56,
+    1.8
+  ],
+  "pivot": "bottom_center",
+  "max_triangles": 1500,
+  "materials": [
+    "MahoganyWood",
+    "BrassGold"
+  ],
+  "collision": false,
+  "source": {
+    "origin": "procedural",
+    "url": "tools/blender_scripts/gen_museum_props.py",
+    "license": "propia",
+    "author": "velvet-heist-84"
+  }
+}

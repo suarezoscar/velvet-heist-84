@@ -1,0 +1,24 @@
+{
+  "name": "prop_counter",
+  "feat": "#178",
+  "description": "Mostrador de caoba con encimera de mármol y zócalo negro (cobertura «counter»).",
+  "dimensions": [
+    3.0,
+    0.8,
+    1.1
+  ],
+  "pivot": "bottom_center",
+  "max_triangles": 1500,
+  "materials": [
+    "MahoganyWood",
+    "MarbleWhite",
+    "BakeliteBlack"
+  ],
+  "collision": false,
+  "source": {
+    "origin": "procedural",
+    "url": "tools/blender_scripts/gen_museum_props.py",
+    "license": "propia",
+    "author": "velvet-heist-84"
+  }
+}

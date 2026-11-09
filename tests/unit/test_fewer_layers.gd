@@ -85,3 +85,21 @@ func test_piece_glow_material() -> void:
 	assert_eq(glow.get_shader_parameter(&"glow_rim"), LOOK.piece_glow_rim)
 	assert_eq(glow.get_shader_parameter(&"glow_base"), LOOK.piece_glow_base)
 	assert_eq(glow.shader, TargetPieceLook.GLOW_SHADER)
+
+
+## #178: las piezas con color en la tabla pierden su textura fotográfica y llevan ese color
+func test_piece_flat_color_from_the_table() -> void:
+	var colors: Dictionary = MuseumKitBuilder.FINISHES.piece_colors
+	assert_true(colors.has("marble_bust"), "La tabla tiene el busto")
+	var model: Node3D = Node3D.new()
+	var mesh: MeshInstance3D = MeshInstance3D.new()
+	mesh.mesh = BoxMesh.new()
+	var textured: StandardMaterial3D = StandardMaterial3D.new()
+	textured.albedo_texture = PlaceholderTexture2D.new()
+	mesh.set_surface_override_material(0, textured)
+	model.add_child(mesh)
+	add_child_autofree(model)
+	TargetPieceLook.flatten(model, colors["marble_bust"])
+	var flat: StandardMaterial3D = mesh.get_active_material(0) as StandardMaterial3D
+	assert_null(flat.albedo_texture, "Sin textura")
+	assert_eq(flat.albedo_color, colors["marble_bust"])

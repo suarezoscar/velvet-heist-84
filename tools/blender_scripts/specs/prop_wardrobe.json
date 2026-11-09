@@ -1,0 +1,25 @@
+{
+  "name": "prop_wardrobe",
+  "feat": "#178",
+  "description": "Guardarropa del vestíbulo de caoba con cinco abrigos colgados (cobertura «wardrobe»).",
+  "dimensions": [
+    1.8,
+    0.6,
+    1.8
+  ],
+  "pivot": "bottom_center",
+  "max_triangles": 1500,
+  "materials": [
+    "MahoganyWood",
+    "VelvetBlack",
+    "GuardNavy",
+    "CarpetWine"
+  ],
+  "collision": false,
+  "source": {
+    "origin": "procedural",
+    "url": "tools/blender_scripts/gen_museum_props.py",
+    "license": "propia",
+    "author": "velvet-heist-84"
+  }
+}

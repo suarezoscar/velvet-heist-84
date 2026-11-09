@@ -1,0 +1,22 @@
+{
+  "name": "prop_chair",
+  "feat": "#178",
+  "description": "Silla de madera de caoba (cobertura «chair»).",
+  "dimensions": [
+    0.5,
+    0.5,
+    1.0
+  ],
+  "pivot": "bottom_center",
+  "max_triangles": 1500,
+  "materials": [
+    "MahoganyWood"
+  ],
+  "collision": false,
+  "source": {
+    "origin": "procedural",
+    "url": "tools/blender_scripts/gen_museum_props.py",
+    "license": "propia",
+    "author": "velvet-heist-84"
+  }
+}
